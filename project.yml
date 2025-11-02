@@ -1,0 +1,24 @@
+name: WorkoutTrackerApp
+options:
+  deploymentTarget:
+    iOS: "17.0"
+  bundleIdPrefix: com.kje7713
+targets:
+  WorkoutTrackerApp:
+    type: application
+    platform: iOS
+    productName: WorkoutTrackerApp
+    bundleId: com.kje7713.WorkoutTrackerApp
+    sources:
+      - path: .
+        includes:
+          - ContentView.swift
+          - Models.swift
+          - WorkoutTrackerAppApp.swift
+    settings:
+      base:
+        INFOPLIST_FILE: Info.plist
+        SWIFT_VERSION: 5.10
+        IPHONEOS_DEPLOYMENT_TARGET: 17.0
+    scheme:
+      testTargets: []

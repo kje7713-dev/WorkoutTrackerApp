@@ -1,0 +1,52 @@
+workflows:
+  ios_testflight:
+    name: iOS TestFlight (XcodeGen)
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      vars:
+        SCHEME: "WorkoutTrackerApp"
+        BUNDLE_ID: "com.kje7713.WorkoutTrackerApp"
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen
+      - name: Generate Xcode project
+        script: |
+          xcodegen generate
+      - name: Build & archive
+        script: |
+          xcodebuild \
+            -project WorkoutTrackerApp.xcodeproj \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            clean archive \
+            CODE_SIGN_STYLE=Automatic
+      - name: Export .ipa
+        script: |
+          cat > ExportOptions.plist <<EOF2
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>compileBitcode</key><true/>
+            <key>signingStyle</key><string>automatic</string>
+          </dict>
+          </plist>
+          EOF2
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath $CM_BUILD_DIR
+    artifacts:
+      - $CM_BUILD_DIR/*.ipa
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
