@@ -1,0 +1,1 @@
+struct Exercise: Codable { var name: String; var reps: Int }
