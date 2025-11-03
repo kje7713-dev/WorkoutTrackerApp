@@ -7,6 +7,8 @@ workflows:
       vars:
         SCHEME: WorkoutTrackerApp
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
+        # Set DEVELOPMENT_TEAM in Codemagic UI -> Environment variables
+        # DEVELOPMENT_TEAM: ABCDE12345
 
     scripts:
       - name: Validate XcodeGen spec
@@ -18,7 +20,7 @@ workflows:
           fi
           head -n 30 project.yml || true
           if ! grep -qE '^[[:space:]]*name:[[:space:]]' project.yml; then
-            echo "ERROR: project.yml missing required 'name:' at top level."
+            echo "ERROR: project.yml missing required 'name:'"
             exit 3
           fi
 

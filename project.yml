@@ -28,8 +28,12 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: Info.plist
+        PRODUCT_NAME: WorkoutTrackerApp
+        PRODUCT_BUNDLE_IDENTIFIER: com.kje7713.WorkoutTrackerApp
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: $(DEVELOPMENT_TEAM)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        TARGETED_DEVICE_FAMILY: "1,2"  # iPhone, iPad
+        TARGETED_DEVICE_FAMILY: "1,2"
     scheme:
       testTargets: []
       gatherCoverageData: false
