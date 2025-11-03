@@ -7,21 +7,24 @@ workflows:
       vars:
         SCHEME: WorkoutTrackerApp
     scripts:
-      - name: Install XcodeGen (no Homebrew)
+      - name: Install XcodeGen (auto-detect path)
         script: |
           set -euxo pipefail
-          mkdir -p "$HOME/bin/xg"
-          curl -L -o "$HOME/bin/xg/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
-          unzip -o "$HOME/bin/xg/xcodegen.zip" -d "$HOME/bin/xg"
-          chmod +x "$HOME/bin/xg/bin/xcodegen"
-          ln -sf "$HOME/bin/xg/bin/xcodegen" "$HOME/bin/xcodegen"
-          export PATH="$HOME/bin/xg/bin:$HOME/bin:$PATH"
+          ROOT="$HOME/bin/xg"
+          mkdir -p "$ROOT"
+          curl -L -o "$ROOT/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
+          unzip -o "$ROOT/xcodegen.zip" -d "$ROOT"
+          BIN="$(find "$ROOT" -type f -name xcodegen | head -n 1 || true)"
+          chmod +x "$BIN"
+          DIR="$(dirname "$BIN")"
+          ln -sf "$BIN" "$HOME/bin/xcodegen"
+          export PATH="$DIR:$HOME/bin:$PATH"
           which xcodegen
           xcodegen version
       - name: Generate Xcode project
         script: |
           set -euxo pipefail
-          export PATH="$HOME/bin/xg/bin:$HOME/bin:$PATH"
+          export PATH="$HOME/bin:$PATH"
           xcodegen generate
           ls -la
       - name: Build (Debug, no signing)
@@ -38,21 +41,24 @@ workflows:
         SCHEME: WorkoutTrackerApp
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
     scripts:
-      - name: Install XcodeGen (no Homebrew)
+      - name: Install XcodeGen (auto-detect path)
         script: |
           set -euxo pipefail
-          mkdir -p "$HOME/bin/xg"
-          curl -L -o "$HOME/bin/xg/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
-          unzip -o "$HOME/bin/xg/xcodegen.zip" -d "$HOME/bin/xg"
-          chmod +x "$HOME/bin/xg/bin/xcodegen"
-          ln -sf "$HOME/bin/xg/bin/xcodegen" "$HOME/bin/xcodegen"
-          export PATH="$HOME/bin/xg/bin:$HOME/bin:$PATH"
+          ROOT="$HOME/bin/xg"
+          mkdir -p "$ROOT"
+          curl -L -o "$ROOT/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
+          unzip -o "$ROOT/xcodegen.zip" -d "$ROOT"
+          BIN="$(find "$ROOT" -type f -name xcodegen | head -n 1 || true)"
+          chmod +x "$BIN"
+          DIR="$(dirname "$BIN")"
+          ln -sf "$BIN" "$HOME/bin/xcodegen"
+          export PATH="$DIR:$HOME/bin:$PATH"
           which xcodegen
           xcodegen version
       - name: Generate Xcode project
         script: |
           set -euxo pipefail
-          export PATH="$HOME/bin/xg/bin:$HOME/bin:$PATH"
+          export PATH="$HOME/bin:$PATH"
           xcodegen generate
           ls -la
       - name: Build & archive (Release)
