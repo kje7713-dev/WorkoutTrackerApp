@@ -1,48 +1,64 @@
 workflows:
-  ios_testflight:
-    name: iOS TestFlight (Final)
-    max_build_duration: 60
+  ios_smoke_fast:
+    name: iOS Smoke (fast, no signing)
+    max_build_duration: 30
     environment:
       xcode: 16.0
       vars:
         SCHEME: WorkoutTrackerApp
-        BUNDLE_ID: com.kje7713.WorkoutTrackerApp
-
     scripts:
-      - name: Install XcodeGen (no Homebrew, robust PATH)
+      - name: Install XcodeGen (no Homebrew)
         script: |
           set -euxo pipefail
           mkdir -p "$HOME/bin/xg"
           curl -L -o "$HOME/bin/xg/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
           unzip -o "$HOME/bin/xg/xcodegen.zip" -d "$HOME/bin/xg"
-          # XcodeGen binary is inside the 'bin' dir after unzip
           chmod +x "$HOME/bin/xg/bin/xcodegen"
-          # Optional: add a shim so $HOME/bin/xcodegen works too
           ln -sf "$HOME/bin/xg/bin/xcodegen" "$HOME/bin/xcodegen"
-          # Ensure PATH contains both locations
           export PATH="$HOME/bin/xg/bin:$HOME/bin:$PATH"
           which xcodegen
           xcodegen version
-
       - name: Generate Xcode project
         script: |
           set -euxo pipefail
           export PATH="$HOME/bin/xg/bin:$HOME/bin:$PATH"
           xcodegen generate
           ls -la
-
-      - name: Build & archive
+      - name: Build (Debug, no signing)
         script: |
           set -euxo pipefail
-          xcodebuild \
-            -project WorkoutTrackerApp.xcodeproj \
-            -scheme "$SCHEME" \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            clean archive \
-            CODE_SIGN_STYLE=Automatic
+          xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -configuration Debug             -destination 'generic/platform=iOS'             ONLY_ACTIVE_ARCH=YES             CODE_SIGNING_ALLOWED=NO             build
 
+  ios_testflight:
+    name: iOS TestFlight (release upload)
+    max_build_duration: 60
+    environment:
+      xcode: 16.0
+      vars:
+        SCHEME: WorkoutTrackerApp
+        BUNDLE_ID: com.kje7713.WorkoutTrackerApp
+    scripts:
+      - name: Install XcodeGen (no Homebrew)
+        script: |
+          set -euxo pipefail
+          mkdir -p "$HOME/bin/xg"
+          curl -L -o "$HOME/bin/xg/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
+          unzip -o "$HOME/bin/xg/xcodegen.zip" -d "$HOME/bin/xg"
+          chmod +x "$HOME/bin/xg/bin/xcodegen"
+          ln -sf "$HOME/bin/xg/bin/xcodegen" "$HOME/bin/xcodegen"
+          export PATH="$HOME/bin/xg/bin:$HOME/bin:$PATH"
+          which xcodegen
+          xcodegen version
+      - name: Generate Xcode project
+        script: |
+          set -euxo pipefail
+          export PATH="$HOME/bin/xg/bin:$HOME/bin:$PATH"
+          xcodegen generate
+          ls -la
+      - name: Build & archive (Release)
+        script: |
+          set -euxo pipefail
+          xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -sdk iphoneos             -configuration Release             -archivePath "$CM_BUILD_DIR/App.xcarchive"             CODE_SIGN_STYLE=Automatic             -allowProvisioningUpdates             clean archive
       - name: Export .ipa
         script: |
           set -euxo pipefail
@@ -57,14 +73,9 @@ workflows:
           </dict>
           </plist>
           EOF
-          xcodebuild -exportArchive \
-            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath "$CM_BUILD_DIR"
-
+          xcodebuild -exportArchive             -archivePath "$CM_BUILD_DIR/App.xcarchive"             -exportOptionsPlist ExportOptions.plist             -exportPath "$CM_BUILD_DIR"
     artifacts:
       - $CM_BUILD_DIR/*.ipa
-
     publishing:
       app_store_connect:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
