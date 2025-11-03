@@ -1,6 +1,6 @@
 workflows:
   ios_testflight:
-    name: iOS TestFlight (Validated)
+    name: iOS TestFlight (Final)
     max_build_duration: 60
     environment:
       xcode: 16.0
@@ -8,7 +8,7 @@ workflows:
         SCHEME: WorkoutTrackerApp
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
     scripts:
-      - name: Install XcodeGen (fast + safe)
+      - name: Install XcodeGen (final)
         script: |
           set -e
           mkdir -p $HOME/bin
@@ -16,8 +16,7 @@ workflows:
           curl -L -o xg.zip https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip
           unzip -o xg.zip
           chmod +x xcodegen
-          echo 'export PATH="$HOME/bin:$PATH"' >> $BASH_ENV
-          source $BASH_ENV
+          export PATH="$HOME/bin:$PATH"
           echo "✅ Installed XcodeGen at $(which xcodegen)"
           xcodegen version
       - name: Generate Xcode project
