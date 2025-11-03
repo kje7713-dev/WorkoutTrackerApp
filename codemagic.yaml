@@ -1,25 +1,25 @@
 workflows:
   ios_testflight:
-    name: iOS TestFlight (Fast Setup)
+    name: iOS TestFlight (Validated)
     max_build_duration: 60
     environment:
       xcode: 16.0
       vars:
-        SCHEME: "WorkoutTrackerApp"
-        BUNDLE_ID: "com.kje7713.WorkoutTrackerApp"
+        SCHEME: WorkoutTrackerApp
+        BUNDLE_ID: com.kje7713.WorkoutTrackerApp
     scripts:
       - name: Install XcodeGen (fast + safe)
-  script: |
-    set -e
-    mkdir -p $HOME/bin
-    cd $HOME/bin
-    curl -L -o xg.zip "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
-    unzip -o xg.zip
-    chmod +x xcodegen
-    echo 'export PATH="$HOME/bin:$PATH"' >> $BASH_ENV
-    source $BASH_ENV
-    echo "✅ Installed XcodeGen at $(which xcodegen)"
-    xcodegen version
+        script: |
+          set -e
+          mkdir -p $HOME/bin
+          cd $HOME/bin
+          curl -L -o xg.zip https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip
+          unzip -o xg.zip
+          chmod +x xcodegen
+          echo 'export PATH="$HOME/bin:$PATH"' >> $BASH_ENV
+          source $BASH_ENV
+          echo "✅ Installed XcodeGen at $(which xcodegen)"
+          xcodegen version
       - name: Generate Xcode project
         script: |
           export PATH="$HOME/bin:$PATH"
@@ -28,7 +28,14 @@ workflows:
           ls -la
       - name: Build & archive
         script: |
-          xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -sdk iphoneos             -configuration Release             -archivePath $CM_BUILD_DIR/App.xcarchive             clean archive             CODE_SIGN_STYLE=Automatic
+          xcodebuild \
+            -project WorkoutTrackerApp.xcodeproj \
+            -scheme "$SCHEME" \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            clean archive \
+            CODE_SIGN_STYLE=Automatic
       - name: Export .ipa
         script: |
           cat > ExportOptions.plist <<EOF
@@ -42,7 +49,10 @@ workflows:
           </dict>
           </plist>
           EOF
-          xcodebuild -exportArchive             -archivePath $CM_BUILD_DIR/App.xcarchive             -exportOptionsPlist ExportOptions.plist             -exportPath $CM_BUILD_DIR
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/App.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath $CM_BUILD_DIR
     artifacts:
       - $CM_BUILD_DIR/*.ipa
     publishing:
