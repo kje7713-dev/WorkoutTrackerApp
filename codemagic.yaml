@@ -9,7 +9,6 @@ workflows:
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
 
     scripts:
-      # --- Guardrail: ensure project.yml exists and has a name ---
       - name: Validate XcodeGen spec
         script: |
           set -euxo pipefail
@@ -17,38 +16,32 @@ workflows:
             echo "ERROR: project.yml not found in repo root."
             exit 2
           fi
-          # Show first 30 lines for quick diagnostics
           head -n 30 project.yml || true
-          # Quick check that the required 'name' key exists
           if ! grep -qE '^[[:space:]]*name:[[:space:]]' project.yml; then
-            echo "ERROR: project.yml is missing the required 'name:' key at the top level."
+            echo "ERROR: project.yml missing required 'name:' at top level."
             exit 3
           fi
 
-      # --- Install XcodeGen (no Homebrew), auto-detect binary path ---
-      - name: Install XcodeGen (auto-detect path)
+      - name: Install XcodeGen (no Homebrew; auto-detect path)
         script: |
           set -euxo pipefail
           ROOT="$HOME/bin/xg"
           mkdir -p "$ROOT"
           curl -L -o "$ROOT/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
           unzip -o "$ROOT/xcodegen.zip" -d "$ROOT"
-          # Find the actual binary no matter how the archive is laid out
           BIN="$(find "$ROOT" -type f -name xcodegen | head -n 1 || true)"
           if [ -z "$BIN" ]; then
-            echo "ERROR: Could not find xcodegen in the unzipped contents."
+            echo "ERROR: xcodegen binary not found after unzip"
             ls -R "$ROOT" || true
             exit 4
           fi
           chmod +x "$BIN"
           DIR="$(dirname "$BIN")"
-          # Optional shim so $HOME/bin/xcodegen works too
-          ln -sf "$BIN" "$HOME/bin/xcodegen"
+          ln -sf "$BIN" "$HOME/bin/xcodegen" || true
           export PATH="$DIR:$HOME/bin:$PATH"
           which xcodegen
           xcodegen version
 
-      # --- Generate the Xcode project from project.yml ---
       - name: Generate Xcode project
         script: |
           set -euxo pipefail
@@ -57,7 +50,6 @@ workflows:
           ls -la
           test -f "WorkoutTrackerApp.xcodeproj/project.pbxproj"
 
-      # --- Build & archive (Release) ---
       - name: Build & archive
         script: |
           set -euxo pipefail
@@ -71,7 +63,6 @@ workflows:
             -allowProvisioningUpdates \
             clean archive
 
-      # --- Export IPA for App Store / TestFlight ---
       - name: Export .ipa
         script: |
           set -euxo pipefail

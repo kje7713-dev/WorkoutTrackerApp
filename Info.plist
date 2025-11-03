@@ -5,10 +5,9 @@
   <key>CFBundleName</key><string>WorkoutTrackerApp</string>
   <key>CFBundleDisplayName</key><string>WorkoutTrackerApp</string>
   <key>CFBundleIdentifier</key><string>com.kje7713.WorkoutTrackerApp</string>
-  <key>CFBundleVersion</key><string>1</string>
   <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>UILaunchScreen</key>
-  <dict/>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>UILaunchScreen</key><dict/>
   <key>UIApplicationSceneManifest</key>
   <dict>
     <key>UIApplicationSupportsMultipleScenes</key><false/>
