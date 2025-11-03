@@ -4,6 +4,8 @@ workflows:
     max_build_duration: 60
     environment:
       xcode: 16.0
+      groups:
+        - ios_config
       vars:
         SCHEME: WorkoutTrackerApp
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
