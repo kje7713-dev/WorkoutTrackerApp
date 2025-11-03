@@ -6,6 +6,7 @@ workflows:
       xcode: 16.0
       groups:
         - ios_config
+        - asc_api_key
       vars:
         SCHEME: WorkoutTrackerApp
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
