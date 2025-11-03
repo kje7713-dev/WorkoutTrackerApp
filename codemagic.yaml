@@ -1,31 +1,37 @@
 workflows:
   ios_testflight:
-    name: iOS TestFlight (XcodeGen)
+    name: iOS TestFlight (Fast Setup)
     max_build_duration: 60
     environment:
-      xcode: latest
+      xcode: 16.0
       vars:
         SCHEME: "WorkoutTrackerApp"
         BUNDLE_ID: "com.kje7713.WorkoutTrackerApp"
     scripts:
-      - name: Install XcodeGen
+      - name: Install XcodeGen (no Homebrew)
         script: |
-          brew install xcodegen
+          set -e
+          mkdir -p $HOME/bin
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            curl -L -o xg.zip "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
+            unzip -o xg.zip -d $HOME/bin
+            chmod +x $HOME/bin/xcodegen
+            echo 'export PATH="$HOME/bin:$PATH"' >> $BASH_ENV
+            source $BASH_ENV
+          fi
+          xcodegen version
       - name: Generate Xcode project
         script: |
+          export PATH="$HOME/bin:$PATH"
           xcodegen generate
+          echo "✅ Xcode project generated"
+          ls -la
       - name: Build & archive
         script: |
-          xcodebuild \
-            -project WorkoutTrackerApp.xcodeproj \
-            -scheme "$SCHEME" \
-            -configuration Release \
-            -archivePath $CM_BUILD_DIR/App.xcarchive \
-            clean archive \
-            CODE_SIGN_STYLE=Automatic
+          xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -sdk iphoneos             -configuration Release             -archivePath $CM_BUILD_DIR/App.xcarchive             clean archive             CODE_SIGN_STYLE=Automatic
       - name: Export .ipa
         script: |
-          cat > ExportOptions.plist <<EOF2
+          cat > ExportOptions.plist <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -35,11 +41,8 @@ workflows:
             <key>signingStyle</key><string>automatic</string>
           </dict>
           </plist>
-          EOF2
-          xcodebuild -exportArchive \
-            -archivePath $CM_BUILD_DIR/App.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath $CM_BUILD_DIR
+          EOF
+          xcodebuild -exportArchive             -archivePath $CM_BUILD_DIR/App.xcarchive             -exportOptionsPlist ExportOptions.plist             -exportPath $CM_BUILD_DIR
     artifacts:
       - $CM_BUILD_DIR/*.ipa
     publishing:
