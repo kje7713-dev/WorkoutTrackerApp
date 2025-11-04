@@ -3,69 +3,53 @@ workflows:
     name: iOS Smoke (Debug, no signing)
     max_build_duration: 30
     environment:
-      # Pin the Xcode version for consistency
       xcode: 16.0
       vars:
         SCHEME: WorkoutTrackerApp
+
     scripts:
       - name: Install XcodeGen
         script: |
-          # Fail immediately on any error and print commands
           set -euxo pipefail
-          # Create a directory for XcodeGen and change into it
           mkdir -p "$HOME/bin/xg"
           cd "$HOME/bin/xg"
-          # Download and unzip XcodeGen release archive
           curl -L -o xcodegen.zip "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
           unzip -o xcodegen.zip
-          # Discover the xcodegen binary location and make it executable
-          XCODEGEN_BIN=""
-          if [ -f "$HOME/bin/xg/xcodegen" ]; then
-            XCODEGEN_BIN="$HOME/bin/xg/xcodegen"
-          elif [ -f "$HOME/bin/xg/bin/xcodegen" ]; then
-            XCODEGEN_BIN="$HOME/bin/xg/bin/xcodegen"
-          else
-            XCODEGEN_BIN=$("/usr/bin/find" "$HOME/bin/xg" -type f -name xcodegen | head -n 1 || true)
-          fi
-          if [ -z "$XCODEGEN_BIN" ]; then
-            echo "❌ Could not locate xcodegen binary after unzip"
-            exit 1
-          fi
+          XCODEGEN_BIN="$(find "$HOME/bin/xg" -type f -name xcodegen | head -n 1)"
           chmod +x "$XCODEGEN_BIN"
-          # Place a shim in $HOME/bin so that `xcodegen` is on PATH
-          mkdir -p "$HOME/bin"
           ln -sf "$XCODEGEN_BIN" "$HOME/bin/xcodegen"
           export PATH="$HOME/bin:$PATH"
-          echo "✅ xcodegen installed at $(which xcodegen)"
-          # Print version to verify installation
           xcodegen version
 
       - name: Generate Xcode project
         script: |
           set -euxo pipefail
           export PATH="$HOME/bin:$PATH"
-          # Generate the Xcode project from project.yml
           xcodegen generate
-          echo "✅ Generated Xcode project"
           ls -la
 
       - name: Build (Debug, no signing)
         script: |
           set -euxo pipefail
-          # Build the project using the Debug configuration without signing
-          xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -configuration Debug             -destination 'generic/platform=iOS'             ONLY_ACTIVE_ARCH=YES             CODE_SIGNING_ALLOWED=NO             build
-          echo "✅ Debug build finished"
+          xcodebuild \
+            -project WorkoutTrackerApp.xcodeproj \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            ONLY_ACTIVE_ARCH=YES \
+            CODE_SIGNING_ALLOWED=NO \
+            build
 
   ios_testflight:
-    name: iOS TestFlight (Release build and upload)
+    name: iOS TestFlight (Release upload)
     max_build_duration: 60
     environment:
       xcode: 16.0
       vars:
         SCHEME: WorkoutTrackerApp
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
-        # Provide your Apple developer team ID here or set as an environment variable in Codemagic
-        APPLE_TEAM_ID: ${APP_STORE_TEAM_ID}
+        DEVELOPMENT_TEAM: $APP_STORE_TEAM_ID
+
     scripts:
       - name: Install XcodeGen
         script: |
@@ -74,23 +58,10 @@ workflows:
           cd "$HOME/bin/xg"
           curl -L -o xcodegen.zip "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
           unzip -o xcodegen.zip
-          XCODEGEN_BIN=""
-          if [ -f "$HOME/bin/xg/xcodegen" ]; then
-            XCODEGEN_BIN="$HOME/bin/xg/xcodegen"
-          elif [ -f "$HOME/bin/xg/bin/xcodegen" ]; then
-            XCODEGEN_BIN="$HOME/bin/xg/bin/xcodegen"
-          else
-            XCODEGEN_BIN=$("/usr/bin/find" "$HOME/bin/xg" -type f -name xcodegen | head -n 1 || true)
-          fi
-          if [ -z "$XCODEGEN_BIN" ]; then
-            echo "❌ Could not locate xcodegen binary after unzip"
-            exit 1
-          fi
+          XCODEGEN_BIN="$(find "$HOME/bin/xg" -type f -name xcodegen | head -n 1)"
           chmod +x "$XCODEGEN_BIN"
-          mkdir -p "$HOME/bin"
           ln -sf "$XCODEGEN_BIN" "$HOME/bin/xcodegen"
           export PATH="$HOME/bin:$PATH"
-          echo "✅ xcodegen installed at $(which xcodegen)"
           xcodegen version
 
       - name: Generate Xcode project
@@ -98,16 +69,20 @@ workflows:
           set -euxo pipefail
           export PATH="$HOME/bin:$PATH"
           xcodegen generate
-          echo "✅ Generated Xcode project"
           ls -la
 
-      - name: Build & archive (Release)
+      - name: Build & archive
         script: |
           set -euxo pipefail
-          export PATH="$HOME/bin:$PATH"
-          # Build and archive with Automatic code signing and specified team ID
-          xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -sdk iphoneos             -configuration Release             -archivePath "$CM_BUILD_DIR/App.xcarchive"             CODE_SIGN_STYLE=Automatic             DEVELOPMENT_TEAM="$APPLE_TEAM_ID"             -allowProvisioningUpdates             clean archive
-          echo "✅ Release archive completed"
+          xcodebuild \
+            -project WorkoutTrackerApp.xcodeproj \
+            -scheme "$SCHEME" \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_STYLE=Automatic \
+            clean archive
 
       - name: Export .ipa
         script: |
@@ -122,9 +97,11 @@ workflows:
             <key>signingStyle</key><string>automatic</string>
           </dict>
           </plist>
-EOF
-          xcodebuild -exportArchive             -archivePath "$CM_BUILD_DIR/App.xcarchive"             -exportOptionsPlist ExportOptions.plist             -exportPath "$CM_BUILD_DIR"
-          echo "✅ Exported .ipa"
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath "$CM_BUILD_DIR"
 
     artifacts:
       - $CM_BUILD_DIR/*.ipa
