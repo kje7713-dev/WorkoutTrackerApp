@@ -73,16 +73,18 @@ workflows:
 
       - name: Build & archive
         script: |
-          set -euxo pipefail
-          xcodebuild \
-            -project WorkoutTrackerApp.xcodeproj \
-            -scheme "$SCHEME" \
-            -sdk iphoneos \
-            -configuration Release \
-            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
-            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
-            CODE_SIGN_STYLE=Automatic \
-            clean archive
+        set -euxo pipefail
+        xcodebuild \
+      -project        WorkoutTrackerApp.xcodeproj \
+      -scheme "$SCHEME" \
+      -sdk iphoneos \
+      -configuration Release \
+      -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+      ENABLE_TESTABILITY=NO \
+      SWIFT_OPTIMIZATION_LEVEL=-O \
+      ALWAYS_SEARCH_USER_PATHS=NO \
+      CODE_SIGN_STYLE=Automatic \
+      clean archive
 
       - name: Export .ipa
         script: |
