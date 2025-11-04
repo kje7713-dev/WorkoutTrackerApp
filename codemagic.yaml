@@ -5,12 +5,13 @@ workflows:
     environment:
       xcode: 16.0
       groups:
-        - ios_config
-        - asc_api_key   # your App Store Connect API key group
+        - ios_config          # has DEVELOPMENT_TEAM, optional BUNDLE_ID
+        - asc_api_key         # has APP_STORE_CONNECT_* variables
       vars:
         SCHEME: WorkoutTrackerApp
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
-        DEVELOPMENT_TEAM: 3W77JDM5X2   # your actual Apple team ID
+        DEVELOPMENT_TEAM: 3W77JDM5X2
+
     scripts:
       - name: Validate XcodeGen spec
         script: |
@@ -25,16 +26,24 @@ workflows:
             exit 3
           fi
 
-      - name: Install XcodeGen (no Homebrew; auto-detect path)
+      - name: Install XcodeGen (safe)
+        script: |
+          set -e
+          echo "Installing XcodeGen from official zip..."
+          curl -Ls https://github.com/yonaskolb/XcodeGen/releases/latest/download/xcodegen.zip -o xcodegen.zip
+          unzip -qo xcodegen.zip -d /usr/local/bin
+          chmod +x /usr/local/bin/xcodegen
+          which xcodegen
+          xcodegen version
+
+      - name: Generate Xcode project
         script: |
           set -euxo pipefail
-          curl -Ls https://github.com/yonaskolb/XcodeGen/releases/latest/download/xcodegen.zip -o xcodegen.zip
-          unzip -qo xcodegen.zip -d /usr/local/bin/
-          chmod +x /usr/local/bin/xcodegen
           xcodegen generate
 
       - name: Build & archive
         script: |
+          set -euxo pipefail
           xcodebuild \
             -scheme "$SCHEME" \
             -configuration Release \
@@ -46,9 +55,40 @@ workflows:
             CODE_SIGN_STYLE=Automatic \
             -allowProvisioningUpdates
 
+      - name: Create ExportOptions.plist
+        script: |
+          cat > $CM_BUILD_DIR/ExportOptions.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>compileBitcode</key>
+            <false/>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>destination</key>
+            <string>export</string>
+          </dict>
+          </plist>
+          EOF
+
       - name: Export .ipa
         script: |
+          set -euxo pipefail
           xcodebuild -exportArchive \
             -archivePath $CM_BUILD_DIR/WorkoutTrackerApp.xcarchive \
             -exportPath $CM_BUILD_DIR/export \
-            -exportOptionsPlist ExportOptions.plist
+            -exportOptionsPlist $CM_BUILD_DIR/ExportOptions.plist
+
+    artifacts:
+      - $CM_BUILD_DIR/export/*.ipa
+      - $CM_BUILD_DIR/WorkoutTrackerApp.xcarchive
+
+    cache:
+      cache_paths:
+        - $HOME/Library/Developer/Xcode/DerivedData
+        - $HOME/Library/Caches/org.swift.swiftpm
