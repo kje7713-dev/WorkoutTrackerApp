@@ -12,7 +12,7 @@ workflows:
     
     scripts:
       - name: Install XcodeGen
-         script: |
+        script: |
           set -euxo pipefail
           mkdir -p "$HOME/bin/xg"
           cd "$HOME/bin/xg"
