@@ -2,15 +2,21 @@ workflows:
   ios_testflight:
     name: iOS TestFlight (robust)
     max_build_duration: 60
+
     environment:
       xcode: 16.0
       groups:
-        - ios_config          # has DEVELOPMENT_TEAM, optional BUNDLE_ID
-        - asc_api_key         # has APP_STORE_CONNECT_* variables
+        - ios_config          # must include: DEVELOPMENT_TEAM=3W77JDM5X2 (and optionally BUNDLE_ID)
+        - asc_api_key         # must include: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
       vars:
         SCHEME: WorkoutTrackerApp
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
         DEVELOPMENT_TEAM: 3W77JDM5X2
+
+    cache:
+      cache_paths:
+        - $HOME/Library/Developer/Xcode/DerivedData
+        - $HOME/Library/Caches/org.swift.swiftpm
 
     scripts:
       - name: Validate XcodeGen spec
@@ -18,6 +24,7 @@ workflows:
           set -euxo pipefail
           if [ ! -f project.yml ] && [ ! -f project.yaml ]; then
             echo "ERROR: project.yml not found in repo root."
+            ls -la
             exit 2
           fi
           head -n 30 project.yml || true
@@ -26,13 +33,19 @@ workflows:
             exit 3
           fi
 
-      - name: Install XcodeGen (safe)
+      - name: Install XcodeGen (safe fallback)
         script: |
-          set -e
-          echo "Installing XcodeGen from official zip..."
+          set -euxo pipefail
+          echo "Downloading XcodeGen..."
           curl -Ls https://github.com/yonaskolb/XcodeGen/releases/latest/download/xcodegen.zip -o xcodegen.zip
-          unzip -qo xcodegen.zip -d /usr/local/bin
-          chmod +x /usr/local/bin/xcodegen
+          rm -rf "$HOME/xcodegen_bin"
+          mkdir -p "$HOME/xcodegen_bin"
+          unzip -qo xcodegen.zip -d "$HOME/xcodegen_bin"
+          chmod +x "$HOME/xcodegen_bin/xcodegen"
+          # Persist PATH for subsequent steps
+          echo 'export PATH="$HOME/xcodegen_bin:$PATH"' >> $CM_ENV
+          # Also available in this step
+          export PATH="$HOME/xcodegen_bin:$PATH"
           which xcodegen
           xcodegen version
 
@@ -47,7 +60,7 @@ workflows:
           xcodebuild \
             -scheme "$SCHEME" \
             -configuration Release \
-            -archivePath $CM_BUILD_DIR/WorkoutTrackerApp.xcarchive \
+            -archivePath "$CM_BUILD_DIR/WorkoutTrackerApp.xcarchive" \
             -sdk iphoneos \
             clean archive \
             DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
@@ -57,19 +70,19 @@ workflows:
 
       - name: Create ExportOptions.plist
         script: |
-          cat > $CM_BUILD_DIR/ExportOptions.plist << 'EOF'
+          cat > "$CM_BUILD_DIR/ExportOptions.plist" << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
             <key>method</key>
             <string>app-store</string>
-            <key>compileBitcode</key>
-            <false/>
             <key>signingStyle</key>
             <string>automatic</string>
             <key>stripSwiftSymbols</key>
             <true/>
+            <key>compileBitcode</key>
+            <false/>
             <key>destination</key>
             <string>export</string>
           </dict>
@@ -80,15 +93,10 @@ workflows:
         script: |
           set -euxo pipefail
           xcodebuild -exportArchive \
-            -archivePath $CM_BUILD_DIR/WorkoutTrackerApp.xcarchive \
-            -exportPath $CM_BUILD_DIR/export \
-            -exportOptionsPlist $CM_BUILD_DIR/ExportOptions.plist
+            -archivePath "$CM_BUILD_DIR/WorkoutTrackerApp.xcarchive" \
+            -exportPath "$CM_BUILD_DIR/export" \
+            -exportOptionsPlist "$CM_BUILD_DIR/ExportOptions.plist"
 
     artifacts:
       - $CM_BUILD_DIR/export/*.ipa
       - $CM_BUILD_DIR/WorkoutTrackerApp.xcarchive
-
-    cache:
-      cache_paths:
-        - $HOME/Library/Developer/Xcode/DerivedData
-        - $HOME/Library/Caches/org.swift.swiftpm
