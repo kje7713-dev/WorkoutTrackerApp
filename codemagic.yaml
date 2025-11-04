@@ -3,15 +3,16 @@ workflows:
     name: iOS Smoke (Debug, no signing)
     max_build_duration: 30
     environment:
-  xcode: 16.0
-  groups:
-    - asc_api_key   # <-- your group name
-  vars:
-    SCHEME: WorkoutTrackerApp
-    BUNDLE_ID: com.kje7713.WorkoutTrackerApp
+      xcode: "16.0"         # <-- now properly indented and quoted
+      groups:
+        - asc_api_key
+      vars:
+        SCHEME: WorkoutTrackerApp
+        BUNDLE_ID: com.kje7713.WorkoutTrackerApp
+    
     scripts:
       - name: Install XcodeGen
-        script: |
+         script: |
           set -euxo pipefail
           mkdir -p "$HOME/bin/xg"
           cd "$HOME/bin/xg"
