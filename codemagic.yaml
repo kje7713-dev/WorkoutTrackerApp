@@ -2,6 +2,7 @@ workflows:
   ios_testflight:
     name: iOS TestFlight (Release build and upload)
     max_build_duration: 60
+
     environment:
       xcode: "16.0"
       groups:
@@ -16,16 +17,58 @@ workflows:
         script: |
           set -euxo pipefail
           echo "APPLE_TEAM_ID=${APPLE_TEAM_ID:-unset}"
-          echo "APP_STORE_CONNECT_KEY_IDENTIFIER=${APP_STORE_CONNECT_KEY_IDENTIFIER:-unset}"
-          echo "APP_STORE_CONNECT_ISSUER_ID=${APP_STORE_CONNECT_ISSUER_ID:-unset}"
-          if [ -n "${APP_STORE_CONNECT_PRIVATE_KEY}" ]; then echo "✅ Private key loaded"; else echo "❌ Private key missing"; fi
+          echo "ASC KEY ID=${APP_STORE_CONNECT_KEY_IDENTIFIER:-unset}"
+          echo "ASC ISSUER=${APP_STORE_CONNECT_ISSUER_ID:-unset}"
+          test -n "${APP_STORE_CONNECT_PRIVATE_KEY:-}" && echo "✅ ASC private key present" || (echo "❌ ASC private key MISSING"; exit 1)
 
-      - name: Automatic code signing
+      - name: Adaptive cert+profile setup (works across ASC CLI versions)
         script: |
           set -euxo pipefail
           keychain initialize
-          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+
+          # Generate key + CSR
+          openssl genrsa -out dist_private.key 2048
+          openssl req -new -key dist_private.key -subj "/CN=Apple Distribution (TEAMID $APPLE_TEAM_ID)/O=$APPLE_TEAM_ID" -out dist.csr
+
+          # Detect certificate create flag variant
+          HELP_CREATE="$(app-store-connect certificates create --help || true)"
+          if echo "$HELP_CREATE" | grep -q -- "--csr-file"; then
+            echo "Using --csr-file"
+            app-store-connect certificates create --type IOS_DISTRIBUTION --csr-file dist.csr --save
+          elif echo "$HELP_CREATE" | grep -q -- "--csr "; then
+            echo "Using --csr"
+            app-store-connect certificates create --type IOS_DISTRIBUTION --csr dist.csr --save
+          elif echo "$HELP_CREATE" | grep -q -- "--csr-content"; then
+            echo "Using --csr-content (base64 CSR)"
+            CSR_B64="$(base64 < dist.csr)"
+            app-store-connect certificates create --type IOS_DISTRIBUTION --csr-content "$CSR_B64" --save
+          else
+            echo "❌ Unknown 'certificates create' flags in ASC CLI. Help was:"
+            echo "$HELP_CREATE"
+            exit 2
+          fi
+
+          # Import generated cert + private key
+          KEYCHAIN_PATH="$(security default-keychain -d user | tr -d '\"')"
+          CERT_PATH="$(ls -1 *.cer | head -n1 || true)"
+          if [ -z "$CERT_PATH" ]; then
+            echo "❌ No .cer downloaded by ASC CLI."
+            exit 3
+          fi
+          security import dist_private.key -k "$KEYCHAIN_PATH" -P "" -T /usr/bin/codesign -A
+          security import "$CERT_PATH"    -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -A
+
+          # Detect profile fetch command variant
+          if app-store-connect profiles --help 2>/dev/null | grep -q "fetch "; then
+            echo "Using 'profiles fetch'"
+            app-store-connect profiles fetch "$BUNDLE_ID" --type IOS_APP_STORE --create
+          else
+            echo "Using legacy 'fetch-signing-files'"
+            app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+          fi
+
           keychain add-certificates
+          echo "✅ Certificates and profiles installed"
 
       - name: Install XcodeGen
         script: |
