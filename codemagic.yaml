@@ -25,27 +25,33 @@ workflows:
         script: |
           set -euxo pipefail
 
+          # 1) Initialize Codemagic keychain
           keychain initialize
 
+          # 2) Generate private key + CSR
           openssl genrsa -out dist_private.key 2048
           openssl req -new -key dist_private.key \
             -subj "/CN=Apple Distribution (TEAMID $APPLE_TEAM_ID)/O=$APPLE_TEAM_ID" \
             -out dist.csr
 
-          app-store-connect certificates add \
+          # 3) Create Distribution certificate (correct CLI syntax)
+          app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
             --csr dist.csr \
             --save
 
+          # 4) Import cert & private key into keychain
           KEYCHAIN_PATH="$(security default-keychain -d user | tr -d '\"')"
           CERT_PATH=$(ls | grep -m 1 ".cer")
           security import dist_private.key -k "$KEYCHAIN_PATH" -P "" -T /usr/bin/codesign -A
           security import "$CERT_PATH"    -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -A
 
+          # 5) Fetch or create provisioning profile
           app-store-connect profiles fetch "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
 
+          # 6) Enable certificates for signing
           keychain add-certificates
 
       - name: Install XcodeGen
