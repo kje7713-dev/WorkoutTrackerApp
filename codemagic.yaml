@@ -21,7 +21,7 @@ workflows:
           if [ -n "${APP_STORE_CONNECT_PRIVATE_KEY}" ]; then echo "APP_STORE_CONNECT_PRIVATE_KEY=<present>"; else echo "APP_STORE_CONNECT_PRIVATE_KEY=<unset>"; fi
 
       - name: Set up automatic code signing
-  script: |
+        script: |
     set -euxo pipefail
 
     # 1) Initialize Codemagic keychain
