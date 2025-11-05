@@ -23,7 +23,8 @@ workflows:
             echo "❌ ASC private key MISSING"
             exit 1
           fi
-      - name: Create and install signing cert + profile (YAML-safe, no Python)
+
+      - name: Create and install signing cert + profile (handles CSR or certificate-key variants)
         script: |
           set -euxo pipefail
           keychain initialize
@@ -32,17 +33,25 @@ workflows:
           openssl genrsa -out dist_private.key 2048
           openssl req -new -key dist_private.key -subj "/CN=Apple Distribution (TEAMID $APPLE_TEAM_ID)/O=$APPLE_TEAM_ID" -out dist.csr
 
-          # Detect which flag the current ASC CLI supports for CSR
           HELP_CREATE="$(app-store-connect certificates create --help || true)"
+
           if echo "$HELP_CREATE" | grep -q -- "--csr-file"; then
-            app-store-connect certificates create --type IOS_DISTRIBUTION --csr-file dist.csr --save
+            echo "Using: --csr-file"
+            app-store-connect certificates create               --type IOS_DISTRIBUTION               --csr-file dist.csr               --save
           elif echo "$HELP_CREATE" | grep -q -- "--csr "; then
-            app-store-connect certificates create --type IOS_DISTRIBUTION --csr dist.csr --save
+            echo "Using: --csr"
+            app-store-connect certificates create               --type IOS_DISTRIBUTION               --csr dist.csr               --save
           elif echo "$HELP_CREATE" | grep -q -- "--csr-content"; then
+            echo "Using: --csr-content"
             CSR_B64="$(base64 < dist.csr)"
-            app-store-connect certificates create --type IOS_DISTRIBUTION --csr-content "$CSR_B64" --save
+            app-store-connect certificates create               --type IOS_DISTRIBUTION               --csr-content "$CSR_B64"               --save
+          elif echo "$HELP_CREATE" | grep -q -- "--certificate-key"; then
+            echo "Using: --certificate-key"
+            # Some ASC CLI builds accept a key path via @file:
+            app-store-connect certificates create               --type IOS_DISTRIBUTION               --certificate-key @file:dist_private.key               --p12-password ""               --save
           else
             echo "❌ Unknown ASC CLI flags for 'certificates create'"
+            echo "$HELP_CREATE"
             exit 2
           fi
 
@@ -50,6 +59,7 @@ workflows:
           CERT_PATH="$(ls -1 *.cer 2>/dev/null | head -n 1 || true)"
           if [ -z "$CERT_PATH" ]; then
             echo "❌ No .cer downloaded by ASC CLI"
+            ls -la
             exit 3
           fi
           KEYCHAIN_PATH="$(security default-keychain -d user | tr -d '"')"
@@ -65,6 +75,7 @@ workflows:
 
           keychain add-certificates
           echo "✅ Certificates and profiles installed"
+
       - name: Install XcodeGen
         script: |
           set -euxo pipefail
@@ -77,15 +88,18 @@ workflows:
           ln -sf "$XCODEGEN_BIN" "$HOME/bin/xcodegen"
           export PATH="$HOME/bin:$PATH"
           xcodegen version
+
       - name: Generate Xcode project
         script: |
           set -euxo pipefail
           export PATH="$HOME/bin:$PATH"
           xcodegen generate
+
       - name: Build and archive (Release)
         script: |
           set -euxo pipefail
           xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -sdk iphoneos             -configuration Release             -archivePath "$CM_BUILD_DIR/App.xcarchive"             CODE_SIGN_STYLE=Automatic             DEVELOPMENT_TEAM="$APPLE_TEAM_ID"             -allowProvisioningUpdates             clean archive
+
       - name: Export .ipa
         script: |
           set -euxo pipefail
