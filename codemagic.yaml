@@ -20,8 +20,8 @@ workflows:
           echo "APP_STORE_CONNECT_ISSUER_ID=${APP_STORE_CONNECT_ISSUER_ID:-<unset>}"
           if [ -n "${APP_STORE_CONNECT_PRIVATE_KEY}" ]; then echo "APP_STORE_CONNECT_PRIVATE_KEY=<present>"; else echo "APP_STORE_CONNECT_PRIVATE_KEY=<unset>"; fi
 
-          - name: Set up automatic code signing
-            script: |
+    - name: Set up automatic code signing
+      script: |
         set -euxo pipefail
 
         # 1) Initialize keychain
@@ -33,25 +33,25 @@ workflows:
           -subj "/CN=Apple Distribution (TEAMID $APPLE_TEAM_ID)/O=$APPLE_TEAM_ID" \
           -out dist.csr
 
-        # 3) Create Distribution certificate
+        # 3) Create Distribution certificate using ASC API
         app-store-connect certificates create \
           --type IOS_DISTRIBUTION \
           --csr-file dist.csr \
           --save \
           --output dist_cert.cer
 
-        # 4) Import key + certificate
+        # 4) Import key + certificate to the active keychain
         KEYCHAIN_PATH="$(security default-keychain -d user | tr -d '\"')"
         security import dist_private.key -k "$KEYCHAIN_PATH" -P "" -T /usr/bin/codesign -A
         security import dist_cert.cer   -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -A
 
-        # 5) Fetch/create provisioning profiles
+        # 5) Fetch or create the provisioning profile
         app-store-connect profiles fetch "$BUNDLE_ID" \
           --type IOS_APP_STORE \
           --create
 
-        # 6) Add to keychain for codesigning
-        keychain add-certificates
+        # 6) Make the certificates available for signing
+        keychain add-certificates             
 
       - name: Install XcodeGen
         script: |
