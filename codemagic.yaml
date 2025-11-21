@@ -11,6 +11,16 @@ workflows:
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
         APPLE_TEAM_ID: 3W77JDM5X2
     scripts:
+      - name: Set up code signing
+        script: |
+          set -euxo pipefail
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
       - name: Install XcodeGen
         script: |
           set -euxo pipefail
@@ -21,29 +31,7 @@ workflows:
           set -euxo pipefail
           xcodegen generate
           
-    integrations:
-      app_store_connect: asc_api_
-
-      - name: Install XcodeGen
-        script: |
-          set -euxo pipefail
-          mkdir -p "$HOME/bin/xg"
-          cd "$HOME/bin/xg"
-          curl -L -o xcodegen.zip "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
-          unzip -o xcodegen.zip
-          XCODEGEN_BIN=$(find "$HOME/bin/xg" -type f -name xcodegen | head -n 1)
-          chmod +x "$XCODEGEN_BIN"
-          ln -sf "$XCODEGEN_BIN" "$HOME/bin/xcodegen"
-          export PATH="$HOME/bin:$PATH"
-          xcodegen version
-
-      - name: Generate Xcode project
-        script: |
-          set -euxo pipefail
-          export PATH="$HOME/bin:$PATH"
-          xcodegen generate
-
-      - name: Build and archive (Release)
+      - name: Build and archive
         script: |
           set -euxo pipefail
           xcodebuild \
@@ -56,8 +44,8 @@ workflows:
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             -allowProvisioningUpdates \
             clean archive
-
-      - name: Export .ipa
+            
+      - name: Export IPA
         script: |
           set -euxo pipefail
           cat > ExportOptions.plist <<EOF
