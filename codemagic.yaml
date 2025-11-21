@@ -24,57 +24,18 @@ workflows:
             exit 1
           fi
 
-      - name: Create and install signing cert + profile (handles CSR or certificate-key variants)
+      - name: Fetch signing files using API key
         script: |
           set -euxo pipefail
           keychain initialize
-
-          # Generate private key + CSR for Apple Distribution
-          openssl genrsa -out dist_private.key 2048
-          openssl req -new -key dist_private.key -subj "/CN=Apple Distribution (TEAMID $APPLE_TEAM_ID)/O=$APPLE_TEAM_ID" -out dist.csr
-
-          HELP_CREATE="$(app-store-connect certificates create --help || true)"
-
-          if echo "$HELP_CREATE" | grep -q -- "--csr-file"; then
-            echo "Using: --csr-file"
-            app-store-connect certificates create               --type IOS_DISTRIBUTION               --csr-file dist.csr               --save
-          elif echo "$HELP_CREATE" | grep -q -- "--csr "; then
-            echo "Using: --csr"
-            app-store-connect certificates create               --type IOS_DISTRIBUTION               --csr dist.csr               --save
-          elif echo "$HELP_CREATE" | grep -q -- "--csr-content"; then
-            echo "Using: --csr-content"
-            CSR_B64="$(base64 < dist.csr)"
-            app-store-connect certificates create               --type IOS_DISTRIBUTION               --csr-content "$CSR_B64"               --save
-          elif echo "$HELP_CREATE" | grep -q -- "--certificate-key"; then
-            echo "Using: --certificate-key"
-            # Some ASC CLI builds accept a key path via @file:
-            app-store-connect certificates create               --type IOS_DISTRIBUTION               --certificate-key @file:dist_private.key               --p12-password ""               --save
-          else
-            echo "❌ Unknown ASC CLI flags for 'certificates create'"
-            echo "$HELP_CREATE"
-            exit 2
-          fi
-
-          # Import key + certificate to keychain
-          CERT_PATH="$(ls -1 *.cer 2>/dev/null | head -n 1 || true)"
-          if [ -z "$CERT_PATH" ]; then
-            echo "❌ No .cer downloaded by ASC CLI"
-            ls -la
-            exit 3
-          fi
-          KEYCHAIN_PATH="$(security default-keychain -d user | tr -d '"')"
-          security import dist_private.key -k "$KEYCHAIN_PATH" -P "" -T /usr/bin/codesign -A
-          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -A
-
-          # Fetch or create provisioning profile (new or legacy command)
-          if app-store-connect profiles --help 2>/dev/null | grep -q "fetch "; then
-            app-store-connect profiles fetch "$BUNDLE_ID" --type IOS_APP_STORE --create
-          else
-            app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
-          fi
-
+          
+          # Use app-store-connect CLI to fetch signing files automatically
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          
           keychain add-certificates
-          echo "✅ Certificates and profiles installed"
+          echo "✅ Certificates and profiles fetched and installed"
 
       - name: Install XcodeGen
         script: |
@@ -98,15 +59,40 @@ workflows:
       - name: Build and archive (Release)
         script: |
           set -euxo pipefail
-          xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -sdk iphoneos             -configuration Release             -archivePath "$CM_BUILD_DIR/App.xcarchive"             CODE_SIGN_STYLE=Automatic             DEVELOPMENT_TEAM="$APPLE_TEAM_ID"             -allowProvisioningUpdates             clean archive
+          xcodebuild \
+            -project WorkoutTrackerApp.xcodeproj \
+            -scheme "$SCHEME" \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            -allowProvisioningUpdates \
+            clean archive
 
       - name: Export .ipa
         script: |
           set -euxo pipefail
-          printf '%s\n'             '<?xml version="1.0" encoding="UTF-8"?>'             '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'             '<plist version="1.0"><dict>'             '<key>method</key><string>app-store</string>'             '<key>signingStyle</key><string>automatic</string>'             '</dict></plist>' > ExportOptions.plist
-          xcodebuild -exportArchive             -archivePath "$CM_BUILD_DIR/App.xcarchive"             -exportOptionsPlist ExportOptions.plist             -exportPath "$CM_BUILD_DIR"
+          cat > ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+          </dict>
+          </plist>
+          EOF
+          
+          xcodebuild -exportArchive \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive" \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath "$CM_BUILD_DIR"
+            
     artifacts:
       - $CM_BUILD_DIR/*.ipa
+      
     publishing:
       app_store_connect:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
