@@ -11,31 +11,20 @@ workflows:
         BUNDLE_ID: com.kje7713.WorkoutTrackerApp
         APPLE_TEAM_ID: 3W77JDM5X2
     scripts:
-      - name: Sanity check env
-        script: |
-          set -euxo pipefail
-          echo "APPLE_TEAM_ID=${APPLE_TEAM_ID:-unset}"
-          echo "ASC KEY ID=${APP_STORE_CONNECT_KEY_IDENTIFIER:-unset}"
-          echo "ASC ISSUER=${APP_STORE_CONNECT_ISSUER_ID:-unset}"
-          if [ -n "${APP_STORE_CONNECT_PRIVATE_KEY:-}" ]; then
-            echo "✅ ASC private key present"
-          else
-            echo "❌ ASC private key MISSING"
-            exit 1
-          fi
-
-      - name: Fetch signing files using API key
+      - name: Set up code signing
         script: |
           set -euxo pipefail
           keychain initialize
           
-          # Use app-store-connect CLI to fetch signing files automatically
+          # Use Codemagic's managed code signing
+          keychain add-certificates
+          
+          # Fetch or create profiles via API
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
-          
-          keychain add-certificates
-          echo "✅ Certificates and profiles fetched and installed"
+            
+          xcode-project use-profiles
 
       - name: Install XcodeGen
         script: |
