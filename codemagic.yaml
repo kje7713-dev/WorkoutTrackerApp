@@ -16,12 +16,26 @@ workflows:
           set -euxo pipefail
           keychain initialize
           
-          # Try to create distribution certificate (will skip if exists)
+          # Generate private key and CSR
+          openssl genrsa -out distribution.key 2048
+          openssl req -new -key distribution.key \
+            -out distribution.csr \
+            -subj "/emailAddress=dev@example.com, CN=Apple Distribution, C=US"
+          
+          # Create certificate with CSR
           app-store-connect certificates create \
             --type IOS_DISTRIBUTION \
-            --save || echo "Certificate already exists or creation failed, continuing..."
+            --certificate-key @file:distribution.key \
+            --save || echo "Certificate creation failed, trying to fetch existing..."
           
-          # Fetch/create signing files
+          # Import the private key and certificate to keychain
+          CERT_FILE=$(ls *.cer 2>/dev/null | head -n 1 || echo "")
+          if [ -n "$CERT_FILE" ]; then
+            security import distribution.key -k ~/Library/Keychains/login.keychain-db -T /usr/bin/codesign -A
+            security import "$CERT_FILE" -k ~/Library/Keychains/login.keychain-db -T /usr/bin/codesign -A
+          fi
+          
+          # Fetch/create provisioning profile
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
