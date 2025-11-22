@@ -1,7 +1,7 @@
 name: iOS TestFlight Build
 
 on:
-  workflow_dispatch:  # run manually
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -14,48 +14,44 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Ruby & Bundler
-        run: |
-          brew install ruby
-          gem install bundler
+      # Use a predictable Ruby with bundler caching
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
 
-      - name: Install fastlane
-        run: |
-          bundle install || gem install fastlane
+      - name: Install XcodeGen
+        run: brew install xcodegen
 
-      - name: Decode ASC_KEY and save to file
-        run: |
-          echo "$ASC_KEY" | base64 --decode > fastlane/AuthKey.p8
-        env:
-          ASC_KEY: ${{ secrets.ASC_KEY }}
+      - name: Generate Xcode project
+        run: xcodegen generate
 
-      - name: Set up keychain
-        run: |
-          security create-keychain -p "$KEYCHAIN_PASSWORD" ios-build.keychain
-          security default-keychain -s ios-build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" ios-build.keychain
-          security set-keychain-settings -t 3600 -u ios-build.keychain
-        env:
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      - name: Install gems (fastlane)
+        run: bundle install
 
       - name: Match (fetch/create certificates)
-        run: |
-          fastlane match appstore --readonly false
+        run: bundle exec fastlane match appstore --readonly false
         env:
-          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
 
       - name: Build and upload to TestFlight
-        run: |
-          fastlane beta
+        run: bundle exec fastlane ios beta
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY: ${{ secrets.ASC_KEY }}
+
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
           APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
