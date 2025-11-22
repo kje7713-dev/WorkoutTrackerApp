@@ -3,29 +3,29 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
-    setup_ci
-
-    # Use the key file written by the workflow step
     app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
-      key_filepath: "fastlane/AuthKey.p8",
-      in_house: false
+      key_filepath: File.join(Dir.pwd, "fastlane", "AuthKey.p8")
     )
 
     match(
       type: "appstore",
       readonly: false,
-      git_url: ENV["MATCH_GIT_URL"]
+      git_url: "https://github.com/kje7713-dev/ios-certificates.git",
+      git_branch: "main",
+      username: ENV["APPLE_ID"],
+      team_id: ENV["APPLE_TEAM_ID"],
+      git_basic_authorization: Base64.strict_encode64("x-access-token:#{ENV['MATCH_GIT_TOKEN']}")
     )
 
     build_ios_app(
-      scheme: ENV["IOS_SCHEME"],
-      export_method: "app-store"
+      scheme: ENV["IOS_SCHEME"]
     )
 
     upload_to_testflight(
-      skip_waiting_for_build_processing: true
+      username: ENV["APPLE_ID"],
+      app_identifier: ENV["APP_IDENTIFIER"]
     )
   end
 end
