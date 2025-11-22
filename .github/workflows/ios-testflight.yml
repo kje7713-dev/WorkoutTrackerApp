@@ -3,7 +3,7 @@ name: iOS TestFlight
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Install Ruby & Bundler
         uses: ruby/setup-ruby@v1
@@ -22,22 +22,6 @@ jobs:
       - name: Install fastlane
         run: gem install fastlane
 
-      - name: Write App Store Connect key to file
-        env:
-          ASC_KEY: ${{ secrets.ASC_KEY }}
-        run: |
-          mkdir -p fastlane
-          printf '%s' "$ASC_KEY" | base64 --decode > fastlane/AuthKey.p8
-          ls -la fastlane/AuthKey.p8
-
-      - name: Set up keychain
-        run: |
-          security create-keychain -p "" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "" build.keychain
-          security set-keychain-settings
-        shell: bash
-
       - name: Build & Upload to TestFlight
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -45,7 +29,7 @@ jobs:
           APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
+          ASC_KEY: ${{ secrets.ASC_KEY }}            # <-- pass payload
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
         run: bundle exec fastlane beta
