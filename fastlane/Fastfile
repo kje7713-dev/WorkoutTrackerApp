@@ -6,7 +6,7 @@ platform :ios do
     app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
-      key_filepath: File.join(Dir.pwd, "fastlane", "AuthKey.p8")
+      key_filepath: "fastlane/AuthKey.p8"
     )
 
     match(
