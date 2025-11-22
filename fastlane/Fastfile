@@ -3,22 +3,25 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
-
-    # Use the .p8 that is in your repo at fastlane/AuthKey.p8
+    # App Store Connect API key from file created by GitHub Actions
     app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
       key_filepath: "./fastlane/AuthKey.p8"
     )
 
+    # Auth for match repo via personal access token
+    ENV["MATCH_GIT_BASIC_AUTHORIZATION"] = Base64.strict_encode64("x-access-token:#{ENV['MATCH_GIT_TOKEN']}")
+
     match(
       type: "appstore",
       readonly: false,
       git_url: "https://github.com/kje7713-dev/ios-certificates.git",
       git_branch: "main",
+      app_identifier: [ENV["APP_IDENTIFIER"]],
       username: ENV["APPLE_ID"],
       team_id: ENV["APPLE_TEAM_ID"],
-      git_basic_authorization: Base64.strict_encode64("x-access-token:#{ENV["MATCH_GIT_TOKEN"]}")
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
     )
 
     build_ios_app(

@@ -1,0 +1,83 @@
+workflows:
+  ios_testflight:
+    name: iOS TestFlight (Release build and upload)
+    max_build_duration: 60
+    environment:
+      xcode: "16.0"
+      groups:
+        - asc_api_key
+      vars:
+        SCHEME: WorkoutTrackerApp
+        BUNDLE_ID: com.kje7713.WorkoutTrackerApp
+        APPLE_TEAM_ID: 3W77JDM5X2
+
+    scripts:
+      - name: Sanity check env (non-secret only)
+        script: |
+          set -euxo pipefail
+          echo "APPLE_TEAM_ID=${APPLE_TEAM_ID:-<unset>}"
+          echo "APP_STORE_CONNECT_KEY_IDENTIFIER=${APP_STORE_CONNECT_KEY_IDENTIFIER:-<unset>}"
+          echo "APP_STORE_CONNECT_ISSUER_ID=${APP_STORE_CONNECT_ISSUER_ID:-<unset>}"
+          test -n "${APP_STORE_CONNECT_PRIVATE_KEY}" && echo "APP_STORE_CONNECT_PRIVATE_KEY=<present>" || echo "APP_STORE_CONNECT_PRIVATE_KEY=<unset>"
+
+      - name: Set up automatic code signing
+        script: |
+          set -euxo pipefail
+          keychain initialize
+          printf "%s" "$APP_STORE_CONNECT_PRIVATE_KEY" > asc_api_key.p8
+          app-store-connect fetch-signing-files "$BUNDLE_ID"             --type IOS_APP_STORE             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID"             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER"             --api-key @asc_api_key.p8             --create
+          keychain add-certificates
+
+      - name: Install XcodeGen
+        script: |
+          set -euxo pipefail
+          mkdir -p "$HOME/bin/xg"
+          cd "$HOME/bin/xg"
+          curl -L -o xcodegen.zip "https://github.com/yonaskolb/XcodeGen/releases/download/2.39.1/xcodegen.zip"
+          unzip -o xcodegen.zip
+          XCODEGEN_BIN=$(/usr/bin/find "$HOME/bin/xg" -type f -name xcodegen | head -n 1 || true)
+          chmod +x "$XCODEGEN_BIN"
+          mkdir -p "$HOME/bin"
+          ln -sf "$XCODEGEN_BIN" "$HOME/bin/xcodegen"
+          export PATH="$HOME/bin:$PATH"
+          xcodegen version
+
+      - name: Generate Xcode project
+        script: |
+          set -euxo pipefail
+          export PATH="$HOME/bin:$PATH"
+          xcodegen generate
+
+      - name: Build & archive (Release)
+        script: |
+          set -euxo pipefail
+          xcodebuild             -project WorkoutTrackerApp.xcodeproj             -scheme "$SCHEME"             -sdk iphoneos             -configuration Release             -archivePath "$CM_BUILD_DIR/App.xcarchive"             CODE_SIGN_STYLE=Automatic             DEVELOPMENT_TEAM="$APPLE_TEAM_ID"             -allowProvisioningUpdates             clean archive
+          echo "✅ Release archive completed"
+
+      - name: Export .ipa
+        script: |
+          set -euxo pipefail
+          cat > ExportOptions.plist <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>signingStyle</key><string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive             -archivePath "$CM_BUILD_DIR/App.xcarchive"             -exportOptionsPlist ExportOptions.plist             -exportPath "$CM_BUILD_DIR"
+          echo "✅ Exported .ipa"
+
+    artifacts:
+      - $CM_BUILD_DIR/*.ipa
+
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
