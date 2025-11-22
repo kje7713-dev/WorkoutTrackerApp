@@ -23,7 +23,7 @@ jobs:
 
     - name: Decode ASC_KEY and save to file
       run: |
-        echo "$ASC_KEY" | base64 --decode > fastlane/AuthKey.p8
+    echo "$ASC_KEY" | base64 --decode > fastlane/AuthKey.p8
       shell: bash
 
     - name: Set up keychain
