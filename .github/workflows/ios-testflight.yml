@@ -3,7 +3,7 @@ name: iOS TestFlight
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -22,16 +22,6 @@ jobs:
       - name: Install fastlane
         run: gem install fastlane
 
-      # ASC_KEY must be BASE64 of the .p8 file
-      - name: Decode ASC_KEY to fastlane/AuthKey.p8
-        shell: bash
-        run: |
-          mkdir -p fastlane
-          printf '%s' "$ASC_KEY" | base64 --decode > fastlane/AuthKey.p8
-          chmod 600 fastlane/AuthKey.p8
-        env:
-          ASC_KEY: ${{ secrets.ASC_KEY }}
-
       - name: Build & Upload to TestFlight
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -41,4 +31,4 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
-        run: bundle exec fastlane beta
+        run: bundle exec fastlane beta || fastlane beta
