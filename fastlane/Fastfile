@@ -3,10 +3,12 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
+
+    # Use the .p8 that is in your repo at fastlane/AuthKey.p8
     app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
-      key_filepath: "fastlane/AuthKey.p8"
+      key_filepath: "./fastlane/AuthKey.p8"
     )
 
     match(
@@ -16,7 +18,7 @@ platform :ios do
       git_branch: "main",
       username: ENV["APPLE_ID"],
       team_id: ENV["APPLE_TEAM_ID"],
-      git_basic_authorization: Base64.strict_encode64("x-access-token:#{ENV['MATCH_GIT_TOKEN']}")
+      git_basic_authorization: Base64.strict_encode64("x-access-token:#{ENV["MATCH_GIT_TOKEN"]}")
     )
 
     build_ios_app(
