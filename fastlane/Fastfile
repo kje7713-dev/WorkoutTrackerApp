@@ -8,11 +8,11 @@ platform :ios do
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
       key_filepath: "fastlane/AuthKey.p8",
-      duration: 1200,
+      duration: 1200, # 20 min token
       in_house: false
     )
 
-    # --- CI keychain setup (prevents prompts) ---
+    # --- CI keychain (prevents prompts) ---
     is_ci = !ENV["CI"].to_s.empty?
     keychain_name = "fastlane_tmp_keychain"
     keychain_password = ENV["MATCH_PASSWORD"] || "temp_password"
@@ -27,51 +27,53 @@ platform :ios do
     # --- Match (pull signing from ios-certificates repo) ---
     match(
       type: "appstore",
-      readonly: is_ci,
+      readonly: is_ci, # readonly on CI unless you want to create new certs there
       api_key: api_key,
       keychain_name: keychain_name,
       keychain_password: keychain_password
     )
 
-    # --- Resolve workspace/project ---
+    # --- Resolve workspace/project (ONLY ONE may be passed to build_app) ---
     workspace = ENV["IOS_WORKSPACE"].to_s.strip
     project   = ENV["IOS_PROJECT"].to_s.strip
 
-    # Normalize bad inputs:
-    # If someone passed Foo.xcodeproj/project.pbxproj, convert to Foo.xcodeproj
-    if project.end_with?("project.pbxproj")
-      project = File.dirname(project)
+    # If neither was set by env, try to find one
+    if workspace.empty? && project.empty?
+      found_workspace = Dir["**/*.xcworkspace"].first
+      found_project   = Dir["**/*.xcodeproj"].first
+
+      workspace = found_workspace.to_s
+      project   = found_project.to_s
     end
 
-    # If env vars are empty, auto-discover anywhere in repo
-    if workspace.empty? && project.empty?
-      workspace = Dir["**/*.xcworkspace"].first.to_s
-      project   = Dir["**/*.xcodeproj"].first.to_s
-    end
+    UI.message("Using workspace: #{workspace}") unless workspace.empty?
+    UI.message("Using project: #{project}") unless project.empty?
 
     if workspace.empty? && project.empty?
       UI.user_error!(
         "No .xcworkspace or .xcodeproj found anywhere in repo. " \
-        "Make sure XcodeGen ran, or set IOS_WORKSPACE / IOS_PROJECT."
+        "Make sure xcodegen ran and created one."
       )
     end
 
-    # Guard against wrong extensions
-    workspace = "" unless workspace.end_with?(".xcworkspace")
-    project   = "" unless project.end_with?(".xcodeproj")
+    build_opts = {
+      scheme: ENV["IOS_SCHEME"],
+      export_method: "app-store"
+    }
 
-    UI.message("Using workspace: #{workspace}") unless workspace.empty?
-    UI.message("Using project:   #{project}")   unless project.empty?
+    # pass ONLY one:
+    if !workspace.empty?
+      build_opts[:workspace] = workspace
+    else
+      build_opts[:project] = project
+    end
 
     # --- Build IPA ---
-    build_app(
-      scheme: ENV["IOS_SCHEME"],
-      workspace: (workspace.empty? ? nil : workspace),
-      project:   (project.empty?   ? nil : project),
-      export_method: "app-store"
-    )
+    build_app(**build_opts)
 
     # --- Upload to TestFlight ---
-    upload_to_testflight(api_key: api_key)
+    upload_to_testflight(
+      api_key: api_key
+    )
   end
 end
