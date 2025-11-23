@@ -1,17 +1,24 @@
+# Use git repo for certs/profiles
 storage_mode("git")
-git_url("https://github.com/kje7713-dev/ios-certificates.git")
+
+token = ENV["MATCH_GIT_TOKEN"]
+
+git_url(
+  token.to_s.empty? ?
+    "https://github.com/kje7713-dev/ios-certificates.git" :
+    "https://#{token}@github.com/kje7713-dev/ios-certificates.git"
+)
+
+git_branch("master")
+
 type("appstore")
 
-# your bundle id(s)
-app_identifier([ENV["APP_IDENTIFIER"]].compact)
+app_identifier([ENV["APP_IDENTIFIER"]])
 
 username(ENV["APPLE_ID"])
 team_id(ENV["APPLE_TEAM_ID"])
 
-# In CI we usually want automatic creation if missing
 readonly(false)
 
-# Optional: speed/behavior tweaks
 shallow_clone(false)
 clone_branch_directly(false)
-git_branch("master")
