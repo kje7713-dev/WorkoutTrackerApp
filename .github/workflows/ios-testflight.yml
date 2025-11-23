@@ -13,6 +13,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Show repo layout (debug)
+        shell: bash
+        run: |
+          echo "=== Repo root files ==="
+          ls -la
+          echo "=== Find workspaces/projects ==="
+          find . -maxdepth 4 -name "*.xcworkspace" -o -name "*.xcodeproj" || true
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -21,16 +29,6 @@ jobs:
 
       - name: Install gems
         run: bundle install
-
-      # You have project.yml but no .xcodeproj committed,
-      # so generate the Xcode project every CI run.
-      - name: Install XcodeGen
-        shell: bash
-        run: brew install xcodegen
-
-      - name: Generate Xcode project from project.yml
-        shell: bash
-        run: xcodegen generate
 
       - name: Write App Store Connect key to file (PEM, base64-body, or base64-PEM)
         env:
@@ -69,7 +67,7 @@ jobs:
         run: |
           echo "Checking key parses as EC P-256..."
           openssl pkey -in fastlane/AuthKey.p8 -pubout >/dev/null 2>&1 || {
-            echo "::error::OpenSSL could not parse the key (formatting problem)."
+            echo "::error::OpenSSL could not parse the key (still formatting)."
             exit 1
           }
 
@@ -77,7 +75,7 @@ jobs:
           echo "Detected curve: ${CURVE:-unknown}"
 
           if [ "$CURVE" != "prime256v1" ] && [ "$CURVE" != "secp256r1" ]; then
-            echo "::error::Key parses but is NOT P-256. Wrong key downloaded/used."
+            echo "::error::Key parses but is NOT P-256. Wrong key."
             exit 1
           fi
 
@@ -93,7 +91,6 @@ jobs:
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
-          # Optional overrides if you ever add a workspace later:
           IOS_WORKSPACE: ${{ secrets.IOS_WORKSPACE }}
           IOS_PROJECT: ${{ secrets.IOS_PROJECT }}
         run: bundle exec fastlane beta
