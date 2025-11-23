@@ -8,7 +8,7 @@ platform :ios do
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
       key_filepath: "fastlane/AuthKey.p8",
-      duration: 1200, # 20 min token
+      duration: 1200,
       in_house: false
     )
 
@@ -27,21 +27,25 @@ platform :ios do
     # --- Match (pull signing from ios-certificates repo) ---
     match(
       type: "appstore",
-      readonly: is_ci, # readonly on CI unless you want to create new certs there
+      readonly: is_ci,
       api_key: api_key,
       keychain_name: keychain_name,
       keychain_password: keychain_password
     )
 
-    # --- Resolve workspace/project (ONLY ONE may be passed to build_app) ---
+    # --- Resolve workspace/project (ONLY ONE may be passed) ---
     workspace = ENV["IOS_WORKSPACE"].to_s.strip
     project   = ENV["IOS_PROJECT"].to_s.strip
 
-    # If neither was set by env, try to find one
-    if workspace.empty? && project.empty?
-      found_workspace = Dir["**/*.xcworkspace"].first
-      found_project   = Dir["**/*.xcodeproj"].first
+    # Ignore the internal workspace inside .xcodeproj
+    if workspace.include?(".xcodeproj/project.xcworkspace")
+      UI.message("Ignoring internal project.xcworkspace; using project instead.")
+      workspace = ""
+    end
 
+    if workspace.empty? && project.empty?
+      found_workspace = Dir["**/*.xcworkspace"].reject { |p| p.include?(".xcodeproj/") }.first
+      found_project   = Dir["**/*.xcodeproj"].first
       workspace = found_workspace.to_s
       project   = found_project.to_s
     end
@@ -50,18 +54,26 @@ platform :ios do
     UI.message("Using project: #{project}") unless project.empty?
 
     if workspace.empty? && project.empty?
-      UI.user_error!(
-        "No .xcworkspace or .xcodeproj found anywhere in repo. " \
-        "Make sure xcodegen ran and created one."
-      )
+      UI.user_error!("No .xcworkspace or .xcodeproj found after xcodegen.")
     end
+
+    app_id = ENV["APP_IDENTIFIER"]
+    profile_name = "match AppStore #{app_id}"
 
     build_opts = {
       scheme: ENV["IOS_SCHEME"],
-      export_method: "app-store"
+      configuration: "Release",
+      export_method: "app-store",
+      clean: true,
+
+      # Force archive signing to distribution + match profile
+      xcargs: [
+        "CODE_SIGN_STYLE=Manual",
+        "CODE_SIGN_IDENTITY='Apple Distribution'",
+        "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
+      ].join(" ")
     }
 
-    # pass ONLY one:
     if !workspace.empty?
       build_opts[:workspace] = workspace
     else
@@ -72,8 +84,6 @@ platform :ios do
     build_app(**build_opts)
 
     # --- Upload to TestFlight ---
-    upload_to_testflight(
-      api_key: api_key
-    )
+    upload_to_testflight(api_key: api_key)
   end
 end
