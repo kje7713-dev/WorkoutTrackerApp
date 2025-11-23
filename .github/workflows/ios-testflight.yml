@@ -121,3 +121,18 @@ jobs:
           IOS_WORKSPACE: ${{ env.IOS_WORKSPACE }}
           IOS_PROJECT: ${{ env.IOS_PROJECT }}
         run: bundle exec fastlane beta
+
+      # --- Upload logs/artifacts if the build fails ---
+      - name: Upload logs (only on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-logs
+          path: |
+            ~/Library/Logs/gym/**/*.log
+            ~/Library/Logs/DiagnosticReports/**
+            fastlane/**/*.log
+            fastlane/**/report.xml
+            **/*.xcresult
+            **/*.xcarchive/Logs/**
+          if-no-files-found: warn
