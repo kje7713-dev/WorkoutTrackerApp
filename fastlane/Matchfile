@@ -1,6 +1,5 @@
+git_url("https://github.com/<YOUR_ORG_OR_USER>/ios-certificates.git")
 storage_mode("git")
-git_url("https://#{ENV['MATCH_GIT_TOKEN']}@github.com/kje7713-dev/ios-certificates.git")
-git_branch("master")
 
 type("appstore")
 
@@ -8,9 +7,4 @@ app_identifier([ENV["APP_IDENTIFIER"]])
 username(ENV["APPLE_ID"])
 team_id(ENV["APPLE_TEAM_ID"])
 
-# CI will set readonly via Fastfile, but having a default doesn't hurt
-readonly(false)
-
-# Where match should install certs/profiles
-keychain_name("fastlane_tmp_keychain")
-keychain_password(ENV["MATCH_PASSWORD"])
+readonly(true)
