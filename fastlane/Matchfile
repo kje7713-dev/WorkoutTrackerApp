@@ -1,18 +1,16 @@
 storage_mode("git")
-
-# Use token-in-URL auth for CI
-git_url(
-  ENV["MATCH_GIT_URL"] ||
-  "https://#{ENV['MATCH_GIT_TOKEN']}@github.com/kje7713-dev/ios-certificates.git"
-)
-
+git_url("https://#{ENV['MATCH_GIT_TOKEN']}@github.com/kje7713-dev/ios-certificates.git")
 git_branch("master")
+
 type("appstore")
 
 app_identifier([ENV["APP_IDENTIFIER"]])
 username(ENV["APPLE_ID"])
 team_id(ENV["APPLE_TEAM_ID"])
 
-shallow_clone(false)
-clone_branch_directly(false)
+# CI will set readonly via Fastfile, but having a default doesn't hurt
 readonly(false)
+
+# Where match should install certs/profiles
+keychain_name("fastlane_tmp_keychain")
+keychain_password(ENV["MATCH_PASSWORD"])
