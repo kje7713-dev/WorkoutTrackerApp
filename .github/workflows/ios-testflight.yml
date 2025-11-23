@@ -17,7 +17,6 @@ jobs:
           submodules: recursive
           lfs: true
 
-      # Debug BEFORE generation
       - name: Debug project files (before XcodeGen)
         shell: bash
         run: |
@@ -31,7 +30,6 @@ jobs:
           find . -maxdepth 8 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
           echo "===== DONE DEBUG (pre-gen) ====="
 
-      # ✅ Generate the Xcode project from project.yml
       - name: Install XcodeGen
         shell: bash
         run: |
@@ -44,20 +42,19 @@ jobs:
           echo "===== Running XcodeGen ====="
           xcodegen generate
 
-      # Debug AFTER generation + export IOS_PROJECT for Fastlane
-      - name: Debug project files (after XcodeGen)
+      - name: Debug + export project paths (after XcodeGen)
         shell: bash
         run: |
           echo "===== SEARCHING FOR XCODE PROJECTS (post-gen) ====="
           find . -maxdepth 8 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
 
-          PROJECT="$(ls *.xcodeproj 2>/dev/null | head -n 1 || true)"
-          WORKSPACE="$(ls *.xcworkspace 2>/dev/null | head -n 1 || true)"
+          PROJECT="$(find . -maxdepth 8 -name '*.xcodeproj' | head -n 1 || true)"
+          WORKSPACE="$(find . -maxdepth 8 -name '*.xcworkspace' | head -n 1 || true)"
 
           echo "Detected project: $PROJECT"
           echo "Detected workspace: $WORKSPACE"
 
-          # Export for later steps + Fastfile
+          # Export for Fastlane
           echo "IOS_PROJECT=$PROJECT" >> $GITHUB_ENV
           echo "IOS_WORKSPACE=$WORKSPACE" >> $GITHUB_ENV
 
