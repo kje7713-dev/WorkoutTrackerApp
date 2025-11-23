@@ -115,9 +115,9 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}   # ← this is the fix we wanted
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
           IOS_WORKSPACE: ${{ env.IOS_WORKSPACE }}
           IOS_PROJECT: ${{ env.IOS_PROJECT }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-    run: bundle exec fastlane beta
+        run: bundle exec fastlane beta
