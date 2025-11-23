@@ -20,7 +20,7 @@ platform :ios do
       end
 
     #############################################
-    # 🆕 CREATE TEMP KEYCHAIN FOR MATCH ON CI
+    # CREATE TEMP KEYCHAIN FOR MATCH ON CI
     #############################################
     keychain_path = "/Users/runner/Library/Keychains/fastlane_tmp.keychain-db"
     keychain_password = ENV["MATCH_PASSWORD"]
@@ -31,10 +31,8 @@ platform :ios do
       security list-keychains -s "#{keychain_path}" $(security list-keychains | sed 's/[",]//g')
       security unlock-keychain -p "#{keychain_password}" "#{keychain_path}"
     CMD
-    ENV["KEYCHAIN_PATH"] = keychain_path
     #############################################
 
-    # Pull signing from your ios-certificates repo
     match(
       type: "appstore",
       readonly: readonly,
@@ -43,11 +41,33 @@ platform :ios do
       keychain_password: keychain_password
     )
 
-    # Auto-detect project/workspace
-    workspace = Dir["*.xcworkspace"].first
-    project   = Dir["*.xcodeproj"].first
+    #############################################
+    # FIND PROJECT / WORKSPACE RECURSIVELY
+    #############################################
 
-    UI.user_error!("No .xcworkspace or .xcodeproj found at repo root") unless workspace || project
+    # Allow explicit override if you want:
+    workspace_override = ENV["IOS_WORKSPACE"]
+    project_override   = ENV["IOS_PROJECT"]
+
+    # Otherwise search the repo
+    workspace_candidates = Dir["**/*.xcworkspace"]
+      .reject { |p| p.include?("/Pods/") || p.include?("/Carthage/") }
+
+    project_candidates = Dir["**/*.xcodeproj"]
+      .reject { |p| p.include?("/Pods/") || p.include?("/Carthage/") }
+
+    workspace = workspace_override || workspace_candidates.first
+    project   = project_override   || project_candidates.first
+
+    UI.message("Workspace candidates: #{workspace_candidates}")
+    UI.message("Project candidates: #{project_candidates}")
+    UI.message("Using workspace: #{workspace}") if workspace
+    UI.message("Using project: #{project}") if project
+
+    UI.user_error!(
+      "No .xcworkspace or .xcodeproj found anywhere in repo. " \
+      "Set IOS_WORKSPACE or IOS_PROJECT in secrets/env to point to it."
+    ) unless workspace || project
 
     build_app(
       workspace: workspace,
