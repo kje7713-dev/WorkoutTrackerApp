@@ -22,16 +22,28 @@ jobs:
       - name: Install gems
         run: bundle install
 
-      - name: Write App Store Connect key to file
+      - name: Write App Store Connect key to file (accept PEM or base64)
         env:
           ASC_KEY: ${{ secrets.ASC_KEY }}
+        shell: bash
         run: |
           mkdir -p fastlane
-          {
-            echo "-----BEGIN PRIVATE KEY-----"
-            echo "$ASC_KEY" | fold -w 64
-            echo "-----END PRIVATE KEY-----"
-          } > fastlane/AuthKey.p8
+
+          # Normalize line endings
+          RAW="$(printf '%s' "$ASC_KEY" | tr -d '\r')"
+
+          if echo "$RAW" | grep -q "BEGIN PRIVATE KEY"; then
+            # Secret already PEM-formatted -> write as-is
+            printf '%s\n' "$RAW" > fastlane/AuthKey.p8
+          else
+            # Secret is base64 body -> sanitize + wrap
+            CLEAN_KEY="$(echo "$RAW" | tr -d '\n\t ' )"
+            {
+              echo "-----BEGIN PRIVATE KEY-----"
+              echo "$CLEAN_KEY" | fold -w 64
+              echo "-----END PRIVATE KEY-----"
+            } > fastlane/AuthKey.p8
+          fi
 
       - name: Build & Upload to TestFlight
         env:
