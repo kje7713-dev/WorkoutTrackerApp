@@ -1,6 +1,9 @@
-git_url(ENV["MATCH_GIT_URL"])
 storage_mode("git")
+git_url("https://github.com/kje7713-dev/ios-certificates.git")
+
 type("appstore")
+readonly(false)
+
 app_identifier([ENV["APP_IDENTIFIER"]])
 username(ENV["APPLE_ID"])
 team_id(ENV["APPLE_TEAM_ID"])
