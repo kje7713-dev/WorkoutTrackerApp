@@ -12,51 +12,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: recursive
-          lfs: true
-
-      - name: Debug project files (before XcodeGen)
-        shell: bash
-        run: |
-          echo "===== REPO ROOT ====="
-          pwd
-          echo ""
-          echo "===== TOP LEVEL FILES ====="
-          ls -la
-          echo ""
-          echo "===== SEARCHING FOR XCODE PROJECTS (pre-gen) ====="
-          find . -maxdepth 8 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
-          echo "===== DONE DEBUG (pre-gen) ====="
-
-      - name: Install XcodeGen
-        shell: bash
-        run: |
-          brew update
-          brew install xcodegen
-
-      - name: Generate Xcode project (XcodeGen)
-        shell: bash
-        run: |
-          echo "===== Running XcodeGen ====="
-          xcodegen generate
-
-      - name: Debug + export project paths (after XcodeGen)
-        shell: bash
-        run: |
-          echo "===== SEARCHING FOR XCODE PROJECTS (post-gen) ====="
-          find . -maxdepth 8 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
-
-          PROJECT="$(find . -maxdepth 8 -name '*.xcodeproj' | head -n 1 || true)"
-          WORKSPACE="$(find . -maxdepth 8 -name '*.xcworkspace' | head -n 1 || true)"
-
-          echo "Detected project: $PROJECT"
-          echo "Detected workspace: $WORKSPACE"
-
-          # Export for Fastlane
-          echo "IOS_PROJECT=$PROJECT" >> $GITHUB_ENV
-          echo "IOS_WORKSPACE=$WORKSPACE" >> $GITHUB_ENV
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -67,6 +22,45 @@ jobs:
       - name: Install gems
         run: bundle install
 
+      # --- Generate Xcode project from project.yml (XcodeGen) ---
+      - name: Install XcodeGen
+        shell: bash
+        run: |
+          brew update
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        shell: bash
+        run: |
+          echo "Running xcodegen..."
+          xcodegen generate
+          echo "Done generating."
+
+      # --- Discover workspace/project and export to env for Fastlane ---
+      - name: Detect .xcworkspace / .xcodeproj
+        shell: bash
+        run: |
+          echo "===== SEARCHING FOR XCODE PROJECTS ====="
+          find . -maxdepth 5 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
+
+          # Prefer workspace if it exists, else project
+          WORKSPACE="$(find . -maxdepth 5 -name "*.xcworkspace" | head -n 1 | sed 's|^\./||')"
+          PROJECT="$(find . -maxdepth 5 -name "*.xcodeproj" | head -n 1 | sed 's|^\./||')"
+
+          if [ -n "$WORKSPACE" ]; then
+            echo "Detected workspace: $WORKSPACE"
+            echo "IOS_WORKSPACE=$WORKSPACE" >> $GITHUB_ENV
+          fi
+
+          if [ -n "$PROJECT" ]; then
+            echo "Detected project: $PROJECT"
+            echo "IOS_PROJECT=$PROJECT" >> $GITHUB_ENV
+          fi
+
+          echo "Final env:"
+          echo "IOS_WORKSPACE=${WORKSPACE:-}"
+          echo "IOS_PROJECT=${PROJECT:-}"
+
       - name: Write App Store Connect key to file (PEM, base64-body, or base64-PEM)
         env:
           ASC_KEY: ${{ secrets.ASC_KEY }}
@@ -74,17 +68,23 @@ jobs:
         run: |
           mkdir -p fastlane
 
+          # Normalize CRLF -> LF only
           RAW="$(printf '%s' "$ASC_KEY" | tr -d '\r')"
 
           if echo "$RAW" | grep -q "BEGIN PRIVATE KEY"; then
+            # Case 1: Secret is already PEM
             printf '%s\n' "$RAW" > fastlane/AuthKey.p8
           else
+            # Remove whitespace for further checks
             STRIPPED="$(echo "$RAW" | tr -d '\n\t ' )"
+
+            # Case 2: Secret is base64 of a PEM file (starts with LS0tLS1...)
             DECODED="$(echo "$STRIPPED" | base64 --decode 2>/dev/null || true)"
 
             if echo "$DECODED" | grep -q "BEGIN PRIVATE KEY"; then
               printf '%s\n' "$DECODED" > fastlane/AuthKey.p8
             else
+              # Case 3: Secret is raw base64 body (MIGT...)
               {
                 echo "-----BEGIN PRIVATE KEY-----"
                 echo "$STRIPPED" | fold -w 64
@@ -122,6 +122,7 @@ jobs:
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
+          # These get set automatically by Detect step if found:
           IOS_WORKSPACE: ${{ env.IOS_WORKSPACE }}
           IOS_PROJECT: ${{ env.IOS_PROJECT }}
         run: bundle exec fastlane beta
