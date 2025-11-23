@@ -12,6 +12,25 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          lfs: true
+
+      # 🔎 NEW: dump repo + locate any Xcode projects/workspaces
+      - name: Debug project files (show me what CI sees)
+        shell: bash
+        run: |
+          echo "===== REPO ROOT ====="
+          pwd
+          echo ""
+          echo "===== TOP LEVEL FILES ====="
+          ls -la
+          echo ""
+          echo "===== SEARCHING FOR XCODE PROJECTS ====="
+          find . -maxdepth 8 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
+          echo ""
+          echo "===== DONE DEBUG ====="
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -60,8 +79,6 @@ jobs:
           echo "Checking key parses as EC P-256..."
           openssl pkey -in fastlane/AuthKey.p8 -pubout >/dev/null 2>&1 || {
             echo "::error::OpenSSL could not parse the key (still formatting)."
-            echo "==== AuthKey.p8 dump ===="
-            cat fastlane/AuthKey.p8
             exit 1
           }
 
@@ -75,14 +92,6 @@ jobs:
 
           echo "Key syntax OK."
 
-      - name: Debug project files
-        shell: bash
-        run: |
-          echo "=== Tree (top 4 levels) ==="
-          find . -maxdepth 4 -print
-          echo "=== Xcode workspaces/projects (depth 6) ==="
-          find . -maxdepth 6 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
-
       - name: Build & Upload to TestFlight
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -93,7 +102,6 @@ jobs:
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
-          # OPTIONAL but recommended if your project isn't at repo root:
           IOS_WORKSPACE: ${{ secrets.IOS_WORKSPACE }}
           IOS_PROJECT: ${{ secrets.IOS_PROJECT }}
         run: bundle exec fastlane beta
