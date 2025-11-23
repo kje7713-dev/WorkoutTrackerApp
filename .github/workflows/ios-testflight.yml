@@ -45,6 +45,26 @@ jobs:
             } > fastlane/AuthKey.p8
           fi
 
+      - name: Validate ASC key file (syntax vs creds)
+        shell: bash
+        run: |
+          echo "Checking key parses as EC P-256..."
+          openssl pkey -in fastlane/AuthKey.p8 -pubout >/dev/null 2>&1 || {
+            echo "::error::Key file is NOT valid PEM/EC. This is a formatting/syntax problem."
+            exit 1
+          }
+
+          CURVE="$(openssl pkey -in fastlane/AuthKey.p8 -text -noout 2>/dev/null | grep 'ASN1 OID' | awk '{print $3}')"
+          echo "Detected curve: ${CURVE:-unknown}"
+
+          if [ "$CURVE" != "prime256v1" ] && [ "$CURVE" != "secp256r1" ]; then
+            echo "::error::Key parses but is NOT P-256. Wrong key downloaded/used."
+            exit 1
+          fi
+
+          echo "Key syntax is good and curve is correct."
+          echo "If fastlane still fails after this, it's a credential mismatch (wrong key_id/issuer_id/team)."
+
       - name: Build & Upload to TestFlight
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
