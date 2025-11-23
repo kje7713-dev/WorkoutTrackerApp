@@ -2,27 +2,20 @@
 # fastlane/Matchfile
 # ============================
 
-# Store certs/profiles in a Git repo
 storage_mode("git")
 
-# Use your private repo with token authentication
-git_url("https://${MATCH_GIT_TOKEN}@github.com/kje7713-dev/ios-certificates.git")
+# IMPORTANT: use Ruby interpolation + ENV[]
+git_url("https://#{ENV['MATCH_GIT_TOKEN']}@github.com/kje7713-dev/ios-certificates.git")
 
-# Type of cert/profile to sync
 type("appstore")
-
-# Match should *not* be readonly in CI (since you're generating new certs)
 readonly(false)
 
-# App identifier and Apple account
 app_identifier([ENV["APP_IDENTIFIER"]])
 username(ENV["APPLE_ID"])
 team_id(ENV["APPLE_TEAM_ID"])
 
-# Optional defaults — but safe to leave them
 git_branch("master")
 shallow_clone(false)
 clone_branch_directly(false)
-skip_google_cloud_account_confirmation(false)
 skip_docs(false)
 verbose(false)
