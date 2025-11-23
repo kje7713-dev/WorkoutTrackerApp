@@ -28,6 +28,7 @@ platform :ios do
     match(
       type: "appstore",
       readonly: true,
+      git_url: ENV["MATCH_GIT_URL"],  # ✅ ADDED: where match repo lives
       git_basic_authorization: Base64.strict_encode64("x-access-token:#{ENV['MATCH_GIT_TOKEN']}"),
       keychain_name: keychain_name,
       keychain_password: keychain_password,
