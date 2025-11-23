@@ -27,16 +27,23 @@ platform :ios do
     # --- Match (pull signing from ios-certificates repo) ---
     match(
       type: "appstore",
-      readonly: is_ci, # CI should read existing certs; local can create
+      readonly: is_ci,
       api_key: api_key,
       keychain_name: keychain_name,
       keychain_password: keychain_password
     )
 
     # --- Resolve workspace/project ---
-    workspace = ENV["IOS_WORKSPACE"].to_s
-    project   = ENV["IOS_PROJECT"].to_s
+    workspace = ENV["IOS_WORKSPACE"].to_s.strip
+    project   = ENV["IOS_PROJECT"].to_s.strip
 
+    # Normalize bad inputs:
+    # If someone passed Foo.xcodeproj/project.pbxproj, convert to Foo.xcodeproj
+    if project.end_with?("project.pbxproj")
+      project = File.dirname(project)
+    end
+
+    # If env vars are empty, auto-discover anywhere in repo
     if workspace.empty? && project.empty?
       workspace = Dir["**/*.xcworkspace"].first.to_s
       project   = Dir["**/*.xcodeproj"].first.to_s
@@ -48,6 +55,10 @@ platform :ios do
         "Make sure XcodeGen ran, or set IOS_WORKSPACE / IOS_PROJECT."
       )
     end
+
+    # Guard against wrong extensions
+    workspace = "" unless workspace.end_with?(".xcworkspace")
+    project   = "" unless project.end_with?(".xcodeproj")
 
     UI.message("Using workspace: #{workspace}") unless workspace.empty?
     UI.message("Using project:   #{project}")   unless project.empty?
@@ -61,8 +72,6 @@ platform :ios do
     )
 
     # --- Upload to TestFlight ---
-    upload_to_testflight(
-      api_key: api_key
-    )
+    upload_to_testflight(api_key: api_key)
   end
 end
