@@ -43,7 +43,6 @@ jobs:
           echo "===== SEARCHING FOR XCODE PROJECTS ====="
           find . -maxdepth 5 \( -name "*.xcworkspace" -o -name "*.xcodeproj" \) -print || true
 
-          # Ignore any workspace inside an .xcodeproj (like project.xcworkspace)
           WORKSPACE="$(find . -maxdepth 5 -name "*.xcworkspace" ! -path "*/.xcodeproj/*" | head -n 1 | sed 's|^\./||')"
           PROJECT="$(find . -maxdepth 5 -name "*.xcodeproj" | head -n 1 | sed 's|^\./||')"
 
@@ -103,9 +102,18 @@ jobs:
           if [ "$CURVE" != "prime256v1" ] && [ "$CURVE" != "secp256r1" ]; then
             echo "::error::Key parses but is NOT P-256. Wrong key."
             exit 1
-          fi
+          }
 
           echo "Key syntax OK."
+
+      # ---------- NEW: Make log folders so we can always upload ----------
+      - name: Prepare log folders
+        shell: bash
+        run: |
+          mkdir -p ci_logs
+          mkdir -p ~/Library/Logs/gym
+          mkdir -p ~/Library/Logs/fastlane
+          echo "Log folders ready."
 
       - name: Build & Upload to TestFlight
         env:
@@ -115,9 +123,44 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
-          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}   # ← this is the fix we wanted
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
           IOS_WORKSPACE: ${{ env.IOS_WORKSPACE }}
           IOS_PROJECT: ${{ env.IOS_PROJECT }}
-        run: bundle exec fastlane beta
+        shell: bash
+        run: |
+          set -o pipefail
+          bundle exec fastlane beta 2>&1 | tee ci_logs/fastlane_output.log
+
+      # ---------- NEW: If failure happens, print the last useful bits ----------
+      - name: Failure summary (tail logs)
+        if: failure()
+        shell: bash
+        run: |
+          echo "================= FASTLANE OUTPUT (last 200 lines) ================="
+          tail -n 200 ci_logs/fastlane_output.log || true
+          echo ""
+          echo "================= GYM LOGS (last 200 lines each) ==================="
+          for f in ~/Library/Logs/gym/*.log; do
+            echo "----- $f -----"
+            tail -n 200 "$f" || true
+            echo ""
+          done
+          echo "================= FASTLANE LOGS (last 200 lines each) =============="
+          for f in ~/Library/Logs/fastlane/*.log; do
+            echo "----- $f -----"
+            tail -n 200 "$f" || true
+            echo ""
+          done
+
+      # ---------- NEW: Always upload logs as artifact ----------
+      - name: Upload build logs artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-logs
+          path: |
+            ci_logs/fastlane_output.log
+            ~/Library/Logs/gym
+            ~/Library/Logs/fastlane
