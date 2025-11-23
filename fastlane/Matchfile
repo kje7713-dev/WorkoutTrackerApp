@@ -1,9 +1,17 @@
 storage_mode("git")
 type("appstore")
 
-git_url("https://github.com/kje7713-dev/ios-certificates.git")
+# IMPORTANT: Matchfile is Ruby. This expands env vars correctly.
+git_url("https://#{ENV['MATCH_GIT_TOKEN']}@github.com/kje7713-dev/ios-certificates.git")
 git_branch("master")
 
-app_identifier([ENV["APP_IDENTIFIER"]].compact)
+app_identifier([ENV["APP_IDENTIFIER"]])
 username(ENV["APPLE_ID"])
 team_id(ENV["APPLE_TEAM_ID"])
+
+# Use temp keychain on CI
+keychain_name("fastlane_tmp_keychain")
+keychain_password(ENV["MATCH_PASSWORD"])
+
+# You already have certs/profiles now, so CI can be readonly by default.
+readonly(true)
