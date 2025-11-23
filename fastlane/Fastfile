@@ -3,26 +3,48 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
+    # App Store Connect API key from file created by GitHub Actions
     api_key = app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
-      key_filepath: "fastlane/AuthKey.p8"
+      key_filepath: "fastlane/AuthKey.p8",
+      in_house: false
     )
 
+    is_ci = ENV["CI"] == "true"
+    readonly =
+      if ENV.key?("MATCH_READONLY")
+        ENV["MATCH_READONLY"].to_s.downcase == "true"
+      else
+        is_ci
+      end
+
+    # Pull signing from your ios-certificates repo
     match(
       type: "appstore",
-      readonly: false, # allow creation until repo has certs
-      git_url: "https://#{ENV['MATCH_GIT_TOKEN']}@github.com/kje7713-dev/ios-certificates.git",
-      app_identifier: [ENV["APP_IDENTIFIER"]].compact,
-      username: ENV["APPLE_ID"],
-      team_id: ENV["APPLE_TEAM_ID"]
+      readonly: readonly,
+      api_key: api_key,
+      keychain_name: "fastlane_tmp_keychain",
+      keychain_password: ENV["MATCH_PASSWORD"]
     )
+
+    # Auto-detect project/workspace so CI never prompts
+    workspace = Dir["*.xcworkspace"].first
+    project   = Dir["*.xcodeproj"].first
+
+    UI.user_error!("No .xcworkspace or .xcodeproj found at repo root") unless workspace || project
 
     build_app(
+      workspace: workspace,   # nil ok if using project instead
+      project: project,       # nil ok if using workspace instead
       scheme: ENV["IOS_SCHEME"],
-      export_method: "app-store"
+      export_method: "app-store",
+      clean: true
     )
 
-    upload_to_testflight(api_key: api_key)
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
   end
 end
