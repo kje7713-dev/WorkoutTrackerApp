@@ -45,25 +45,43 @@ jobs:
             } > fastlane/AuthKey.p8
           fi
 
-      - name: Validate ASC key file (syntax vs creds)
+      - name: DUMP AuthKey.p8 + raw secret (UNSAFE DEBUG)
+        env:
+          ASC_KEY: ${{ secrets.ASC_KEY }}
         shell: bash
         run: |
-          echo "Checking key parses as EC P-256..."
-          openssl pkey -in fastlane/AuthKey.p8 -pubout >/dev/null 2>&1 || {
-            echo "::error::Key file is NOT valid PEM/EC. This is a formatting/syntax problem."
-            exit 1
-          }
+          echo "==== RAW ASC_KEY SECRET (exact) ===="
+          printf '%s\n' "$ASC_KEY"
+          echo "==== END RAW ASC_KEY SECRET ===="
 
-          CURVE="$(openssl pkey -in fastlane/AuthKey.p8 -text -noout 2>/dev/null | grep 'ASN1 OID' | awk '{print $3}')"
-          echo "Detected curve: ${CURVE:-unknown}"
+          echo "==== AuthKey.p8 FILE (exact) ===="
+          cat fastlane/AuthKey.p8
+          echo "==== END AuthKey.p8 FILE ===="
 
-          if [ "$CURVE" != "prime256v1" ] && [ "$CURVE" != "secp256r1" ]; then
-            echo "::error::Key parses but is NOT P-256. Wrong key downloaded/used."
+          echo "==== Diagnostics ===="
+          echo "File bytes: $(wc -c < fastlane/AuthKey.p8 | tr -d ' ')"
+          echo "Line count: $(wc -l < fastlane/AuthKey.p8 | tr -d ' ')"
+          echo "Has BEGIN line?: $(grep -c 'BEGIN PRIVATE KEY' fastlane/AuthKey.p8 || true)"
+          echo "Has END line?:   $(grep -c 'END PRIVATE KEY' fastlane/AuthKey.p8 || true)"
+
+          BODY="$(sed -e '1{/BEGIN PRIVATE KEY/d;}' -e '${/END PRIVATE KEY/d;}' fastlane/AuthKey.p8 | tr -d '\n\r ')"
+          echo "Body length (chars): ${#BODY}"
+          BAD_COUNT="$(echo "$BODY" | tr -d 'A-Za-z0-9+/=' | wc -c | tr -d ' ')"
+          echo "Non-base64 char count: $BAD_COUNT"
+          echo "SHA256 of file: $(shasum -a 256 fastlane/AuthKey.p8 | awk '{print $1}')"
+
+          echo "==== OpenSSL parse output ===="
+          set +e
+          openssl pkey -in fastlane/AuthKey.p8 -text -noout
+          STATUS=$?
+          set -e
+          echo "OpenSSL exit code: $STATUS"
+          echo "==== End Diagnostics ===="
+
+          if [ $STATUS -ne 0 ]; then
+            echo "::error::OpenSSL could not parse the key. Formatting/syntax problem (see full dump above)."
             exit 1
           fi
-
-          echo "Key syntax is good and curve is correct."
-          echo "If fastlane still fails after this, it's a credential mismatch (wrong key_id/issuer_id/team)."
 
       - name: Build & Upload to TestFlight
         env:
