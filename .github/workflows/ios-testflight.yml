@@ -22,13 +22,16 @@ jobs:
       - name: Install gems
         run: bundle install
 
-      # -------------------------------
-      # Write ASC key to fastlane/AuthKey.p8
-      # Accepts:
-      #  1) PEM directly (-----BEGIN PRIVATE KEY----- ...)
-      #  2) base64 body only (MIGT... no header/footer)
-      #  3) base64 of PEM (LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0t...)
-      # -------------------------------
+      # You have project.yml but no .xcodeproj committed,
+      # so generate the Xcode project every CI run.
+      - name: Install XcodeGen
+        shell: bash
+        run: brew install xcodegen
+
+      - name: Generate Xcode project from project.yml
+        shell: bash
+        run: xcodegen generate
+
       - name: Write App Store Connect key to file (PEM, base64-body, or base64-PEM)
         env:
           ASC_KEY: ${{ secrets.ASC_KEY }}
@@ -66,7 +69,7 @@ jobs:
         run: |
           echo "Checking key parses as EC P-256..."
           openssl pkey -in fastlane/AuthKey.p8 -pubout >/dev/null 2>&1 || {
-            echo "::error::OpenSSL could not parse the key (still formatting)."
+            echo "::error::OpenSSL could not parse the key (formatting problem)."
             exit 1
           }
 
@@ -74,38 +77,12 @@ jobs:
           echo "Detected curve: ${CURVE:-unknown}"
 
           if [ "$CURVE" != "prime256v1" ] && [ "$CURVE" != "secp256r1" ]; then
-            echo "::error::Key parses but is NOT P-256. Wrong key."
+            echo "::error::Key parses but is NOT P-256. Wrong key downloaded/used."
             exit 1
           fi
 
           echo "Key syntax OK."
 
-      # -------------------------------
-      # XcodeGen section (you NEED this)
-      # because your repo only has project.yml
-      # -------------------------------
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate Xcode project
-        run: xcodegen generate
-
-      - name: Verify Xcode project/workspace exists
-        shell: bash
-        run: |
-          echo "Repo tree after XcodeGen:"
-          ls -la
-          echo "Searching for .xcodeproj / .xcworkspace..."
-          find . -maxdepth 3 -name "*.xcodeproj" -o -name "*.xcworkspace" || true
-
-          if ! find . -maxdepth 3 -name "*.xcodeproj" -o -name "*.xcworkspace" | grep -q .; then
-            echo "::error::No .xcodeproj or .xcworkspace found after XcodeGen."
-            exit 1
-          fi
-
-      # -------------------------------
-      # Build & upload via fastlane beta lane
-      # -------------------------------
       - name: Build & Upload to TestFlight
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -116,7 +93,7 @@ jobs:
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
-          # Optional overrides if Fastfile supports them:
+          # Optional overrides if you ever add a workspace later:
           IOS_WORKSPACE: ${{ secrets.IOS_WORKSPACE }}
           IOS_PROJECT: ${{ secrets.IOS_PROJECT }}
         run: bundle exec fastlane beta
