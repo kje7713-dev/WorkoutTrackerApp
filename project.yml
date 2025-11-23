@@ -4,20 +4,27 @@ options:
   bundleIdPrefix: com.kje7713
   deploymentTarget:
     iOS: "15.0"
-  xcodeVersion: "16.4"
 
 targets:
   WorkoutTrackerApp:
     type: application
     platform: iOS
     bundleId: com.kje7713.WorkoutTrackerApp
+    sources:
+      - path: .
+        excludes:
+          - vendor/**
+          - fastlane/**
+          - Gemfile
+          - Gemfile.lock
+          - project.yml
+          - README.md
+          - "*.rb"
     info:
       path: Info.plist
       properties:
         CFBundleDisplayName: WorkoutTrackerApp
         UILaunchScreen: {}
-    sources:
-      - path: .
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.kje7713.WorkoutTrackerApp
