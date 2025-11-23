@@ -1,5 +1,3 @@
-require "base64"
-
 default_platform(:ios)
 
 platform :ios do
@@ -20,73 +18,36 @@ platform :ios do
     keychain_password = ENV["MATCH_PASSWORD"] || "temp_password"
 
     if is_ci
-      UI.message("CI detected, creating temporary keychain #{keychain_name}...")
       sh("security create-keychain -p '#{keychain_password}' #{keychain_name}")
       sh("security default-keychain -s #{keychain_name}")
       sh("security unlock-keychain -p '#{keychain_password}' #{keychain_name}")
       sh("security set-keychain-settings -lut 21600 #{keychain_name}")
-    else
-      UI.message("Not CI, using login.keychain.")
     end
 
     # --- Match (pull signing from ios-certificates repo) ---
-    # Build git_basic_authorization if token is present
-    token = ENV["MATCH_GIT_TOKEN"].to_s.strip
-    git_basic_auth =
-      if token.empty?
-        nil
-      else
-        Base64.strict_encode64("#{token}:x-oauth-basic")
-      end
+    # Allow creating certs/profiles on CI if needed
+    readonly = false
 
-    match_options = {
+    match(
       type: "appstore",
-      api_key: api_key,
-      readonly: (ENV["MATCH_READONLY"].to_s.downcase == "true")
-    }
-
-    if git_basic_auth
-      match_options[:git_basic_authorization] = git_basic_auth
-    end
-
-    if is_ci
-      match_options[:keychain_name] = keychain_name
-      match_options[:keychain_password] = keychain_password
-    end
-
-    UI.message("Running match with options: #{match_options.keys}")
-    match(**match_options)
+      readonly: readonly,
+      api_key: api_key
+    )
 
     # --- Locate workspace/project ---
     workspace = ENV["IOS_WORKSPACE"].to_s.strip
     project   = ENV["IOS_PROJECT"].to_s.strip
 
-    # If user supplied a path without extension, try to resolve
-    if !workspace.empty? && !workspace.end_with?(".xcworkspace")
-      candidate = "#{workspace}.xcworkspace"
-      workspace = candidate if File.exist?(candidate)
-    end
+    # If user accidentally set workspace to a non-workspace, ignore it
+    workspace = "" unless workspace.end_with?(".xcworkspace")
+    project   = "" unless project.end_with?(".xcodeproj")
 
-    if !project.empty? && !project.end_with?(".xcodeproj")
-      candidate = "#{project}.xcodeproj"
-      project = candidate if File.exist?(candidate)
-    end
-
-    # Auto-detect if nothing provided
-    if workspace.empty? && project.empty?
+    # Auto-detect if not provided
+    if workspace.empty?
       workspace = Dir["**/*.xcworkspace"].first.to_s
-      project   = Dir["**/*.xcodeproj"].first.to_s
     end
-
-    UI.message("Detected workspace: #{workspace}") unless workspace.empty?
-    UI.message("Detected project: #{project}")     unless project.empty?
-
-    # Validate presence + extension correctness
-    unless workspace.empty? || workspace.end_with?(".xcworkspace")
-      UI.user_error!("Workspace file is not a workspace, must end with .xcworkspace")
-    end
-    unless project.empty? || project.end_with?(".xcodeproj")
-      UI.user_error!("Project file is not a project, must end with .xcodeproj")
+    if project.empty?
+      project = Dir["**/*.xcodeproj"].first.to_s
     end
 
     if workspace.empty? && project.empty?
@@ -96,15 +57,20 @@ platform :ios do
       )
     end
 
-    # --- Build app ---
+    UI.message("Using workspace: #{workspace}") unless workspace.empty?
+    UI.message("Using project: #{project}") unless project.empty?
+
+    # --- Build ---
     build_app(
       scheme: ENV["IOS_SCHEME"],
-      workspace: (workspace.empty? ? nil : workspace),
-      project: (project.empty? ? nil : project),
-      export_method: "app-store"
+      workspace: workspace.empty? ? nil : workspace,
+      project: project.empty? ? nil : project,
+      export_method: "app-store",
+      clean: true,
+      output_directory: "build"
     )
 
-    # --- Upload to TestFlight ---
+    # --- Upload ---
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true
