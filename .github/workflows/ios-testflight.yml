@@ -119,4 +119,5 @@ jobs:
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
           IOS_WORKSPACE: ${{ env.IOS_WORKSPACE }}
           IOS_PROJECT: ${{ env.IOS_PROJECT }}
-        run: bundle exec fastlane beta
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+    run: bundle exec fastlane beta
