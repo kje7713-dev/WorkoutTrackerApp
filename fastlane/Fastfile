@@ -8,11 +8,11 @@ platform :ios do
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
       key_filepath: "fastlane/AuthKey.p8",
-      duration: 1200, # 20 min token
+      duration: 1200,
       in_house: false
     )
 
-    # --- CI keychain (prevents prompts) ---
+    # --- CI keychain setup (prevents prompts) ---
     is_ci = !ENV["CI"].to_s.empty?
     keychain_name = "fastlane_tmp_keychain"
     keychain_password = ENV["MATCH_PASSWORD"] || "temp_password"
@@ -25,55 +25,44 @@ platform :ios do
     end
 
     # --- Match (pull signing from ios-certificates repo) ---
-    # Allow creating certs/profiles on CI if needed
-    readonly = false
-
     match(
       type: "appstore",
-      readonly: readonly,
-      api_key: api_key
+      readonly: is_ci, # CI should read existing certs; local can create
+      api_key: api_key,
+      keychain_name: keychain_name,
+      keychain_password: keychain_password
     )
 
-    # --- Locate workspace/project ---
-    workspace = ENV["IOS_WORKSPACE"].to_s.strip
-    project   = ENV["IOS_PROJECT"].to_s.strip
+    # --- Resolve workspace/project ---
+    workspace = ENV["IOS_WORKSPACE"].to_s
+    project   = ENV["IOS_PROJECT"].to_s
 
-    # If user accidentally set workspace to a non-workspace, ignore it
-    workspace = "" unless workspace.end_with?(".xcworkspace")
-    project   = "" unless project.end_with?(".xcodeproj")
-
-    # Auto-detect if not provided
-    if workspace.empty?
+    if workspace.empty? && project.empty?
       workspace = Dir["**/*.xcworkspace"].first.to_s
-    end
-    if project.empty?
-      project = Dir["**/*.xcodeproj"].first.to_s
+      project   = Dir["**/*.xcodeproj"].first.to_s
     end
 
     if workspace.empty? && project.empty?
       UI.user_error!(
         "No .xcworkspace or .xcodeproj found anywhere in repo. " \
-        "Set IOS_WORKSPACE or IOS_PROJECT in secrets/env to point to it."
+        "Make sure XcodeGen ran, or set IOS_WORKSPACE / IOS_PROJECT."
       )
     end
 
     UI.message("Using workspace: #{workspace}") unless workspace.empty?
-    UI.message("Using project: #{project}") unless project.empty?
+    UI.message("Using project:   #{project}")   unless project.empty?
 
-    # --- Build ---
+    # --- Build IPA ---
     build_app(
       scheme: ENV["IOS_SCHEME"],
-      workspace: workspace.empty? ? nil : workspace,
-      project: project.empty? ? nil : project,
-      export_method: "app-store",
-      clean: true,
-      output_directory: "build"
+      workspace: (workspace.empty? ? nil : workspace),
+      project:   (project.empty?   ? nil : project),
+      export_method: "app-store"
     )
 
-    # --- Upload ---
+    # --- Upload to TestFlight ---
     upload_to_testflight(
-      api_key: api_key,
-      skip_waiting_for_build_processing: true
+      api_key: api_key
     )
   end
 end
