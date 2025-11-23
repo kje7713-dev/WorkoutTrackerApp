@@ -11,16 +11,27 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install Ruby & Bundler
+      - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.2"
           bundler-cache: true
 
-      - name: Install fastlane
-        run: gem install fastlane
+      - name: Install gems
+        run: bundle install
+
+      - name: Write App Store Connect key to file
+        env:
+          ASC_KEY: ${{ secrets.ASC_KEY }}
+        run: |
+          mkdir -p fastlane
+          {
+            echo "-----BEGIN PRIVATE KEY-----"
+            echo "$ASC_KEY" | fold -w 64
+            echo "-----END PRIVATE KEY-----"
+          } > fastlane/AuthKey.p8
 
       - name: Build & Upload to TestFlight
         env:
@@ -29,7 +40,7 @@ jobs:
           APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_KEY: ${{ secrets.ASC_KEY }}            # <-- pass payload
           MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           IOS_SCHEME: ${{ secrets.IOS_SCHEME }}
         run: bundle exec fastlane beta
