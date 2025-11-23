@@ -19,24 +19,39 @@ platform :ios do
         is_ci
       end
 
+    #############################################
+    # 🆕 CREATE TEMP KEYCHAIN FOR MATCH ON CI
+    #############################################
+    keychain_path = "/Users/runner/Library/Keychains/fastlane_tmp.keychain-db"
+    keychain_password = ENV["MATCH_PASSWORD"]
+
+    sh <<~CMD
+      security create-keychain -p "#{keychain_password}" "#{keychain_path}"
+      security set-keychain-settings -lut 21600 "#{keychain_path}"
+      security list-keychains -s "#{keychain_path}" $(security list-keychains | sed 's/[",]//g')
+      security unlock-keychain -p "#{keychain_password}" "#{keychain_path}"
+    CMD
+    ENV["KEYCHAIN_PATH"] = keychain_path
+    #############################################
+
     # Pull signing from your ios-certificates repo
     match(
       type: "appstore",
       readonly: readonly,
       api_key: api_key,
-      keychain_name: "fastlane_tmp_keychain",
-      keychain_password: ENV["MATCH_PASSWORD"]
+      keychain_name: keychain_path,
+      keychain_password: keychain_password
     )
 
-    # Auto-detect project/workspace so CI never prompts
+    # Auto-detect project/workspace
     workspace = Dir["*.xcworkspace"].first
     project   = Dir["*.xcodeproj"].first
 
     UI.user_error!("No .xcworkspace or .xcodeproj found at repo root") unless workspace || project
 
     build_app(
-      workspace: workspace,   # nil ok if using project instead
-      project: project,       # nil ok if using workspace instead
+      workspace: workspace,
+      project: project,
       scheme: ENV["IOS_SCHEME"],
       export_method: "app-store",
       clean: true
