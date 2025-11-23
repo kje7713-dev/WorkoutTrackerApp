@@ -13,6 +13,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+
+      - name: Debug project files
+        shell: bash
+        run: |
+          echo "=== Tree (top 4 levels) ==="
+          find . -maxdepth 4 -print
+          echo "=== Xcode workspaces/projects ==="
+          find . -maxdepth 6 -name "*.xcworkspace" -o -name "*.xcodeproj" || true
+
       - name: Show repo layout (debug)
         shell: bash
         run: |
