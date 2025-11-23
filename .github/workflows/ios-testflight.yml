@@ -102,11 +102,11 @@ jobs:
           if [ "$CURVE" != "prime256v1" ] && [ "$CURVE" != "secp256r1" ]; then
             echo "::error::Key parses but is NOT P-256. Wrong key."
             exit 1
-          }
+          fi
 
           echo "Key syntax OK."
 
-      # ---------- NEW: Make log folders so we can always upload ----------
+      # ---------- Make log folders so we can always upload ----------
       - name: Prepare log folders
         shell: bash
         run: |
@@ -133,7 +133,7 @@ jobs:
           set -o pipefail
           bundle exec fastlane beta 2>&1 | tee ci_logs/fastlane_output.log
 
-      # ---------- NEW: If failure happens, print the last useful bits ----------
+      # ---------- If failure happens, print the last useful bits ----------
       - name: Failure summary (tail logs)
         if: failure()
         shell: bash
@@ -154,7 +154,7 @@ jobs:
             echo ""
           done
 
-      # ---------- NEW: Always upload logs as artifact ----------
+      # ---------- Always upload logs as artifact ----------
       - name: Upload build logs artifact
         if: always()
         uses: actions/upload-artifact@v4
