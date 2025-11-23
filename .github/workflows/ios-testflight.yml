@@ -22,44 +22,56 @@ jobs:
       - name: Install gems
         run: bundle install
 
-      - name: Write App Store Connect key to file (accept PEM or base64 body)
+      - name: Write App Store Connect key to file (PEM, base64-body, or base64-PEM)
         env:
           ASC_KEY: ${{ secrets.ASC_KEY }}
         shell: bash
         run: |
           mkdir -p fastlane
 
-          # Normalize line endings
+          # Normalize CRLF -> LF only
           RAW="$(printf '%s' "$ASC_KEY" | tr -d '\r')"
 
           if echo "$RAW" | grep -q "BEGIN PRIVATE KEY"; then
-            # Secret already PEM-formatted -> write as-is
+            # Case 1: Secret is already PEM
             printf '%s\n' "$RAW" > fastlane/AuthKey.p8
           else
-            # Secret is base64 body -> sanitize + wrap
-            CLEAN_KEY="$(echo "$RAW" | tr -d '\n\t ' )"
-            {
-              echo "-----BEGIN PRIVATE KEY-----"
-              echo "$CLEAN_KEY" | fold -w 64
-              echo "-----END PRIVATE KEY-----"
-            } > fastlane/AuthKey.p8
+            # Remove whitespace for further checks
+            STRIPPED="$(echo "$RAW" | tr -d '\n\t ' )"
+
+            # Case 2: Secret is base64 of a PEM file (starts with LS0tLS1...)
+            DECODED="$(echo "$STRIPPED" | base64 --decode 2>/dev/null || true)"
+
+            if echo "$DECODED" | grep -q "BEGIN PRIVATE KEY"; then
+              printf '%s\n' "$DECODED" > fastlane/AuthKey.p8
+            else
+              # Case 3: Secret is raw base64 body (MIGT...)
+              {
+                echo "-----BEGIN PRIVATE KEY-----"
+                echo "$STRIPPED" | fold -w 64
+                echo "-----END PRIVATE KEY-----"
+              } > fastlane/AuthKey.p8
+            fi
           fi
 
-      - name: Validate ASC key parses
+      - name: Validate ASC key file (syntax)
         shell: bash
         run: |
-          openssl pkey -in fastlane/AuthKey.p8 -pubout >/dev/null
+          echo "Checking key parses as EC P-256..."
+          openssl pkey -in fastlane/AuthKey.p8 -pubout >/dev/null 2>&1 || {
+            echo "::error::OpenSSL could not parse the key (still formatting)."
+            exit 1
+          }
 
-      - name: Create/Sync signing certificates & profiles (first run)
-        env:
-          MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APP_IDENTIFIER: ${{ secrets.APP_IDENTIFIER }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-        run: bundle exec fastlane match appstore --force --verbose
+          CURVE="$(openssl pkey -in fastlane/AuthKey.p8 -text -noout 2>/dev/null | grep 'ASN1 OID' | awk '{print $3}')"
+          echo "Detected curve: ${CURVE:-unknown}"
+
+          if [ "$CURVE" != "prime256v1" ] && [ "$CURVE" != "secp256r1" ]; then
+            echo "::error::Key parses but is NOT P-256. Wrong key."
+            exit 1
+          fi
+
+          echo "Key syntax OK."
 
       - name: Build & Upload to TestFlight
         env:
