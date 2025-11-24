@@ -7,7 +7,6 @@ options:
 
 settings:
   base:
-    # 👇 THIS FIXES YOUR ERROR (Fastlane reads it after xcodegen)
     DEVELOPMENT_TEAM: ${APPLE_TEAM_ID}
     CODE_SIGN_STYLE: Manual
 
@@ -15,8 +14,26 @@ targets:
   YourAppName:
     type: application
     platform: iOS
+
+    # 🔥 FIXED: prevent XcodeGen from including the entire repo
     sources:
       - path: .
+        includes:
+          - "*.swift"
+          - "Assets.xcassets"
+          - "Info.plist"
+        excludes:
+          - "fastlane/**"
+          - "ci_logs/**"
+          - "vendor/**"
+          - ".git/**"
+          - ".github/**"
+          - "*.md"
+          - "*.rb"
+          - "*.yml"
+          - "Gemfile*"
+          - "AuthKey*.p8"
+
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ${APP_IDENTIFIER}
