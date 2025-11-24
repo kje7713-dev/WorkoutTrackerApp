@@ -4,9 +4,8 @@ platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
     require "fileutils"
-    require "base64"
 
-    # ---------- errors-only log ----------
+    # ---------- NEW: errors-only log ----------
     errors_dir = "ci_logs"
     errors_log = File.join(errors_dir, "errors_only.log")
     FileUtils.mkdir_p(errors_dir)
@@ -49,24 +48,16 @@ platform :ios do
         team_id: ENV["APPLE_TEAM_ID"]
       )
 
-      # -------------------------------------------------------
-      # NEW: Ensure Xcode project is generated from project.yml
-      # -------------------------------------------------------
-      # GitHub Actions macOS runners already have brew, but this
-      # works locally too (no-op if already installed).
-      sh("brew install xcodegen || true")
-      sh("xcodegen generate")
-
-      scheme = ENV["IOS_SCHEME"] || "YourAppName"
+      scheme = ENV["IOS_SCHEME"]
 
       # Prefer detected workspace, else project
       workspace = ENV["IOS_WORKSPACE"].to_s
       project   = ENV["IOS_PROJECT"].to_s
 
-      # Fallback to generated project if env vars not set
-      if workspace.empty? && project.empty?
-        project = "YourAppName.xcodeproj"
-      end
+      # >>> ADDED: Generate Xcode project using your project.yml
+      sh("brew install xcodegen || true")
+      sh("xcodegen generate")
+      # >>> END ADD
 
       build_opts = {
         scheme: scheme,
@@ -74,7 +65,7 @@ platform :ios do
         clean: true,
         silent: false,
 
-        # ensures export has the same team
+        # <<< ADDED — ensures export has the same team
         export_team_id: ENV["APPLE_TEAM_ID"],
 
         export_options: {
@@ -82,7 +73,7 @@ platform :ios do
             ENV["APP_IDENTIFIER"] => "match AppStore #{ENV['APP_IDENTIFIER']}"
           },
 
-          # required for signing at export stage
+          # <<< ADDED — required for signing at export stage
           teamID: ENV["APPLE_TEAM_ID"]
         },
 
@@ -92,8 +83,9 @@ platform :ios do
           "CODE_SIGN_IDENTITY='Apple Distribution'",
           "PROVISIONING_PROFILE_SPECIFIER='match AppStore #{ENV['APP_IDENTIFIER']}'",
 
-          # NEW: force launch screen key into final Info.plist
+          # >>> ADDED: Force launch storyboard into built Info.plist
           "INFOPLIST_KEY_UILaunchStoryboardName=LaunchScreen"
+          # >>> END ADD
         ].join(" ")
       }
 
@@ -110,7 +102,7 @@ platform :ios do
       upload_to_testflight(api_key: api_key)
 
     rescue => e
-      # ---------- write tight failure summary ----------
+      # ---------- NEW: write tight failure summary ----------
       append_err(errors_log, "========= FASTLANE FAILURE =========")
       append_err(errors_log, "Time: #{Time.now.utc}")
       append_err(errors_log, "Message: #{e.class}: #{e.message}")
