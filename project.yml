@@ -15,7 +15,6 @@ targets:
     type: application
     platform: iOS
 
-    # 🔥 FIXED: prevent XcodeGen from including the entire repo
     sources:
       - path: .
         includes:
@@ -37,5 +36,6 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ${APP_IDENTIFIER}
+        INFOPLIST_FILE: Info.plist          # <-- REQUIRED FIX
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "Apple Distribution"
