@@ -2,15 +2,51 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>WorkoutTrackerApp</string>
-  <key>CFBundleDisplayName</key><string>WorkoutTrackerApp</string>
-  <key>CFBundleIdentifier</key><string>com.kje7713.WorkoutTrackerApp</string>
-  <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>CFBundleVersion</key><string>1</string>
-  <key>UILaunchScreen</key><dict/>
+  <key>CFBundleName</key>
+  <string>WorkoutTrackerApp</string>
+
+  <key>CFBundleDisplayName</key>
+  <string>WorkoutTrackerApp</string>
+
+  <key>CFBundleIdentifier</key>
+  <string>com.kje7713.WorkoutTrackerApp</string>
+
+  <key>CFBundleShortVersionString</key>
+  <string>1.0</string>
+
+  <key>CFBundleVersion</key>
+  <string>1</string>
+
+  <!-- Keep SwiftUI-style launch screen dictionary -->
+  <key>UILaunchScreen</key>
+  <dict/>
+
+  <!-- REQUIRED by App Store validation -->
+  <key>UILaunchStoryboardName</key>
+  <string>LaunchScreen</string>
+
+  <!-- Option B: allow all orientations on iPhone -->
+  <key>UISupportedInterfaceOrientations</key>
+  <array>
+    <string>UIInterfaceOrientationPortrait</string>
+    <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    <string>UIInterfaceOrientationLandscapeLeft</string>
+    <string>UIInterfaceOrientationLandscapeRight</string>
+  </array>
+
+  <!-- Option B: allow all orientations on iPad -->
+  <key>UISupportedInterfaceOrientations~ipad</key>
+  <array>
+    <string>UIInterfaceOrientationPortrait</string>
+    <string>UIInterfaceOrientationPortraitUpsideDown</string>
+    <string>UIInterfaceOrientationLandscapeLeft</string>
+    <string>UIInterfaceOrientationLandscapeRight</string>
+  </array>
+
   <key>UIApplicationSceneManifest</key>
   <dict>
-    <key>UIApplicationSupportsMultipleScenes</key><false/>
+    <key>UIApplicationSupportsMultipleScenes</key>
+    <false/>
   </dict>
 </dict>
 </plist>
