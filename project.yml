@@ -20,6 +20,9 @@ targets:
       properties:
         CFBundleIdentifier: ${APP_IDENTIFIER}
 
+        # ✅ REQUIRED — ensures launch screen key is in the generated Info.plist
+        UILaunchStoryboardName: LaunchScreen
+
         # ✅ LOCK ORIENTATIONS so XcodeGen can't strip them
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -38,7 +41,6 @@ targets:
         includes:
           - "*.swift"
           - "Assets.xcassets"
-          - "LaunchScreen.storyboard"   # ✅ ADDED
         excludes:
           - "fastlane/**"
           - "ci_logs/**"
@@ -50,6 +52,12 @@ targets:
           - "*.yml"
           - "Gemfile*"
           - "AuthKey*.p8"
+
+    # ✅ NEW — LaunchScreen.storyboard must be a RESOURCE (not a source)
+    resources:
+      - path: .
+        includes:
+          - "LaunchScreen.storyboard"
 
     settings:
       base:
