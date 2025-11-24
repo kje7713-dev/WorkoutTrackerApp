@@ -15,11 +15,23 @@ targets:
     type: application
     platform: iOS
 
-    # ✅ NEW: Proper Info.plist assignment (fixes Invalid Bundle: no executable)
     info:
       path: Info.plist
       properties:
         CFBundleIdentifier: ${APP_IDENTIFIER}
+
+        # ✅ LOCK ORIENTATIONS so XcodeGen can't strip them
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
 
     sources:
       - path: .
