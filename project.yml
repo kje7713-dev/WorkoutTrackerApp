@@ -15,12 +15,17 @@ targets:
     type: application
     platform: iOS
 
+    # ✅ NEW: Proper Info.plist assignment (fixes Invalid Bundle: no executable)
+    info:
+      path: Info.plist
+      properties:
+        CFBundleIdentifier: ${APP_IDENTIFIER}
+
     sources:
       - path: .
         includes:
           - "*.swift"
           - "Assets.xcassets"
-          - "Info.plist"
         excludes:
           - "fastlane/**"
           - "ci_logs/**"
@@ -36,6 +41,6 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ${APP_IDENTIFIER}
-        INFOPLIST_FILE: Info.plist          # <-- REQUIRED FIX
+        INFOPLIST_FILE: Info.plist
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "Apple Distribution"
