@@ -38,6 +38,7 @@ targets:
         includes:
           - "*.swift"
           - "Assets.xcassets"
+          - "LaunchScreen.storyboard"   # ✅ ADDED: ensures launch screen is bundled
         excludes:
           - "fastlane/**"
           - "ci_logs/**"
