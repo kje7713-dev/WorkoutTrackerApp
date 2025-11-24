@@ -53,15 +53,20 @@ targets:
           - "Gemfile*"
           - "AuthKey*.p8"
 
-    # ✅ NEW — LaunchScreen.storyboard must be a RESOURCE (not a source)
+    # ✅ Storyboards must be RESOURCES, and use a glob so location never breaks packaging
     resources:
       - path: .
         includes:
-          - "LaunchScreen.storyboard"
+          - "**/LaunchScreen.storyboard"
+          - "**/*.storyboard"
 
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ${APP_IDENTIFIER}
         INFOPLIST_FILE: Info.plist
+
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "Apple Distribution"
+
+        # (Optional but safe) If you ever add extensions, keep team consistent
+        DEVELOPMENT_TEAM: ${APPLE_TEAM_ID}
