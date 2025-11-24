@@ -17,15 +17,11 @@
   <key>CFBundleVersion</key>
   <string>1</string>
 
-  <!-- Keep SwiftUI-style launch screen dictionary -->
-  <key>UILaunchScreen</key>
-  <dict/>
-
-  <!-- REQUIRED by App Store validation -->
+  <!-- REQUIRED: storyboard launch screen -->
   <key>UILaunchStoryboardName</key>
   <string>LaunchScreen</string>
 
-  <!-- Option B: allow all orientations on iPhone -->
+  <!-- iPhone orientations -->
   <key>UISupportedInterfaceOrientations</key>
   <array>
     <string>UIInterfaceOrientationPortrait</string>
@@ -34,7 +30,7 @@
     <string>UIInterfaceOrientationLandscapeRight</string>
   </array>
 
-  <!-- Option B: allow all orientations on iPad -->
+  <!-- iPad orientations -->
   <key>UISupportedInterfaceOrientations~ipad</key>
   <array>
     <string>UIInterfaceOrientationPortrait</string>
