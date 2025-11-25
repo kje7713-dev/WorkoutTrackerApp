@@ -20,6 +20,9 @@ targets:
       properties:
         CFBundleIdentifier: ${APP_IDENTIFIER}
 
+        # ✅ REQUIRED FOR APP STORE / iPAD MULTITASKING
+        UILaunchStoryboardName: LaunchScreen
+
         # ✅ LOCK ORIENTATIONS so XcodeGen can't strip them
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
