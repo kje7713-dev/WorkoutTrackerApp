@@ -400,8 +400,8 @@ struct SessionExercise: Identifiable {
                 setIndex: idx,
                 expectedReps: exercise.reps,
                 expectedWeight: exercise.weight,
-                actualReps: exercise.reps,      // can be lowered if they miss reps
-                actualWeight: exercise.weight,  // can be lowered if they drop weight
+                actualReps: exercise.reps,      // user can reduce if they miss reps
+                actualWeight: exercise.weight,  // user can reduce if they drop weight
                 isCompleted: false
             )
         }
@@ -505,7 +505,7 @@ struct WorkoutSessionView: View {
                                 }
                                 .font(.caption)
                                 
-                                // Visual dots for completion
+                                // Visual dots / label for completion
                                 HStack(spacing: 6) {
                                     Circle()
                                         .frame(width: 10, height: 10)
