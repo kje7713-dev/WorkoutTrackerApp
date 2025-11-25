@@ -3,11 +3,20 @@ import Charts   // iOS 16+ (you’re targeting iOS 17, so this is fine)
 
 // MARK: - Models
 
+struct WorkoutExercise: Identifiable {
+    let id = UUID()
+    let name: String
+    let sets: Int
+    let reps: Int
+    let weight: Int      // in lb for now
+}
+
 struct WorkoutDay: Identifiable {
     let id = UUID()
     let index: Int        // 1–7
     let name: String      // e.g. "Heavy Lower"
     let description: String
+    let exercises: [WorkoutExercise]
 }
 
 struct WorkoutBlock {
@@ -45,22 +54,42 @@ struct WorkoutBlock {
             WorkoutDay(
                 index: 1,
                 name: "Heavy Upper",
-                description: "Bench press + upper-body accessories. Focus on heavy triples and controlled eccentrics."
+                description: "Bench press + upper-body accessories. Focus on heavy triples and controlled eccentrics.",
+                exercises: [
+                    WorkoutExercise(name: "Bench Press", sets: 5, reps: 3, weight: 245),
+                    WorkoutExercise(name: "Incline DB Press", sets: 4, reps: 8, weight: 75),
+                    WorkoutExercise(name: "Barbell Row", sets: 4, reps: 8, weight: 185)
+                ]
             ),
             WorkoutDay(
                 index: 2,
                 name: "Volume Lower",
-                description: "Back squats and Romanian deadlifts in the 5–8 rep range. Build volume and positional strength."
+                description: "Back squats and Romanian deadlifts in the 5–8 rep range. Build volume and positional strength.",
+                exercises: [
+                    WorkoutExercise(name: "Back Squat", sets: 4, reps: 6, weight: 285),
+                    WorkoutExercise(name: "RDL", sets: 4, reps: 8, weight: 245),
+                    WorkoutExercise(name: "Walking Lunge", sets: 3, reps: 10, weight: 95)
+                ]
             ),
             WorkoutDay(
                 index: 3,
                 name: "Heavy Lower",
-                description: "Primary squat or deadlift variation heavy for low reps. Finish with targeted posterior chain work."
+                description: "Primary squat or deadlift variation heavy for low reps. Finish with targeted posterior chain work.",
+                exercises: [
+                    WorkoutExercise(name: "Deadlift", sets: 5, reps: 3, weight: 365),
+                    WorkoutExercise(name: "Paused Squat", sets: 3, reps: 5, weight: 265),
+                    WorkoutExercise(name: "Back Extension", sets: 3, reps: 12, weight: 45)
+                ]
             ),
             WorkoutDay(
                 index: 4,
                 name: "Accessory / Conditioning",
-                description: "Single-leg work, core, and conditioning intervals. Keep RPE moderate so you’re fresh for the next heavy day."
+                description: "Single-leg work, core, and conditioning intervals. Keep RPE moderate so you’re fresh for the next heavy day.",
+                exercises: [
+                    WorkoutExercise(name: "Bulgarian Split Squat", sets: 3, reps: 10, weight: 65),
+                    WorkoutExercise(name: "Hanging Leg Raise", sets: 3, reps: 12, weight: 0),
+                    WorkoutExercise(name: "Bike Intervals", sets: 6, reps: 30, weight: 0) // 30s hard
+                ]
             )
             // Add days 5–7 later if you want them
         ],
@@ -257,6 +286,34 @@ struct BlockDetailView: View {
                             .font(.body)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.leading)
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.secondarySystemBackground))
+                    )
+                    
+                    // 🔹 Summary-level exercise list
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Today's Exercises")
+                            .font(.headline)
+                        
+                        ForEach(day.exercises) { exercise in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(exercise.name)
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                    
+                                    Text("\(exercise.sets) x \(exercise.reps) @ \(exercise.weight) lb")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                                
+                                Spacer()
+                            }
+                            .padding(.vertical, 6)
+                        }
                     }
                     .padding()
                     .background(
