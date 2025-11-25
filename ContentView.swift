@@ -3,10 +3,19 @@ import Charts   // iOS 16+ (you’re targeting iOS 17, so this is fine)
 
 // MARK: - Models
 
+struct WorkoutDay: Identifiable {
+    let id = UUID()
+    let index: Int        // 1–7
+    let name: String      // e.g. "Heavy Lower"
+    let description: String
+}
+
 struct WorkoutBlock {
     let name: String
     let currentDayName: String
-    let weeks: [Int]          // e.g. 1,2,3,4
+    let currentWeek: Int
+    let days: [WorkoutDay]          // 1–7 days in the block
+    let weeks: [Int]                // e.g. 1,2,3,4
     let expectedExercises: [Double]
     let actualExercises: [Double]
     let expectedVolume: [Double]
@@ -31,6 +40,30 @@ struct WorkoutBlock {
     static let sampleBlock = WorkoutBlock(
         name: "SBD Block 1 – 4 Week Strength",
         currentDayName: "Week 2 • Day 3 – Heavy Lower",
+        currentWeek: 2,
+        days: [
+            WorkoutDay(
+                index: 1,
+                name: "Heavy Upper",
+                description: "Bench press + upper-body accessories. Focus on heavy triples and controlled eccentrics."
+            ),
+            WorkoutDay(
+                index: 2,
+                name: "Volume Lower",
+                description: "Back squats and Romanian deadlifts in the 5–8 rep range. Build volume and positional strength."
+            ),
+            WorkoutDay(
+                index: 3,
+                name: "Heavy Lower",
+                description: "Primary squat or deadlift variation heavy for low reps. Finish with targeted posterior chain work."
+            ),
+            WorkoutDay(
+                index: 4,
+                name: "Accessory / Conditioning",
+                description: "Single-leg work, core, and conditioning intervals. Keep RPE moderate so you’re fresh for the next heavy day."
+            )
+            // Add days 5–7 here later if you want them
+        ],
         weeks: [1, 2, 3, 4],
         expectedExercises: [25, 50, 75, 100],
         actualExercises:   [20, 48, 60, 0],
@@ -90,21 +123,26 @@ struct DashboardView: View {
                     
                     QuoteHeader()
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(block.name)
-                            .font(.title)
-                            .fontWeight(.bold)
-                        
-                        Text(block.currentDayName)
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
+                    // Tap this card to go to the block detail screen
+                    NavigationLink {
+                        BlockDetailView(block: block)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(block.name)
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            Text(block.currentDayName)
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(.secondarySystemBackground))
+                        )
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(.secondarySystemBackground))
-                    )
                     
                     MetricCard(
                         title: "% Exercises Completed in Block",
@@ -125,6 +163,103 @@ struct DashboardView: View {
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+}
+
+// Detail screen for a specific block
+struct BlockDetailView: View {
+    let block: WorkoutBlock
+    
+    @State private var selectedDayIndex: Int
+    
+    init(block: WorkoutBlock) {
+        self.block = block
+        _selectedDayIndex = State(initialValue: block.days.first?.index ?? 1)
+    }
+    
+    private var selectedDay: WorkoutDay? {
+        block.days.first { $0.index == selectedDayIndex }
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                
+                // Week + current day summary
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Week \(block.currentWeek)")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                    
+                    if let day = selectedDay {
+                        Text("Day \(day.index) – \(day.name)")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("Select a day")
+                            .font(.headline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(.secondarySystemBackground))
+                )
+                
+                // Day selector (1–7, based on days defined in the block)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(block.days) { day in
+                            Button {
+                                selectedDayIndex = day.index
+                            } label: {
+                                Text("Day \(day.index)")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 14)
+                                    .background(
+                                        Capsule().fill(
+                                            selectedDayIndex == day.index
+                                            ? Color.accentColor
+                                            : Color(.secondarySystemBackground)
+                                        )
+                                    )
+                                    .foregroundColor(
+                                        selectedDayIndex == day.index ? .white : .primary
+                                    )
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                // Day description
+                if let day = selectedDay {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Workout Description")
+                            .font(.headline)
+                        
+                        Text(day.description)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.secondarySystemBackground))
+                    )
+                }
+                
+                Spacer(minLength: 20)
+            }
+            .padding()
+        }
+        .navigationTitle(block.name)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
