@@ -1,7 +1,9 @@
 import SwiftUI
 import Charts   // iOS 16+ (you’re targeting iOS 17, so this is fine)
 
-// MARK: - Models
+// MARK: - Models (UI-level)
+
+// These are UI-only structs, not the SwiftData models.
 
 struct WorkoutExercise: Identifiable {
     let id = UUID()
@@ -376,7 +378,9 @@ struct BlockDetailView: View {
 
 // MARK: - Workout Session (per-set expected vs actual)
 
-struct SessionExerciseSet: Identifiable {
+// UI-only types renamed to avoid conflict with SwiftData `SessionExercise`
+
+struct SessionExerciseSetUI: Identifiable {
     let id = UUID()
     let setIndex: Int
     
@@ -388,15 +392,15 @@ struct SessionExerciseSet: Identifiable {
     var isCompleted: Bool
 }
 
-struct SessionExercise: Identifiable {
+struct SessionExerciseUI: Identifiable {
     let id = UUID()
     let name: String
-    var sets: [SessionExerciseSet]
+    var sets: [SessionExerciseSetUI]
     
     init(from exercise: WorkoutExercise) {
         self.name = exercise.name
         self.sets = (1...exercise.sets).map { idx in
-            SessionExerciseSet(
+            SessionExerciseSetUI(
                 setIndex: idx,
                 expectedReps: exercise.reps,
                 expectedWeight: exercise.weight,
@@ -411,11 +415,11 @@ struct SessionExercise: Identifiable {
 struct WorkoutSessionView: View {
     let day: WorkoutDay
     
-    @State private var exercises: [SessionExercise]
+    @State private var exercises: [SessionExerciseUI]
     
     init(day: WorkoutDay) {
         self.day = day
-        _exercises = State(initialValue: day.exercises.map { SessionExercise(from: $0) })
+        _exercises = State(initialValue: day.exercises.map { SessionExerciseUI(from: $0) })
     }
     
     private var totalSets: Int {
