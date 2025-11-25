@@ -57,13 +57,27 @@ platform :ios do
       # ============================================================
       # ✅ NEW: AUTO-INCREMENT BUILD NUMBER (only change made)
       # ============================================================
-      latest = latest_testflight_build_number(
+            # --- NEW: choose build number based on BOTH TF + ASC ---
+      tf_latest = latest_testflight_build_number(
         api_key: api_key,
         app_identifier: ENV["APP_IDENTIFIER"]
-      ) || 0
+      )
+
+      asc_latest = nil
+      begin
+        asc_latest = app_store_build_number(
+          api_key: api_key,
+          app_identifier: ENV["APP_IDENTIFIER"],
+          version: "1.0" # your MARKETING_VERSION
+        )
+      rescue => e
+        UI.message("app_store_build_number failed or no build yet: #{e.message}")
+      end
+
+      latest = [tf_latest, asc_latest].compact.max || 0
 
       next_build = latest + 1
-      UI.message("Auto-incrementing build number: #{latest} → #{next_build}")
+      UI.message("Computed latest build across ASC + TestFlight = #{latest} → setting build to #{next_build}")
 
       increment_build_number(
         build_number: next_build
