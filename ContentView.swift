@@ -56,9 +56,9 @@ struct WorkoutBlock {
                 name: "Heavy Upper",
                 description: "Bench press + upper-body accessories. Focus on heavy triples and controlled eccentrics.",
                 exercises: [
-                    WorkoutExercise(name: "Bench Press", sets: 5, reps: 3, weight: 245),
-                    WorkoutExercise(name: "Incline DB Press", sets: 4, reps: 8, weight: 75),
-                    WorkoutExercise(name: "Barbell Row", sets: 4, reps: 8, weight: 185)
+                    WorkoutExercise(name: "Bench Press",        sets: 5, reps: 3,  weight: 245),
+                    WorkoutExercise(name: "Incline DB Press",   sets: 4, reps: 8,  weight: 75),
+                    WorkoutExercise(name: "Barbell Row",        sets: 4, reps: 8,  weight: 185)
                 ]
             ),
             WorkoutDay(
@@ -66,9 +66,9 @@ struct WorkoutBlock {
                 name: "Volume Lower",
                 description: "Back squats and Romanian deadlifts in the 5–8 rep range. Build volume and positional strength.",
                 exercises: [
-                    WorkoutExercise(name: "Back Squat", sets: 4, reps: 6, weight: 285),
-                    WorkoutExercise(name: "RDL", sets: 4, reps: 8, weight: 245),
-                    WorkoutExercise(name: "Walking Lunge", sets: 3, reps: 10, weight: 95)
+                    WorkoutExercise(name: "Back Squat",         sets: 4, reps: 6,  weight: 285),
+                    WorkoutExercise(name: "RDL",                sets: 4, reps: 8,  weight: 245),
+                    WorkoutExercise(name: "Walking Lunge",      sets: 3, reps: 10, weight: 95)
                 ]
             ),
             WorkoutDay(
@@ -76,9 +76,9 @@ struct WorkoutBlock {
                 name: "Heavy Lower",
                 description: "Primary squat or deadlift variation heavy for low reps. Finish with targeted posterior chain work.",
                 exercises: [
-                    WorkoutExercise(name: "Deadlift", sets: 5, reps: 3, weight: 365),
-                    WorkoutExercise(name: "Paused Squat", sets: 3, reps: 5, weight: 265),
-                    WorkoutExercise(name: "Back Extension", sets: 3, reps: 12, weight: 45)
+                    WorkoutExercise(name: "Deadlift",           sets: 5, reps: 3,  weight: 365),
+                    WorkoutExercise(name: "Paused Squat",       sets: 3, reps: 5,  weight: 265),
+                    WorkoutExercise(name: "Back Extension",     sets: 3, reps: 12, weight: 45)
                 ]
             ),
             WorkoutDay(
@@ -87,8 +87,8 @@ struct WorkoutBlock {
                 description: "Single-leg work, core, and conditioning intervals. Keep RPE moderate so you’re fresh for the next heavy day.",
                 exercises: [
                     WorkoutExercise(name: "Bulgarian Split Squat", sets: 3, reps: 10, weight: 65),
-                    WorkoutExercise(name: "Hanging Leg Raise", sets: 3, reps: 12, weight: 0),
-                    WorkoutExercise(name: "Bike Intervals", sets: 6, reps: 30, weight: 0) // 30s hard
+                    WorkoutExercise(name: "Hanging Leg Raise",     sets: 3, reps: 12, weight: 0),
+                    WorkoutExercise(name: "Bike Intervals",        sets: 6, reps: 30, weight: 0) // 30s hard
                 ]
             )
             // Add days 5–7 later if you want them
@@ -195,7 +195,8 @@ struct DashboardView: View {
     }
 }
 
-// Detail screen for a specific block
+// MARK: - Block Detail (Week/day + summary)
+
 struct BlockDetailView: View {
     let block: WorkoutBlock
     
@@ -276,7 +277,7 @@ struct BlockDetailView: View {
                     .padding(.vertical, 4)
                 }
                 
-                // Day description
+                // Day description + summary-level exercises + Start button
                 if let day = selectedDay {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Workout Description")
@@ -293,7 +294,7 @@ struct BlockDetailView: View {
                             .fill(Color(.secondarySystemBackground))
                     )
                     
-                    // 🔹 Summary-level exercise list
+                    // Summary-level exercise list
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Today's Exercises")
                             .font(.headline)
@@ -320,6 +321,20 @@ struct BlockDetailView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(Color(.secondarySystemBackground))
                     )
+                    
+                    // Start workout → go to detailed session view
+                    NavigationLink {
+                        WorkoutSessionView(day: day)
+                    } label: {
+                        Text("Start This Workout")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(16)
+                    }
+                    .padding(.top, 4)
                 }
                 
                 Spacer(minLength: 20)
@@ -358,6 +373,122 @@ struct BlockDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
+
+// MARK: - Workout Session (detailed, editable, set completion)
+
+struct SessionExercise: Identifiable {
+    let id = UUID()
+    let name: String
+    var sets: Int
+    var reps: Int
+    var weight: Int
+    var completedSets: Int
+    
+    init(from exercise: WorkoutExercise) {
+        self.name = exercise.name
+        self.sets = exercise.sets
+        self.reps = exercise.reps
+        self.weight = exercise.weight
+        self.completedSets = 0
+    }
+}
+
+struct WorkoutSessionView: View {
+    let day: WorkoutDay
+    
+    @State private var exercises: [SessionExercise]
+    
+    init(day: WorkoutDay) {
+        self.day = day
+        _exercises = State(initialValue: day.exercises.map { SessionExercise(from: $0) })
+    }
+    
+    private var totalSets: Int {
+        exercises.reduce(0) { $0 + $1.sets }
+    }
+    
+    private var totalCompletedSets: Int {
+        exercises.reduce(0) { $0 + $1.completedSets }
+    }
+    
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Day \(day.index) – \(day.name)")
+                        .font(.headline)
+                    Text(day.description)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+                
+                // Overall progress
+                if totalSets > 0 {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Session Progress")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        ProgressView(
+                            value: Double(totalCompletedSets),
+                            total: Double(totalSets)
+                        )
+                        
+                        Text("\(totalCompletedSets) of \(totalSets) sets completed")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 4)
+                }
+            }
+            
+            Section(header: Text("Exercises")) {
+                ForEach($exercises) { $exercise in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(exercise.name)
+                            .font(.headline)
+                        
+                        // Editable sets / reps / weight
+                        VStack(alignment: .leading, spacing: 4) {
+                            Stepper("Sets: \(exercise.sets)", value: $exercise.sets, in: 1...20)
+                            Stepper("Reps: \(exercise.reps)", value: $exercise.reps, in: 1...50)
+                            Stepper("Weight: \(exercise.weight) lb", value: $exercise.weight, in: 0...1000, step: 5)
+                        }
+                        .font(.subheadline)
+                        
+                        // Completed sets
+                        HStack {
+                            Text("Completed sets")
+                                .font(.subheadline)
+                            Spacer()
+                            Stepper(
+                                "\(exercise.completedSets) / \(exercise.sets)",
+                                value: $exercise.completedSets,
+                                in: 0...exercise.sets
+                            )
+                            .labelsHidden()
+                        }
+                        
+                        // Little row of dots for visual feedback
+                        HStack(spacing: 6) {
+                            ForEach(0..<exercise.sets, id: \.self) { index in
+                                Circle()
+                                    .frame(width: 10, height: 10)
+                                    .foregroundColor(index < exercise.completedSets ? .green : .gray.opacity(0.3))
+                            }
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
+        }
+        .navigationTitle("Workout Session")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Shared UI Pieces
 
 struct QuoteHeader: View {
     var body: some View {
