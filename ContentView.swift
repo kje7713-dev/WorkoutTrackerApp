@@ -7,12 +7,11 @@ struct WorkoutBlock {
     let name: String
     let currentDayName: String
     let weeks: [Int]          // e.g. 1,2,3,4
-    let expectedExercises: [Double] // % per week
+    let expectedExercises: [Double]
     let actualExercises: [Double]
     let expectedVolume: [Double]
     let actualVolume: [Double]
     
-    // Convert to chart-ready points
     var exerciseCompletionPoints: [MetricPoint] {
         MetricPoint.makeSeries(
             weeks: weeks,
@@ -29,13 +28,12 @@ struct WorkoutBlock {
         )
     }
     
-    // Sample data just so the dashboard shows something
     static let sampleBlock = WorkoutBlock(
         name: "SBD Block 1 – 4 Week Strength",
         currentDayName: "Week 2 • Day 3 – Heavy Lower",
         weeks: [1, 2, 3, 4],
         expectedExercises: [25, 50, 75, 100],
-        actualExercises:   [20, 48, 60, 0],  // 0 for future weeks
+        actualExercises:   [20, 48, 60, 0],
         expectedVolume:    [25, 50, 75, 100],
         actualVolume:      [22, 47, 55, 0]
     )
@@ -90,10 +88,8 @@ struct DashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     
-                    // 🔥 Quote header card
                     QuoteHeader()
                     
-                    // Block + Day header
                     VStack(alignment: .leading, spacing: 4) {
                         Text(block.name)
                             .font(.title)
@@ -110,14 +106,12 @@ struct DashboardView: View {
                             .fill(Color(.secondarySystemBackground))
                     )
                     
-                    // Exercise completion chart
                     MetricCard(
                         title: "% Exercises Completed in Block",
                         subtitle: "Expected vs Actual",
                         points: block.exerciseCompletionPoints
                     )
                     
-                    // Volume (weight moved) completion chart
                     MetricCard(
                         title: "% Volume Completed in Block",
                         subtitle: "Expected vs Actual",
@@ -128,7 +122,6 @@ struct DashboardView: View {
                 }
                 .padding()
             }
-            // small, neutral nav bar; quote lives in the content
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -151,46 +144,6 @@ struct QuoteHeader: View {
         .padding(.vertical, 16)
         .padding(.horizontal, 12)
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
-    }
-}
-
-struct MetricCard: View {
-    let title: String
-    let subtitle: String
-    let points: [MetricPoint]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.headline)
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            
-            Chart {
-                ForEach(points) { point in
-                    LineMark(
-                        x: .value("Week", point.week),
-                        y: .value("Percent", point.value)
-                    )
-                    .symbol(Circle())
-                    .interpolationMethod(.monotone)
-                    .foregroundStyle(by: .value("Series", point.series.rawValue))
-                }
-            }
-            .chartYAxisLabel("% complete")
-            .chartXAxis {
-                AxisMarks(values: .stride(by: 1))
-            }
-            .frame(height: 180)
-        }
-        .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.secondarySystemBackground))
