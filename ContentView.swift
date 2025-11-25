@@ -8,7 +8,7 @@ struct WorkoutExercise: Identifiable {
     let name: String
     let sets: Int
     let reps: Int
-    let weight: Int      // in lb for now
+    let weight: Int      // expected / planned weight in lb
 }
 
 struct WorkoutDay: Identifiable {
@@ -47,7 +47,7 @@ struct WorkoutBlock {
     }
     
     static let sampleBlock = WorkoutBlock(
-        name: "SBD Block 1 – 4 Week Strength",
+        name: "SBD BLOCK 1 – 4 WEEK STRENGTH",
         currentDayName: "Week 2 • Day 3 – Heavy Lower",
         currentWeek: 2,
         days: [
@@ -140,7 +140,7 @@ struct MetricPoint: Identifiable {
     }
 }
 
-// MARK: - Views
+// MARK: - Views (Dashboard + Block)
 
 struct DashboardView: View {
     @State private var block = WorkoutBlock.sampleBlock
@@ -374,22 +374,37 @@ struct BlockDetailView: View {
     }
 }
 
-// MARK: - Workout Session (detailed, editable, set completion)
+// MARK: - Workout Session (per-set expected vs actual)
+
+struct SessionExerciseSet: Identifiable {
+    let id = UUID()
+    let setIndex: Int
+    
+    let expectedReps: Int
+    let expectedWeight: Int
+    
+    var actualReps: Int
+    var actualWeight: Int
+    var isCompleted: Bool
+}
 
 struct SessionExercise: Identifiable {
     let id = UUID()
     let name: String
-    var sets: Int
-    var reps: Int
-    var weight: Int
-    var completedSets: Int
+    var sets: [SessionExerciseSet]
     
     init(from exercise: WorkoutExercise) {
         self.name = exercise.name
-        self.sets = exercise.sets
-        self.reps = exercise.reps
-        self.weight = exercise.weight
-        self.completedSets = 0
+        self.sets = (1...exercise.sets).map { idx in
+            SessionExerciseSet(
+                setIndex: idx,
+                expectedReps: exercise.reps,
+                expectedWeight: exercise.weight,
+                actualReps: exercise.reps,      // can be lowered if they miss reps
+                actualWeight: exercise.weight,  // can be lowered if they drop weight
+                isCompleted: false
+            )
+        }
     }
 }
 
@@ -404,11 +419,13 @@ struct WorkoutSessionView: View {
     }
     
     private var totalSets: Int {
-        exercises.reduce(0) { $0 + $1.sets }
+        exercises.reduce(0) { $0 + $1.sets.count }
     }
     
     private var totalCompletedSets: Int {
-        exercises.reduce(0) { $0 + $1.completedSets }
+        exercises.reduce(0) { partial, exercise in
+            partial + exercise.sets.filter { $0.isCompleted }.count
+        }
     }
     
     var body: some View {
@@ -423,7 +440,7 @@ struct WorkoutSessionView: View {
                 }
                 .padding(.vertical, 4)
                 
-                // Overall progress
+                // Overall progress (by sets)
                 if totalSets > 0 {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Session Progress")
@@ -449,34 +466,57 @@ struct WorkoutSessionView: View {
                         Text(exercise.name)
                             .font(.headline)
                         
-                        // Editable sets / reps / weight
-                        VStack(alignment: .leading, spacing: 4) {
-                            Stepper("Sets: \(exercise.sets)", value: $exercise.sets, in: 1...20)
-                            Stepper("Reps: \(exercise.reps)", value: $exercise.reps, in: 1...50)
-                            Stepper("Weight: \(exercise.weight) lb", value: $exercise.weight, in: 0...1000, step: 5)
-                        }
-                        .font(.subheadline)
-                        
-                        // Completed sets
-                        HStack {
-                            Text("Completed sets")
-                                .font(.subheadline)
-                            Spacer()
-                            Stepper(
-                                "\(exercise.completedSets) / \(exercise.sets)",
-                                value: $exercise.completedSets,
-                                in: 0...exercise.sets
-                            )
-                            .labelsHidden()
-                        }
-                        
-                        // Little row of dots for visual feedback
-                        HStack(spacing: 6) {
-                            ForEach(0..<exercise.sets, id: \.self) { index in
-                                Circle()
-                                    .frame(width: 10, height: 10)
-                                    .foregroundColor(index < exercise.completedSets ? .green : .gray.opacity(0.3))
+                        ForEach($exercise.sets) { $set in
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text("Set \(set.setIndex)")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                    Toggle(isOn: $set.isCompleted) {
+                                        Text("Completed")
+                                            .font(.caption)
+                                    }
+                                    .toggleStyle(.switch)
+                                    .labelsHidden()
+                                }
+                                
+                                Text("Expected: \(set.expectedReps) reps @ \(set.expectedWeight) lb")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                
+                                // Actual reps & weight for this set
+                                HStack {
+                                    Stepper(
+                                        "Reps: \(set.actualReps)",
+                                        value: $set.actualReps,
+                                        in: 0...set.expectedReps
+                                    )
+                                }
+                                .font(.caption)
+                                
+                                HStack {
+                                    Stepper(
+                                        "Weight: \(set.actualWeight) lb",
+                                        value: $set.actualWeight,
+                                        in: 0...1000,
+                                        step: 5
+                                    )
+                                }
+                                .font(.caption)
+                                
+                                // Visual dots for completion
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .frame(width: 10, height: 10)
+                                        .foregroundColor(set.isCompleted ? .green : .gray.opacity(0.3))
+                                    
+                                    Text(set.isCompleted ? "Set logged" : "Not logged yet")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
+                            .padding(.vertical, 6)
                         }
                     }
                     .padding(.vertical, 6)
@@ -494,8 +534,8 @@ struct QuoteHeader: View {
     var body: some View {
         VStack(spacing: 8) {
             Text("\"WE ARE WHAT WE REPEATEDLY DO\"")
-                .font(.title)            // match SBD header size
-                .fontWeight(.bold)       // match SBD header weight
+                .font(.title)
+                .fontWeight(.bold)
                 .multilineTextAlignment(.center)
         }
         .padding(.vertical, 16)
