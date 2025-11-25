@@ -131,14 +131,9 @@ struct DashboardView: View {
 struct QuoteHeader: View {
     var body: some View {
         VStack(spacing: 8) {
-            Text("We are what we repeatedly do")
-                .font(.title3)
-                .fontWeight(.semibold)
-                .multilineTextAlignment(.center)
-            
-            Text("Every session is a rep for who you’re becoming.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            Text("\"WE ARE WHAT WE REPEATEDLY DO\"")
+                .font(.title)            // match SBD header size
+                .fontWeight(.bold)       // match SBD header weight
                 .multilineTextAlignment(.center)
         }
         .padding(.vertical, 16)
