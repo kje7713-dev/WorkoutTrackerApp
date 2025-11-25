@@ -62,7 +62,7 @@ struct WorkoutBlock {
                 name: "Accessory / Conditioning",
                 description: "Single-leg work, core, and conditioning intervals. Keep RPE moderate so you’re fresh for the next heavy day."
             )
-            // Add days 5–7 here later if you want them
+            // Add days 5–7 later if you want them
         ],
         weeks: [1, 2, 3, 4],
         expectedExercises: [25, 50, 75, 100],
@@ -171,14 +171,21 @@ struct BlockDetailView: View {
     let block: WorkoutBlock
     
     @State private var selectedDayIndex: Int
+    @State private var selectedWeek: Int
+    @State private var dragOffset: CGFloat = 0
     
     init(block: WorkoutBlock) {
         self.block = block
         _selectedDayIndex = State(initialValue: block.days.first?.index ?? 1)
+        _selectedWeek = State(initialValue: block.currentWeek)
     }
     
     private var selectedDay: WorkoutDay? {
         block.days.first { $0.index == selectedDayIndex }
+    }
+    
+    private var sortedWeeks: [Int] {
+        block.weeks.sorted()
     }
     
     var body: some View {
@@ -187,7 +194,7 @@ struct BlockDetailView: View {
                 
                 // Week + current day summary
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Week \(block.currentWeek)")
+                    Text("Week \(selectedWeek)")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                     
@@ -200,6 +207,10 @@ struct BlockDetailView: View {
                             .font(.headline)
                             .foregroundStyle(.secondary)
                     }
+                    
+                    Text("Swipe left or right to change weeks.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -258,6 +269,34 @@ struct BlockDetailView: View {
             }
             .padding()
         }
+        .offset(x: dragOffset)
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    dragOffset = value.translation.width
+                }
+                .onEnded { value in
+                    let threshold: CGFloat = 80
+                    var newWeek = selectedWeek
+                    
+                    if value.translation.width < -threshold {
+                        // Swipe left → next week
+                        if let next = sortedWeeks.first(where: { $0 > selectedWeek }) {
+                            newWeek = next
+                        }
+                    } else if value.translation.width > threshold {
+                        // Swipe right → previous week
+                        if let prev = sortedWeeks.reversed().first(where: { $0 < selectedWeek }) {
+                            newWeek = prev
+                        }
+                    }
+                    
+                    withAnimation(.spring()) {
+                        selectedWeek = newWeek
+                        dragOffset = 0
+                    }
+                }
+        )
         .navigationTitle(block.name)
         .navigationBarTitleDisplayMode(.inline)
     }
