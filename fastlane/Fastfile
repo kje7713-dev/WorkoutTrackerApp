@@ -5,7 +5,7 @@ platform :ios do
   lane :beta do
     require "fileutils"
 
-    # ---------- NEW: errors-only log ----------
+    # ---------- errors-only log ----------
     errors_dir = "ci_logs"
     errors_log = File.join(errors_dir, "errors_only.log")
     FileUtils.mkdir_p(errors_dir)
@@ -55,35 +55,16 @@ platform :ios do
       project   = ENV["IOS_PROJECT"].to_s
 
       # ============================================================
-      # ✅ NEW: AUTO-INCREMENT BUILD NUMBER (only change made)
+      # ✅ NEW: ROBUST BUILD NUMBER USING TIMESTAMP
+      #    -> guarantees uniqueness; no more duplicate errors
       # ============================================================
-            # --- NEW: choose build number based on BOTH TF + ASC ---
-      tf_latest = latest_testflight_build_number(
-        api_key: api_key,
-        app_identifier: ENV["APP_IDENTIFIER"]
-      )
-
-      asc_latest = nil
-      begin
-        asc_latest = app_store_build_number(
-          api_key: api_key,
-          app_identifier: ENV["APP_IDENTIFIER"],
-          version: "1.0" # your MARKETING_VERSION
-        )
-      rescue => e
-        UI.message("app_store_build_number failed or no build yet: #{e.message}")
-      end
-
-      latest = [tf_latest, asc_latest].compact.max || 0
-
-      next_build = latest + 1
-      UI.message("Computed latest build across ASC + TestFlight = #{latest} → setting build to #{next_build}")
+      timestamp_build = Time.now.strftime("%Y%m%d%H%M%S")
+      UI.message("Setting build number to #{timestamp_build} (timestamp-based)")
 
       increment_build_number(
-        build_number: next_build
+        build_number: timestamp_build
       )
       # ============================================================
-
 
       build_opts = {
         scheme: scheme,
@@ -116,7 +97,7 @@ platform :ios do
       upload_to_testflight(api_key: api_key)
 
     rescue => e
-      # ---------- NEW: write tight failure summary ----------
+      # ---------- write tight failure summary ----------
       append_err(errors_log, "========= FASTLANE FAILURE =========")
       append_err(errors_log, "Time: #{Time.now.utc}")
       append_err(errors_log, "Message: #{e.class}: #{e.message}")
@@ -146,6 +127,11 @@ platform :ios do
 
       UI.error("Build failed. See #{errors_log} for a tight summary.")
       raise e
+    ensure
+      # optional: clean up CI keychain
+      if is_ci
+        sh("security delete-keychain #{keychain_name}") rescue nil
+      end
     end
   end
 end
