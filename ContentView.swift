@@ -90,6 +90,9 @@ struct DashboardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     
+                    // 🔥 Quote header card
+                    QuoteHeader()
+                    
                     // Block + Day header
                     VStack(alignment: .leading, spacing: 4) {
                         Text(block.name)
@@ -125,10 +128,73 @@ struct DashboardView: View {
                 }
                 .padding()
             }
-            // Centered quote as title
-            .navigationTitle("We are what we repeatedly do")
+            // small, neutral nav bar; quote lives in the content
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+}
+
+struct QuoteHeader: View {
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("We are what we repeatedly do")
+                .font(.title3)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+            
+            Text("Every session is a rep for who you’re becoming.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.secondarySystemBackground))
+        )
+    }
+}
+
+struct MetricCard: View {
+    let title: String
+    let subtitle: String
+    let points: [MetricPoint]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.headline)
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Chart {
+                ForEach(points) { point in
+                    LineMark(
+                        x: .value("Week", point.week),
+                        y: .value("Percent", point.value)
+                    )
+                    .symbol(Circle())
+                    .interpolationMethod(.monotone)
+                    .foregroundStyle(by: .value("Series", point.series.rawValue))
+                }
+            }
+            .chartYAxisLabel("% complete")
+            .chartXAxis {
+                AxisMarks(values: .stride(by: 1))
+            }
+            .frame(height: 180)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.secondarySystemBackground))
+        )
     }
 }
 
