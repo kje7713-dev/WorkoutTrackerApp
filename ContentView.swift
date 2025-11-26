@@ -151,49 +151,59 @@ struct DashboardView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \WorkoutSession.weekIndex) private var sessions: [WorkoutSession]
     
-    // Total expected reps across the whole block (denominator)
-    private var totalExpectedRepsInBlock: Double {
-        sessions
-            .flatMap { $0.exercises }
-            .flatMap { $0.sets }
-            .reduce(0.0) { $0 + Double($1.targetReps) }
-    }
+    // MARK: Expected totals from the PLAN (template), not from logged sessions
     
-    // Total expected volume (reps * weight) across the whole block
-    private var totalExpectedVolumeInBlock: Double {
-        sessions
-            .flatMap { $0.exercises }
-            .flatMap { $0.sets }
-            .reduce(0.0) { partial, set in
-                partial + (Double(set.targetReps) * set.targetWeight)
+    /// Expected reps per week from the block template
+    private var expectedRepsPerWeek: Double {
+        block.days.reduce(0.0) { total, day in
+            total + day.exercises.reduce(0.0) { inner, ex in
+                inner + Double(ex.sets * ex.reps)
             }
+        }
     }
     
-    // 🔥 Expected = cumulative expected reps up to that week / total expected reps in block
-    // 🔥 Actual   = cumulative actual reps up to that week / total expected reps in block
+    /// Expected volume (reps * weight) per week from the block template
+    private var expectedVolumePerWeek: Double {
+        block.days.reduce(0.0) { total, day in
+            total + day.exercises.reduce(0.0) { inner, ex in
+                inner + Double(ex.sets * ex.reps * ex.weight)
+            }
+        }
+    }
+    
+    /// Total expected reps across the whole block (denominator)
+    private var totalExpectedRepsInBlock: Double {
+        expectedRepsPerWeek * Double(block.weeks.count)
+    }
+    
+    /// Total expected volume across the whole block (denominator)
+    private var totalExpectedVolumeInBlock: Double {
+        expectedVolumePerWeek * Double(block.weeks.count)
+    }
+    
+    // 🔥 Expected line = from template (block.expectedExercises)
+    // 🔥 Actual line   = completed reps / total expected reps in block
     private var exerciseCompletionPoints: [MetricPoint] {
-        guard !sessions.isEmpty, totalExpectedRepsInBlock > 0 else {
+        guard totalExpectedRepsInBlock > 0 else {
             return block.exerciseCompletionPoints
         }
         
-        var expected: [Double] = []
         var actual: [Double] = []
         
         for week in block.weeks {
             let weeksUpTo = sessions.filter { $0.weekIndex <= week }
-            let setsUpTo = weeksUpTo
+            let completedSets = weeksUpTo
                 .flatMap { $0.exercises }
                 .flatMap { $0.sets }
+                .filter { $0.completed }
             
-            let expectedRepsToWeek = setsUpTo.reduce(0.0) { $0 + Double($1.targetReps) }
-            let actualRepsToWeek   = setsUpTo.reduce(0.0) { $0 + Double($1.actualReps) }
-            
-            let expectedPct = (expectedRepsToWeek / totalExpectedRepsInBlock) * 100.0
-            let actualPct   = (actualRepsToWeek   / totalExpectedRepsInBlock) * 100.0
-            
-            expected.append(expectedPct)
+            let actualRepsToWeek = completedSets.reduce(0.0) { $0 + Double($1.actualReps) }
+            let actualPct = (actualRepsToWeek / totalExpectedRepsInBlock) * 100.0
             actual.append(actualPct)
         }
+        
+        // Expected line comes straight from the plan (25/50/75/100)
+        let expected = block.expectedExercises
         
         return MetricPoint.makeSeries(
             weeks: block.weeks,
@@ -202,35 +212,30 @@ struct DashboardView: View {
         )
     }
     
-    // 🔥 Expected = cumulative expected volume up to that week / total expected volume in block
-    // 🔥 Actual   = cumulative actual volume up to that week / total expected volume in block
+    // 🔥 Expected line = from template (block.expectedVolume)
+    // 🔥 Actual line   = completed volume / total expected volume in block
     private var volumeCompletionPoints: [MetricPoint] {
-        guard !sessions.isEmpty, totalExpectedVolumeInBlock > 0 else {
+        guard totalExpectedVolumeInBlock > 0 else {
             return block.volumeCompletionPoints
         }
         
-        var expected: [Double] = []
         var actual: [Double] = []
         
         for week in block.weeks {
             let weeksUpTo = sessions.filter { $0.weekIndex <= week }
-            let setsUpTo = weeksUpTo
+            let completedSets = weeksUpTo
                 .flatMap { $0.exercises }
                 .flatMap { $0.sets }
+                .filter { $0.completed }
             
-            let expectedVolumeToWeek = setsUpTo.reduce(0.0) { partial, set in
-                partial + (Double(set.targetReps) * set.targetWeight)
-            }
-            let actualVolumeToWeek = setsUpTo.reduce(0.0) { partial, set in
+            let actualVolumeToWeek = completedSets.reduce(0.0) { partial, set in
                 partial + (Double(set.actualReps) * set.actualWeight)
             }
-            
-            let expectedPct = (expectedVolumeToWeek / totalExpectedVolumeInBlock) * 100.0
-            let actualPct   = (actualVolumeToWeek / totalExpectedVolumeInBlock) * 100.0
-            
-            expected.append(expectedPct)
+            let actualPct = (actualVolumeToWeek / totalExpectedVolumeInBlock) * 100.0
             actual.append(actualPct)
         }
+        
+        let expected = block.expectedVolume
         
         return MetricPoint.makeSeries(
             weeks: block.weeks,
@@ -267,7 +272,7 @@ struct DashboardView: View {
                         )
                     }
                     
-                    // ✅ Now using cumulative block-level metrics
+                    // ✅ Now using block template for expected & SwiftData for actual
                     MetricCard(
                         title: "% Exercises Completed in Block",
                         subtitle: "Expected vs Actual",
