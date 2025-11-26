@@ -390,9 +390,13 @@ struct BlockDetailView: View {
     }
     
     private func fetchSession(for day: WorkoutDay) -> WorkoutSession? {
+        // Capture simple values so the predicate operates on Ints, not key paths on WorkoutDay
+        let week = selectedWeek
+        let dayIndex = day.index
+        
         let descriptor = FetchDescriptor<WorkoutSession>(
             predicate: #Predicate { session in
-                session.weekIndex == selectedWeek && session.dayIndex == day.index
+                session.weekIndex == week && session.dayIndex == dayIndex
             }
         )
         
