@@ -148,6 +148,84 @@ struct MetricPoint: Identifiable {
 struct DashboardView: View {
     @State private var block = WorkoutBlock.sampleBlock
     
+    // 🔗 Pull persisted workout sessions from SwiftData
+    @Environment(\.modelContext) private var context
+    @Query(sort: \WorkoutSession.weekIndex) private var sessions: [WorkoutSession]
+    
+    // 🔢 Derived metrics for charts, backed by SwiftData
+    private var exerciseCompletionPoints: [MetricPoint] {
+        // If nothing logged yet, fall back to sample static data
+        guard !sessions.isEmpty else {
+            return block.exerciseCompletionPoints
+        }
+        
+        var expected: [Double] = []
+        var actual: [Double] = []
+        
+        for week in block.weeks {
+            let weekSessions = sessions.filter { $0.weekIndex == week }
+            let sets = weekSessions
+                .flatMap { $0.exercises }
+                .flatMap { $0.sets }
+            
+            let totalSets = sets.count
+            let completedSets = sets.filter { $0.completed }.count
+            
+            // For now, "expected" = 100% for every week (target is full completion)
+            expected.append(100.0)
+            
+            if totalSets > 0 {
+                let pct = (Double(completedSets) / Double(totalSets)) * 100.0
+                actual.append(pct)
+            } else {
+                actual.append(0.0)
+            }
+        }
+        
+        return MetricPoint.makeSeries(
+            weeks: block.weeks,
+            expected: expected,
+            actual: actual
+        )
+    }
+    
+    private var volumeCompletionPoints: [MetricPoint] {
+        guard !sessions.isEmpty else {
+            return block.volumeCompletionPoints
+        }
+        
+        var expected: [Double] = []
+        var actual: [Double] = []
+        
+        for week in block.weeks {
+            let weekSessions = sessions.filter { $0.weekIndex == week }
+            let sets = weekSessions
+                .flatMap { $0.exercises }
+                .flatMap { $0.sets }
+            
+            let expectedVolume = sets.reduce(0.0) { partial, set in
+                partial + Double(set.targetReps) * set.targetWeight
+            }
+            let actualVolume = sets.reduce(0.0) { partial, set in
+                partial + Double(set.actualReps) * set.actualWeight
+            }
+            
+            expected.append(100.0)
+            if expectedVolume > 0 {
+                let pct = (actualVolume / expectedVolume) * 100.0
+                actual.append(pct)
+            } else {
+                actual.append(0.0)
+            }
+        }
+        
+        return MetricPoint.makeSeries(
+            weeks: block.weeks,
+            expected: expected,
+            actual: actual
+        )
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -176,16 +254,17 @@ struct DashboardView: View {
                         )
                     }
                     
+                    // 🔥 Now driven by SwiftData-backed metrics
                     MetricCard(
                         title: "% Exercises Completed in Block",
                         subtitle: "Expected vs Actual",
-                        points: block.exerciseCompletionPoints
+                        points: exerciseCompletionPoints
                     )
                     
                     MetricCard(
                         title: "% Volume Completed in Block",
                         subtitle: "Expected vs Actual",
-                        points: block.volumeCompletionPoints
+                        points: volumeCompletionPoints
                     )
                     
                     Spacer(minLength: 20)
@@ -390,7 +469,7 @@ struct BlockDetailView: View {
     }
     
     private func fetchSession(for day: WorkoutDay) -> WorkoutSession? {
-        // Capture simple values so the predicate operates on Ints, not key paths on WorkoutDay
+        // capture values outside the predicate
         let week = selectedWeek
         let dayIndex = day.index
         
