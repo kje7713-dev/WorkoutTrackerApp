@@ -1,6 +1,5 @@
 import SwiftUI
 import Charts   // iOS 16+ (you’re targeting iOS 17, so this is fine)
-import SwiftData   // ✅ ADDED: needed for @Query and BlockTemplate
 
 // MARK: - Models (UI-level)
 
@@ -143,95 +142,10 @@ struct MetricPoint: Identifiable {
     }
 }
 
-// MARK: - Mapping from SwiftData models → UI models
-
-extension WorkoutBlock {
-    init(from template: BlockTemplate) {
-        self.name = template.name
-        
-        // Sort days by week, day, order
-        let sortedDays = template.days.sorted {
-            if $0.weekIndex == $1.weekIndex {
-                if $0.dayIndex == $1.dayIndex {
-                    return $0.orderIndex < $1.orderIndex
-                }
-                return $0.dayIndex < $1.dayIndex
-            }
-            return $0.weekIndex < $1.weekIndex
-        }
-        
-        let firstDay = sortedDays.first
-        self.currentWeek = firstDay?.weekIndex ?? 1
-        
-        if let d = firstDay {
-            self.currentDayName = "Week \(d.weekIndex) • Day \(d.dayIndex) – \(d.title)"
-        } else {
-            self.currentDayName = ""
-        }
-        
-        // Map DayTemplate + PlannedExercise + PrescribedSet → WorkoutDay + WorkoutExercise
-        self.days = sortedDays.map { dayTemplate in
-            let exercises: [WorkoutExercise] = dayTemplate.exercises
-                .sorted { $0.orderIndex < $1.orderIndex }
-                .map { planned in
-                    let name = planned.exerciseTemplate?.name ?? "Exercise"
-                    let setsCount = planned.prescribedSets.count
-                    let sortedSets = planned.prescribedSets.sorted { $0.setIndex < $1.setIndex }
-                    let firstSet = sortedSets.first
-                    let reps = firstSet?.targetReps ?? 0
-                    let weight = Int(firstSet?.targetWeight ?? 0)
-                    
-                    return WorkoutExercise(
-                        name: name,
-                        sets: setsCount,
-                        reps: reps,
-                        weight: weight
-                    )
-                }
-            
-            return WorkoutDay(
-                index: dayTemplate.dayIndex,
-                name: dayTemplate.title,
-                description: dayTemplate.dayDescription,
-                exercises: exercises
-            )
-        }
-        
-        // Weeks for charts
-        let maxWeekIndex = sortedDays.map { $0.weekIndex }.max() ?? max(template.weeksCount, 1)
-        self.weeks = Array(1...maxWeekIndex)
-        
-        if maxWeekIndex > 0 {
-            // Simple placeholder ramps sized to week count
-            self.expectedExercises = (1...maxWeekIndex).map { Double($0) / Double(maxWeekIndex) * 100.0 }
-            self.actualExercises = Array(repeating: 0.0, count: maxWeekIndex)
-            self.expectedVolume = self.expectedExercises
-            self.actualVolume = self.actualExercises
-        } else {
-            self.expectedExercises = []
-            self.actualExercises = []
-            self.expectedVolume = []
-            self.actualVolume = []
-        }
-    }
-}
-
 // MARK: - Views (Dashboard + Block)
 
 struct DashboardView: View {
-    // ✅ NEW: pull real blocks from SwiftData
-    @Environment(\.modelContext) private var modelContext
-    @Query private var blockTemplates: [BlockTemplate]
-    
-    // If there is at least one BlockTemplate, use it → WorkoutBlock
-    // Otherwise fall back to the demo sample block
-    private var block: WorkoutBlock {
-        if let first = blockTemplates.first {
-            return WorkoutBlock(from: first)
-        } else {
-            return .sampleBlock
-        }
-    }
+    @State private var block = WorkoutBlock.sampleBlock
     
     var body: some View {
         NavigationStack {
@@ -292,10 +206,21 @@ struct BlockDetailView: View {
     @State private var selectedWeek: Int
     @State private var dragOffset: CGFloat = 0
     
+    // NEW: store session exercises per day so they persist while in this screen
+    @State private var sessionExercisesByDay: [Int: [SessionExerciseUI]] = [:]
+    
     init(block: WorkoutBlock) {
         self.block = block
         _selectedDayIndex = State(initialValue: block.days.first?.index ?? 1)
         _selectedWeek = State(initialValue: block.currentWeek)
+        
+        // Initialize per-day session state from template days
+        let initial: [Int: [SessionExerciseUI]] = Dictionary(
+            uniqueKeysWithValues: block.days.map { day in
+                (day.index, day.exercises.map { SessionExerciseUI(from: $0) })
+            }
+        )
+        _sessionExercisesByDay = State(initialValue: initial)
     }
     
     private var selectedDay: WorkoutDay? {
@@ -412,7 +337,19 @@ struct BlockDetailView: View {
                     
                     // Start workout → go to detailed session view
                     NavigationLink {
-                        WorkoutSessionView(day: day)
+                        // Bind into the per-day session state so data persists
+                        WorkoutSessionView(
+                            day: day,
+                            exercises: Binding(
+                                get: {
+                                    sessionExercisesByDay[day.index]
+                                        ?? day.exercises.map { SessionExerciseUI(from: $0) }
+                                },
+                                set: { newValue in
+                                    sessionExercisesByDay[day.index] = newValue
+                                }
+                            )
+                        )
                     } label: {
                         Text("Start This Workout")
                             .font(.headline)
@@ -501,12 +438,8 @@ struct SessionExerciseUI: Identifiable {
 struct WorkoutSessionView: View {
     let day: WorkoutDay
     
-    @State private var exercises: [SessionExerciseUI]
-    
-    init(day: WorkoutDay) {
-        self.day = day
-        _exercises = State(initialValue: day.exercises.map { SessionExerciseUI(from: $0) })
-    }
+    // CHANGED EARLIER: exercises is passed in as a Binding from BlockDetailView
+    @Binding var exercises: [SessionExerciseUI]
     
     private var totalSets: Int {
         exercises.reduce(0) { $0 + $1.sets.count }
@@ -580,7 +513,8 @@ struct WorkoutSessionView: View {
                                     Stepper(
                                         "Reps: \(set.actualReps)",
                                         value: $set.actualReps,
-                                        in: 0...set.expectedReps
+                                        // ✅ allow more reps than expected; cap grows as needed
+                                        in: 0...(max(set.expectedReps, set.actualReps) + 10)
                                     )
                                 }
                                 .font(.caption)
@@ -608,6 +542,28 @@ struct WorkoutSessionView: View {
                             }
                             .padding(.vertical, 6)
                         }
+                        
+                        // Add Set button for this exercise
+                        Button {
+                            let nextIndex = (exercise.sets.last?.setIndex ?? 0) + 1
+                            let template = exercise.sets.last
+                            
+                            let newSet = SessionExerciseSetUI(
+                                setIndex: nextIndex,
+                                expectedReps: template?.expectedReps ?? 5,
+                                expectedWeight: template?.expectedWeight ?? 135,
+                                actualReps: template?.actualReps ?? template?.expectedReps ?? 5,
+                                actualWeight: template?.actualWeight ?? template?.expectedWeight ?? 135,
+                                isCompleted: false
+                            )
+                            
+                            exercise.sets.append(newSet)
+                        } label: {
+                            Text("Add Set")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                        }
+                        .padding(.top, 4)
                     }
                     .padding(.vertical, 6)
                 }
