@@ -148,14 +148,31 @@ struct MetricPoint: Identifiable {
 struct DashboardView: View {
     @State private var block = WorkoutBlock.sampleBlock
     
-    // 🔗 Pull persisted workout sessions from SwiftData
     @Environment(\.modelContext) private var context
     @Query(sort: \WorkoutSession.weekIndex) private var sessions: [WorkoutSession]
     
-    // 🔢 Derived metrics for charts, backed by SwiftData
+    // Total expected reps across the whole block (denominator)
+    private var totalExpectedRepsInBlock: Double {
+        sessions
+            .flatMap { $0.exercises }
+            .flatMap { $0.sets }
+            .reduce(0.0) { $0 + Double($1.targetReps) }
+    }
+    
+    // Total expected volume (reps * weight) across the whole block
+    private var totalExpectedVolumeInBlock: Double {
+        sessions
+            .flatMap { $0.exercises }
+            .flatMap { $0.sets }
+            .reduce(0.0) { partial, set in
+                partial + (Double(set.targetReps) * set.targetWeight)
+            }
+    }
+    
+    // 🔥 Expected = cumulative expected reps up to that week / total expected reps in block
+    // 🔥 Actual   = cumulative actual reps up to that week / total expected reps in block
     private var exerciseCompletionPoints: [MetricPoint] {
-        // If nothing logged yet, fall back to sample static data
-        guard !sessions.isEmpty else {
+        guard !sessions.isEmpty, totalExpectedRepsInBlock > 0 else {
             return block.exerciseCompletionPoints
         }
         
@@ -163,23 +180,19 @@ struct DashboardView: View {
         var actual: [Double] = []
         
         for week in block.weeks {
-            let weekSessions = sessions.filter { $0.weekIndex == week }
-            let sets = weekSessions
+            let weeksUpTo = sessions.filter { $0.weekIndex <= week }
+            let setsUpTo = weeksUpTo
                 .flatMap { $0.exercises }
                 .flatMap { $0.sets }
             
-            let totalSets = sets.count
-            let completedSets = sets.filter { $0.completed }.count
+            let expectedRepsToWeek = setsUpTo.reduce(0.0) { $0 + Double($1.targetReps) }
+            let actualRepsToWeek   = setsUpTo.reduce(0.0) { $0 + Double($1.actualReps) }
             
-            // For now, "expected" = 100% for every week (target is full completion)
-            expected.append(100.0)
+            let expectedPct = (expectedRepsToWeek / totalExpectedRepsInBlock) * 100.0
+            let actualPct   = (actualRepsToWeek   / totalExpectedRepsInBlock) * 100.0
             
-            if totalSets > 0 {
-                let pct = (Double(completedSets) / Double(totalSets)) * 100.0
-                actual.append(pct)
-            } else {
-                actual.append(0.0)
-            }
+            expected.append(expectedPct)
+            actual.append(actualPct)
         }
         
         return MetricPoint.makeSeries(
@@ -189,8 +202,10 @@ struct DashboardView: View {
         )
     }
     
+    // 🔥 Expected = cumulative expected volume up to that week / total expected volume in block
+    // 🔥 Actual   = cumulative actual volume up to that week / total expected volume in block
     private var volumeCompletionPoints: [MetricPoint] {
-        guard !sessions.isEmpty else {
+        guard !sessions.isEmpty, totalExpectedVolumeInBlock > 0 else {
             return block.volumeCompletionPoints
         }
         
@@ -198,25 +213,23 @@ struct DashboardView: View {
         var actual: [Double] = []
         
         for week in block.weeks {
-            let weekSessions = sessions.filter { $0.weekIndex == week }
-            let sets = weekSessions
+            let weeksUpTo = sessions.filter { $0.weekIndex <= week }
+            let setsUpTo = weeksUpTo
                 .flatMap { $0.exercises }
                 .flatMap { $0.sets }
             
-            let expectedVolume = sets.reduce(0.0) { partial, set in
-                partial + Double(set.targetReps) * set.targetWeight
+            let expectedVolumeToWeek = setsUpTo.reduce(0.0) { partial, set in
+                partial + (Double(set.targetReps) * set.targetWeight)
             }
-            let actualVolume = sets.reduce(0.0) { partial, set in
-                partial + Double(set.actualReps) * set.actualWeight
+            let actualVolumeToWeek = setsUpTo.reduce(0.0) { partial, set in
+                partial + (Double(set.actualReps) * set.actualWeight)
             }
             
-            expected.append(100.0)
-            if expectedVolume > 0 {
-                let pct = (actualVolume / expectedVolume) * 100.0
-                actual.append(pct)
-            } else {
-                actual.append(0.0)
-            }
+            let expectedPct = (expectedVolumeToWeek / totalExpectedVolumeInBlock) * 100.0
+            let actualPct   = (actualVolumeToWeek / totalExpectedVolumeInBlock) * 100.0
+            
+            expected.append(expectedPct)
+            actual.append(actualPct)
         }
         
         return MetricPoint.makeSeries(
@@ -254,7 +267,7 @@ struct DashboardView: View {
                         )
                     }
                     
-                    // 🔥 Now driven by SwiftData-backed metrics
+                    // ✅ Now using cumulative block-level metrics
                     MetricCard(
                         title: "% Exercises Completed in Block",
                         subtitle: "Expected vs Actual",
