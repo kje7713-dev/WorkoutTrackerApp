@@ -155,14 +155,115 @@ enum BlockBuilderMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-// ⛔️ BlockGoal / AutoProgramConfig / AutoProgramError / AutoProgramService
-// are now defined in AutoProgramService.swift only – removed here to avoid
-// invalid redeclaration & ambiguity errors.
+enum BlockGoal: String, CaseIterable, Identifiable, Codable {
+    case strength
+    case hypertrophy
+    case peaking
+    
+    var id: String { rawValue }
+}
+
+struct AutoProgramConfig {
+    let name: String
+    let goal: BlockGoal
+    let weeksCount: Int
+    let daysPerWeek: Int
+    let mainLifts: [String]
+    let trainingMaxes: [String: Double]
+}
+
+enum AutoProgramError: Error {
+    case invalidConfig
+}
+
+enum AutoProgramService {
+    /// Very simple auto-program generator that creates a BlockTemplate with
+    /// DayTemplates, PlannedExercises, and PrescribedSets.
+    static func generateBlock(in context: ModelContext,
+                              config: AutoProgramConfig) throws -> BlockTemplate {
+        guard config.weeksCount > 0, config.daysPerWeek > 0 else {
+            throw AutoProgramError.invalidConfig
+        }
+        
+        let block = BlockTemplate(
+            name: config.name,
+            weeksCount: config.weeksCount,
+            createdByUser: true
+        )
+        
+        var globalDayOrder = 0
+        
+        for week in 1...config.weeksCount {
+            for dayIndex in 1...config.daysPerWeek {
+                globalDayOrder += 1
+                
+                let title = "Week \(week) • Day \(dayIndex)"
+                let desc  = "Auto-generated \(config.goal.rawValue.capitalized) session."
+                
+                let dayTemplate = DayTemplate(
+                    weekIndex: week,
+                    dayIndex: dayIndex,
+                    title: title,
+                    dayDescription: desc,
+                    orderIndex: globalDayOrder,
+                    block: block
+                )
+                
+                var exerciseOrder = 0
+                for liftName in config.mainLifts {
+                    exerciseOrder += 1
+                    
+                    let planned = PlannedExercise(
+                        orderIndex: exerciseOrder,
+                        exerciseTemplate: nil,
+                        day: dayTemplate,
+                        notes: nil
+                    )
+                    
+                    let tm = config.trainingMaxes[liftName] ?? 135.0
+                    
+                    let (sets, reps, intensity): (Int, Int, Double) = {
+                        switch config.goal {
+                        case .strength:    return (5, 3, 0.80)
+                        case .hypertrophy: return (4, 8, 0.70)
+                        case .peaking:     return (3, 2, 0.85)
+                        }
+                    }()
+                    
+                    for setIdx in 1...sets {
+                        let set = PrescribedSet(
+                            id: UUID(),
+                            setIndex: setIdx,
+                            targetReps: reps,
+                            targetWeight: tm * intensity,
+                            targetRPE: config.goal == .strength ? 8.0 : 7.0,
+                            tempo: nil,
+                            notes: nil,
+                            plannedExercise: planned
+                        )
+                        planned.prescribedSets.append(set)
+                    }
+                    
+                    dayTemplate.exercises.append(planned)
+                }
+                
+                block.days.append(dayTemplate)
+            }
+        }
+        
+        context.insert(block)
+        try context.save()
+        return block
+    }
+}
 
 struct BlockListView: View {
     @Environment(\.modelContext) private var context
 
+    // ⛔️ old line that likely failed
     // @Query(sort: \BlockTemplate.createdAt, order: .reverse) private var blocks: [BlockTemplate]
+
+    // ✅ use name instead – BlockTemplate definitely has this
     @Query(sort: \BlockTemplate.name, order: .forward) private var blocks: [BlockTemplate]
     
     @State private var showingBuilder = false
@@ -280,9 +381,10 @@ struct BlockBuilderView: View {
     private var aiSection: some View {
         Section("AI Auto Programming") {
             Picker("Goal", selection: $goal) {
-                ForEach(BlockGoal.allCases) { goal in
-                    Text(goal.rawValue.capitalized).tag(goal)
-                }
+                // 🔁 FIX: avoid BlockGoal.allCases to remove the compile error
+                Text("Strength").tag(BlockGoal.strength)
+                Text("Hypertrophy").tag(BlockGoal.hypertrophy)
+                Text("Peaking").tag(BlockGoal.peaking)
             }
             
             Text("Training Maxes")
