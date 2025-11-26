@@ -143,7 +143,313 @@ struct MetricPoint: Identifiable {
     }
 }
 
+//
+// MARK: - Block list + Builder (NEW)
+//
+
+enum BlockBuilderMode: String, CaseIterable, Identifiable {
+    case template = "Templates"
+    case custom   = "Custom"
+    case ai       = "AI"
+    
+    var id: String { rawValue }
+}
+
+enum BlockGoal: String, CaseIterable, Identifiable, Codable {
+    case strength
+    case hypertrophy
+    case peaking
+    
+    var id: String { rawValue }
+}
+
+struct AutoProgramConfig {
+    let name: String
+    let goal: BlockGoal
+    let weeksCount: Int
+    let daysPerWeek: Int
+    let mainLifts: [String]
+    let trainingMaxes: [String: Double]
+}
+
+enum AutoProgramError: Error {
+    case invalidConfig
+}
+
+enum AutoProgramService {
+    /// Very simple auto-program generator that creates a BlockTemplate with
+    /// DayTemplates, PlannedExercises, and PrescribedSets.
+    static func generateBlock(in context: ModelContext,
+                              config: AutoProgramConfig) throws -> BlockTemplate {
+        guard config.weeksCount > 0, config.daysPerWeek > 0 else {
+            throw AutoProgramError.invalidConfig
+        }
+        
+        let block = BlockTemplate(
+            name: config.name,
+            weeksCount: config.weeksCount,
+            createdByUser: true
+        )
+        
+        var globalDayOrder = 0
+        
+        for week in 1...config.weeksCount {
+            for dayIndex in 1...config.daysPerWeek {
+                globalDayOrder += 1
+                
+                let title = "Week \(week) • Day \(dayIndex)"
+                let desc  = "Auto-generated \(config.goal.rawValue.capitalized) session."
+                
+                let dayTemplate = DayTemplate(
+                    weekIndex: week,
+                    dayIndex: dayIndex,
+                    title: title,
+                    dayDescription: desc,
+                    orderIndex: globalDayOrder,
+                    block: block
+                )
+                
+                var exerciseOrder = 0
+                for liftName in config.mainLifts {
+                    exerciseOrder += 1
+                    
+                    let planned = PlannedExercise(
+                        orderIndex: exerciseOrder,
+                        exerciseTemplate: nil,
+                        day: dayTemplate,
+                        notes: nil
+                    )
+                    
+                    let tm = config.trainingMaxes[liftName] ?? 135.0
+                    
+                    let (sets, reps, intensity): (Int, Int, Double) = {
+                        switch config.goal {
+                        case .strength:    return (5, 3, 0.80)
+                        case .hypertrophy: return (4, 8, 0.70)
+                        case .peaking:     return (3, 2, 0.85)
+                        }
+                    }()
+                    
+                    for setIdx in 1...sets {
+                        let set = PrescribedSet(
+                            id: UUID(),
+                            setIndex: setIdx,
+                            targetReps: reps,
+                            targetWeight: tm * intensity,
+                            targetRPE: config.goal == .strength ? 8.0 : 7.0,
+                            tempo: nil,
+                            notes: nil,
+                            plannedExercise: planned
+                        )
+                        planned.prescribedSets.append(set)
+                    }
+                    
+                    dayTemplate.exercises.append(planned)
+                }
+                
+                block.days.append(dayTemplate)
+            }
+        }
+        
+        context.insert(block)
+        try context.save()
+        return block
+    }
+}
+
+struct BlockListView: View {
+    @Environment(\.modelContext) private var context
+    @Query(sort: \BlockTemplate.createdAt, order: .reverse) private var blocks: [BlockTemplate]
+    
+    @State private var showingBuilder = false
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                if blocks.isEmpty {
+                    Text("No blocks yet.\nTap + to create one.")
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(blocks) { blockTemplate in
+                        // For now we still show the hard-coded DashboardView
+                        // Later we can adapt DashboardView to use `blockTemplate`.
+                        NavigationLink(blockTemplate.name) {
+                            DashboardView()
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Blocks")
+            .toolbar {
+                Button {
+                    showingBuilder = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+            .sheet(isPresented: $showingBuilder) {
+                BlockBuilderView()
+                    .presentationDetents([.medium, .large])
+            }
+        }
+    }
+}
+
+struct BlockBuilderView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var context
+    
+    @State private var mode: BlockBuilderMode = .ai   // default to AI
+    
+    // Shared basic fields
+    @State private var name: String = "SBD Block 1 – 4 Week Strength"
+    @State private var weeks: Int = 4
+    @State private var daysPerWeek: Int = 4
+    
+    // AI-specific fields
+    @State private var goal: BlockGoal = .strength
+    @State private var squatTM: String = "405"
+    @State private var benchTM: String = "285"
+    @State private var deadliftTM: String = "495"
+    
+    @State private var errorMessage: String?
+    @State private var isGenerating = false
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                // Mode picker
+                Section {
+                    Picker("Mode", selection: $mode) {
+                        ForEach(BlockBuilderMode.allCases) { mode in
+                            Text(mode.rawValue).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+                
+                Section("Basic") {
+                    TextField("Block name", text: $name)
+                    
+                    Stepper("Weeks: \(weeks)", value: $weeks, in: 1...12)
+                    Stepper("Days per week: \(daysPerWeek)", value: $daysPerWeek, in: 1...7)
+                }
+                
+                if mode == .template {
+                    Section("Templates") {
+                        Text("Template library UI to come.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                
+                if mode == .custom {
+                    Section("Custom Block") {
+                        Text("Manual day + exercise builder UI to come.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                
+                if mode == .ai {
+                    aiSection
+                }
+                
+                if let errorMessage {
+                    Section {
+                        Text(errorMessage)
+                            .foregroundStyle(.red)
+                            .font(.footnote)
+                    }
+                }
+            }
+            .navigationTitle("New Block")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+    }
+    
+    // MARK: - AI section
+    
+    private var aiSection: some View {
+        Section("AI Auto Programming") {
+            Picker("Goal", selection: $goal) {
+                ForEach(BlockGoal.allCases) { goal in
+                    Text(goal.rawValue.capitalized).tag(goal)
+                }
+            }
+            
+            Text("Training Maxes")
+                .font(.subheadline)
+            
+            TextField("Squat TM (lb)", text: $squatTM)
+                .keyboardType(.numberPad)
+            TextField("Bench TM (lb)", text: $benchTM)
+                .keyboardType(.numberPad)
+            TextField("Deadlift TM (lb)", text: $deadliftTM)
+                .keyboardType(.numberPad)
+            
+            Button {
+                generateAIBlock()
+            } label: {
+                if isGenerating {
+                    ProgressView()
+                } else {
+                    Text("Generate Block")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
+            .disabled(isGenerating)
+        }
+    }
+    
+    // MARK: - Actions
+    
+    private func generateAIBlock() {
+        errorMessage = nil
+        
+        guard
+            let squat = Double(squatTM),
+            let bench = Double(benchTM),
+            let dead  = Double(deadliftTM)
+        else {
+            errorMessage = "Please enter valid numbers for training maxes."
+            return
+        }
+        
+        isGenerating = true
+        
+        let config = AutoProgramConfig(
+            name: name,
+            goal: goal,
+            weeksCount: weeks,
+            daysPerWeek: daysPerWeek,
+            mainLifts: ["Back Squat", "Bench Press", "Deadlift"],
+            trainingMaxes: [
+                "Back Squat": squat,
+                "Bench Press": bench,
+                "Deadlift": dead
+            ]
+        )
+        
+        do {
+            _ = try AutoProgramService.generateBlock(in: context, config: config)
+            isGenerating = false
+            dismiss()
+        } catch {
+            isGenerating = false
+            errorMessage = "Failed to generate block: \(error)"
+        }
+    }
+}
+
+//
 // MARK: - Views (Dashboard + Block)
+//
 
 struct DashboardView: View {
     @State private var block = WorkoutBlock.sampleBlock
@@ -183,7 +489,7 @@ struct DashboardView: View {
     
     // 🔥 Expected line = from template (block.expectedExercises)
     // 🔥 Actual line   = completed reps / total expected reps in block
-    private var exerciseCompletionPoints: [MetricPoint] {
+    private var exerciseCompletionPointsComputed: [MetricPoint] {
         guard totalExpectedRepsInBlock > 0 else {
             return block.exerciseCompletionPoints
         }
@@ -202,7 +508,6 @@ struct DashboardView: View {
             actual.append(actualPct)
         }
         
-        // Expected line comes straight from the plan (25/50/75/100)
         let expected = block.expectedExercises
         
         return MetricPoint.makeSeries(
@@ -214,7 +519,7 @@ struct DashboardView: View {
     
     // 🔥 Expected line = from template (block.expectedVolume)
     // 🔥 Actual line   = completed volume / total expected volume in block
-    private var volumeCompletionPoints: [MetricPoint] {
+    private var volumeCompletionPointsComputed: [MetricPoint] {
         guard totalExpectedVolumeInBlock > 0 else {
             return block.volumeCompletionPoints
         }
@@ -276,13 +581,13 @@ struct DashboardView: View {
                     MetricCard(
                         title: "% Exercises Completed in Block",
                         subtitle: "Expected vs Actual",
-                        points: exerciseCompletionPoints
+                        points: exerciseCompletionPointsComputed
                     )
                     
                     MetricCard(
                         title: "% Volume Completed in Block",
                         subtitle: "Expected vs Actual",
-                        points: volumeCompletionPoints
+                        points: volumeCompletionPointsComputed
                     )
                     
                     Spacer(minLength: 20)
@@ -776,7 +1081,7 @@ struct MetricCard: View {
 
 struct ContentView: View {
     var body: some View {
-        DashboardView()
+        BlockListView()   // 🔄 now starts at block list / builder
     }
 }
 
