@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts   // iOS 16+ (you’re targeting iOS 17, so this is fine)
+import SwiftData
 
 // MARK: - Models (UI-level)
 
@@ -206,21 +207,12 @@ struct BlockDetailView: View {
     @State private var selectedWeek: Int
     @State private var dragOffset: CGFloat = 0
     
-    // NEW: store session exercises per day so they persist while in this screen
-    @State private var sessionExercisesByDay: [Int: [SessionExerciseUI]] = [:]
+    @Environment(\.modelContext) private var context
     
     init(block: WorkoutBlock) {
         self.block = block
         _selectedDayIndex = State(initialValue: block.days.first?.index ?? 1)
         _selectedWeek = State(initialValue: block.currentWeek)
-        
-        // Initialize per-day session state from template days
-        let initial: [Int: [SessionExerciseUI]] = Dictionary(
-            uniqueKeysWithValues: block.days.map { day in
-                (day.index, day.exercises.map { SessionExerciseUI(from: $0) })
-            }
-        )
-        _sessionExercisesByDay = State(initialValue: initial)
     }
     
     private var selectedDay: WorkoutDay? {
@@ -335,21 +327,10 @@ struct BlockDetailView: View {
                             .fill(Color(.secondarySystemBackground))
                     )
                     
-                    // Start workout → go to detailed session view
+                    // Start workout → get/create session in SwiftData, then go to detail view
                     NavigationLink {
-                        // Bind into the per-day session state so data persists
-                        WorkoutSessionView(
-                            day: day,
-                            exercises: Binding(
-                                get: {
-                                    sessionExercisesByDay[day.index]
-                                        ?? day.exercises.map { SessionExerciseUI(from: $0) }
-                                },
-                                set: { newValue in
-                                    sessionExercisesByDay[day.index] = newValue
-                                }
-                            )
-                        )
+                        let session = existingOrNewSession(for: day)
+                        WorkoutSessionView(session: session, day: day)
                     } label: {
                         Text("Start This Workout")
                             .font(.headline)
@@ -397,57 +378,97 @@ struct BlockDetailView: View {
         .navigationTitle(block.name)
         .navigationBarTitleDisplayMode(.inline)
     }
+    
+    // MARK: - SwiftData helpers
+    
+    private func existingOrNewSession(for day: WorkoutDay) -> WorkoutSession {
+        if let existing = fetchSession(for: day) {
+            return existing
+        } else {
+            return createSession(for: day)
+        }
+    }
+    
+    private func fetchSession(for day: WorkoutDay) -> WorkoutSession? {
+        let descriptor = FetchDescriptor<WorkoutSession>(
+            predicate: #Predicate { session in
+                session.weekIndex == selectedWeek && session.dayIndex == day.index
+            }
+        )
+        
+        do {
+            let results = try context.fetch(descriptor)
+            return results.first
+        } catch {
+            print("Error fetching session: \(error)")
+            return nil
+        }
+    }
+    
+    private func createSession(for day: WorkoutDay) -> WorkoutSession {
+        // Create a new WorkoutSession for this week/day
+        let session = WorkoutSession(
+            weekIndex: selectedWeek,
+            dayIndex: day.index
+        )
+        
+        // Build exercises + sets from the template
+        for (exerciseOrder, ex) in day.exercises.enumerated() {
+            let sessionExercise = SessionExercise(
+                orderIndex: exerciseOrder,
+                session: session,
+                exerciseTemplate: nil,
+                nameOverride: ex.name
+            )
+            
+            // Create sets for this exercise
+            for setIdx in 1...ex.sets {
+                let set = SessionSet(
+                    setIndex: setIdx,
+                    targetReps: ex.reps,
+                    targetWeight: Double(ex.weight),
+                    targetRPE: nil,
+                    actualReps: ex.reps,
+                    actualWeight: Double(ex.weight),
+                    actualRPE: nil,
+                    completed: false,
+                    timestamp: nil,
+                    notes: nil,
+                    sessionExercise: sessionExercise
+                )
+                sessionExercise.sets.append(set)
+            }
+            
+            session.exercises.append(sessionExercise)
+        }
+        
+        context.insert(session)
+        do {
+            try context.save()
+        } catch {
+            print("Error saving new session: \(error)")
+        }
+        
+        return session
+    }
 }
 
 // MARK: - Workout Session (per-set expected vs actual)
-
-// UI-only types renamed to avoid conflict with SwiftData `SessionExercise`
-
-struct SessionExerciseSetUI: Identifiable {
-    let id = UUID()
-    let setIndex: Int
-    
-    let expectedReps: Int
-    let expectedWeight: Int
-    
-    var actualReps: Int
-    var actualWeight: Int
-    var isCompleted: Bool
-}
-
-struct SessionExerciseUI: Identifiable {
-    let id = UUID()
-    let name: String
-    var sets: [SessionExerciseSetUI]
-    
-    init(from exercise: WorkoutExercise) {
-        self.name = exercise.name
-        self.sets = (1...exercise.sets).map { idx in
-            SessionExerciseSetUI(
-                setIndex: idx,
-                expectedReps: exercise.reps,
-                expectedWeight: exercise.weight,
-                actualReps: exercise.reps,      // user can reduce if they miss reps
-                actualWeight: exercise.weight,  // user can reduce if they drop weight
-                isCompleted: false
-            )
-        }
-    }
-}
+// Uses SwiftData models: WorkoutSession, SessionExercise, SessionSet
 
 struct WorkoutSessionView: View {
+    @Bindable var session: WorkoutSession
     let day: WorkoutDay
     
-    // CHANGED EARLIER: exercises is passed in as a Binding from BlockDetailView
-    @Binding var exercises: [SessionExerciseUI]
+    @Environment(\.modelContext) private var context
     
     private var totalSets: Int {
-        exercises.reduce(0) { $0 + $1.sets.count }
+        session.exercises.reduce(0) { $0 + $1.sets.count }
     }
     
     private var totalCompletedSets: Int {
-        exercises.reduce(0) { partial, exercise in
-            partial + exercise.sets.filter { $0.isCompleted }.count
+        session.exercises.reduce(0) { partial, exercise in
+            partial + exercise.sets.filter { $0.completed }.count
         }
     }
     
@@ -484,9 +505,9 @@ struct WorkoutSessionView: View {
             }
             
             Section(header: Text("Exercises")) {
-                ForEach($exercises) { $exercise in
+                ForEach($session.exercises) { $exercise in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(exercise.name)
+                        Text(exercise.nameOverride ?? exercise.exerciseTemplate?.name ?? "Exercise")
                             .font(.headline)
                         
                         ForEach($exercise.sets) { $set in
@@ -496,7 +517,7 @@ struct WorkoutSessionView: View {
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                     Spacer()
-                                    Toggle(isOn: $set.isCompleted) {
+                                    Toggle(isOn: $set.completed) {
                                         Text("Completed")
                                             .font(.caption)
                                     }
@@ -504,7 +525,7 @@ struct WorkoutSessionView: View {
                                     .labelsHidden()
                                 }
                                 
-                                Text("Expected: \(set.expectedReps) reps @ \(set.expectedWeight) lb")
+                                Text("Expected: \(set.targetReps) reps @ \(Int(set.targetWeight)) lb")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 
@@ -513,18 +534,18 @@ struct WorkoutSessionView: View {
                                     Stepper(
                                         "Reps: \(set.actualReps)",
                                         value: $set.actualReps,
-                                        // ✅ allow more reps than expected; cap grows as needed
-                                        in: 0...(max(set.expectedReps, set.actualReps) + 10)
+                                        // allow more reps than target, cap grows as needed
+                                        in: 0...(max(set.targetReps, set.actualReps) + 10)
                                     )
                                 }
                                 .font(.caption)
                                 
                                 HStack {
                                     Stepper(
-                                        "Weight: \(set.actualWeight) lb",
+                                        "Weight: \(Int(set.actualWeight)) lb",
                                         value: $set.actualWeight,
-                                        in: 0...1000,
-                                        step: 5
+                                        in: 0.0...1000.0,
+                                        step: 5.0
                                     )
                                 }
                                 .font(.caption)
@@ -533,9 +554,9 @@ struct WorkoutSessionView: View {
                                 HStack(spacing: 6) {
                                     Circle()
                                         .frame(width: 10, height: 10)
-                                        .foregroundColor(set.isCompleted ? .green : .gray.opacity(0.3))
+                                        .foregroundColor(set.completed ? .green : .gray.opacity(0.3))
                                     
-                                    Text(set.isCompleted ? "Set logged" : "Not logged yet")
+                                    Text(set.completed ? "Set logged" : "Not logged yet")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -545,19 +566,7 @@ struct WorkoutSessionView: View {
                         
                         // Add Set button for this exercise
                         Button {
-                            let nextIndex = (exercise.sets.last?.setIndex ?? 0) + 1
-                            let template = exercise.sets.last
-                            
-                            let newSet = SessionExerciseSetUI(
-                                setIndex: nextIndex,
-                                expectedReps: template?.expectedReps ?? 5,
-                                expectedWeight: template?.expectedWeight ?? 135,
-                                actualReps: template?.actualReps ?? template?.expectedReps ?? 5,
-                                actualWeight: template?.actualWeight ?? template?.expectedWeight ?? 135,
-                                isCompleted: false
-                            )
-                            
-                            exercise.sets.append(newSet)
+                            addSet(to: exercise)
                         } label: {
                             Text("Add Set")
                                 .font(.caption)
@@ -571,6 +580,34 @@ struct WorkoutSessionView: View {
         }
         .navigationTitle("Workout Session")
         .navigationBarTitleDisplayMode(.inline)
+        .onDisappear {
+            do {
+                try context.save()
+            } catch {
+                print("Error saving session on disappear: \(error)")
+            }
+        }
+    }
+    
+    private func addSet(to exercise: SessionExercise) {
+        let nextIndex = (exercise.sets.last?.setIndex ?? 0) + 1
+        let template = exercise.sets.last
+        
+        let newSet = SessionSet(
+            setIndex: nextIndex,
+            targetReps: template?.targetReps ?? 5,
+            targetWeight: template?.targetWeight ?? 135.0,
+            targetRPE: template?.targetRPE,
+            actualReps: template?.actualReps ?? template?.targetReps ?? 5,
+            actualWeight: template?.actualWeight ?? template?.targetWeight ?? 135.0,
+            actualRPE: template?.actualRPE,
+            completed: false,
+            timestamp: nil,
+            notes: nil,
+            sessionExercise: exercise
+        )
+        
+        exercise.sets.append(newSet)
     }
 }
 
