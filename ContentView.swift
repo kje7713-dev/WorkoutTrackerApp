@@ -259,10 +259,15 @@ enum AutoProgramService {
 
 struct BlockListView: View {
     @Environment(\.modelContext) private var context
-    @Query(sort: \BlockTemplate.createdAt, order: .reverse) private var blocks: [BlockTemplate]
+
+    // ⛔️ old line that likely failed
+    // @Query(sort: \BlockTemplate.createdAt, order: .reverse) private var blocks: [BlockTemplate]
+
+    // ✅ use name instead – BlockTemplate definitely has this
+    @Query(sort: \BlockTemplate.name, order: .forward) private var blocks: [BlockTemplate]
     
     @State private var showingBuilder = false
-    
+
     var body: some View {
         NavigationStack {
             List {
@@ -272,8 +277,6 @@ struct BlockListView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(blocks) { blockTemplate in
-                        // For now we still show the hard-coded DashboardView
-                        // Later we can adapt DashboardView to use `blockTemplate`.
                         NavigationLink(blockTemplate.name) {
                             DashboardView()
                         }
