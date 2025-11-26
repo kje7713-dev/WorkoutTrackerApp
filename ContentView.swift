@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts   // iOS 16+ (you’re targeting iOS 17, so this is fine)
+import SwiftData   // ✅ ADDED: needed for @Query and BlockTemplate
 
 // MARK: - Models (UI-level)
 
@@ -142,10 +143,95 @@ struct MetricPoint: Identifiable {
     }
 }
 
+// MARK: - Mapping from SwiftData models → UI models
+
+extension WorkoutBlock {
+    init(from template: BlockTemplate) {
+        self.name = template.name
+        
+        // Sort days by week, day, order
+        let sortedDays = template.days.sorted {
+            if $0.weekIndex == $1.weekIndex {
+                if $0.dayIndex == $1.dayIndex {
+                    return $0.orderIndex < $1.orderIndex
+                }
+                return $0.dayIndex < $1.dayIndex
+            }
+            return $0.weekIndex < $1.weekIndex
+        }
+        
+        let firstDay = sortedDays.first
+        self.currentWeek = firstDay?.weekIndex ?? 1
+        
+        if let d = firstDay {
+            self.currentDayName = "Week \(d.weekIndex) • Day \(d.dayIndex) – \(d.title)"
+        } else {
+            self.currentDayName = ""
+        }
+        
+        // Map DayTemplate + PlannedExercise + PrescribedSet → WorkoutDay + WorkoutExercise
+        self.days = sortedDays.map { dayTemplate in
+            let exercises: [WorkoutExercise] = dayTemplate.exercises
+                .sorted { $0.orderIndex < $1.orderIndex }
+                .map { planned in
+                    let name = planned.exerciseTemplate?.name ?? "Exercise"
+                    let setsCount = planned.prescribedSets.count
+                    let sortedSets = planned.prescribedSets.sorted { $0.setIndex < $1.setIndex }
+                    let firstSet = sortedSets.first
+                    let reps = firstSet?.targetReps ?? 0
+                    let weight = Int(firstSet?.targetWeight ?? 0)
+                    
+                    return WorkoutExercise(
+                        name: name,
+                        sets: setsCount,
+                        reps: reps,
+                        weight: weight
+                    )
+                }
+            
+            return WorkoutDay(
+                index: dayTemplate.dayIndex,
+                name: dayTemplate.title,
+                description: dayTemplate.dayDescription,
+                exercises: exercises
+            )
+        }
+        
+        // Weeks for charts
+        let maxWeekIndex = sortedDays.map { $0.weekIndex }.max() ?? max(template.weeksCount, 1)
+        self.weeks = Array(1...maxWeekIndex)
+        
+        if maxWeekIndex > 0 {
+            // Simple placeholder ramps sized to week count
+            self.expectedExercises = (1...maxWeekIndex).map { Double($0) / Double(maxWeekIndex) * 100.0 }
+            self.actualExercises = Array(repeating: 0.0, count: maxWeekIndex)
+            self.expectedVolume = self.expectedExercises
+            self.actualVolume = self.actualExercises
+        } else {
+            self.expectedExercises = []
+            self.actualExercises = []
+            self.expectedVolume = []
+            self.actualVolume = []
+        }
+    }
+}
+
 // MARK: - Views (Dashboard + Block)
 
 struct DashboardView: View {
-    @State private var block = WorkoutBlock.sampleBlock
+    // ✅ NEW: pull real blocks from SwiftData
+    @Environment(\.modelContext) private var modelContext
+    @Query private var blockTemplates: [BlockTemplate]
+    
+    // If there is at least one BlockTemplate, use it → WorkoutBlock
+    // Otherwise fall back to the demo sample block
+    private var block: WorkoutBlock {
+        if let first = blockTemplates.first {
+            return WorkoutBlock(from: first)
+        } else {
+            return .sampleBlock
+        }
+    }
     
     var body: some View {
         NavigationStack {
