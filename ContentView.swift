@@ -2,26 +2,26 @@ import SwiftUI
 import Charts
 import SwiftData
 
-// MARK: - UI Metric model (kept)
+// MARK: - Metric model
 
 struct MetricPoint: Identifiable {
     enum Series: String {
         case expected = "Expected"
         case actual = "Actual"
     }
-    
+
     let id = UUID()
     let week: Int
     let value: Double
     let series: Series
-    
+
     static func makeSeries(
         weeks: [Int],
         expected: [Double],
         actual: [Double]
     ) -> [MetricPoint] {
         var result: [MetricPoint] = []
-        
+
         for (index, week) in weeks.enumerated() {
             if index < expected.count {
                 result.append(
@@ -38,27 +38,34 @@ struct MetricPoint: Identifiable {
                 )
             }
         }
-        
+
         return result
     }
 }
 
-//
-// MARK: - Block list + Builder
-//
+// MARK: - Block builder UI enums / helpers
 
 enum BlockBuilderMode: String, CaseIterable, Identifiable {
     case template = "Templates"
     case custom   = "Custom"
     case ai       = "AI"
-    
+
     var id: String { rawValue }
 }
 
+// Extend the BlockGoal that lives in AutoProgramService.swift
+extension BlockGoal: CaseIterable, Identifiable, Codable {
+    public var id: String { rawValue }
+}
+
+// MARK: - Block list
+
 struct BlockListView: View {
     @Environment(\.modelContext) private var context
-    @Query(sort: \BlockTemplate.name, order: .forward) private var blocks: [BlockTemplate]
-    
+
+    @Query(sort: \BlockTemplate.name, order: .forward)
+    private var blocks: [BlockTemplate]
+
     @State private var showingBuilder = false
 
     var body: some View {
@@ -71,7 +78,7 @@ struct BlockListView: View {
                 } else {
                     ForEach(blocks) { blockTemplate in
                         NavigationLink(blockTemplate.name) {
-                            DashboardView(blockTemplate: blockTemplate)
+                            DashboardView(block: blockTemplate)
                         }
                     }
                     .onDelete(perform: deleteBlocks)
@@ -79,7 +86,7 @@ struct BlockListView: View {
             }
             .navigationTitle("Blocks")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .topBarLeading) {
                     EditButton()
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -96,36 +103,42 @@ struct BlockListView: View {
             }
         }
     }
-    
+
     private func deleteBlocks(at offsets: IndexSet) {
         for index in offsets {
             let block = blocks[index]
             context.delete(block)
         }
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            print("Error deleting blocks: \(error)")
+        }
     }
 }
+
+// MARK: - Block Builder
 
 struct BlockBuilderView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
-    
+
     @State private var mode: BlockBuilderMode = .ai   // default to AI
-    
+
     // Shared basic fields
     @State private var name: String = ""
     @State private var weeks: Int = 4
     @State private var daysPerWeek: Int = 4
-    
+
     // AI-specific fields
     @State private var goal: BlockGoal = .strength
     @State private var squatTM: String = "405"
     @State private var benchTM: String = "285"
     @State private var deadliftTM: String = "495"
-    
+
     @State private var errorMessage: String?
     @State private var isGenerating = false
-    
+
     var body: some View {
         NavigationStack {
             Form {
@@ -138,14 +151,15 @@ struct BlockBuilderView: View {
                     }
                     .pickerStyle(.segmented)
                 }
-                
+
                 Section("Basic") {
-                    TextField("Block name (required, e.g. SBD Block 1 – 4 Week Strength)", text: $name)
-                    
+                    TextField("Block name (required, e.g. SBD Block 1…)", text: $name)
+                        .textInputAutocapitalization(.words)
+
                     Stepper("Weeks: \(weeks)", value: $weeks, in: 1...12)
                     Stepper("Days per week: \(daysPerWeek)", value: $daysPerWeek, in: 1...7)
                 }
-                
+
                 if mode == .template {
                     Section("Templates") {
                         Text("Template library UI to come.")
@@ -153,7 +167,7 @@ struct BlockBuilderView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                
+
                 if mode == .custom {
                     Section("Custom Block") {
                         Text("Manual day + exercise builder UI to come.")
@@ -161,11 +175,11 @@ struct BlockBuilderView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                
+
                 if mode == .ai {
                     aiSection
                 }
-                
+
                 if let errorMessage {
                     Section {
                         Text(errorMessage)
@@ -182,47 +196,44 @@ struct BlockBuilderView: View {
             }
         }
     }
-    
+
     // MARK: - AI section
-    
+
     private var aiSection: some View {
         Section("AI Auto Programming") {
             Picker("Goal", selection: $goal) {
-                ForEach(BlockGoal.allCases, id: \.self) { goal in
+                ForEach(BlockGoal.allCases) { goal in
                     Text(goal.rawValue.capitalized).tag(goal)
                 }
             }
-            
+
             Text("Training Maxes")
                 .font(.subheadline)
-            
+
             HStack {
                 Text("Squat")
                 Spacer()
-                TextField("lb", text: $squatTM)
-                    .keyboardType(.numberPad)
+                TextField("e.g. 405", text: $squatTM)
                     .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 120)
+                    .keyboardType(.numberPad)
             }
-            
+
             HStack {
                 Text("Bench")
                 Spacer()
-                TextField("lb", text: $benchTM)
-                    .keyboardType(.numberPad)
+                TextField("e.g. 285", text: $benchTM)
                     .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 120)
+                    .keyboardType(.numberPad)
             }
-            
+
             HStack {
                 Text("Deadlift")
                 Spacer()
-                TextField("lb", text: $deadliftTM)
-                    .keyboardType(.numberPad)
+                TextField("e.g. 495", text: $deadliftTM)
                     .multilineTextAlignment(.trailing)
-                    .frame(maxWidth: 120)
+                    .keyboardType(.numberPad)
             }
-            
+
             Button {
                 generateAIBlock()
             } label: {
@@ -233,20 +244,15 @@ struct BlockBuilderView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
-            .disabled(isGenerating)
+            .disabled(isGenerating || name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
     }
-    
+
     // MARK: - Actions
-    
+
     private func generateAIBlock() {
         errorMessage = nil
-        
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Block name is required."
-            return
-        }
-        
+
         guard
             let squat = Double(squatTM),
             let bench = Double(benchTM),
@@ -255,22 +261,27 @@ struct BlockBuilderView: View {
             errorMessage = "Please enter valid numbers for training maxes."
             return
         }
-        
+
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            errorMessage = "Block name is required."
+            return
+        }
+
         isGenerating = true
-        
+
         let config = AutoProgramConfig(
             name: name,
             goal: goal,
             weeksCount: weeks,
             daysPerWeek: daysPerWeek,
-            mainLifts: ["Squat", "Bench", "Deadlift"],
+            mainLifts: ["Back Squat", "Bench Press", "Deadlift"],
             trainingMaxes: [
-                "Squat": squat,
-                "Bench": bench,
+                "Back Squat": squat,
+                "Bench Press": bench,
                 "Deadlift": dead
             ]
         )
-        
+
         do {
             _ = try AutoProgramService.generateBlock(in: context, config: config)
             isGenerating = false
@@ -282,119 +293,169 @@ struct BlockBuilderView: View {
     }
 }
 
-//
-// MARK: - Dashboard for a specific BlockTemplate
-//
+// MARK: - Dashboard (per block)
 
 struct DashboardView: View {
-    let blockTemplate: BlockTemplate
-    
+    let block: BlockTemplate
+
     @Environment(\.modelContext) private var context
-    @Query(sort: \WorkoutSession.weekIndex) private var sessions: [WorkoutSession]
-    
+    @Query(sort: \WorkoutSession.weekIndex)
+    private var allSessions: [WorkoutSession]
+
+    // Sessions whose weekIndex is within this block’s week range.
+    // (We don’t yet have an explicit block relationship on WorkoutSession.)
+    private var sessionsForBlock: [WorkoutSession] {
+        allSessions.filter { $0.weekIndex >= 1 && $0.weekIndex <= block.weeksCount }
+    }
+
+    // All weeks for this block
     private var weeks: [Int] {
-        let count = max(blockTemplate.weeksCount, 1)
-        return Array(1...count)
+        guard block.weeksCount > 0 else { return [] }
+        return Array(1...block.weeksCount)
     }
-    
-    /// Total expected reps across the whole block, from templates
+
+    // Expected reps / volume from the PROGRAM (Plan) /////////////////////////
+
+    private var expectedRepsPerWeek: [Int: Double] {
+        var dict: [Int: Double] = [:]
+        for day in block.days {
+            let reps = day.exercises
+                .flatMap { $0.prescribedSets }
+                .reduce(0.0) { $0 + Double($1.targetReps) }
+            dict[day.weekIndex, default: 0] += reps
+        }
+        return dict
+    }
+
+    private var expectedVolumePerWeek: [Int: Double] {
+        var dict: [Int: Double] = [:]
+        for day in block.days {
+            let vol = day.exercises
+                .flatMap { $0.prescribedSets }
+                .reduce(0.0) { partial, set in
+                    partial + (Double(set.targetReps) * set.targetWeight)
+                }
+            dict[day.weekIndex, default: 0] += vol
+        }
+        return dict
+    }
+
     private var totalExpectedRepsInBlock: Double {
-        blockTemplate.days
-            .flatMap { $0.exercises }
-            .flatMap { $0.prescribedSets }
-            .reduce(0.0) { $0 + Double($1.targetReps) }
+        expectedRepsPerWeek.values.reduce(0, +)
     }
-    
-    /// Total expected volume (reps * weight) across the whole block
+
     private var totalExpectedVolumeInBlock: Double {
-        blockTemplate.days
-            .flatMap { $0.exercises }
-            .flatMap { $0.prescribedSets }
-            .reduce(0.0) { total, set in
-                total + Double(set.targetReps) * set.targetWeight
-            }
+        expectedVolumePerWeek.values.reduce(0, +)
     }
-    
-    // Expected = straight line from 0 → 100 over N weeks
-    // Actual   = completed reps / total expected reps in block
-    private var exerciseCompletionPointsComputed: [MetricPoint] {
-        guard totalExpectedRepsInBlock > 0 else { return [] }
-        
-        var expected: [Double] = []
-        var actual: [Double] = []
-        let weekCount = Double(weeks.count)
-        
+
+    // Expected % curves (always end at 100)
+
+    private var expectedExercisePctByWeek: [Int: Double] {
+        guard totalExpectedRepsInBlock > 0 else { return [:] }
+        var dict: [Int: Double] = [:]
+        var cumulative = 0.0
         for week in weeks {
-            let weeksUpTo = sessions.filter { $0.weekIndex <= week }
+            cumulative += expectedRepsPerWeek[week] ?? 0
+            dict[week] = (cumulative / totalExpectedRepsInBlock) * 100.0
+        }
+        return dict
+    }
+
+    private var expectedVolumePctByWeek: [Int: Double] {
+        guard totalExpectedVolumeInBlock > 0 else { return [:] }
+        var dict: [Int: Double] = [:]
+        var cumulative = 0.0
+        for week in weeks {
+            cumulative += expectedVolumePerWeek[week] ?? 0
+            dict[week] = (cumulative / totalExpectedVolumeInBlock) * 100.0
+        }
+        return dict
+    }
+
+    // Actual % curves from logged sessions ///////////////////////////////////
+
+    private var actualExercisePctByWeek: [Int: Double] {
+        guard totalExpectedRepsInBlock > 0 else { return [:] }
+        var dict: [Int: Double] = [:]
+
+        for week in weeks {
+            let weeksUpTo = sessionsForBlock.filter { $0.weekIndex <= week }
             let completedSets = weeksUpTo
                 .flatMap { $0.exercises }
                 .flatMap { $0.sets }
                 .filter { $0.completed }
-            
-            let actualRepsToWeek = completedSets.reduce(0.0) { $0 + Double($1.actualReps) }
-            let actualPct = (actualRepsToWeek / totalExpectedRepsInBlock) * 100.0
-            actual.append(actualPct)
-            
-            let expectedPct = (Double(week) / weekCount) * 100.0
-            expected.append(expectedPct)
+
+            let reps = completedSets.reduce(0.0) { $0 + Double($1.actualReps) }
+            dict[week] = (reps / totalExpectedRepsInBlock) * 100.0
         }
-        
-        return MetricPoint.makeSeries(
-            weeks: weeks,
-            expected: expected,
-            actual: actual
-        )
+
+        return dict
     }
-    
-    // Same idea but for volume
-    private var volumeCompletionPointsComputed: [MetricPoint] {
-        guard totalExpectedVolumeInBlock > 0 else { return [] }
-        
-        var expected: [Double] = []
-        var actual: [Double] = []
-        let weekCount = Double(weeks.count)
-        
+
+    private var actualVolumePctByWeek: [Int: Double] {
+        guard totalExpectedVolumeInBlock > 0 else { return [:] }
+        var dict: [Int: Double] = [:]
+
         for week in weeks {
-            let weeksUpTo = sessions.filter { $0.weekIndex <= week }
+            let weeksUpTo = sessionsForBlock.filter { $0.weekIndex <= week }
             let completedSets = weeksUpTo
                 .flatMap { $0.exercises }
                 .flatMap { $0.sets }
                 .filter { $0.completed }
-            
-            let actualVolumeToWeek = completedSets.reduce(0.0) { partial, set in
-                partial + Double(set.actualReps) * set.actualWeight
+
+            let volume = completedSets.reduce(0.0) { partial, set in
+                partial + (Double(set.actualReps) * set.actualWeight)
             }
-            let actualPct = (actualVolumeToWeek / totalExpectedVolumeInBlock) * 100.0
-            actual.append(actualPct)
-            
-            let expectedPct = (Double(week) / weekCount) * 100.0
-            expected.append(expectedPct)
+            dict[week] = (volume / totalExpectedVolumeInBlock) * 100.0
         }
-        
-        return MetricPoint.makeSeries(
-            weeks: weeks,
-            expected: expected,
-            actual: actual
-        )
+
+        return dict
     }
-    
+
+    private var exerciseCompletionPoints: [MetricPoint] {
+        guard !weeks.isEmpty else { return [] }
+        let expected = weeks.map { expectedExercisePctByWeek[$0] ?? 0 }
+        let actual   = weeks.map { actualExercisePctByWeek[$0]   ?? 0 }
+        return MetricPoint.makeSeries(weeks: weeks, expected: expected, actual: actual)
+    }
+
+    private var volumeCompletionPoints: [MetricPoint] {
+        guard !weeks.isEmpty else { return [] }
+        let expected = weeks.map { expectedVolumePctByWeek[$0] ?? 0 }
+        let actual   = weeks.map { actualVolumePctByWeek[$0]   ?? 0 }
+        return MetricPoint.makeSeries(weeks: weeks, expected: expected, actual: actual)
+    }
+
+    // “Current day” label – just first day in block for now
+    private var currentDayLabel: String {
+        guard let firstDay = block.days.sorted(by: {
+            if $0.weekIndex == $1.weekIndex {
+                return $0.dayIndex < $1.dayIndex
+            }
+            return $0.weekIndex < $1.weekIndex
+        }).first else {
+            return "No days defined"
+        }
+
+        return "Week \(firstDay.weekIndex) • Day \(firstDay.dayIndex) – \(firstDay.title)"
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    
+
                     QuoteHeader()
-                    
-                    // Card for this block
+
                     NavigationLink {
-                        BlockDetailView(blockTemplate: blockTemplate)
+                        BlockDetailView(block: block)
                     } label: {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(blockTemplate.name)
+                            Text(block.name)
                                 .font(.title)
                                 .fontWeight(.bold)
-                            
-                            Text("\(blockTemplate.weeksCount)-week block")
+
+                            Text(currentDayLabel)
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
                         }
@@ -405,19 +466,19 @@ struct DashboardView: View {
                                 .fill(Color(.secondarySystemBackground))
                         )
                     }
-                    
+
                     MetricCard(
                         title: "% Exercises Completed in Block",
                         subtitle: "Expected vs Actual",
-                        points: exerciseCompletionPointsComputed
+                        points: exerciseCompletionPoints
                     )
-                    
+
                     MetricCard(
                         title: "% Volume Completed in Block",
                         subtitle: "Expected vs Actual",
-                        points: volumeCompletionPointsComputed
+                        points: volumeCompletionPoints
                     )
-                    
+
                     Spacer(minLength: 20)
                 }
                 .padding()
@@ -428,56 +489,59 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Block Detail (week/day + summary) using BlockTemplate
+// MARK: - Block Detail (week/day + summary)
 
 struct BlockDetailView: View {
-    let blockTemplate: BlockTemplate
-    
-    @State private var selectedWeek: Int
+    let block: BlockTemplate
+
     @State private var selectedDayIndex: Int
+    @State private var selectedWeek: Int
     @State private var dragOffset: CGFloat = 0
-    
+
     @Environment(\.modelContext) private var context
-    
-    init(blockTemplate: BlockTemplate) {
-        self.blockTemplate = blockTemplate
-        
-        let initialWeek = max(blockTemplate.weeksCount > 0 ? 1 : 0, 1)
+
+    private var weeks: [Int] {
+        let unique = Set(block.days.map { $0.weekIndex })
+        return unique.sorted()
+    }
+
+    private func days(for week: Int) -> [DayTemplate] {
+        block.days
+            .filter { $0.weekIndex == week }
+            .sorted { $0.dayIndex < $1.dayIndex }
+    }
+
+    private var selectedDay: DayTemplate? {
+        block.days.first {
+            $0.weekIndex == selectedWeek && $0.dayIndex == selectedDayIndex
+        }
+    }
+
+    init(block: BlockTemplate) {
+        self.block = block
+
+        let sortedWeeks = Set(block.days.map { $0.weekIndex }).sorted()
+        let initialWeek = sortedWeeks.first ?? 1
         _selectedWeek = State(initialValue: initialWeek)
-        
-        let firstDayIndex = blockTemplate.days
+
+        let firstDayIndex = block.days
             .filter { $0.weekIndex == initialWeek }
             .map { $0.dayIndex }
             .sorted()
             .first ?? 1
         _selectedDayIndex = State(initialValue: firstDayIndex)
     }
-    
-    private var weeks: [Int] {
-        let count = max(blockTemplate.weeksCount, 1)
-        return Array(1...count)
-    }
-    
-    private var daysInSelectedWeek: [DayTemplate] {
-        blockTemplate.days
-            .filter { $0.weekIndex == selectedWeek }
-            .sorted { $0.dayIndex < $1.dayIndex }
-    }
-    
-    private var selectedDay: DayTemplate? {
-        daysInSelectedWeek.first { $0.dayIndex == selectedDayIndex }
-    }
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                
+
                 // Week + current day summary
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Week \(selectedWeek)")
                         .font(.largeTitle)
                         .fontWeight(.bold)
-                    
+
                     if let day = selectedDay {
                         Text("Day \(day.dayIndex) – \(day.title)")
                             .font(.headline)
@@ -487,7 +551,7 @@ struct BlockDetailView: View {
                             .font(.headline)
                             .foregroundStyle(.secondary)
                     }
-                    
+
                     Text("Swipe left or right to change weeks.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -498,11 +562,11 @@ struct BlockDetailView: View {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(Color(.secondarySystemBackground))
                 )
-                
+
                 // Day selector
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(daysInSelectedWeek) { day in
+                        ForEach(days(for: selectedWeek)) { day in
                             Button {
                                 selectedDayIndex = day.dayIndex
                             } label: {
@@ -526,13 +590,13 @@ struct BlockDetailView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                
+
                 // Day description + summary-level exercises + Start button
                 if let day = selectedDay {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Workout Description")
                             .font(.headline)
-                        
+
                         Text(day.dayDescription)
                             .font(.body)
                             .foregroundStyle(.secondary)
@@ -543,26 +607,28 @@ struct BlockDetailView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(Color(.secondarySystemBackground))
                     )
-                    
+
                     // Summary-level exercise list
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Today's Exercises")
                             .font(.headline)
-                        
+
                         ForEach(day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex })) { planned in
+                            let sets = planned.prescribedSets.count
+                            let reps = planned.prescribedSets.first?.targetReps ?? 0
+                            let weight = planned.prescribedSets.first?.targetWeight ?? 0
+
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(planned.exerciseTemplate?.name ?? "Exercise")
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
-                                    
-                                    if let firstSet = planned.prescribedSets.sorted(by: { $0.setIndex < $1.setIndex }).first {
-                                        let setCount = planned.prescribedSets.count
-                                        Text("\(setCount) x \(firstSet.targetReps) @ \(Int(firstSet.targetWeight)) lb")
-                                            .font(.footnote)
-                                            .foregroundStyle(.secondary)
-                                    }
+
+                                    Text("\(sets) x \(reps) @ \(Int(weight)) lb")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
                                 }
+
                                 Spacer()
                             }
                             .padding(.vertical, 6)
@@ -573,8 +639,7 @@ struct BlockDetailView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(Color(.secondarySystemBackground))
                     )
-                    
-                    // Start workout
+
                     NavigationLink {
                         let session = existingOrNewSession(for: day)
                         WorkoutSessionView(session: session, day: day)
@@ -589,7 +654,7 @@ struct BlockDetailView: View {
                     }
                     .padding(.top, 4)
                 }
-                
+
                 Spacer(minLength: 20)
             }
             .padding()
@@ -603,40 +668,35 @@ struct BlockDetailView: View {
                 .onEnded { value in
                     let threshold: CGFloat = 80
                     var newWeek = selectedWeek
-                    
+
                     if value.translation.width < -threshold {
-                        // Swipe left → next week
+                        // swipe left
                         if let next = weeks.first(where: { $0 > selectedWeek }) {
                             newWeek = next
                         }
                     } else if value.translation.width > threshold {
-                        // Swipe right → previous week
+                        // swipe right
                         if let prev = weeks.reversed().first(where: { $0 < selectedWeek }) {
                             newWeek = prev
                         }
                     }
-                    
+
                     withAnimation(.spring()) {
                         selectedWeek = newWeek
-                        // reset selected day to first day in new week
-                        let firstDay = blockTemplate.days
-                            .filter { $0.weekIndex == newWeek }
-                            .map { $0.dayIndex }
-                            .sorted()
-                            .first
-                        if let firstDay {
-                            selectedDayIndex = firstDay
+                        // reset selected day to first in that week
+                        if let first = days(for: newWeek).first {
+                            selectedDayIndex = first.dayIndex
                         }
                         dragOffset = 0
                     }
                 }
         )
-        .navigationTitle(blockTemplate.name)
+        .navigationTitle(block.name)
         .navigationBarTitleDisplayMode(.inline)
     }
-    
+
     // MARK: - SwiftData helpers
-    
+
     private func existingOrNewSession(for day: DayTemplate) -> WorkoutSession {
         if let existing = fetchSession(for: day) {
             return existing
@@ -644,17 +704,17 @@ struct BlockDetailView: View {
             return createSession(for: day)
         }
     }
-    
+
     private func fetchSession(for day: DayTemplate) -> WorkoutSession? {
         let week = day.weekIndex
         let dayIndex = day.dayIndex
-        
+
         let descriptor = FetchDescriptor<WorkoutSession>(
             predicate: #Predicate { session in
                 session.weekIndex == week && session.dayIndex == dayIndex
             }
         )
-        
+
         do {
             let results = try context.fetch(descriptor)
             return results.first
@@ -663,14 +723,13 @@ struct BlockDetailView: View {
             return nil
         }
     }
-    
+
     private func createSession(for day: DayTemplate) -> WorkoutSession {
         let session = WorkoutSession(
             weekIndex: day.weekIndex,
             dayIndex: day.dayIndex
         )
-        
-        // Build exercises + sets from the day template
+
         for planned in day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }) {
             let sessionExercise = SessionExercise(
                 orderIndex: planned.orderIndex,
@@ -678,15 +737,15 @@ struct BlockDetailView: View {
                 exerciseTemplate: planned.exerciseTemplate,
                 nameOverride: planned.exerciseTemplate?.name
             )
-            
-            for prescribed in planned.prescribedSets.sorted(by: { $0.setIndex < $1.setIndex }) {
+
+            for pSet in planned.prescribedSets.sorted(by: { $0.setIndex < $1.setIndex }) {
                 let set = SessionSet(
-                    setIndex: prescribed.setIndex,
-                    targetReps: prescribed.targetReps,
-                    targetWeight: prescribed.targetWeight,
-                    targetRPE: prescribed.targetRPE,
-                    actualReps: prescribed.targetReps,
-                    actualWeight: prescribed.targetWeight,
+                    setIndex: pSet.setIndex,
+                    targetReps: pSet.targetReps,
+                    targetWeight: pSet.targetWeight,
+                    targetRPE: pSet.targetRPE,
+                    actualReps: pSet.targetReps,
+                    actualWeight: pSet.targetWeight,
                     actualRPE: nil,
                     completed: false,
                     timestamp: nil,
@@ -695,39 +754,39 @@ struct BlockDetailView: View {
                 )
                 sessionExercise.sets.append(set)
             }
-            
+
             session.exercises.append(sessionExercise)
         }
-        
+
         context.insert(session)
         do {
             try context.save()
         } catch {
             print("Error saving new session: \(error)")
         }
-        
+
         return session
     }
 }
 
-// MARK: - Workout Session (per-set expected vs actual)
+// MARK: - Workout Session view (per-set logging)
 
 struct WorkoutSessionView: View {
     @Bindable var session: WorkoutSession
     let day: DayTemplate
-    
+
     @Environment(\.modelContext) private var context
-    
+
     private var totalSets: Int {
         session.exercises.reduce(0) { $0 + $1.sets.count }
     }
-    
+
     private var totalCompletedSets: Int {
         session.exercises.reduce(0) { partial, exercise in
             partial + exercise.sets.filter { $0.completed }.count
         }
     }
-    
+
     var body: some View {
         List {
             Section {
@@ -739,18 +798,18 @@ struct WorkoutSessionView: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)
-                
+
                 if totalSets > 0 {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Session Progress")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                        
+
                         ProgressView(
                             value: Double(totalCompletedSets),
                             total: Double(totalSets)
                         )
-                        
+
                         Text("\(totalCompletedSets) of \(totalSets) sets completed")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -758,13 +817,13 @@ struct WorkoutSessionView: View {
                     .padding(.top, 4)
                 }
             }
-            
+
             Section(header: Text("Exercises")) {
                 ForEach($session.exercises) { $exercise in
                     VStack(alignment: .leading, spacing: 8) {
                         Text(exercise.nameOverride ?? exercise.exerciseTemplate?.name ?? "Exercise")
                             .font(.headline)
-                        
+
                         ForEach($exercise.sets) { $set in
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
@@ -779,11 +838,11 @@ struct WorkoutSessionView: View {
                                     .toggleStyle(.switch)
                                     .labelsHidden()
                                 }
-                                
+
                                 Text("Expected: \(set.targetReps) reps @ \(Int(set.targetWeight)) lb")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                
+
                                 HStack {
                                     Stepper(
                                         "Reps: \(set.actualReps)",
@@ -792,7 +851,7 @@ struct WorkoutSessionView: View {
                                     )
                                 }
                                 .font(.caption)
-                                
+
                                 HStack {
                                     Stepper(
                                         "Weight: \(Int(set.actualWeight)) lb",
@@ -802,12 +861,12 @@ struct WorkoutSessionView: View {
                                     )
                                 }
                                 .font(.caption)
-                                
+
                                 HStack(spacing: 6) {
                                     Circle()
                                         .frame(width: 10, height: 10)
                                         .foregroundColor(set.completed ? .green : .gray.opacity(0.3))
-                                    
+
                                     Text(set.completed ? "Set logged" : "Not logged yet")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -815,7 +874,7 @@ struct WorkoutSessionView: View {
                             }
                             .padding(.vertical, 6)
                         }
-                        
+
                         Button {
                             addSet(to: exercise)
                         } label: {
@@ -839,11 +898,11 @@ struct WorkoutSessionView: View {
             }
         }
     }
-    
+
     private func addSet(to exercise: SessionExercise) {
         let nextIndex = (exercise.sets.last?.setIndex ?? 0) + 1
         let template = exercise.sets.last
-        
+
         let newSet = SessionSet(
             setIndex: nextIndex,
             targetReps: template?.targetReps ?? 5,
@@ -857,7 +916,7 @@ struct WorkoutSessionView: View {
             notes: nil,
             sessionExercise: exercise
         )
-        
+
         exercise.sets.append(newSet)
     }
 }
@@ -886,7 +945,7 @@ struct MetricCard: View {
     let title: String
     let subtitle: String
     let points: [MetricPoint]
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
@@ -896,7 +955,7 @@ struct MetricCard: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            
+
             Chart {
                 ForEach(points) { point in
                     LineMark(
