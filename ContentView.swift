@@ -1,169 +1,8 @@
 import SwiftUI
-import Charts   // iOS 16+ (you’re targeting iOS 17, so this is fine)
+import Charts
 import SwiftData
 
-// MARK: - Models (UI-level)
-
-// These are UI-only structs, not the SwiftData models.
-
-struct WorkoutExercise: Identifiable {
-    let id = UUID()
-    let name: String
-    let sets: Int
-    let reps: Int
-    let weight: Int      // expected / planned weight in lb
-}
-
-struct WorkoutDay: Identifiable {
-    let id = UUID()
-    let index: Int        // 1–7
-    let name: String      // e.g. "Squat Focus"
-    let description: String
-    let exercises: [WorkoutExercise]
-}
-
-struct WorkoutBlock {
-    let name: String
-    let currentDayName: String
-    let currentWeek: Int
-    let days: [WorkoutDay]          // 1–7 days in the block
-    let weeks: [Int]                // e.g. 1,2,3,4
-    let expectedExercises: [Double]
-    let actualExercises: [Double]
-    let expectedVolume: [Double]
-    let actualVolume: [Double]
-    
-    var exerciseCompletionPoints: [MetricPoint] {
-        MetricPoint.makeSeries(
-            weeks: weeks,
-            expected: expectedExercises,
-            actual: actualExercises
-        )
-    }
-    
-    var volumeCompletionPoints: [MetricPoint] {
-        MetricPoint.makeSeries(
-            weeks: weeks,
-            expected: expectedVolume,
-            actual: actualVolume
-        )
-    }
-    
-    static let sampleBlock = WorkoutBlock(
-        name: "SBD BLOCK 1 – 4 WEEK STRENGTH",
-        currentDayName: "Week 2 • Day 3 – Heavy Lower",
-        currentWeek: 2,
-        days: [
-            WorkoutDay(
-                index: 1,
-                name: "Heavy Upper",
-                description: "Bench press + upper-body accessories. Focus on heavy triples and controlled eccentrics.",
-                exercises: [
-                    WorkoutExercise(name: "Bench Press",        sets: 5, reps: 3,  weight: 245),
-                    WorkoutExercise(name: "Incline DB Press",   sets: 4, reps: 8,  weight: 75),
-                    WorkoutExercise(name: "Barbell Row",        sets: 4, reps: 8,  weight: 185)
-                ]
-            ),
-            WorkoutDay(
-                index: 2,
-                name: "Volume Lower",
-                description: "Back squats and Romanian deadlifts in the 5–8 rep range. Build volume and positional strength.",
-                exercises: [
-                    WorkoutExercise(name: "Back Squat",         sets: 4, reps: 6,  weight: 285),
-                    WorkoutExercise(name: "RDL",                sets: 4, reps: 8,  weight: 245),
-                    WorkoutExercise(name: "Walking Lunge",      sets: 3, reps: 10, weight: 95)
-                ]
-            ),
-            WorkoutDay(
-                index: 3,
-                name: "Heavy Lower",
-                description: "Primary squat or deadlift variation heavy for low reps. Finish with targeted posterior chain work.",
-                exercises: [
-                    WorkoutExercise(name: "Deadlift",           sets: 5, reps: 3,  weight: 365),
-                    WorkoutExercise(name: "Paused Squat",       sets: 3, reps: 5,  weight: 265),
-                    WorkoutExercise(name: "Back Extension",     sets: 3, reps: 12, weight: 45)
-                ]
-            ),
-            WorkoutDay(
-                index: 4,
-                name: "Accessory / Conditioning",
-                description: "Single-leg work, core, and conditioning intervals. Keep RPE moderate so you’re fresh for the next heavy day.",
-                exercises: [
-                    WorkoutExercise(name: "Bulgarian Split Squat", sets: 3, reps: 10, weight: 65),
-                    WorkoutExercise(name: "Hanging Leg Raise",     sets: 3, reps: 12, weight: 0),
-                    WorkoutExercise(name: "Bike Intervals",        sets: 6, reps: 30, weight: 0) // 30s hard
-                ]
-            )
-            // Add days 5–7 later if you want them
-        ],
-        weeks: [1, 2, 3, 4],
-        expectedExercises: [25, 50, 75, 100],
-        actualExercises:   [20, 48, 60, 0],
-        expectedVolume:    [25, 50, 75, 100],
-        actualVolume:      [22, 47, 55, 0]
-    )
-}
-
-// MARK: - Map BlockTemplate -> WorkoutBlock (UI model)
-
-extension WorkoutBlock {
-    static func from(blockTemplate: BlockTemplate) -> WorkoutBlock {
-        // Weeks 1...N from the template
-        let weeks = Array(1...blockTemplate.weeksCount)
-        let step = 100.0 / Double(max(blockTemplate.weeksCount, 1))
-        let expectedProgress = weeks.map { Double($0) * step }
-        let zeroProgress = Array(repeating: 0.0, count: weeks.count)
-        
-        // Use week 1's days as the "pattern" days for the UI
-        let firstWeekDays = blockTemplate.days
-            .filter { $0.weekIndex == 1 }
-            .sorted { $0.dayIndex < $1.dayIndex }
-        
-        let uiDays: [WorkoutDay] = firstWeekDays.map { dayTemplate in
-            let uiExercises: [WorkoutExercise] = dayTemplate.exercises.map { planned in
-                let sortedSets = planned.prescribedSets.sorted { $0.setIndex < $1.setIndex }
-                
-                let setCount = sortedSets.last?.setIndex ?? sortedSets.count
-                let firstSet = sortedSets.first
-                let reps = firstSet?.targetReps ?? 0
-                let weight = Int(firstSet?.targetWeight ?? 0)
-                
-                return WorkoutExercise(
-                    name: planned.exerciseTemplate?.name ?? "Exercise",
-                    sets: setCount,
-                    reps: reps,
-                    weight: weight
-                )
-            }
-            
-            return WorkoutDay(
-                index: dayTemplate.dayIndex,
-                name: dayTemplate.title,
-                description: dayTemplate.dayDescription ?? "",
-                exercises: uiExercises
-            )
-        }
-        
-        let currentDayName: String
-        if let firstDay = uiDays.first {
-            currentDayName = "Week 1 • Day \(firstDay.index) – \(firstDay.name)"
-        } else {
-            currentDayName = "Week 1"
-        }
-        
-        return WorkoutBlock(
-            name: blockTemplate.name,
-            currentDayName: currentDayName,
-            currentWeek: 1,
-            days: uiDays,
-            weeks: weeks,
-            expectedExercises: expectedProgress,
-            actualExercises: zeroProgress,
-            expectedVolume: expectedProgress,
-            actualVolume: zeroProgress
-        )
-    }
-}
+// MARK: - UI Metric model (kept)
 
 struct MetricPoint: Identifiable {
     enum Series: String {
@@ -235,15 +74,15 @@ struct BlockListView: View {
                             DashboardView(blockTemplate: blockTemplate)
                         }
                     }
-                    .onDelete(perform: deleteBlocks)   // ✅ swipe-to-delete blocks
+                    .onDelete(perform: deleteBlocks)
                 }
             }
             .navigationTitle("Blocks")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     EditButton()
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingBuilder = true
                     } label: {
@@ -263,11 +102,7 @@ struct BlockListView: View {
             let block = blocks[index]
             context.delete(block)
         }
-        do {
-            try context.save()
-        } catch {
-            print("Error deleting block(s): \(error)")
-        }
+        try? context.save()
     }
 }
 
@@ -278,7 +113,7 @@ struct BlockBuilderView: View {
     @State private var mode: BlockBuilderMode = .ai   // default to AI
     
     // Shared basic fields
-    @State private var name: String = ""              // ✅ user must enter this
+    @State private var name: String = ""
     @State private var weeks: Int = 4
     @State private var daysPerWeek: Int = 4
     
@@ -290,11 +125,6 @@ struct BlockBuilderView: View {
     
     @State private var errorMessage: String?
     @State private var isGenerating = false
-    
-    /// Just for hint text
-    private var exampleName: String {
-        "SBD Block – \(weeks)-Week \(goal.rawValue.capitalized)"
-    }
     
     var body: some View {
         NavigationStack {
@@ -310,7 +140,7 @@ struct BlockBuilderView: View {
                 }
                 
                 Section("Basic") {
-                    TextField("Block name (required, e.g. \(exampleName))", text: $name)
+                    TextField("Block name (required, e.g. SBD Block 1 – 4 Week Strength)", text: $name)
                     
                     Stepper("Weeks: \(weeks)", value: $weeks, in: 1...12)
                     Stepper("Days per week: \(daysPerWeek)", value: $daysPerWeek, in: 1...7)
@@ -355,68 +185,65 @@ struct BlockBuilderView: View {
     
     // MARK: - AI section
     
- // MARK: - AI section
-
-private var aiSection: some View {
-    Section("AI Auto Programming") {
-        Picker("Goal", selection: $goal) {
-            ForEach(BlockGoal.allCases) { goal in
-                Text(goal.rawValue.capitalized).tag(goal)
+    private var aiSection: some View {
+        Section("AI Auto Programming") {
+            Picker("Goal", selection: $goal) {
+                ForEach(BlockGoal.allCases, id: \.self) { goal in
+                    Text(goal.rawValue.capitalized).tag(goal)
+                }
             }
-        }
-        
-        Text("Training Maxes")
-            .font(.subheadline)
-        
-        HStack {
-            Text("Squat")
-            Spacer()
-            TextField("lb", text: $squatTM)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.trailing)
-                .frame(maxWidth: 120)
-        }
-        
-        HStack {
-            Text("Bench")
-            Spacer()
-            TextField("lb", text: $benchTM)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.trailing)
-                .frame(maxWidth: 120)
-        }
-        
-        HStack {
-            Text("Deadlift")
-            Spacer()
-            TextField("lb", text: $deadliftTM)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.trailing)
-                .frame(maxWidth: 120)
-        }
-        
-        Button {
-            generateAIBlock()
-        } label: {
-            if isGenerating {
-                ProgressView()
-            } else {
-                Text("Generate Block")
-                    .frame(maxWidth: .infinity, alignment: .center)
+            
+            Text("Training Maxes")
+                .font(.subheadline)
+            
+            HStack {
+                Text("Squat")
+                Spacer()
+                TextField("lb", text: $squatTM)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 120)
             }
+            
+            HStack {
+                Text("Bench")
+                Spacer()
+                TextField("lb", text: $benchTM)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 120)
+            }
+            
+            HStack {
+                Text("Deadlift")
+                Spacer()
+                TextField("lb", text: $deadliftTM)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 120)
+            }
+            
+            Button {
+                generateAIBlock()
+            } label: {
+                if isGenerating {
+                    ProgressView()
+                } else {
+                    Text("Generate Block")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
+            .disabled(isGenerating)
         }
-        .disabled(isGenerating)
     }
-}
     
     // MARK: - Actions
     
     private func generateAIBlock() {
         errorMessage = nil
         
-        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else {
-            errorMessage = "Please enter a block name."
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            errorMessage = "Block name is required."
             return
         }
         
@@ -431,9 +258,8 @@ private var aiSection: some View {
         
         isGenerating = true
         
-        // ✅ Keys match the way AutoProgramService expects them ("Squat", "Bench", "Deadlift")
         let config = AutoProgramConfig(
-            name: trimmedName,
+            name: name,
             goal: goal,
             weeksCount: weeks,
             daysPerWeek: daysPerWeek,
@@ -457,65 +283,48 @@ private var aiSection: some View {
 }
 
 //
-// MARK: - Views (Dashboard + Block)
+// MARK: - Dashboard for a specific BlockTemplate
 //
 
 struct DashboardView: View {
-    let block: WorkoutBlock
+    let blockTemplate: BlockTemplate
     
     @Environment(\.modelContext) private var context
     @Query(sort: \WorkoutSession.weekIndex) private var sessions: [WorkoutSession]
     
-    // MARK: Init
-    
-    init(blockTemplate: BlockTemplate? = nil) {
-        if let blockTemplate {
-            self.block = WorkoutBlock.from(blockTemplate: blockTemplate)
-        } else {
-            self.block = WorkoutBlock.sampleBlock
-        }
+    private var weeks: [Int] {
+        let count = max(blockTemplate.weeksCount, 1)
+        return Array(1...count)
     }
     
-    // MARK: Expected totals from the PLAN (template), not from logged sessions
-    
-    /// Expected reps per week from the block template
-    private var expectedRepsPerWeek: Double {
-        block.days.reduce(0.0) { total, day in
-            total + day.exercises.reduce(0.0) { inner, ex in
-                inner + Double(ex.sets * ex.reps)
-            }
-        }
-    }
-    
-    /// Expected volume (reps * weight) per week from the block template
-    private var expectedVolumePerWeek: Double {
-        block.days.reduce(0.0) { total, day in
-            total + day.exercises.reduce(0.0) { inner, ex in
-                inner + Double(ex.sets * ex.reps * ex.weight)
-            }
-        }
-    }
-    
-    /// Total expected reps across the whole block (denominator)
+    /// Total expected reps across the whole block, from templates
     private var totalExpectedRepsInBlock: Double {
-        expectedRepsPerWeek * Double(block.weeks.count)
+        blockTemplate.days
+            .flatMap { $0.exercises }
+            .flatMap { $0.prescribedSets }
+            .reduce(0.0) { $0 + Double($1.targetReps) }
     }
     
-    /// Total expected volume across the whole block (denominator)
+    /// Total expected volume (reps * weight) across the whole block
     private var totalExpectedVolumeInBlock: Double {
-        expectedVolumePerWeek * Double(block.weeks.count)
+        blockTemplate.days
+            .flatMap { $0.exercises }
+            .flatMap { $0.prescribedSets }
+            .reduce(0.0) { total, set in
+                total + Double(set.targetReps) * set.targetWeight
+            }
     }
     
-    // 🔥 Expected line = from template (block.expectedExercises)
-    // 🔥 Actual line   = completed reps / total expected reps in block
+    // Expected = straight line from 0 → 100 over N weeks
+    // Actual   = completed reps / total expected reps in block
     private var exerciseCompletionPointsComputed: [MetricPoint] {
-        guard totalExpectedRepsInBlock > 0 else {
-            return block.exerciseCompletionPoints
-        }
+        guard totalExpectedRepsInBlock > 0 else { return [] }
         
+        var expected: [Double] = []
         var actual: [Double] = []
+        let weekCount = Double(weeks.count)
         
-        for week in block.weeks {
+        for week in weeks {
             let weeksUpTo = sessions.filter { $0.weekIndex <= week }
             let completedSets = weeksUpTo
                 .flatMap { $0.exercises }
@@ -525,27 +334,27 @@ struct DashboardView: View {
             let actualRepsToWeek = completedSets.reduce(0.0) { $0 + Double($1.actualReps) }
             let actualPct = (actualRepsToWeek / totalExpectedRepsInBlock) * 100.0
             actual.append(actualPct)
+            
+            let expectedPct = (Double(week) / weekCount) * 100.0
+            expected.append(expectedPct)
         }
         
-        let expected = block.expectedExercises
-        
         return MetricPoint.makeSeries(
-            weeks: block.weeks,
+            weeks: weeks,
             expected: expected,
             actual: actual
         )
     }
     
-    // 🔥 Expected line = from template (block.expectedVolume)
-    // 🔥 Actual line   = completed volume / total expected volume in block
+    // Same idea but for volume
     private var volumeCompletionPointsComputed: [MetricPoint] {
-        guard totalExpectedVolumeInBlock > 0 else {
-            return block.volumeCompletionPoints
-        }
+        guard totalExpectedVolumeInBlock > 0 else { return [] }
         
+        var expected: [Double] = []
         var actual: [Double] = []
+        let weekCount = Double(weeks.count)
         
-        for week in block.weeks {
+        for week in weeks {
             let weeksUpTo = sessions.filter { $0.weekIndex <= week }
             let completedSets = weeksUpTo
                 .flatMap { $0.exercises }
@@ -553,16 +362,17 @@ struct DashboardView: View {
                 .filter { $0.completed }
             
             let actualVolumeToWeek = completedSets.reduce(0.0) { partial, set in
-                partial + (Double(set.actualReps) * set.actualWeight)
+                partial + Double(set.actualReps) * set.actualWeight
             }
             let actualPct = (actualVolumeToWeek / totalExpectedVolumeInBlock) * 100.0
             actual.append(actualPct)
+            
+            let expectedPct = (Double(week) / weekCount) * 100.0
+            expected.append(expectedPct)
         }
         
-        let expected = block.expectedVolume
-        
         return MetricPoint.makeSeries(
-            weeks: block.weeks,
+            weeks: weeks,
             expected: expected,
             actual: actual
         )
@@ -575,16 +385,16 @@ struct DashboardView: View {
                     
                     QuoteHeader()
                     
-                    // Tap this card to go to the block detail screen
+                    // Card for this block
                     NavigationLink {
-                        BlockDetailView(block: block)
+                        BlockDetailView(blockTemplate: blockTemplate)
                     } label: {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(block.name)
+                            Text(blockTemplate.name)
                                 .font(.title)
                                 .fontWeight(.bold)
                             
-                            Text(block.currentDayName)
+                            Text("\(blockTemplate.weeksCount)-week block")
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
                         }
@@ -596,7 +406,6 @@ struct DashboardView: View {
                         )
                     }
                     
-                    // ✅ Now using block template for expected & SwiftData for actual
                     MetricCard(
                         title: "% Exercises Completed in Block",
                         subtitle: "Expected vs Actual",
@@ -619,29 +428,44 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Block Detail (Week/day + summary)
+// MARK: - Block Detail (week/day + summary) using BlockTemplate
 
 struct BlockDetailView: View {
-    let block: WorkoutBlock
+    let blockTemplate: BlockTemplate
     
-    @State private var selectedDayIndex: Int
     @State private var selectedWeek: Int
+    @State private var selectedDayIndex: Int
     @State private var dragOffset: CGFloat = 0
     
     @Environment(\.modelContext) private var context
     
-    init(block: WorkoutBlock) {
-        self.block = block
-        _selectedDayIndex = State(initialValue: block.days.first?.index ?? 1)
-        _selectedWeek = State(initialValue: block.currentWeek)
+    init(blockTemplate: BlockTemplate) {
+        self.blockTemplate = blockTemplate
+        
+        let initialWeek = max(blockTemplate.weeksCount > 0 ? 1 : 0, 1)
+        _selectedWeek = State(initialValue: initialWeek)
+        
+        let firstDayIndex = blockTemplate.days
+            .filter { $0.weekIndex == initialWeek }
+            .map { $0.dayIndex }
+            .sorted()
+            .first ?? 1
+        _selectedDayIndex = State(initialValue: firstDayIndex)
     }
     
-    private var selectedDay: WorkoutDay? {
-        block.days.first { $0.index == selectedDayIndex }
+    private var weeks: [Int] {
+        let count = max(blockTemplate.weeksCount, 1)
+        return Array(1...count)
     }
     
-    private var sortedWeeks: [Int] {
-        block.weeks.sorted()
+    private var daysInSelectedWeek: [DayTemplate] {
+        blockTemplate.days
+            .filter { $0.weekIndex == selectedWeek }
+            .sorted { $0.dayIndex < $1.dayIndex }
+    }
+    
+    private var selectedDay: DayTemplate? {
+        daysInSelectedWeek.first { $0.dayIndex == selectedDayIndex }
     }
     
     var body: some View {
@@ -655,7 +479,7 @@ struct BlockDetailView: View {
                         .fontWeight(.bold)
                     
                     if let day = selectedDay {
-                        Text("Day \(day.index) – \(day.name)")
+                        Text("Day \(day.dayIndex) – \(day.title)")
                             .font(.headline)
                             .foregroundStyle(.secondary)
                     } else {
@@ -675,27 +499,27 @@ struct BlockDetailView: View {
                         .fill(Color(.secondarySystemBackground))
                 )
                 
-                // Day selector (1–7, based on days defined in the block)
+                // Day selector
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(block.days) { day in
+                        ForEach(daysInSelectedWeek) { day in
                             Button {
-                                selectedDayIndex = day.index
+                                selectedDayIndex = day.dayIndex
                             } label: {
-                                Text("Day \(day.index)")
+                                Text("Day \(day.dayIndex)")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .padding(.vertical, 8)
                                     .padding(.horizontal, 14)
                                     .background(
                                         Capsule().fill(
-                                            selectedDayIndex == day.index
+                                            selectedDayIndex == day.dayIndex
                                             ? Color.accentColor
                                             : Color(.secondarySystemBackground)
                                         )
                                     )
                                     .foregroundColor(
-                                        selectedDayIndex == day.index ? .white : .primary
+                                        selectedDayIndex == day.dayIndex ? .white : .primary
                                     )
                             }
                         }
@@ -709,7 +533,7 @@ struct BlockDetailView: View {
                         Text("Workout Description")
                             .font(.headline)
                         
-                        Text(day.description)
+                        Text(day.dayDescription)
                             .font(.body)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.leading)
@@ -725,18 +549,20 @@ struct BlockDetailView: View {
                         Text("Today's Exercises")
                             .font(.headline)
                         
-                        ForEach(day.exercises) { exercise in
+                        ForEach(day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex })) { planned in
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(exercise.name)
+                                    Text(planned.exerciseTemplate?.name ?? "Exercise")
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                     
-                                    Text("\(exercise.sets) x \(exercise.reps) @ \(exercise.weight) lb")
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
+                                    if let firstSet = planned.prescribedSets.sorted(by: { $0.setIndex < $1.setIndex }).first {
+                                        let setCount = planned.prescribedSets.count
+                                        Text("\(setCount) x \(firstSet.targetReps) @ \(Int(firstSet.targetWeight)) lb")
+                                            .font(.footnote)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
-                                
                                 Spacer()
                             }
                             .padding(.vertical, 6)
@@ -748,7 +574,7 @@ struct BlockDetailView: View {
                             .fill(Color(.secondarySystemBackground))
                     )
                     
-                    // Start workout → get/create session in SwiftData, then go to detail view
+                    // Start workout
                     NavigationLink {
                         let session = existingOrNewSession(for: day)
                         WorkoutSessionView(session: session, day: day)
@@ -780,29 +606,38 @@ struct BlockDetailView: View {
                     
                     if value.translation.width < -threshold {
                         // Swipe left → next week
-                        if let next = sortedWeeks.first(where: { $0 > selectedWeek }) {
+                        if let next = weeks.first(where: { $0 > selectedWeek }) {
                             newWeek = next
                         }
                     } else if value.translation.width > threshold {
                         // Swipe right → previous week
-                        if let prev = sortedWeeks.reversed().first(where: { $0 < selectedWeek }) {
+                        if let prev = weeks.reversed().first(where: { $0 < selectedWeek }) {
                             newWeek = prev
                         }
                     }
                     
                     withAnimation(.spring()) {
                         selectedWeek = newWeek
+                        // reset selected day to first day in new week
+                        let firstDay = blockTemplate.days
+                            .filter { $0.weekIndex == newWeek }
+                            .map { $0.dayIndex }
+                            .sorted()
+                            .first
+                        if let firstDay {
+                            selectedDayIndex = firstDay
+                        }
                         dragOffset = 0
                     }
                 }
         )
-        .navigationTitle(block.name)
+        .navigationTitle(blockTemplate.name)
         .navigationBarTitleDisplayMode(.inline)
     }
     
     // MARK: - SwiftData helpers
     
-    private func existingOrNewSession(for day: WorkoutDay) -> WorkoutSession {
+    private func existingOrNewSession(for day: DayTemplate) -> WorkoutSession {
         if let existing = fetchSession(for: day) {
             return existing
         } else {
@@ -810,10 +645,9 @@ struct BlockDetailView: View {
         }
     }
     
-    private func fetchSession(for day: WorkoutDay) -> WorkoutSession? {
-        // capture values outside the predicate
-        let week = selectedWeek
-        let dayIndex = day.index
+    private func fetchSession(for day: DayTemplate) -> WorkoutSession? {
+        let week = day.weekIndex
+        let dayIndex = day.dayIndex
         
         let descriptor = FetchDescriptor<WorkoutSession>(
             predicate: #Predicate { session in
@@ -830,31 +664,29 @@ struct BlockDetailView: View {
         }
     }
     
-    private func createSession(for day: WorkoutDay) -> WorkoutSession {
-        // Create a new WorkoutSession for this week/day
+    private func createSession(for day: DayTemplate) -> WorkoutSession {
         let session = WorkoutSession(
-            weekIndex: selectedWeek,
-            dayIndex: day.index
+            weekIndex: day.weekIndex,
+            dayIndex: day.dayIndex
         )
         
-        // Build exercises + sets from the template
-        for (exerciseOrder, ex) in day.exercises.enumerated() {
+        // Build exercises + sets from the day template
+        for planned in day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }) {
             let sessionExercise = SessionExercise(
-                orderIndex: exerciseOrder,
+                orderIndex: planned.orderIndex,
                 session: session,
-                exerciseTemplate: nil,
-                nameOverride: ex.name
+                exerciseTemplate: planned.exerciseTemplate,
+                nameOverride: planned.exerciseTemplate?.name
             )
             
-            // Create sets for this exercise
-            for setIdx in 1...ex.sets {
+            for prescribed in planned.prescribedSets.sorted(by: { $0.setIndex < $1.setIndex }) {
                 let set = SessionSet(
-                    setIndex: setIdx,
-                    targetReps: ex.reps,
-                    targetWeight: Double(ex.weight),
-                    targetRPE: nil,
-                    actualReps: ex.reps,
-                    actualWeight: Double(ex.weight),
+                    setIndex: prescribed.setIndex,
+                    targetReps: prescribed.targetReps,
+                    targetWeight: prescribed.targetWeight,
+                    targetRPE: prescribed.targetRPE,
+                    actualReps: prescribed.targetReps,
+                    actualWeight: prescribed.targetWeight,
                     actualRPE: nil,
                     completed: false,
                     timestamp: nil,
@@ -879,11 +711,10 @@ struct BlockDetailView: View {
 }
 
 // MARK: - Workout Session (per-set expected vs actual)
-// Uses SwiftData models: WorkoutSession, SessionExercise, SessionSet
 
 struct WorkoutSessionView: View {
     @Bindable var session: WorkoutSession
-    let day: WorkoutDay
+    let day: DayTemplate
     
     @Environment(\.modelContext) private var context
     
@@ -901,15 +732,14 @@ struct WorkoutSessionView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Day \(day.index) – \(day.name)")
+                    Text("Day \(day.dayIndex) – \(day.title)")
                         .font(.headline)
-                    Text(day.description)
+                    Text(day.dayDescription)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)
                 
-                // Overall progress (by sets)
                 if totalSets > 0 {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Session Progress")
@@ -954,12 +784,10 @@ struct WorkoutSessionView: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 
-                                // Actual reps & weight for this set
                                 HStack {
                                     Stepper(
                                         "Reps: \(set.actualReps)",
                                         value: $set.actualReps,
-                                        // allow more reps than target, cap grows as needed
                                         in: 0...(max(set.targetReps, set.actualReps) + 10)
                                     )
                                 }
@@ -975,7 +803,6 @@ struct WorkoutSessionView: View {
                                 }
                                 .font(.caption)
                                 
-                                // Visual dots / label for completion
                                 HStack(spacing: 6) {
                                     Circle()
                                         .frame(width: 10, height: 10)
@@ -989,7 +816,6 @@ struct WorkoutSessionView: View {
                             .padding(.vertical, 6)
                         }
                         
-                        // Add Set button for this exercise
                         Button {
                             addSet(to: exercise)
                         } label: {
@@ -1100,7 +926,7 @@ struct MetricCard: View {
 
 struct ContentView: View {
     var body: some View {
-        BlockListView()   // starts at block list / builder
+        BlockListView()
     }
 }
 
