@@ -12,11 +12,11 @@ enum BlockGoal: String, CaseIterable, Identifiable, Codable {
 }
 
 struct AutoProgramConfig {
-    let name: String                 // "SBD Block 1 – 4 Week Strength"
+    let name: String                 // e.g. "SBD Block 1 – 4 Week Strength"
     let goal: BlockGoal
-    let weeksCount: Int             // e.g. 4
-    let daysPerWeek: Int            // e.g. 4
-    let mainLifts: [String]         // e.g. ["Squat", "Bench", "Deadlift"]
+    let weeksCount: Int              // e.g. 4
+    let daysPerWeek: Int             // e.g. 4
+    let mainLifts: [String]          // e.g. ["Squat", "Bench", "Deadlift"]
     
     /// Training maxes for main lifts (same names as mainLifts)
     let trainingMaxes: [String: Double]  // ["Squat": 405, "Bench": 285, ...]
@@ -25,6 +25,7 @@ struct AutoProgramConfig {
 // MARK: - Auto-programming service
 
 enum AutoProgramError: Error {
+    case invalidConfig
     case noTrainingMax(String)
 }
 
@@ -37,6 +38,10 @@ struct AutoProgramService {
         in context: ModelContext,
         config: AutoProgramConfig
     ) throws -> BlockTemplate {
+        
+        guard config.weeksCount > 0, config.daysPerWeek > 0 else {
+            throw AutoProgramError.invalidConfig
+        }
         
         // 1. Create the block
         let block = BlockTemplate(
@@ -63,8 +68,9 @@ struct AutoProgramService {
             percentPattern = [0.80, 0.85, 0.90, 0.70]
         }
         
-        // 3. Simple day “roles” for 4-day SBD style block
-        // (Can expand later)
+        // 3. Internal layout “roles” for how we place lifts.
+        // Titles shown to the user will be derived from the actual lifts,
+        // not these labels.
         let dayRoles = [
             1: "Heavy Upper",
             2: "Volume Lower",
@@ -109,28 +115,26 @@ struct AutoProgramService {
             let pct = percentPattern[min(weekIndex - 1, percentPattern.count - 1)]
             
             for dayIndex in 1...config.daysPerWeek {
-                let role = dayRoles[dayIndex] ?? "Day \(dayIndex)"
+                let layoutRole = dayRoles[dayIndex] ?? "Day \(dayIndex)"
+                
+                // Decide which lifts live on this day
+                let plannedLifts = liftsForDay(
+                    role: layoutRole,
+                    mainLifts: config.mainLifts
+                )
+                
+                // Title shown to the user based on actual lifts
+                let title = focusTitle(for: plannedLifts)
                 
                 let day = DayTemplate(
                     weekIndex: weekIndex,
                     dayIndex: dayIndex,
-                    title: role,
-                    dayDescription: description(for: role, goal: config.goal),
+                    title: title,
+                    dayDescription: description(for: title, goal: config.goal),
                     orderIndex: dayIndex,
                     block: block
                 )
                 block.days.append(day)
-                
-                // Decide which lifts live on this day
-                // Very simple first pass:
-                // Day 1: Bench + upper accessories
-                // Day 2: Squat + posterior chain
-                // Day 3: Deadlift + squat variant
-                // Day 4: single-leg / core / conditioning
-                let plannedLifts = liftsForDay(
-                    role: role,
-                    mainLifts: config.mainLifts
-                )
                 
                 for (exerciseOrder, lift) in plannedLifts.enumerated() {
                     let exerciseName = lift.name
@@ -139,7 +143,7 @@ struct AutoProgramService {
                     let reps = lift.reps
                     
                     let tm = config.trainingMaxes[lift.tmKey]
-                    if tm == nil && lift.usesTM {
+                    if lift.usesTM, tm == nil {
                         throw AutoProgramError.noTrainingMax(lift.tmKey)
                     }
                     
@@ -183,19 +187,40 @@ struct AutoProgramService {
     
     // MARK: - Helpers
     
-    /// Simple description templates
+    /// Description based on the focus title + goal
     private static func description(for role: String, goal: BlockGoal) -> String {
-        switch (role, goal) {
-        case ("Heavy Upper", .strength):
-            return "Primary bench variation heavy for low reps plus upper-body accessories."
-        case ("Volume Lower", .strength):
-            return "Squat-focused volume work in moderate rep ranges."
-        case ("Heavy Lower", .strength):
-            return "Primary squat or deadlift heavy for low reps with posterior chain accessories."
-        case ("Accessory / Conditioning", _):
-            return "Single-leg work, core, and conditioning intervals. Keep RPE moderate."
-        default:
-            return "\(role) session focused on \(goal.rawValue)."
+        let lower = role.lowercased()
+        
+        switch goal {
+        case .strength:
+            if lower.contains("bench") {
+                return "Primary bench variation heavy for low reps plus upper-body accessories."
+            } else if lower.contains("squat") {
+                return "Squat-focused heavy work with supporting lower-body accessories."
+            } else if lower.contains("deadlift") || lower.contains("dead") {
+                return "Primary deadlift-focused heavy work with posterior chain accessories."
+            }
+            return "\(role) session focusing on strength."
+            
+        case .hypertrophy:
+            if lower.contains("bench") {
+                return "Bench-focused session with moderate reps and high upper-body volume."
+            } else if lower.contains("squat") {
+                return "Squat-focused session with moderate reps and high lower-body volume."
+            } else if lower.contains("deadlift") || lower.contains("dead") {
+                return "Deadlift-focused session with moderate reps and posterior chain volume."
+            }
+            return "\(role) session focusing on muscle growth."
+            
+        case .peaking:
+            if lower.contains("bench") {
+                return "Bench-focused peaking work with heavier loads and lower reps."
+            } else if lower.contains("squat") {
+                return "Squat-focused peaking work with heavier loads and lower reps."
+            } else if lower.contains("deadlift") || lower.contains("dead") {
+                return "Deadlift-focused peaking work with heavier loads and lower reps."
+            }
+            return "\(role) session focusing on peaking performance."
         }
     }
     
@@ -211,12 +236,31 @@ struct AutoProgramService {
         let targetRPE: Double?
     }
     
+    /// Title shown to the user, based on what the main lift of the day is.
+    private static func focusTitle(for lifts: [DayLift]) -> String {
+        guard let primary = lifts.first(where: { $0.usesTM }) ?? lifts.first else {
+            return "Training Day"
+        }
+        
+        let lower = primary.name.lowercased()
+        if lower.contains("bench") {
+            return "Bench Focus"
+        } else if lower.contains("squat") {
+            return "Squat Focus"
+        } else if lower.contains("dead") {
+            return "Deadlift Focus"
+        } else {
+            return "\(primary.name) Focus"
+        }
+    }
+    
     private static func liftsForDay(
         role: String,
         mainLifts: [String]
     ) -> [DayLift] {
-        let squat = mainLifts.first { $0.lowercased().contains("squat") } ?? "Back Squat"
-        let bench = mainLifts.first { $0.lowercased().contains("bench") } ?? "Bench Press"
+        // We expect names like "Squat", "Bench", "Deadlift" from config.mainLifts
+        let squat = mainLifts.first { $0.lowercased().contains("squat") } ?? "Squat"
+        let bench = mainLifts.first { $0.lowercased().contains("bench") } ?? "Bench"
         let dead  = mainLifts.first { $0.lowercased().contains("dead")  } ?? "Deadlift"
         
         switch role {
