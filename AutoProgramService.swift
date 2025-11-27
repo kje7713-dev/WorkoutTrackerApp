@@ -3,10 +3,12 @@ import SwiftData
 
 // MARK: - Auto-program config
 
-enum BlockGoal: String {
+enum BlockGoal: String, CaseIterable, Identifiable, Codable {
     case strength
     case hypertrophy
     case peaking
+    
+    var id: String { rawValue }
 }
 
 struct AutoProgramConfig {
