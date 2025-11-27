@@ -104,6 +104,68 @@ struct WorkoutBlock {
     )
 }
 
+// MARK: - Map BlockTemplate -> WorkoutBlock (UI model)
+
+extension WorkoutBlock {
+    static func from(blockTemplate: BlockTemplate) -> WorkoutBlock {
+        // Weeks 1...N from the template
+        let weeks = Array(1...blockTemplate.weeksCount)
+        let step = 100.0 / Double(max(blockTemplate.weeksCount, 1))
+        let expectedProgress = weeks.map { Double($0) * step }
+        let zeroProgress = Array(repeating: 0.0, count: weeks.count)
+        
+        // Use week 1's days as the "pattern" days for the UI
+        let firstWeekDays = blockTemplate.days
+            .filter { $0.weekIndex == 1 }
+            .sorted { $0.dayIndex < $1.dayIndex }
+        
+        let uiDays: [WorkoutDay] = firstWeekDays.map { dayTemplate in
+            let uiExercises: [WorkoutExercise] = dayTemplate.exercises.map { planned in
+                let sortedSets = planned.prescribedSets.sorted { $0.setIndex < $1.setIndex }
+                
+                // Use setIndex for set count if available, otherwise fall back to count
+                let setCount = sortedSets.last?.setIndex ?? sortedSets.count
+                let firstSet = sortedSets.first
+                let reps = firstSet?.targetReps ?? 0
+                let weight = Int(firstSet?.targetWeight ?? 0)
+                
+                return WorkoutExercise(
+                    name: planned.exerciseTemplate?.name ?? "Exercise",
+                    sets: setCount,
+                    reps: reps,
+                    weight: weight
+                )
+            }
+            
+            return WorkoutDay(
+                index: dayTemplate.dayIndex,
+                name: dayTemplate.title,
+                description: dayTemplate.dayDescription ?? "",
+                exercises: uiExercises
+            )
+        }
+        
+        let currentDayName: String
+        if let firstDay = uiDays.first {
+            currentDayName = "Week 1 • Day \(firstDay.index) – \(firstDay.name)"
+        } else {
+            currentDayName = "Week 1"
+        }
+        
+        return WorkoutBlock(
+            name: blockTemplate.name,
+            currentDayName: currentDayName,
+            currentWeek: 1,
+            days: uiDays,
+            weeks: weeks,
+            expectedExercises: expectedProgress,
+            actualExercises: zeroProgress,
+            expectedVolume: expectedProgress,
+            actualVolume: zeroProgress
+        )
+    }
+}
+
 struct MetricPoint: Identifiable {
     enum Series: String {
         case expected = "Expected"
@@ -144,7 +206,7 @@ struct MetricPoint: Identifiable {
 }
 
 //
-// MARK: - Block list + Builder (NEW)
+// MARK: - Block list + Builder
 //
 
 enum BlockBuilderMode: String, CaseIterable, Identifiable {
@@ -155,13 +217,14 @@ enum BlockBuilderMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+// NOTE: If you also define BlockGoal / AutoProgramConfig / AutoProgramService
+// in a separate AutoProgramService.swift, make sure you only have ONE copy of
+// each type in the project to avoid "invalid redeclaration" errors.
+
 struct BlockListView: View {
     @Environment(\.modelContext) private var context
 
-    // ⛔️ old line that likely failed
-    // @Query(sort: \BlockTemplate.createdAt, order: .reverse) private var blocks: [BlockTemplate]
-
-    // ✅ use name instead – BlockTemplate definitely has this
+    // If BlockTemplate has a createdAt, you can sort by that instead.
     @Query(sort: \BlockTemplate.name, order: .forward) private var blocks: [BlockTemplate]
     
     @State private var showingBuilder = false
@@ -176,7 +239,8 @@ struct BlockListView: View {
                 } else {
                     ForEach(blocks) { blockTemplate in
                         NavigationLink(blockTemplate.name) {
-                            DashboardView()
+                            // ✅ Pass the BlockTemplate into the dashboard
+                            DashboardView(blockTemplate: blockTemplate)
                         }
                     }
                 }
@@ -208,7 +272,7 @@ struct BlockBuilderView: View {
     @State private var weeks: Int = 4
     @State private var daysPerWeek: Int = 4
     
-    // AI-specific fields
+    // AI-specific fields (uses BlockGoal from your auto-programming code)
     @State private var goal: BlockGoal = .strength
     @State private var squatTM: String = "405"
     @State private var benchTM: String = "285"
@@ -279,10 +343,9 @@ struct BlockBuilderView: View {
     private var aiSection: some View {
         Section("AI Auto Programming") {
             Picker("Goal", selection: $goal) {
-                // 🔁 FIX: avoid BlockGoal.allCases to remove the compile error
-                Text("Strength").tag(BlockGoal.strength)
-                Text("Hypertrophy").tag(BlockGoal.hypertrophy)
-                Text("Peaking").tag(BlockGoal.peaking)
+                ForEach(BlockGoal.allCases) { goal in
+                    Text(goal.rawValue.capitalized).tag(goal)
+                }
             }
             
             Text("Training Maxes")
@@ -354,10 +417,20 @@ struct BlockBuilderView: View {
 //
 
 struct DashboardView: View {
-    @State private var block = WorkoutBlock.sampleBlock
+    let block: WorkoutBlock
     
     @Environment(\.modelContext) private var context
     @Query(sort: \WorkoutSession.weekIndex) private var sessions: [WorkoutSession]
+    
+    // MARK: Init
+    
+    init(blockTemplate: BlockTemplate? = nil) {
+        if let blockTemplate {
+            self.block = WorkoutBlock.from(blockTemplate: blockTemplate)
+        } else {
+            self.block = WorkoutBlock.sampleBlock
+        }
+    }
     
     // MARK: Expected totals from the PLAN (template), not from logged sessions
     
@@ -983,7 +1056,7 @@ struct MetricCard: View {
 
 struct ContentView: View {
     var body: some View {
-        BlockListView()   // 🔄 now starts at block list / builder
+        BlockListView()   // 🔄 starts at block list / builder
     }
 }
 
