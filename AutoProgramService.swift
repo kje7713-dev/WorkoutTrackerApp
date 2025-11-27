@@ -3,6 +3,7 @@ import SwiftData
 
 // MARK: - Auto-program config
 
+// ✅ Now matches how the UI uses it (allCases, Identifiable, Codable)
 enum BlockGoal: String, CaseIterable, Identifiable, Codable {
     case strength
     case hypertrophy
@@ -122,11 +123,6 @@ struct AutoProgramService {
                 block.days.append(day)
                 
                 // Decide which lifts live on this day
-                // Very simple first pass:
-                // Day 1: Bench + upper accessories
-                // Day 2: Squat + posterior chain
-                // Day 3: Deadlift + squat variant
-                // Day 4: single-leg / core / conditioning
                 let plannedLifts = liftsForDay(
                     role: role,
                     mainLifts: config.mainLifts
