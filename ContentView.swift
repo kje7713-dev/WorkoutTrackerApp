@@ -17,7 +17,7 @@ struct WorkoutExercise: Identifiable {
 struct WorkoutDay: Identifiable {
     let id = UUID()
     let index: Int        // 1–7
-    let name: String      // e.g. "Heavy Lower"
+    let name: String      // e.g. "Squat Focus"
     let description: String
     let exercises: [WorkoutExercise]
 }
@@ -123,7 +123,6 @@ extension WorkoutBlock {
             let uiExercises: [WorkoutExercise] = dayTemplate.exercises.map { planned in
                 let sortedSets = planned.prescribedSets.sorted { $0.setIndex < $1.setIndex }
                 
-                // Use setIndex for set count if available, otherwise fall back to count
                 let setCount = sortedSets.last?.setIndex ?? sortedSets.count
                 let firstSet = sortedSets.first
                 let reps = firstSet?.targetReps ?? 0
@@ -217,14 +216,8 @@ enum BlockBuilderMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-// NOTE: If you also define BlockGoal / AutoProgramConfig / AutoProgramService
-// in a separate AutoProgramService.swift, make sure you only have ONE copy of
-// each type in the project to avoid "invalid redeclaration" errors.
-
 struct BlockListView: View {
     @Environment(\.modelContext) private var context
-
-    // If BlockTemplate has a createdAt, you can sort by that instead.
     @Query(sort: \BlockTemplate.name, order: .forward) private var blocks: [BlockTemplate]
     
     @State private var showingBuilder = false
@@ -239,24 +232,41 @@ struct BlockListView: View {
                 } else {
                     ForEach(blocks) { blockTemplate in
                         NavigationLink(blockTemplate.name) {
-                            // ✅ Pass the BlockTemplate into the dashboard
                             DashboardView(blockTemplate: blockTemplate)
                         }
                     }
+                    .onDelete(perform: deleteBlocks)   // ✅ swipe-to-delete blocks
                 }
             }
             .navigationTitle("Blocks")
             .toolbar {
-                Button {
-                    showingBuilder = true
-                } label: {
-                    Image(systemName: "plus")
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingBuilder = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
             }
             .sheet(isPresented: $showingBuilder) {
                 BlockBuilderView()
                     .presentationDetents([.medium, .large])
             }
+        }
+    }
+    
+    private func deleteBlocks(at offsets: IndexSet) {
+        for index in offsets {
+            let block = blocks[index]
+            context.delete(block)
+        }
+        do {
+            try context.save()
+        } catch {
+            print("Error deleting block(s): \(error)")
         }
     }
 }
@@ -268,11 +278,11 @@ struct BlockBuilderView: View {
     @State private var mode: BlockBuilderMode = .ai   // default to AI
     
     // Shared basic fields
-    @State private var name: String = "SBD Block 1 – 4 Week Strength"
+    @State private var name: String = ""              // ✅ user must enter this
     @State private var weeks: Int = 4
     @State private var daysPerWeek: Int = 4
     
-    // AI-specific fields (uses BlockGoal from your auto-programming code)
+    // AI-specific fields
     @State private var goal: BlockGoal = .strength
     @State private var squatTM: String = "405"
     @State private var benchTM: String = "285"
@@ -280,6 +290,11 @@ struct BlockBuilderView: View {
     
     @State private var errorMessage: String?
     @State private var isGenerating = false
+    
+    /// Just for hint text
+    private var exampleName: String {
+        "SBD Block – \(weeks)-Week \(goal.rawValue.capitalized)"
+    }
     
     var body: some View {
         NavigationStack {
@@ -295,7 +310,7 @@ struct BlockBuilderView: View {
                 }
                 
                 Section("Basic") {
-                    TextField("Block name", text: $name)
+                    TextField("Block name (required, e.g. \(exampleName))", text: $name)
                     
                     Stepper("Weeks: \(weeks)", value: $weeks, in: 1...12)
                     Stepper("Days per week: \(daysPerWeek)", value: $daysPerWeek, in: 1...7)
@@ -377,6 +392,12 @@ struct BlockBuilderView: View {
     private func generateAIBlock() {
         errorMessage = nil
         
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Please enter a block name."
+            return
+        }
+        
         guard
             let squat = Double(squatTM),
             let bench = Double(benchTM),
@@ -388,15 +409,16 @@ struct BlockBuilderView: View {
         
         isGenerating = true
         
+        // ✅ Keys match the way AutoProgramService expects them ("Squat", "Bench", "Deadlift")
         let config = AutoProgramConfig(
-            name: name,
+            name: trimmedName,
             goal: goal,
             weeksCount: weeks,
             daysPerWeek: daysPerWeek,
-            mainLifts: ["Back Squat", "Bench Press", "Deadlift"],
+            mainLifts: ["Squat", "Bench", "Deadlift"],
             trainingMaxes: [
-                "Back Squat": squat,
-                "Bench Press": bench,
+                "Squat": squat,
+                "Bench": bench,
                 "Deadlift": dead
             ]
         )
@@ -1056,7 +1078,7 @@ struct MetricCard: View {
 
 struct ContentView: View {
     var body: some View {
-        BlockListView()   // 🔄 starts at block list / builder
+        BlockListView()   // starts at block list / builder
     }
 }
 
