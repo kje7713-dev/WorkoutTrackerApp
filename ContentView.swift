@@ -355,37 +355,59 @@ struct BlockBuilderView: View {
     
     // MARK: - AI section
     
-    private var aiSection: some View {
-        Section("AI Auto Programming") {
-            Picker("Goal", selection: $goal) {
-                ForEach(BlockGoal.allCases) { goal in
-                    Text(goal.rawValue.capitalized).tag(goal)
-                }
+ // MARK: - AI section
+
+private var aiSection: some View {
+    Section("AI Auto Programming") {
+        Picker("Goal", selection: $goal) {
+            ForEach(BlockGoal.allCases) { goal in
+                Text(goal.rawValue.capitalized).tag(goal)
             }
-            
-            Text("Training Maxes")
-                .font(.subheadline)
-            
-            TextField("Squat TM (lb)", text: $squatTM)
-                .keyboardType(.numberPad)
-            TextField("Bench TM (lb)", text: $benchTM)
-                .keyboardType(.numberPad)
-            TextField("Deadlift TM (lb)", text: $deadliftTM)
-                .keyboardType(.numberPad)
-            
-            Button {
-                generateAIBlock()
-            } label: {
-                if isGenerating {
-                    ProgressView()
-                } else {
-                    Text("Generate Block")
-                        .frame(maxWidth: .infinity, alignment: .center)
-                }
-            }
-            .disabled(isGenerating)
         }
+        
+        Text("Training Maxes")
+            .font(.subheadline)
+        
+        HStack {
+            Text("Squat")
+            Spacer()
+            TextField("lb", text: $squatTM)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: 120)
+        }
+        
+        HStack {
+            Text("Bench")
+            Spacer()
+            TextField("lb", text: $benchTM)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: 120)
+        }
+        
+        HStack {
+            Text("Deadlift")
+            Spacer()
+            TextField("lb", text: $deadliftTM)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: 120)
+        }
+        
+        Button {
+            generateAIBlock()
+        } label: {
+            if isGenerating {
+                ProgressView()
+            } else {
+                Text("Generate Block")
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+        }
+        .disabled(isGenerating)
     }
+}
     
     // MARK: - Actions
     
