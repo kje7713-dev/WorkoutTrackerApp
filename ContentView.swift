@@ -53,11 +53,6 @@ enum BlockBuilderMode: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-// Extend the BlockGoal that lives in AutoProgramService.swift
-extension BlockGoal: CaseIterable, Identifiable, Codable {
-    public var id: String { rawValue }
-}
-
 // MARK: - Block list
 
 struct BlockListView: View {
