@@ -1,10 +1,18 @@
 import SwiftUI
 
-// MARK: - Entry point
-
 struct ContentView: View {
     var body: some View {
-        BlockListView()
+        TabView {
+            TodayView()
+                .tabItem {
+                    Label("Today", systemImage: "calendar")
+                }
+
+            BlockListView()
+                .tabItem {
+                    Label("Blocks", systemImage: "square.grid.2x2")
+                }
+        }
     }
 }
 
