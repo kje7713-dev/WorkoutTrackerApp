@@ -150,17 +150,15 @@ struct TodayView: View {
         return nil
     }
 
+    // 🔧 FIXED: remove problematic SwiftData predicate and filter in Swift
     private func fetchSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession? {
-        let descriptor = FetchDescriptor<WorkoutSession>(
-            predicate: #Predicate { session in
-                session.blockTemplate == block &&
-                session.dayTemplate == day
-            }
-        )
-
+        let descriptor = FetchDescriptor<WorkoutSession>()   // no predicate
         do {
             let results = try context.fetch(descriptor)
-            return results.first
+            return results.first {
+                $0.blockTemplate?.id == block.id &&
+                $0.dayTemplate?.id == day.id
+            }
         } catch {
             print("Error fetching session for TodayView: \(error)")
             return nil
