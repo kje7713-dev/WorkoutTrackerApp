@@ -255,10 +255,9 @@ struct DashboardView: View {
     @Query(sort: \WorkoutSession.weekIndex)
     private var allSessions: [WorkoutSession]
 
-    // Sessions whose weekIndex is within this block’s week range.
-    // (We don’t yet have an explicit block relationship on WorkoutSession.)
+    // ✅ Only sessions tied to this block via relationship
     private var sessionsForBlock: [WorkoutSession] {
-        allSessions.filter { $0.weekIndex >= 1 && $0.weekIndex <= block.weeksCount }
+        allSessions.filter { $0.blockTemplate == block }
     }
 
     // All weeks for this block
@@ -267,7 +266,7 @@ struct DashboardView: View {
         return Array(1...block.weeksCount)
     }
 
-    // Expected reps / volume from the PROGRAM (Plan) /////////////////////////
+    // Expected reps / volume from the PROGRAM (Plan)
 
     private var expectedRepsPerWeek: [Int: Double] {
         var dict: [Int: Double] = [:]
@@ -325,7 +324,7 @@ struct DashboardView: View {
         return dict
     }
 
-    // Actual % curves from logged sessions ///////////////////////////////////
+    // Actual % curves from logged sessions
 
     private var actualExercisePctByWeek: [Int: Double] {
         guard totalExpectedRepsInBlock > 0 else { return [:] }
@@ -678,9 +677,12 @@ struct BlockDetailView: View {
     }
 
     private func createSession(for day: DayTemplate) -> WorkoutSession {
+        // ✅ tie session back to block + day
         let session = WorkoutSession(
             weekIndex: day.weekIndex,
-            dayIndex: day.dayIndex
+            dayIndex: day.dayIndex,
+            blockTemplate: block,
+            dayTemplate: day
         )
 
         for planned in day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }) {
