@@ -3,12 +3,12 @@ import SwiftData
 
 // MARK: - Auto-program config
 
-// ✅ Single source of truth for BlockGoal
+/// Single source of truth for BlockGoal used by UI + service
 enum BlockGoal: String, CaseIterable, Identifiable, Codable {
     case strength
     case hypertrophy
     case peaking
-    
+
     var id: String { rawValue }
 }
 
@@ -18,7 +18,7 @@ struct AutoProgramConfig {
     let weeksCount: Int              // e.g. 4
     let daysPerWeek: Int             // e.g. 4
     let mainLifts: [String]          // e.g. ["Squat", "Bench", "Deadlift"]
-    
+
     /// Training maxes for main lifts (same names as mainLifts)
     let trainingMaxes: [String: Double]  // ["Squat": 405, "Bench": 285, ...]
 }
@@ -30,7 +30,7 @@ enum AutoProgramError: Error {
 }
 
 struct AutoProgramService {
-    
+
     /// Generates a BlockTemplate (+ days/exercises/sets) and saves it to SwiftData.
     /// Returns the created BlockTemplate so you can use it in UI.
     @discardableResult
@@ -38,18 +38,18 @@ struct AutoProgramService {
         in context: ModelContext,
         config: AutoProgramConfig
     ) throws -> BlockTemplate {
-        
+
         // 1. Create the block
         let block = BlockTemplate(
             name: config.name,
             weeksCount: config.weeksCount,
-            createdAt: .now,
+            createdAt: Date.now,                    // 🔧 FIXED (.now -> Date.now)
             createdByUser: true,
             notes: "Auto-programmed \(config.goal.rawValue.capitalized) block"
         )
-        
+
         context.insert(block)
-        
+
         // 2. Define a simple weekly % pattern based on goal
         let percentPattern: [Double]
         switch config.goal {
@@ -63,18 +63,18 @@ struct AutoProgramService {
             // heavier, taper last week
             percentPattern = [0.80, 0.85, 0.90, 0.70]
         }
-        
+
         // 3. Simple day “roles” for 4-day SBD style block (can expand later)
-        let dayRoles = [
+        let dayRoles: [Int: String] = [
             1: "Heavy Upper",
             2: "Volume Lower",
             3: "Heavy Lower",
             4: "Accessory / Conditioning"
         ]
-        
+
         // 4. Ensure we have (or create) ExerciseTemplate entries
         var exerciseTemplatesByName: [String: ExerciseTemplate] = [:]
-        
+
         func template(for name: String, category: String?) -> ExerciseTemplate {
             if let cached = exerciseTemplatesByName[name] {
                 return cached
@@ -88,7 +88,7 @@ struct AutoProgramService {
                 exerciseTemplatesByName[name] = existing
                 return existing
             }
-            
+
             let tmpl = ExerciseTemplate(
                 name: name,
                 category: category,
@@ -102,15 +102,15 @@ struct AutoProgramService {
             exerciseTemplatesByName[name] = tmpl
             return tmpl
         }
-        
+
         // 5. Build weeks & days
         for weekIndex in 1...config.weeksCount {
             // Clamp % array if weeksCount > pattern size
             let pct = percentPattern[min(weekIndex - 1, percentPattern.count - 1)]
-            
+
             for dayIndex in 1...config.daysPerWeek {
                 let role = dayRoles[dayIndex] ?? "Day \(dayIndex)"
-                
+
                 let day = DayTemplate(
                     weekIndex: weekIndex,
                     dayIndex: dayIndex,
@@ -120,26 +120,26 @@ struct AutoProgramService {
                     block: block
                 )
                 block.days.append(day)
-                
+
                 // Decide which lifts live on this day
                 let plannedLifts = liftsForDay(
                     role: role,
                     mainLifts: config.mainLifts
                 )
-                
+
                 for (exerciseOrder, lift) in plannedLifts.enumerated() {
                     let exerciseName = lift.name
                     let category = lift.category
                     let sets = lift.sets
                     let reps = lift.reps
-                    
+
                     let tm = config.trainingMaxes[lift.tmKey]
                     if tm == nil && lift.usesTM {
                         throw AutoProgramError.noTrainingMax(lift.tmKey)
                     }
-                    
+
                     let eTemplate = template(for: exerciseName, category: category)
-                    
+
                     let planned = PlannedExercise(
                         orderIndex: exerciseOrder,
                         exerciseTemplate: eTemplate,
@@ -147,7 +147,7 @@ struct AutoProgramService {
                         notes: nil
                     )
                     day.exercises.append(planned)
-                    
+
                     // Build prescribed sets
                     for setIndex in 1...sets {
                         let weight: Double
@@ -156,7 +156,7 @@ struct AutoProgramService {
                         } else {
                             weight = lift.fixedWeight ?? 0
                         }
-                        
+
                         let set = PrescribedSet(
                             setIndex: setIndex,
                             targetReps: reps,
@@ -171,13 +171,13 @@ struct AutoProgramService {
                 }
             }
         }
-        
+
         try context.save()
         return block
     }
-    
+
     // MARK: - Helpers
-    
+
     /// Simple description templates
     private static func description(for role: String, goal: BlockGoal) -> String {
         switch (role, goal) {
@@ -193,8 +193,8 @@ struct AutoProgramService {
             return "\(role) session focused on \(goal.rawValue)."
         }
     }
-    
-    /// Internal template to drive per-day exercise choices.
+
+    /// A tiny internal “template” to drive per-day exercise choices.
     private struct DayLift {
         let name: String
         let category: String?
@@ -205,7 +205,7 @@ struct AutoProgramService {
         let fixedWeight: Double?
         let targetRPE: Double?
     }
-    
+
     private static func liftsForDay(
         role: String,
         mainLifts: [String]
@@ -213,7 +213,7 @@ struct AutoProgramService {
         let squat = mainLifts.first { $0.lowercased().contains("squat") } ?? "Back Squat"
         let bench = mainLifts.first { $0.lowercased().contains("bench") } ?? "Bench Press"
         let dead  = mainLifts.first { $0.lowercased().contains("dead")  } ?? "Deadlift"
-        
+
         switch role {
         case "Heavy Upper":
             return [
@@ -224,7 +224,7 @@ struct AutoProgramService {
                 DayLift(name: "Barbell Row", category: "Pull", sets: 4, reps: 8,
                         usesTM: false, tmKey: "", fixedWeight: 0, targetRPE: 7.0)
             ]
-            
+
         case "Volume Lower":
             return [
                 DayLift(name: squat, category: "Squat", sets: 4, reps: 6,
@@ -234,7 +234,7 @@ struct AutoProgramService {
                 DayLift(name: "Walking Lunge", category: "Single-leg", sets: 3, reps: 10,
                         usesTM: false, tmKey: "", fixedWeight: 0, targetRPE: 7.0)
             ]
-            
+
         case "Heavy Lower":
             return [
                 DayLift(name: dead, category: "Hinge", sets: 5, reps: 3,
@@ -244,7 +244,7 @@ struct AutoProgramService {
                 DayLift(name: "Back Extension", category: "Accessory", sets: 3, reps: 12,
                         usesTM: false, tmKey: "", fixedWeight: 0, targetRPE: 7.0)
             ]
-            
+
         case "Accessory / Conditioning":
             return [
                 DayLift(name: "Bulgarian Split Squat", category: "Single-leg", sets: 3, reps: 10,
@@ -254,7 +254,7 @@ struct AutoProgramService {
                 DayLift(name: "Bike Intervals", category: "Conditioning", sets: 6, reps: 30,
                         usesTM: false, tmKey: "", fixedWeight: 0, targetRPE: 7.0)
             ]
-            
+
         default:
             // fallback: just cycle main lifts
             return [
