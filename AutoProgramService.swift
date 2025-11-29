@@ -3,7 +3,7 @@ import SwiftData
 
 // MARK: - Auto-program config
 
-// Used by the UI (CaseIterable, Identifiable, Codable)
+// ✅ Single source of truth for BlockGoal
 enum BlockGoal: String, CaseIterable, Identifiable, Codable {
     case strength
     case hypertrophy
@@ -194,7 +194,7 @@ struct AutoProgramService {
         }
     }
     
-    /// A tiny internal “template” to drive per-day exercise choices.
+    /// Internal template to drive per-day exercise choices.
     private struct DayLift {
         let name: String
         let category: String?
