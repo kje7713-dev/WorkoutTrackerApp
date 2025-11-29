@@ -150,15 +150,21 @@ struct TodayView: View {
         return nil
     }
 
-    // 🔧 FIXED: remove problematic SwiftData predicate and filter in Swift
+    // 🔧 SIMPLIFIED PREDICATE – fixes the macro error
     private func fetchSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession? {
-        let descriptor = FetchDescriptor<WorkoutSession>()   // no predicate
+        let week = day.weekIndex
+        let dayIndex = day.dayIndex
+
+        let descriptor = FetchDescriptor<WorkoutSession>(
+            predicate: #Predicate { session in
+                session.weekIndex == week &&
+                session.dayIndex == dayIndex
+            }
+        )
+
         do {
             let results = try context.fetch(descriptor)
-            return results.first {
-                $0.blockTemplate?.id == block.id &&
-                $0.dayTemplate?.id == day.id
-            }
+            return results.first
         } catch {
             print("Error fetching session for TodayView: \(error)")
             return nil
