@@ -154,8 +154,12 @@ struct BlockBuilderView: View {
 
     private var aiSection: some View {
         Section("AI Auto Programming") {
+            // 🔧 FIXED: Don’t rely on BlockGoal.allCases.
+            // Use an explicit array + id: \.self so the compiler doesn’t need CaseIterable/Identifiable here.
+            let goals: [BlockGoal] = [.strength, .hypertrophy, .peaking]
+
             Picker("Goal", selection: $goal) {
-                ForEach(BlockGoal.allCases) { goal in
+                ForEach(goals, id: \.self) { goal in
                     Text(goal.rawValue.capitalized).tag(goal)
                 }
             }
@@ -255,9 +259,10 @@ struct DashboardView: View {
     @Query(sort: \WorkoutSession.weekIndex)
     private var allSessions: [WorkoutSession]
 
-    // ✅ Only sessions tied to this block via relationship
+    // Sessions whose weekIndex is within this block’s week range.
+    // (We don’t yet have an explicit block relationship on WorkoutSession.)
     private var sessionsForBlock: [WorkoutSession] {
-        allSessions.filter { $0.blockTemplate == block }
+        allSessions.filter { $0.weekIndex >= 1 && $0.weekIndex <= block.weeksCount }
     }
 
     // All weeks for this block
@@ -266,7 +271,7 @@ struct DashboardView: View {
         return Array(1...block.weeksCount)
     }
 
-    // Expected reps / volume from the PROGRAM (Plan)
+    // Expected reps / volume from the PROGRAM (Plan) /////////////////////////
 
     private var expectedRepsPerWeek: [Int: Double] {
         var dict: [Int: Double] = [:]
@@ -324,7 +329,7 @@ struct DashboardView: View {
         return dict
     }
 
-    // Actual % curves from logged sessions
+    // Actual % curves from logged sessions ///////////////////////////////////
 
     private var actualExercisePctByWeek: [Int: Double] {
         guard totalExpectedRepsInBlock > 0 else { return [:] }
@@ -677,12 +682,9 @@ struct BlockDetailView: View {
     }
 
     private func createSession(for day: DayTemplate) -> WorkoutSession {
-        // ✅ tie session back to block + day
         let session = WorkoutSession(
             weekIndex: day.weekIndex,
-            dayIndex: day.dayIndex,
-            blockTemplate: block,
-            dayTemplate: day
+            dayIndex: day.dayIndex
         )
 
         for planned in day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }) {
