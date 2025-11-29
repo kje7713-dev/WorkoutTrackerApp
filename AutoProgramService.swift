@@ -3,7 +3,7 @@ import SwiftData
 
 // MARK: - Auto-program config
 
-// ✅ Used by the UI (CaseIterable, Identifiable, Codable)
+// Used by the UI (CaseIterable, Identifiable, Codable)
 enum BlockGoal: String, CaseIterable, Identifiable, Codable {
     case strength
     case hypertrophy
