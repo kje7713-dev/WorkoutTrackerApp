@@ -154,8 +154,7 @@ struct BlockBuilderView: View {
 
     private var aiSection: some View {
         Section("AI Auto Programming") {
-            // 🔧 FIXED: Don’t rely on BlockGoal.allCases.
-            // Use an explicit array + id: \.self so the compiler doesn’t need CaseIterable/Identifiable here.
+            // Explicit list of goals so we don't depend on extra conformances here
             let goals: [BlockGoal] = [.strength, .hypertrophy, .peaking]
 
             Picker("Goal", selection: $goal) {
@@ -259,10 +258,9 @@ struct DashboardView: View {
     @Query(sort: \WorkoutSession.weekIndex)
     private var allSessions: [WorkoutSession]
 
-    // Sessions whose weekIndex is within this block’s week range.
-    // (We don’t yet have an explicit block relationship on WorkoutSession.)
+    // ✅ Sessions belong ONLY to this block
     private var sessionsForBlock: [WorkoutSession] {
-        allSessions.filter { $0.weekIndex >= 1 && $0.weekIndex <= block.weeksCount }
+        allSessions.filter { $0.blockTemplate == block }
     }
 
     // All weeks for this block
@@ -668,7 +666,9 @@ struct BlockDetailView: View {
 
         let descriptor = FetchDescriptor<WorkoutSession>(
             predicate: #Predicate { session in
-                session.weekIndex == week && session.dayIndex == dayIndex
+                session.weekIndex == week &&
+                session.dayIndex == dayIndex &&
+                session.blockTemplate == block
             }
         )
 
@@ -684,7 +684,9 @@ struct BlockDetailView: View {
     private func createSession(for day: DayTemplate) -> WorkoutSession {
         let session = WorkoutSession(
             weekIndex: day.weekIndex,
-            dayIndex: day.dayIndex
+            dayIndex: day.dayIndex,
+            blockTemplate: block,
+            dayTemplate: day
         )
 
         for planned in day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }) {
