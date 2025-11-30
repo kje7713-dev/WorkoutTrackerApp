@@ -660,6 +660,7 @@ struct BlockDetailView: View {
         }
     }
 
+    // 🔧 SIMPLIFIED PREDICATE – avoid relationship comparison here
     private func fetchSession(for day: DayTemplate) -> WorkoutSession? {
         let week = day.weekIndex
         let dayIndex = day.dayIndex
@@ -667,8 +668,7 @@ struct BlockDetailView: View {
         let descriptor = FetchDescriptor<WorkoutSession>(
             predicate: #Predicate { session in
                 session.weekIndex == week &&
-                session.dayIndex == dayIndex &&
-                session.blockTemplate == block
+                session.dayIndex == dayIndex
             }
         )
 
