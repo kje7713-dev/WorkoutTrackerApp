@@ -439,10 +439,28 @@ struct DashboardView: View {
                 .padding()
             }
             .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-        }
+            .navigationBarTitleDisplayMode(.// DEBUG AI EXPORT BUTTON
+Button {
+    do {
+        let descriptor = block.toAIBlockDescriptor()
+        let data = try JSONEncoder().encode(descriptor)
+        let json = String(data: data, encoding: .utf8) ?? "{}"
+        print("\n========= AI BLOCK EXPORT =========\n\(json)\n====================================\n")
+    } catch {
+        print("AI Export Error: \(error)")
     }
+} label: {
+    Text("Run AI Export (Debug)")
+        .font(.headline)
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.blue.opacity(0.15))
+        .foregroundColor(.blue)
+        .cornerRadius(12)
 }
+.padding(.top, 10)
+
+
 
 // MARK: - Block Detail (week/day + summary)
 
