@@ -1,5 +1,85 @@
-import Foundation
 import SwiftData
+import Foundation
+
+// MARK: - Block plan models
+
+@Model
+final class BlockTemplate {
+    @Attribute(.unique) var id: UUID
+    var name: String
+    var weeksCount: Int
+    var createdAt: Date
+    var createdByUser: Bool
+    var notes: String?
+
+    // All planned days in this block
+    @Relationship(deleteRule: .cascade) var days: [DayTemplate]
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        weeksCount: Int,
+        createdAt: Date = .now,
+        createdByUser: Bool = true,
+        notes: String? = nil,
+        days: [DayTemplate] = []
+    ) {
+        self.id = id
+        self.name = name
+        self.weeksCount = weeksCount
+        self.createdAt = createdAt
+        self.createdByUser = createdByUser
+        self.notes = notes
+        self.days = days
+    }
+}
+
+@Model
+final class DayTemplate {
+    @Attribute(.unique) var id: UUID
+    var weekIndex: Int
+    var dayIndex: Int
+
+    /// This is your "Heavy Upper", "Volume Lower", etc label
+    var title: String
+
+    /// Longer description shown in the UI
+    var dayDescription: String
+
+    /// For ordering days within a week
+    var orderIndex: Int
+
+    /// OPTIONAL: key you can later use for ChatGPT (“heavy_upper”, etc)
+    var roleKey: String?
+
+    // Parent block
+    @Relationship var block: BlockTemplate?
+
+    // Planned exercises for this day
+    @Relationship(deleteRule: .cascade) var exercises: [PlannedExercise]
+
+    init(
+        id: UUID = UUID(),
+        weekIndex: Int,
+        dayIndex: Int,
+        title: String,
+        dayDescription: String,
+        orderIndex: Int,
+        roleKey: String? = nil,
+        block: BlockTemplate? = nil,
+        exercises: [PlannedExercise] = []
+    ) {
+        self.id = id
+        self.weekIndex = weekIndex
+        self.dayIndex = dayIndex
+        self.title = title
+        self.dayDescription = dayDescription
+        self.orderIndex = orderIndex
+        self.roleKey = roleKey
+        self.block = block
+        self.exercises = exercises
+    }
+}
 
 // MARK: - Block / Plan Models
 
