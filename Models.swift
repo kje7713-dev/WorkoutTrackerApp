@@ -41,6 +41,8 @@ final class DayTemplate {
     var dayIndex: Int
     var title: String
     var dayDescription: String
+    /// Machine-friendly label for the day type, e.g. "heavy_upper"
+    var roleKey: String
     var orderIndex: Int
 
     @Relationship(inverse: \BlockTemplate.days)
@@ -55,6 +57,7 @@ final class DayTemplate {
         dayIndex: Int,
         title: String,
         dayDescription: String,
+        roleKey: String = "",
         orderIndex: Int,
         block: BlockTemplate? = nil,
         exercises: [PlannedExercise] = []
@@ -64,6 +67,7 @@ final class DayTemplate {
         self.dayIndex = dayIndex
         self.title = title
         self.dayDescription = dayDescription
+        self.roleKey = roleKey
         self.orderIndex = orderIndex
         self.block = block
         self.exercises = exercises
