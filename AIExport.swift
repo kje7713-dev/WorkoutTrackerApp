@@ -1,102 +1,76 @@
 import Foundation
 import SwiftData
 
-// MARK: - AI-facing data transfer objects (DTOs)
+// Top-level DTO we can send to ChatGPT
+struct AIBlockExport: Codable {
+    struct Day: Codable {
+        let weekIndex: Int
+        let dayIndex: Int
+        let title: String
+        let roleKey: String
+        let description: String
+        let exercises: [Exercise]
+    }
 
-/// High-level description of a block that can be JSON-encoded and sent to ChatGPT.
-struct AIBlockDescriptor: Codable {
+    struct Exercise: Codable {
+        let name: String
+        let sets: Int
+        let reps: Int
+        let targetWeight: Double
+    }
+
+    let id: UUID
     let name: String
     let weeksCount: Int
-    let days: [AIDayDescriptor]
+    /// Optional string if you later want to pipe BlockGoal through
+    let goal: String?
+    let days: [Day]
 }
-
-/// Description of a single day (role, title, etc.)
-struct AIDayDescriptor: Codable {
-    let weekIndex: Int
-    let dayIndex: Int
-    let title: String
-    let roleKey: String?          // e.g. "heavy_upper"
-    let description: String
-    let exercises: [AIExerciseDescriptor]
-}
-
-/// Description of one planned exercise for that day
-struct AIExerciseDescriptor: Codable {
-    let orderIndex: Int
-    let name: String
-    let category: String?
-    let sets: [AISetDescriptor]
-}
-
-/// Description of a single set prescription
-struct AISetDescriptor: Codable {
-    let setIndex: Int
-    let targetReps: Int
-    let targetWeight: Double
-    let targetRPE: Double?
-}
-
-// MARK: - Converters from your SwiftData models
 
 extension BlockTemplate {
-    /// Turn this block into a lightweight AI descriptor
-    func toAIBlockDescriptor() -> AIBlockDescriptor {
-        let dayDescriptors = days
-            .sorted { lhs, rhs in
-                if lhs.weekIndex == rhs.weekIndex {
-                    return lhs.dayIndex < rhs.dayIndex
-                }
-                return lhs.weekIndex < rhs.weekIndex
+    /// Export this block into a compact format the ChatGPT API can reason about.
+    func toAIExport(includeWeights: Bool = true) -> AIBlockExport {
+        let sortedDays = days.sorted { lhs, rhs in
+            if lhs.weekIndex == rhs.weekIndex {
+                return lhs.dayIndex < rhs.dayIndex
             }
-            .map { $0.toAIDayDescriptor() }
+            return lhs.weekIndex < rhs.weekIndex
+        }
 
-        return AIBlockDescriptor(
+        let dayExports: [AIBlockExport.Day] = sortedDays.map { day in
+            let exerciseExports: [AIBlockExport.Exercise] = day.exercises
+                .sorted { $0.orderIndex < $1.orderIndex }
+                .map { planned in
+                    let sortedSets = planned.prescribedSets.sorted { $0.setIndex < $1.setIndex }
+                    let setsCount = sortedSets.count
+                    let firstSet = sortedSets.first
+
+                    return AIBlockExport.Exercise(
+                        name: planned.exerciseTemplate?.name ?? "Exercise",
+                        sets: setsCount,
+                        reps: firstSet?.targetReps ?? 0,
+                        targetWeight: includeWeights ? (firstSet?.targetWeight ?? 0.0) : 0.0
+                    )
+                }
+
+            return AIBlockExport.Day(
+                weekIndex: day.weekIndex,
+                dayIndex: day.dayIndex,
+                title: day.title,
+                roleKey: day.roleKey,               // ✅ use the model property
+                description: day.dayDescription,
+                exercises: exerciseExports
+            )
+        }
+
+        // We’re not currently storing BlockGoal on the BlockTemplate,
+        // so goal is nil for now. You can wire that in later if you like.
+        return AIBlockExport(
+            id: id,
             name: name,
             weeksCount: weeksCount,
-            days: dayDescriptors
-        )
-    }
-}
-
-extension DayTemplate {
-    func toAIDayDescriptor() -> AIDayDescriptor {
-        let exerciseDescriptors = exercises
-            .sorted { $0.orderIndex < $1.orderIndex }
-            .map { $0.toAIExerciseDescriptor() }
-
-        return AIDayDescriptor(
-            weekIndex: weekIndex,
-            dayIndex: dayIndex,
-            title: title,
-            roleKey: roleKey,                 // uses the roleKey we added in AutoProgramService
-            description: dayDescription,
-            exercises: exerciseDescriptors
-        )
-    }
-}
-
-extension PlannedExercise {
-    func toAIExerciseDescriptor() -> AIExerciseDescriptor {
-        let setDescriptors = prescribedSets
-            .sorted { $0.setIndex < $1.setIndex }
-            .map { $0.toAISetDescriptor() }
-
-        return AIExerciseDescriptor(
-            orderIndex: orderIndex,
-            name: exerciseTemplate?.name ?? "Exercise",
-            category: exerciseTemplate?.category,
-            sets: setDescriptors
-        )
-    }
-}
-
-extension PrescribedSet {
-    func toAISetDescriptor() -> AISetDescriptor {
-        AISetDescriptor(
-            setIndex: setIndex,
-            targetReps: targetReps,
-            targetWeight: targetWeight,
-            targetRPE: targetRPE
+            goal: nil,
+            days: dayExports
         )
     }
 }
