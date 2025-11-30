@@ -660,15 +660,16 @@ struct BlockDetailView: View {
         }
     }
 
-    // 🔧 SIMPLIFIED PREDICATE – avoid relationship comparison here
+    /// 🔑 KEY FIX:
+    /// Look up by `dayTemplate` (and its `block`) so each block/day
+    /// gets its own distinct WorkoutSession and they don't get shared.
     private func fetchSession(for day: DayTemplate) -> WorkoutSession? {
-        let week = day.weekIndex
-        let dayIndex = day.dayIndex
+        let owningBlock = day.block
 
         let descriptor = FetchDescriptor<WorkoutSession>(
             predicate: #Predicate { session in
-                session.weekIndex == week &&
-                session.dayIndex == dayIndex
+                session.dayTemplate == day &&
+                session.blockTemplate == owningBlock
             }
         )
 
