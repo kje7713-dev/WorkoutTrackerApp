@@ -154,11 +154,8 @@ struct BlockBuilderView: View {
 
     private var aiSection: some View {
         Section("AI Auto Programming") {
-            // Explicit list of goals so we don't depend on extra conformances here
-            let goals: [BlockGoal] = [.strength, .hypertrophy, .peaking]
-
             Picker("Goal", selection: $goal) {
-                ForEach(goals, id: \.self) { goal in
+                ForEach(BlockGoal.allCases) { goal in
                     Text(goal.rawValue.capitalized).tag(goal)
                 }
             }
@@ -258,9 +255,14 @@ struct DashboardView: View {
     @Query(sort: \WorkoutSession.weekIndex)
     private var allSessions: [WorkoutSession]
 
-    // ✅ Sessions belong ONLY to this block
+    // Sessions that belong to this block (in-memory filter to avoid SwiftData predicate issues)
     private var sessionsForBlock: [WorkoutSession] {
-        allSessions.filter { $0.blockTemplate == block }
+        allSessions.filter { session in
+            if let b = session.blockTemplate {
+                return b === block   // reference equality on the @Model objects
+            }
+            return false
+        }
     }
 
     // All weeks for this block
@@ -439,28 +441,10 @@ struct DashboardView: View {
                 .padding()
             }
             .navigationTitle("")
-            .navigationBarTitleDisplayMode(.// DEBUG AI EXPORT BUTTON
-Button {
-    do {
-        let descriptor = block.toAIBlockDescriptor()
-        let data = try JSONEncoder().encode(descriptor)
-        let json = String(data: data, encoding: .utf8) ?? "{}"
-        print("\n========= AI BLOCK EXPORT =========\n\(json)\n====================================\n")
-    } catch {
-        print("AI Export Error: \(error)")
+            .navigationBarTitleDisplayMode(.inline)
+        }
     }
-} label: {
-    Text("Run AI Export (Debug)")
-        .font(.headline)
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color.blue.opacity(0.15))
-        .foregroundColor(.blue)
-        .cornerRadius(12)
 }
-.padding(.top, 10)
-
-
 
 // MARK: - Block Detail (week/day + summary)
 
@@ -678,22 +662,22 @@ struct BlockDetailView: View {
         }
     }
 
-    /// 🔑 KEY FIX:
-    /// Look up by `dayTemplate` (and its `block`) so each block/day
-    /// gets its own distinct WorkoutSession and they don't get shared.
     private func fetchSession(for day: DayTemplate) -> WorkoutSession? {
-        let owningBlock = day.block
-
-        let descriptor = FetchDescriptor<WorkoutSession>(
-            predicate: #Predicate { session in
-                session.dayTemplate == day &&
-                session.blockTemplate == owningBlock
-            }
-        )
+        // No #Predicate here – just fetch everything and filter in Swift
+        let descriptor = FetchDescriptor<WorkoutSession>()
 
         do {
-            let results = try context.fetch(descriptor)
-            return results.first
+            let all = try context.fetch(descriptor)
+            return all.first { session in
+                let sameWeekDay = session.weekIndex == day.weekIndex &&
+                                  session.dayIndex == day.dayIndex
+
+                if let b = session.blockTemplate {
+                    return sameWeekDay && (b === block)
+                } else {
+                    return false
+                }
+            }
         } catch {
             print("Error fetching session: \(error)")
             return nil
