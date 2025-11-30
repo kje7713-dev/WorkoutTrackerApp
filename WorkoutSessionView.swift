@@ -1,8 +1,6 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - Workout Session view (per-set logging)
-
 struct WorkoutSessionView: View {
     @Bindable var session: WorkoutSession
     let day: DayTemplate
@@ -122,6 +120,22 @@ struct WorkoutSessionView: View {
         }
         .navigationTitle("Workout Session")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // 🔗 Make sure this session is attached to its plan objects
+            if session.dayTemplate == nil {
+                session.dayTemplate = day
+            }
+            if session.blockTemplate == nil {
+                // assumes DayTemplate has a relationship `block` -> BlockTemplate
+                session.blockTemplate = day.block
+            }
+
+            do {
+                try context.save()
+            } catch {
+                print("Error saving session on appear: \(error)")
+            }
+        }
         .onDisappear {
             do {
                 try context.save()
