@@ -43,7 +43,7 @@ struct AutoProgramService {
         let block = BlockTemplate(
             name: config.name,
             weeksCount: config.weeksCount,
-            createdAt: Date.now,                    // 🔧 (.now -> Date.now)
+            createdAt: .now,
             createdByUser: true,
             notes: "Auto-programmed \(config.goal.rawValue.capitalized) block"
         )
@@ -110,15 +110,15 @@ struct AutoProgramService {
 
             for dayIndex in 1...config.daysPerWeek {
                 let role = dayRoles[dayIndex] ?? "Day \(dayIndex)"
-                let roleKey = roleKeyFor(role: role)   // 🔑 machine-readable tag
+                let roleKey = canonicalRoleKey(for: role)
 
                 let day = DayTemplate(
                     weekIndex: weekIndex,
                     dayIndex: dayIndex,
                     title: role,
                     dayDescription: description(for: role, goal: config.goal),
-                    orderIndex: dayIndex,
                     roleKey: roleKey,
+                    orderIndex: dayIndex,
                     block: block
                 )
                 block.days.append(day)
@@ -180,6 +180,16 @@ struct AutoProgramService {
 
     // MARK: - Helpers
 
+    /// Machine-friendly key for the role label so ChatGPT can reliably act on it.
+    private static func canonicalRoleKey(for role: String) -> String {
+        // "Heavy Upper" -> "heavy_upper"
+        // "Accessory / Conditioning" -> "accessory_conditioning"
+        role
+            .lowercased()
+            .replacingOccurrences(of: " / ", with: "_")
+            .replacingOccurrences(of: " ", with: "_")
+    }
+
     /// Simple description templates
     private static func description(for role: String, goal: BlockGoal) -> String {
         switch (role, goal) {
@@ -193,26 +203,6 @@ struct AutoProgramService {
             return "Single-leg work, core, and conditioning intervals. Keep RPE moderate."
         default:
             return "\(role) session focused on \(goal.rawValue)."
-        }
-    }
-
-    /// Stable machine-readable key for each day role (for ChatGPT / APIs etc.)
-    private static func roleKeyFor(role: String) -> String {
-        switch role {
-        case "Heavy Upper":
-            return "heavy_upper"
-        case "Volume Lower":
-            return "volume_lower"
-        case "Heavy Lower":
-            return "heavy_lower"
-        case "Accessory / Conditioning":
-            return "accessory_conditioning"
-        default:
-            // fallback: simple slug
-            return role
-                .lowercased()
-                .replacingOccurrences(of: " / ", with: "_")
-                .replacingOccurrences(of: " ", with: "_")
         }
     }
 
