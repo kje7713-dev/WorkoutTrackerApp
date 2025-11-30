@@ -43,7 +43,7 @@ struct AutoProgramService {
         let block = BlockTemplate(
             name: config.name,
             weeksCount: config.weeksCount,
-            createdAt: Date.now,                    // 🔧 FIXED (.now -> Date.now)
+            createdAt: Date.now,                    // 🔧 (.now -> Date.now)
             createdByUser: true,
             notes: "Auto-programmed \(config.goal.rawValue.capitalized) block"
         )
@@ -110,6 +110,7 @@ struct AutoProgramService {
 
             for dayIndex in 1...config.daysPerWeek {
                 let role = dayRoles[dayIndex] ?? "Day \(dayIndex)"
+                let roleKey = roleKeyFor(role: role)   // 🔑 machine-readable tag
 
                 let day = DayTemplate(
                     weekIndex: weekIndex,
@@ -117,6 +118,7 @@ struct AutoProgramService {
                     title: role,
                     dayDescription: description(for: role, goal: config.goal),
                     orderIndex: dayIndex,
+                    roleKey: roleKey,
                     block: block
                 )
                 block.days.append(day)
@@ -191,6 +193,26 @@ struct AutoProgramService {
             return "Single-leg work, core, and conditioning intervals. Keep RPE moderate."
         default:
             return "\(role) session focused on \(goal.rawValue)."
+        }
+    }
+
+    /// Stable machine-readable key for each day role (for ChatGPT / APIs etc.)
+    private static func roleKeyFor(role: String) -> String {
+        switch role {
+        case "Heavy Upper":
+            return "heavy_upper"
+        case "Volume Lower":
+            return "volume_lower"
+        case "Heavy Lower":
+            return "heavy_lower"
+        case "Accessory / Conditioning":
+            return "accessory_conditioning"
+        default:
+            // fallback: simple slug
+            return role
+                .lowercased()
+                .replacingOccurrences(of: " / ", with: "_")
+                .replacingOccurrences(of: " ", with: "_")
         }
     }
 
