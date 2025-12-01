@@ -480,7 +480,10 @@ struct AutoProgramService {
             }
         }
 
+                }
+
         try context.save()
+        print("✅ Generated block \(block.name) with \(block.days.count) days and \(block.days.flatMap { $0.exercises }.count) exercises")
         return block
     }
 
