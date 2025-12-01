@@ -1597,22 +1597,21 @@ struct TodayView: View {
         return nil
     }
 
-    private func fetchSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession? {
-        let descriptor = FetchDescriptor<WorkoutSession>(
-            predicate: #Predicate { session in
-                session.blockTemplate == block &&
-                session.dayTemplate == day
-            }
-        )
+    private func fetchSession(for day: DayTemplate) -> WorkoutSession? {
+    do {
+        // Fetch all sessions and filter in Swift instead of using #Predicate
+        let descriptor = FetchDescriptor<WorkoutSession>()
+        let allSessions = try context.fetch(descriptor)
 
-        do {
-            let results = try context.fetch(descriptor)
-            return results.first
-        } catch {
-            print("Error fetching session for TodayView: \(error)")
-            return nil
+        return allSessions.first { session in
+            session.blockTemplate?.id == block.id &&
+            session.dayTemplate?.id == day.id
         }
+    } catch {
+        print("Error fetching session: \(error)")
+        return nil
     }
+}
 
     private func createSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession {
         let session = WorkoutSession(
