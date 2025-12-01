@@ -3,6 +3,13 @@ import SwiftData
 
 // MARK: - Auto-program config
 
+private static func canonicalRoleKey(for role: String) -> String {
+    role
+        .lowercased()
+        .replacingOccurrences(of: " / ", with: "_")
+        .replacingOccurrences(of: " ", with: "_")
+}
+
 /// Single source of truth for BlockGoal used by UI + service
 enum BlockGoal: String, CaseIterable, Identifiable, Codable {
     case strength
