@@ -1481,16 +1481,15 @@ struct TodayView: View {
         blocks.first
     }
 
-    /// Sorted days in the active block
-    private var sortedDaysInActiveBlock: [DayTemplate] {
-        guard let block = activeBlock else { return [] }
-        return block.days.sorted {
-            if $0.weekIndex == $1.weekIndex {
-                return $0.dayIndex < $1.dayIndex
-            }
-            return $0.weekIndex < $1.weekIndex
+    // Sorted days for a specific block
+private func sortedDays(for block: BlockTemplate) -> [DayTemplate] {
+    block.days.sorted {
+        if $0.weekIndex == $1.weekIndex {
+            return $0.dayIndex < $1.dayIndex
         }
+        return $0.weekIndex < $1.weekIndex
     }
+}
 
     var body: some View {
         NavigationStack {
