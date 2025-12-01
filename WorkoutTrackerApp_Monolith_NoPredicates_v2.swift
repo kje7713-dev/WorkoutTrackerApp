@@ -710,7 +710,7 @@ struct MetricRow: View {
                 .font(.caption2)
             Text("Act \(Int(point.actual))%")
                 .font(.caption2)
-                .foregroundStyle(.accent)
+                .foregroundStyle(.tint)   // or Color.accentColor
         }
     }
 }
