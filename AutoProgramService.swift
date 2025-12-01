@@ -113,21 +113,18 @@ struct AutoProgramService {
                 let roleKey = canonicalRoleKey(for: role)
 
                 let day = DayTemplate(
-                    weekIndex: weekIndex,
-                    dayIndex: dayIndex,
-                    title: role,
-                    dayDescription: description(for: role, goal: config.goal),
-                    roleKey: role,
-                    orderIndex: dayIndex,
-                    block: block
-                )
-                block.days.append(day)
+    weekIndex: weekIndex,
+    dayIndex: dayIndex,
+    title: role,
+    dayDescription: description(for: role, goal: config.goal),
+    orderIndex: dayIndex,
+    block: block
+)
 
-                // Decide which lifts live on this day
-                let plannedLifts = liftsForDay(
-                    role: role,
-                    mainLifts: config.mainLifts
-                )
+// Set the roleKey after init
+day.roleKey = role
+
+block.days.append(day)
 
                 for (exerciseOrder, lift) in plannedLifts.enumerated() {
                     let exerciseName = lift.name
