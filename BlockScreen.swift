@@ -203,9 +203,12 @@ struct BlockBuilderView: View {
 
 // MARK: - Actions
 
+// MARK: - Actions
+
 private func generateAIBlock() {
     errorMessage = nil
 
+    // Basic validation (same as before)
     guard
         let squat = Double(squatTM),
         let bench = Double(benchTM),
@@ -222,30 +225,77 @@ private func generateAIBlock() {
 
     isGenerating = true
 
-    let config = AutoProgramConfig(
-        name: name,
-        goal: goal,
-        weeksCount: weeks,
-        daysPerWeek: daysPerWeek,
-        mainLifts: ["Back Squat", "Bench Press", "Deadlift"],
-        trainingMaxes: [
-            "Back Squat": squat,
-            "Bench Press": bench,
-            "Deadlift": dead
-        ]
-    )
-
     do {
-        let newBlock = try AutoProgramService.generateBlock(in: context, config: config)
-        print("✅ Generated block: \(newBlock.name) – weeks: \(newBlock.weeksCount), days: \(newBlock.days.count)")
+        // 🔹 VERY SIMPLE DEBUG BLOCK — 1 week, 1 day, 1 exercise.
+        let block = BlockTemplate(
+            name: name,
+            weeksCount: weeks,
+            createdAt: .now,
+            createdByUser: true,
+            notes: "DEBUG block created directly in BlockBuilderView"
+        )
+
+        let day = DayTemplate(
+            weekIndex: 1,
+            dayIndex: 1,
+            title: "Debug Day",
+            dayDescription: "If you see this, SwiftData is saving correctly.",
+            roleKey: "debug_day",
+            orderIndex: 1,
+            block: block
+        )
+
+        // simple exercise template
+        let exerciseTemplate = ExerciseTemplate(
+            name: "Debug Bench",
+            category: "Press",
+            defaultReps: 3,
+            defaultSets: 3,
+            defaultRPE: 7.5,
+            defaultTempo: nil,
+            notes: nil
+        )
+
+        let planned = PlannedExercise(
+            orderIndex: 0,
+            exerciseTemplate: exerciseTemplate,
+            day: day,
+            notes: nil
+        )
+
+        let set = PrescribedSet(
+            setIndex: 1,
+            targetReps: 3,
+            targetWeight: bench,   // just reuse the entered TM
+            targetRPE: 7.5,
+            tempo: nil,
+            notes: nil,
+            plannedExercise: planned
+        )
+
+        planned.prescribedSets.append(set)
+        day.exercises.append(planned)
+        block.days.append(day)
+
+        // insert everything
+        context.insert(block)
+        try context.save()
+
+        // for debug: this does nothing user-visible but helps if you watch logs
+        #if DEBUG
+        let descriptor = FetchDescriptor<BlockTemplate>()
+        let allBlocks = try context.fetch(descriptor)
+        print("DEBUG Blocks in store after save:", allBlocks.map { $0.name })
+        #endif
+
         isGenerating = false
         dismiss()
     } catch {
         isGenerating = false
-        errorMessage = "Failed to generate block: \(error)"
-        print("❌ AutoProgram error: \(error)")
+        errorMessage = "Failed to save debug block: \(error)"
+        print("DEBUG save error: \(error)")
     }
-}}
+}
 
 // MARK: - Dashboard (per block)
 
