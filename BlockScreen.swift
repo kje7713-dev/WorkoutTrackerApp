@@ -201,50 +201,51 @@ struct BlockBuilderView: View {
         }
     }
 
-    // MARK: - Actions
+// MARK: - Actions
 
-    private func generateAIBlock() {
-        errorMessage = nil
+private func generateAIBlock() {
+    errorMessage = nil
 
-        guard
-            let squat = Double(squatTM),
-            let bench = Double(benchTM),
-            let dead  = Double(deadliftTM)
-        else {
-            errorMessage = "Please enter valid numbers for training maxes."
-            return
-        }
-
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            errorMessage = "Block name is required."
-            return
-        }
-
-        isGenerating = true
-
-        let config = AutoProgramConfig(
-            name: name,
-            goal: goal,
-            weeksCount: weeks,
-            daysPerWeek: daysPerWeek,
-            mainLifts: ["Back Squat", "Bench Press", "Deadlift"],
-            trainingMaxes: [
-                "Back Squat": squat,
-                "Bench Press": bench,
-                "Deadlift": dead
-            ]
-        )
-
-        do {
-            _ = try AutoProgramService.generateBlock(in: context, config: config)
-            isGenerating = false
-            dismiss()
-        } catch {
-            isGenerating = false
-            errorMessage = "Failed to generate block: \(error)"
-        }
+    guard
+        let squat = Double(squatTM),
+        let bench = Double(benchTM),
+        let dead  = Double(deadliftTM)
+    else {
+        errorMessage = "Please enter valid numbers for training maxes."
+        return
     }
-}
+
+    guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        errorMessage = "Block name is required."
+        return
+    }
+
+    isGenerating = true
+
+    let config = AutoProgramConfig(
+        name: name,
+        goal: goal,
+        weeksCount: weeks,
+        daysPerWeek: daysPerWeek,
+        mainLifts: ["Back Squat", "Bench Press", "Deadlift"],
+        trainingMaxes: [
+            "Back Squat": squat,
+            "Bench Press": bench,
+            "Deadlift": dead
+        ]
+    )
+
+    do {
+        let newBlock = try AutoProgramService.generateBlock(in: context, config: config)
+        print("✅ Generated block: \(newBlock.name) – weeks: \(newBlock.weeksCount), days: \(newBlock.days.count)")
+        isGenerating = false
+        dismiss()
+    } catch {
+        isGenerating = false
+        errorMessage = "Failed to generate block: \(error)"
+        print("❌ AutoProgram error: \(error)")
+    }
+}}
 
 // MARK: - Dashboard (per block)
 
