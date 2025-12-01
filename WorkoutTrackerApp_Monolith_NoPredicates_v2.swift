@@ -1575,45 +1575,29 @@ struct TodayView: View {
     // MARK: - Helpers
 
     private func nextDayAndSession(for block: BlockTemplate) -> (DayTemplate, WorkoutSession)? {
-        let days = sortedDaysInActiveBlock
-        guard !days.isEmpty else { return nil }
+    let days = sortedDays(for: block)
+    guard !days.isEmpty else { return nil }
 
-        for day in days {
-            if let existing = fetchSession(for: day, in: block) {
-                if !existing.isCompleted {
-                    return (day, existing)
-                } else {
-                    continue
-                }
+    for day in days {
+        if let existing = fetchSession(for: day, in: block) {
+            if !existing.isCompleted {
+                return (day, existing)
             } else {
-                let newSession = createSession(for: day, in: block)
-                return (day, newSession)
+                continue
             }
+        } else {
+            let newSession = createSession(for: day, in: block)
+            return (day, newSession)
         }
-
-        if let lastDay = days.last {
-            let session = fetchSession(for: lastDay, in: block) ?? createSession(for: lastDay, in: block)
-            return (lastDay, session)
-        }
-
-        return nil
     }
 
-    private func fetchSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession? {
-        do {
-            // Fetch all sessions and filter in Swift instead of using #Predicate
-            let descriptor = FetchDescriptor<WorkoutSession>()
-            let allSessions = try context.fetch(descriptor)
-
-            return allSessions.first { session in
-                session.blockTemplate?.id == block.id &&
-                session.dayTemplate?.id == day.id
-            }
-        } catch {
-            print("Error fetching session for TodayView: \(error)")
-            return nil
-        }
+    if let lastDay = days.last {
+        let session = fetchSession(for: lastDay, in: block) ?? createSession(for: lastDay, in: block)
+        return (lastDay, session)
     }
+
+    return nil
+}
     private func createSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession {
         let session = WorkoutSession(
             weekIndex: day.weekIndex,
