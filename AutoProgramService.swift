@@ -109,21 +109,31 @@ for weekIndex in 1...config.weeksCount {
     let pct = percentPattern[min(weekIndex - 1, percentPattern.count - 1)]
 
     for dayIndex in 1...config.daysPerWeek {
-    let role = dayRoles[dayIndex] ?? "Day \(dayIndex)"
-    let roleKey = roleKeyFor(role: role)   // 🔑 machine-readable tag
+    let roleName = dayRoles[dayIndex] ?? "Day \(dayIndex)"
+    let roleKey = canonicalRoleKey(for: roleName)   // 🔑 machine-readable tag
 
     let day = DayTemplate(
         weekIndex: weekIndex,
         dayIndex: dayIndex,
-        title: role,
-        dayDescription: description(for: role, goal: config.goal),
+        title: roleName,
+        dayDescription: description(for: roleName, goal: config.goal),
+        roleKey: roleKey,
         orderIndex: dayIndex,
         block: block
     )
-    // make sure the roleKey actually gets stored on the model
-    day.roleKey = roleKey
-
     block.days.append(day)
+
+    // ⬇️ keep everything you already have below this line
+    // Decide which lifts live on this day
+    let plannedLifts = liftsForDay(
+        role: roleName,
+        mainLifts: config.mainLifts
+    )
+
+    for (exerciseOrder, lift) in plannedLifts.enumerated() {
+        // ... your existing code for PlannedExercise / PrescribedSet ...
+    }
+}
 
     // Decide which lifts live on this day
     let plannedLifts = liftsForDay(
