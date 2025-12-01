@@ -716,7 +716,8 @@ struct MetricCard: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(Array(points.enumerated()), id: \.0) { (_, point) in
+                ForEach(points.indices, id: \.self) { index in
+                    let point = points[index]
                     HStack {
                         Text("Week \(point.weekIndex)")
                             .font(.caption)
