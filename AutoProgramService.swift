@@ -3,13 +3,6 @@ import SwiftData
 
 // MARK: - Auto-program config
 
-private static func canonicalRoleKey(for role: String) -> String {
-    role
-        .lowercased()
-        .replacingOccurrences(of: " / ", with: "_")
-        .replacingOccurrences(of: " ", with: "_")
-}
-
 /// Single source of truth for BlockGoal used by UI + service
 enum BlockGoal: String, CaseIterable, Identifiable, Codable {
     case strength
@@ -50,7 +43,7 @@ struct AutoProgramService {
         let block = BlockTemplate(
             name: config.name,
             weeksCount: config.weeksCount,
-            createdAt: .now,
+            createdAt: Date.now,
             createdByUser: true,
             notes: "Auto-programmed \(config.goal.rawValue.capitalized) block"
         )
@@ -110,117 +103,107 @@ struct AutoProgramService {
             return tmpl
         }
 
-       // 5. Build weeks & days
-for weekIndex in 1...config.weeksCount {
-    // Clamp % array if weeksCount > pattern size
-    let pct = percentPattern[min(weekIndex - 1, percentPattern.count - 1)]
+        // 5. Build weeks & days
+        for weekIndex in 1...config.weeksCount {
+            // Clamp % array if weeksCount > pattern size
+            let pct = percentPattern[min(weekIndex - 1, percentPattern.count - 1)]
 
-    for dayIndex in 1...config.daysPerWeek {
-    let roleName = dayRoles[dayIndex] ?? "Day \(dayIndex)"
-    let roleKey = canonicalRoleKey(for: roleName)   // 🔑 machine-readable tag
+            for dayIndex in 1...config.daysPerWeek {
+                let roleName = dayRoles[dayIndex] ?? "Day \(dayIndex)"
+                let roleKey = canonicalRoleKey(for: roleName)   // 🔑 machine-readable tag
 
-    let day = DayTemplate(
-        weekIndex: weekIndex,
-        dayIndex: dayIndex,
-        title: roleName,
-        dayDescription: description(for: roleName, goal: config.goal),
-        roleKey: roleKey,
-        orderIndex: dayIndex,
-        block: block
-    )
-    block.days.append(day)
+                let day = DayTemplate(
+                    weekIndex: weekIndex,
+                    dayIndex: dayIndex,
+                    title: roleName,
+                    dayDescription: description(for: roleKey, goal: config.goal),
+                    roleKey: roleKey,
+                    orderIndex: dayIndex,
+                    block: block
+                )
+                block.days.append(day)
 
-    // ⬇️ keep everything you already have below this line
-    // Decide which lifts live on this day
-    let plannedLifts = liftsForDay(
-        role: roleName,
-        mainLifts: config.mainLifts
-    )
+                // Decide which lifts live on this day
+                let plannedLifts = liftsForDay(
+                    roleKey: roleKey,
+                    mainLifts: config.mainLifts
+                )
 
-    for (exerciseOrder, lift) in plannedLifts.enumerated() {
-        // ... your existing code for PlannedExercise / PrescribedSet ...
-    }
-}
+                for (exerciseOrder, lift) in plannedLifts.enumerated() {
+                    let exerciseName = lift.name
+                    let category = lift.category
+                    let sets = lift.sets
+                    let reps = lift.reps
 
-    // Decide which lifts live on this day
-    let plannedLifts = liftsForDay(
-        role: role,                       // we branch off the human-readable role
-        mainLifts: config.mainLifts
-    )
+                    let tm = config.trainingMaxes[lift.tmKey]
+                    if tm == nil && lift.usesTM {
+                        throw AutoProgramError.noTrainingMax(lift.tmKey)
+                    }
 
-    for (exerciseOrder, lift) in plannedLifts.enumerated() {
-        let exerciseName = lift.name
-        let category = lift.category
-        let sets = lift.sets
-        let reps = lift.reps
+                    let eTemplate = template(for: exerciseName, category: category)
 
-        let tm = config.trainingMaxes[lift.tmKey]
-        if tm == nil && lift.usesTM {
-            throw AutoProgramError.noTrainingMax(lift.tmKey)
-        }
+                    let planned = PlannedExercise(
+                        id: UUID(),
+                        orderIndex: exerciseOrder,
+                        exerciseTemplate: eTemplate,
+                        day: day,
+                        notes: nil
+                    )
+                    day.exercises.append(planned)
 
-        let eTemplate = template(for: exerciseName, category: category)
+                    // Build prescribed sets
+                    for setIndex in 1...sets {
+                        let weight: Double
+                        if lift.usesTM, let tm {
+                            weight = tm * pct
+                        } else {
+                            weight = lift.fixedWeight ?? 0
+                        }
 
-        let planned = PlannedExercise(
-            orderIndex: exerciseOrder,
-            exerciseTemplate: eTemplate,
-            day: day,
-            notes: nil
-        )
-        day.exercises.append(planned)
-
-        // Build prescribed sets
-        for setIndex in 1...sets {
-            let weight: Double
-            if lift.usesTM, let tm {
-                weight = tm * pct
-            } else {
-                weight = lift.fixedWeight ?? 0
+                        let set = PrescribedSet(
+                            id: UUID(),
+                            setIndex: setIndex,
+                            targetReps: reps,
+                            targetWeight: weight,
+                            targetRPE: lift.targetRPE,
+                            tempo: nil,
+                            notes: nil,
+                            plannedExercise: planned
+                        )
+                        planned.prescribedSets.append(set)
+                    }
+                }
             }
-
-            let set = PrescribedSet(
-                setIndex: setIndex,
-                targetReps: reps,
-                targetWeight: weight,
-                targetRPE: lift.targetRPE,
-                tempo: nil,
-                notes: nil,
-                plannedExercise: planned
-            )
-            planned.prescribedSets.append(set)
         }
-    }
-}
 
         try context.save()
         return block
     }
 
-    // MARK: - Helpers
+    // MARK: - Helpers (ChatGPT-friendly role keys, descriptions, templates)
 
-    /// Machine-friendly key for the role label so ChatGPT can reliably act on it.
+    /// Turn a human label into a stable machine key
     private static func canonicalRoleKey(for role: String) -> String {
-        // "Heavy Upper" -> "heavy_upper"
-        // "Accessory / Conditioning" -> "accessory_conditioning"
         role
             .lowercased()
             .replacingOccurrences(of: " / ", with: "_")
             .replacingOccurrences(of: " ", with: "_")
     }
 
-    /// Simple description templates
-    private static func description(for role: String, goal: BlockGoal) -> String {
-        switch (role, goal) {
-        case ("Heavy Upper", .strength):
+    /// Simple description templates keyed by roleKey (not the pretty title)
+    private static func description(for roleKey: String, goal: BlockGoal) -> String {
+        switch (roleKey, goal) {
+        case ("heavy_upper", .strength):
             return "Primary bench variation heavy for low reps plus upper-body accessories."
-        case ("Volume Lower", .strength):
+        case ("volume_lower", .strength):
             return "Squat-focused volume work in moderate rep ranges."
-        case ("Heavy Lower", .strength):
+        case ("heavy_lower", .strength):
             return "Primary squat or deadlift heavy for low reps with posterior chain accessories."
-        case ("Accessory / Conditioning", _):
+        case ("accessory/_conditioning", _),
+             ("accessory_conditioning", _):
             return "Single-leg work, core, and conditioning intervals. Keep RPE moderate."
         default:
-            return "\(role) session focused on \(goal.rawValue)."
+            return "\(roleKey) session focused on \(goal.rawValue)."
         }
     }
 
@@ -237,15 +220,15 @@ for weekIndex in 1...config.weeksCount {
     }
 
     private static func liftsForDay(
-        role: String,
+        roleKey: String,
         mainLifts: [String]
     ) -> [DayLift] {
         let squat = mainLifts.first { $0.lowercased().contains("squat") } ?? "Back Squat"
         let bench = mainLifts.first { $0.lowercased().contains("bench") } ?? "Bench Press"
         let dead  = mainLifts.first { $0.lowercased().contains("dead")  } ?? "Deadlift"
 
-        switch role {
-        case "Heavy Upper":
+        switch roleKey {
+        case "heavy_upper":
             return [
                 DayLift(name: bench, category: "Press", sets: 5, reps: 3,
                         usesTM: true, tmKey: bench, fixedWeight: nil, targetRPE: 8.0),
@@ -255,7 +238,7 @@ for weekIndex in 1...config.weeksCount {
                         usesTM: false, tmKey: "", fixedWeight: 0, targetRPE: 7.0)
             ]
 
-        case "Volume Lower":
+        case "volume_lower":
             return [
                 DayLift(name: squat, category: "Squat", sets: 4, reps: 6,
                         usesTM: true, tmKey: squat, fixedWeight: nil, targetRPE: 7.5),
@@ -265,7 +248,7 @@ for weekIndex in 1...config.weeksCount {
                         usesTM: false, tmKey: "", fixedWeight: 0, targetRPE: 7.0)
             ]
 
-        case "Heavy Lower":
+        case "heavy_lower":
             return [
                 DayLift(name: dead, category: "Hinge", sets: 5, reps: 3,
                         usesTM: true, tmKey: dead, fixedWeight: nil, targetRPE: 8.0),
@@ -275,7 +258,7 @@ for weekIndex in 1...config.weeksCount {
                         usesTM: false, tmKey: "", fixedWeight: 0, targetRPE: 7.0)
             ]
 
-        case "Accessory / Conditioning":
+        case "accessory_conditioning", "accessory/_conditioning":
             return [
                 DayLift(name: "Bulgarian Split Squat", category: "Single-leg", sets: 3, reps: 10,
                         usesTM: false, tmKey: "", fixedWeight: 0, targetRPE: 7.0),
