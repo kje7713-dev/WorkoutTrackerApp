@@ -117,7 +117,7 @@ struct AutoProgramService {
                     dayIndex: dayIndex,
                     title: role,
                     dayDescription: description(for: role, goal: config.goal),
-                    roleKey: roleKey,
+                    roleKey: role,
                     orderIndex: dayIndex,
                     block: block
                 )
