@@ -103,73 +103,77 @@ struct AutoProgramService {
             return tmpl
         }
 
-        // 5. Build weeks & days
-        for weekIndex in 1...config.weeksCount {
-            // Clamp % array if weeksCount > pattern size
-            let pct = percentPattern[min(weekIndex - 1, percentPattern.count - 1)]
+       // 5. Build weeks & days
+for weekIndex in 1...config.weeksCount {
+    // Clamp % array if weeksCount > pattern size
+    let pct = percentPattern[min(weekIndex - 1, percentPattern.count - 1)]
 
-            for dayIndex in 1...config.daysPerWeek {
-                let role = dayRoles[dayIndex] ?? "Day \(dayIndex)"
-                let roleKey = canonicalRoleKey(for: role)
+    for dayIndex in 1...config.daysPerWeek {
+        let role = dayRoles[dayIndex] ?? "Day \(dayIndex)"
 
-                let day = DayTemplate(
-    weekIndex: weekIndex,
-    dayIndex: dayIndex,
-    title: role,
-    dayDescription: description(for: role, goal: config.goal),
-    orderIndex: dayIndex,
-    block: block
-)
+        let day = DayTemplate(
+            weekIndex: weekIndex,
+            dayIndex: dayIndex,
+            title: role,
+            dayDescription: description(for: role, goal: config.goal),
+            orderIndex: dayIndex,
+            block: block
+        )
+        // set roleKey after init (SwiftData doesn't include it in the init)
+        day.roleKey = role
 
-// Set the roleKey after init
-day.roleKey = role
+        block.days.append(day)
 
-block.days.append(day)
+        // Decide which lifts live on this day
+        let plannedLifts = liftsForDay(
+            role: role,
+            mainLifts: config.mainLifts
+        )
 
-                for (exerciseOrder, lift) in plannedLifts.enumerated() {
-                    let exerciseName = lift.name
-                    let category = lift.category
-                    let sets = lift.sets
-                    let reps = lift.reps
+        for (exerciseOrder, lift) in plannedLifts.enumerated() {
+            let exerciseName = lift.name
+            let category = lift.category
+            let sets = lift.sets
+            let reps = lift.reps
 
-                    let tm = config.trainingMaxes[lift.tmKey]
-                    if tm == nil && lift.usesTM {
-                        throw AutoProgramError.noTrainingMax(lift.tmKey)
-                    }
+            let tm = config.trainingMaxes[lift.tmKey]
+            if tm == nil && lift.usesTM {
+                throw AutoProgramError.noTrainingMax(lift.tmKey)
+            }
 
-                    let eTemplate = template(for: exerciseName, category: category)
+            let eTemplate = template(for: exerciseName, category: category)
 
-                    let planned = PlannedExercise(
-                        orderIndex: exerciseOrder,
-                        exerciseTemplate: eTemplate,
-                        day: day,
-                        notes: nil
-                    )
-                    day.exercises.append(planned)
+            let planned = PlannedExercise(
+                orderIndex: exerciseOrder,
+                exerciseTemplate: eTemplate,
+                day: day,
+                notes: nil
+            )
+            day.exercises.append(planned)
 
-                    // Build prescribed sets
-                    for setIndex in 1...sets {
-                        let weight: Double
-                        if lift.usesTM, let tm {
-                            weight = tm * pct
-                        } else {
-                            weight = lift.fixedWeight ?? 0
-                        }
-
-                        let set = PrescribedSet(
-                            setIndex: setIndex,
-                            targetReps: reps,
-                            targetWeight: weight,
-                            targetRPE: lift.targetRPE,
-                            tempo: nil,
-                            notes: nil,
-                            plannedExercise: planned
-                        )
-                        planned.prescribedSets.append(set)
-                    }
+            // Build prescribed sets
+            for setIndex in 1...sets {
+                let weight: Double
+                if lift.usesTM, let tm {
+                    weight = tm * pct
+                } else {
+                    weight = lift.fixedWeight ?? 0
                 }
+
+                let set = PrescribedSet(
+                    setIndex: setIndex,
+                    targetReps: reps,
+                    targetWeight: weight,
+                    targetRPE: lift.targetRPE,
+                    tempo: nil,
+                    notes: nil,
+                    plannedExercise: planned
+                )
+                planned.prescribedSets.append(set)
             }
         }
+    }
+}
 
         try context.save()
         return block
