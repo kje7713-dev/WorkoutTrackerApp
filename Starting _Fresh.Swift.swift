@@ -1596,7 +1596,7 @@ struct TodayView: View {
         return nil
     }
 
-    private func fetchSession(for day: DayTemplate) -> WorkoutSession? {
+    private func fetchSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession? {
     do {
         // Fetch all sessions and filter in Swift instead of using #Predicate
         let descriptor = FetchDescriptor<WorkoutSession>()
