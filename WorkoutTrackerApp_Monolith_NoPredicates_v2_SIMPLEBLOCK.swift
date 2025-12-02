@@ -977,7 +977,7 @@ struct BlockBuilderView: View {
         }
     }
     }
-}
+
 
 // MARK: - Dashboard (per block)
 
