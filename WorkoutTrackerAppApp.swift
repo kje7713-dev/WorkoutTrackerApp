@@ -4,7 +4,7 @@ import SwiftUI
 struct WorkoutTrackerAppApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()   // from RootView.swift I gave you
+            ContentView()   // <- use the one we just created
         }
     }
 }
