@@ -708,34 +708,46 @@ struct MetricCard: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
+
             Text(subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-                        if points.isEmpty {
+            if points.isEmpty {
                 Text("No data yet.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(Array(points.enumerated()), id: \.element.id) { _, point in
-                    HStack {
-                        Text("Week \(point.weekIndex)")
-                            .font(.caption)
-                        Spacer()
-                        Text("Exp \(Int(point.expected))%")
-                            .font(.caption2)
-                        Text("Act \(Int(point.actual))%")
-                            .font(.caption2)
-                            .foregroundStyle(.accent)
-                    }
+                ForEach(points, id: \.id) { point in
+                    MetricRow(point: point)
                 }
             }
-            }
+        }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.secondarySystemBackground))
         )
+    }
+}
+
+private struct MetricRow: View {
+    let point: MetricPoint
+
+    var body: some View {
+        HStack {
+            Text("Week \(point.weekIndex)")
+                .font(.caption)
+
+            Spacer()
+
+            Text("Exp \(Int(point.expected))%")
+                .font(.caption2)
+
+            Text("Act \(Int(point.actual))%")
+                .font(.caption2)
+                .foregroundStyle(.accent)
+        }
     }
 }
 
