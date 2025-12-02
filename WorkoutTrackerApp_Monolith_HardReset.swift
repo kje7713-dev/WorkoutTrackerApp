@@ -803,22 +803,24 @@ struct BlockListView: View {
                     .padding(8)
             }
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    EditButton()
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingBuilder = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-                ToolbarItem(placement: .bottomBar) {
-                    Button("Add Test Block") {
-                        addTestBlock()
-                    }
-                }
-            }
+    ToolbarItem(placement: .topBarLeading) {
+        EditButton()
+    }
+    ToolbarItem(placement: .topBarTrailing) {
+        Button {
+            print("➕ Plus tapped")
+            showingBuilder = true
+        } label: {
+            Image(systemName: "plus")
+        }
+    }
+    ToolbarItem(placement: .bottomBar) {
+        Button("Add Test Block") {
+            print("🧪 Add Test Block tapped")
+            addTestBlock()
+        }
+    }
+}
             .sheet(isPresented: $showingBuilder) {
                 BlockBuilderView()
                     .presentationDetents([.medium, .large])
