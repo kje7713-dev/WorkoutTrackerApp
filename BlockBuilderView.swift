@@ -81,59 +81,9 @@ struct BlockBuilderView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach($days) { $day in
-                    DisclosureGroup(day.name) {
-                        TextField("Day name", text: $day.name)
-
-                        ForEach($day.exercises) { $exercise in
-                            DisclosureGroup(exercise.name.isEmpty ? "New Exercise" : exercise.name) {
-                                TextField("Exercise name", text: $exercise.name)
-
-                                Toggle("Conditioning (time-based)", isOn: $exercise.isConditioning)
-
-                                TextField("Notes / text", text: $exercise.notes, axis: .vertical)
-                                    .lineLimit(1...3)
-
-                                ForEach($exercise.sets) { $set in
-                                    VStack(alignment: .leading) {
-                                        Text("Set \(set.setIndex.wrappedValue)")
-                                            .font(.caption)
-
-                                        HStack {
-                                            TextField("Reps", text: $set.reps)
-                                                .keyboardType(.numberPad)
-
-                                            if exercise.isConditioning.wrappedValue {
-                                                TextField("Time (sec)", text: $set.timeSeconds)
-                                                    .keyboardType(.numberPad)
-                                            } else {
-                                                TextField("Weight", text: $set.weight)
-                                                    .keyboardType(.decimalPad)
-                                            }
-                                        }
-                                    }
-                                    .padding(.vertical, 4)
-                                }
-
-                                Button {
-                                    let nextIndex = (exercise.sets.last?.setIndex ?? 0) + 1
-                                    exercise.sets.append(EditableSet(setIndex: nextIndex))
-                                } label: {
-                                    Label("Add Set", systemImage: "plus.circle")
-                                }
-                                .buttonStyle(.borderless)
-                                .padding(.top, 4)
-                            }
-                        }
-
-                        Button {
-                            day.exercises.append(EditableExercise())
-                        } label: {
-                            Label("Add Exercise", systemImage: "plus")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .padding(.top, 4)
-                    }
+                // Use indices + small subviews to keep the compiler happy.
+                ForEach(days.indices, id: \.self) { index in
+                    DayEditorView(day: $days[index])
                 }
             }
         }
@@ -207,5 +157,90 @@ struct BlockBuilderView: View {
 
         store.blocks.append(block)
         dismiss()
+    }
+}
+
+// MARK: - Day Editor
+
+private struct DayEditorView: View {
+    @Binding var day: EditableDay
+
+    var body: some View {
+        DisclosureGroup(day.name) {
+            TextField("Day name", text: $day.name)
+
+            ForEach(day.exercises.indices, id: \.self) { idx in
+                ExerciseEditorView(exercise: $day.exercises[idx])
+            }
+
+            Button {
+                day.exercises.append(EditableExercise())
+            } label: {
+                Label("Add Exercise", systemImage: "plus")
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.top, 4)
+        }
+    }
+}
+
+// MARK: - Exercise Editor
+
+private struct ExerciseEditorView: View {
+    @Binding var exercise: EditableExercise
+
+    var body: some View {
+        DisclosureGroup(exercise.name.isEmpty ? "New Exercise" : exercise.name) {
+            TextField("Exercise name", text: $exercise.name)
+
+            Toggle("Conditioning (time-based)", isOn: $exercise.isConditioning)
+
+            TextField("Notes / text", text: $exercise.notes, axis: .vertical)
+                .lineLimit(1...3)
+
+            ForEach(exercise.sets.indices, id: \.self) { idx in
+                SetEditorView(
+                    set: $exercise.sets[idx],
+                    isConditioning: exercise.isConditioning
+                )
+            }
+
+            Button {
+                let nextIndex = (exercise.sets.last?.setIndex ?? 0) + 1
+                exercise.sets.append(EditableSet(setIndex: nextIndex))
+            } label: {
+                Label("Add Set", systemImage: "plus.circle")
+            }
+            .buttonStyle(.borderless)
+            .padding(.top, 4)
+        }
+    }
+}
+
+// MARK: - Set Editor
+
+private struct SetEditorView: View {
+    @Binding var set: EditableSet
+    var isConditioning: Bool
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Set \(set.setIndex)")
+                .font(.caption)
+
+            HStack {
+                TextField("Reps", text: $set.reps)
+                    .keyboardType(.numberPad)
+
+                if isConditioning {
+                    TextField("Time (sec)", text: $set.timeSeconds)
+                        .keyboardType(.numberPad)
+                } else {
+                    TextField("Weight", text: $set.weight)
+                        .keyboardType(.decimalPad)
+                }
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
