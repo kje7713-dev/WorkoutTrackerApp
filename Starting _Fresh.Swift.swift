@@ -712,12 +712,12 @@ struct MetricCard: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            if points.isEmpty {
+                        if points.isEmpty {
                 Text("No data yet.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(points, id: \.id) { point in
+                ForEach(Array(points.enumerated()), id: \.element.id) { _, point in
                     HStack {
                         Text("Week \(point.weekIndex)")
                             .font(.caption)
@@ -730,7 +730,7 @@ struct MetricCard: View {
                     }
                 }
             }
-        }
+            }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
