@@ -1467,10 +1467,6 @@ struct BlockDetailView: View {
     }
 }
 
-// =====================================================
-// MARK: - Today View
-// =====================================================
-
 // MARK: - Today View
 // =====================================================
 
@@ -1579,6 +1575,102 @@ struct TodayView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
+
+    // MARK: - Helpers
+
+    /// Decide which day & session should be used "today" for a given block.
+    private func nextDayAndSession(for block: BlockTemplate) -> (DayTemplate, WorkoutSession)? {
+        let days = sortedDays(for: block)
+        guard !days.isEmpty else { return nil }
+
+        // 1) Use first incomplete existing session if possible
+        for day in days {
+            if let existing = fetchSession(for: day, in: block), !existing.isCompleted {
+                return (day, existing)
+            }
+            if fetchSession(for: day, in: block) == nil {
+                // 2) No session yet for this day: create one
+                let newSession = createSession(for: day, in: block)
+                return (day, newSession)
+            }
+        }
+
+        // 3) Everything completed: reuse the last day's session
+        if let lastDay = days.last {
+            let session = fetchSession(for: lastDay, in: block)
+                ?? createSession(for: lastDay, in: block)
+            return (lastDay, session)
+        }
+
+        return nil
+    }
+
+    /// Fetch an existing WorkoutSession for a given block/day, if it exists.
+    private func fetchSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession? {
+        do {
+            let descriptor = FetchDescriptor<WorkoutSession>()
+            let allSessions = try context.fetch(descriptor)
+            return allSessions.first { session in
+                session.weekIndex == day.weekIndex &&
+                session.dayIndex == day.dayIndex &&
+                session.blockTemplate?.id == block.id
+            }
+        } catch {
+            print("Error fetching session in TodayView: \(error)")
+            return nil
+        }
+    }
+
+    /// Create a new WorkoutSession mirroring the BlockDetailView logic.
+    private func createSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession {
+        let session = WorkoutSession(
+            weekIndex: day.weekIndex,
+            dayIndex: day.dayIndex,
+            isCompleted: false,
+            notes: nil,
+            blockTemplate: block,
+            dayTemplate: day
+        )
+
+        // Copy planned exercises into session exercises/sets
+        for planned in day.exercises.sorted(by: { $0.orderIndex < $1.orderIndex }) {
+            let sessionExercise = SessionExercise(
+                orderIndex: planned.orderIndex,
+                session: session,
+                exerciseTemplate: planned.exerciseTemplate,
+                nameOverride: planned.exerciseTemplate?.name
+            )
+
+            for pSet in planned.prescribedSets.sorted(by: { $0.setIndex < $1.setIndex }) {
+                let set = SessionSet(
+                    setIndex: pSet.setIndex,
+                    targetReps: pSet.targetReps,
+                    targetWeight: pSet.targetWeight,
+                    targetRPE: pSet.targetRPE,
+                    actualReps: pSet.targetReps,
+                    actualWeight: pSet.targetWeight,
+                    actualRPE: nil,
+                    completed: false,
+                    timestamp: nil,
+                    notes: nil,
+                    sessionExercise: sessionExercise
+                )
+                sessionExercise.sets.append(set)
+            }
+
+            session.exercises.append(sessionExercise)
+        }
+
+        context.insert(session)
+        do {
+            try context.save()
+        } catch {
+            print("Error saving new session from TodayView: \(error)")
+        }
+
+        return session
+    }
+}
 
     // MARK: - Helpers
 
