@@ -776,7 +776,7 @@ struct BlockListView: View {
                 } else {
                     ForEach(blocks) { blockTemplate in
                         NavigationLink(blockTemplate.name) {
-                            DashboardView(block: blockTemplate)
+                            BlockDetailView(block: blockTemplate)
                         }
                     }
                     .onDelete(perform: deleteBlocks)
