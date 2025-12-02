@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 // MARK: - Live, per-session state models
@@ -38,40 +37,54 @@ struct DayDetailView: View {
 
     var body: some View {
         List {
-            ForEach($liveExercises) { $exercise in
+            ForEach(liveExercises.indices, id: \.self) { exIndex in
+                let exercise = liveExercises[exIndex]
+
                 Section(exercise.name) {
-                    if !exercise.notes.wrappedValue.isEmpty {
-                        Text(exercise.notes.wrappedValue)
+                    if !exercise.notes.isEmpty {
+                        Text(exercise.notes)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
 
-                    ForEach($exercise.sets) { $set in
+                    ForEach(exercise.sets.indices, id: \.self) { setIndex in
                         HStack(spacing: 12) {
                             Button {
-                                set.isCompleted.wrappedValue.toggle()
+                                liveExercises[exIndex].sets[setIndex].isCompleted.toggle()
                             } label: {
-                                Image(systemName: set.isCompleted.wrappedValue ? "checkmark.circle.fill" : "circle")
+                                Image(systemName: liveExercises[exIndex].sets[setIndex].isCompleted ? "checkmark.circle.fill" : "circle")
                                     .imageScale(.large)
                             }
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Set \(set.setIndex.wrappedValue)")
+                                Text("Set \(liveExercises[exIndex].sets[setIndex].setIndex)")
                                     .font(.caption)
 
                                 HStack {
-                                    TextField("Reps", value: $set.reps, format: .number)
-                                        .keyboardType(.numberPad)
-                                        .frame(width: 60)
+                                    TextField(
+                                        "Reps",
+                                        value: $liveExercises[exIndex].sets[setIndex].reps,
+                                        format: .number
+                                    )
+                                    .keyboardType(.numberPad)
+                                    .frame(width: 60)
 
-                                    if exercise.isConditioning.wrappedValue {
-                                        TextField("Time (sec)", value: $set.timeSeconds, format: .number)
-                                            .keyboardType(.numberPad)
-                                            .frame(width: 90)
+                                    if exercise.isConditioning {
+                                        TextField(
+                                            "Time (sec)",
+                                            value: $liveExercises[exIndex].sets[setIndex].timeSeconds,
+                                            format: .number
+                                        )
+                                        .keyboardType(.numberPad)
+                                        .frame(width: 90)
                                     } else {
-                                        TextField("Weight", value: $set.weight, format: .number)
-                                            .keyboardType(.decimalPad)
-                                            .frame(width: 90)
+                                        TextField(
+                                            "Weight",
+                                            value: $liveExercises[exIndex].sets[setIndex].weight,
+                                            format: .number
+                                        )
+                                        .keyboardType(.decimalPad)
+                                        .frame(width: 90)
                                     }
                                 }
                             }
