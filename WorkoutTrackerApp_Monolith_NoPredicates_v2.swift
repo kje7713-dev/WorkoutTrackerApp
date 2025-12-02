@@ -1468,6 +1468,9 @@ struct BlockDetailView: View {
 // MARK: - Today View
 // =====================================================
 
+// MARK: - Today View
+// =====================================================
+
 struct TodayView: View {
     @Environment(\.modelContext) private var context
 
@@ -1484,15 +1487,15 @@ struct TodayView: View {
         blocks.first
     }
 
-    // Sorted days for a specific block
-private func sortedDays(for block: BlockTemplate) -> [DayTemplate] {
-    block.days.sorted {
-        if $0.weekIndex == $1.weekIndex {
-            return $0.dayIndex < $1.dayIndex
+    // Sorted days for a specific block (by week, then day)
+    private func sortedDays(for block: BlockTemplate) -> [DayTemplate] {
+        block.days.sorted {
+            if $0.weekIndex == $1.weekIndex {
+                return $0.dayIndex < $1.dayIndex
+            }
+            return $0.weekIndex < $1.weekIndex
         }
-        return $0.weekIndex < $1.weekIndex
     }
-}
 
     var body: some View {
         NavigationStack {
@@ -1573,6 +1576,66 @@ private func sortedDays(for block: BlockTemplate) -> [DayTemplate] {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
+
+    // MARK: - Helpers
+
+    /// Find the next day + session to run for a given block.
+    /// If a session exists and is not completed, we reuse it.
+    /// If not, we create one for the next day.
+    private func nextDayAndSession(for block: BlockTemplate) -> (DayTemplate, WorkoutSession)? {
+        let days = sortedDays(for: block)
+        guard !days.isEmpty else { return nil }
+
+        // 1) Look for the first day with an existing, incomplete session
+        for day in days {
+            if let existing = fetchSession(for: day, in: block) {
+                if !existing.isCompleted {
+                    return (day, existing)
+                } else {
+                    continue
+                }
+            } else {
+                // 2) No session yet for this day, create one and use it
+                let newSession = createSession(for: day, in: block)
+                return (day, newSession)
+            }
+        }
+
+        // 3) If all days exist & are completed, fall back to last day (repeat behavior)
+        if let lastDay = days.last {
+            let session = fetchSession(for: lastDay, in: block)
+                ?? createSession(for: lastDay, in: block)
+            return (lastDay, session)
+        }
+
+        return nil
+    }
+
+    /// Look up an existing session for a given day in a block.
+    /// If you already had a more detailed implementation, you can swap it back in here.
+    private func fetchSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession? {
+        let descriptor = FetchDescriptor<WorkoutSession>(
+            predicate: #Predicate { session in
+                session.block == block && session.day == day
+            }
+        )
+        do {
+            let results = try context.fetch(descriptor)
+            return results.first
+        } catch {
+            print("⚠️ Failed to fetch session: \(error)")
+            return nil
+        }
+    }
+
+    /// Create a brand new session for the given day/block.
+    /// If your `WorkoutSession` has a custom initializer, mirror it here.
+    private func createSession(for day: DayTemplate, in block: BlockTemplate) -> WorkoutSession {
+        let session = WorkoutSession(block: block, day: day)
+        context.insert(session)
+        return session
+    }
+}
 
     // MARK: - Helpers
 
