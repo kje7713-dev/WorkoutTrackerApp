@@ -1804,3 +1804,4 @@ struct WorkoutTrackerAppApp: App {
         ])
     }
 }
+}
