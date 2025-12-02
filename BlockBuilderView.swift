@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 // MARK: - Editable builder-only types
@@ -39,95 +38,9 @@ struct BlockBuilderView: View {
 
     var body: some View {
         Form {
-            Section("Block Info") {
-                TextField("Block name", text: $name)
-
-                Stepper("Weeks: \(weeks)", value: $weeks, in: 1...52)
-
-                Stepper("Days per week: \(daysCount)", value: $daysCount, in: 1...7)
-                    .onChange(of: daysCount) { _, newValue in
-                        syncDays(to: newValue)
-                    }
-
-                Picker("Progression", selection: $progression) {
-                    ForEach(ProgressionType.allCases) { type in
-                        Text(type.rawValue).tag(type)
-                    }
-                }
-            }
-
-            Section("Days & Exercises") {
-                if days.isEmpty {
-                    Text("Days will be created automatically based on the count above.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach($days) { $day in
-                        DisclosureGroup(day.name) {
-                            TextField("Day name", text: $day.name)
-
-                            ForEach($day.exercises) { $exercise in
-                                DisclosureGroup(exercise.name.isEmpty ? "New Exercise" : exercise.name) {
-                                    TextField("Exercise name", text: $exercise.name)
-
-                                    Toggle("Conditioning (time-based)", isOn: $exercise.isConditioning)
-
-                                    TextField("Notes / text", text: $exercise.notes, axis: .vertical)
-                                        .lineLimit(1...3)
-
-                                    ForEach($exercise.sets) { $set in
-                                        VStack(alignment: .leading) {
-                                            Text("Set \(set.setIndex.wrappedValue)")
-                                                .font(.caption)
-
-                                            HStack {
-                                                TextField("Reps", text: $set.reps)
-                                                    .keyboardType(.numberPad)
-
-                                                if exercise.isConditioning.wrappedValue {
-                                                    TextField("Time (sec)", text: $set.timeSeconds)
-                                                        .keyboardType(.numberPad)
-                                                } else {
-                                                    TextField("Weight", text: $set.weight)
-                                                        .keyboardType(.decimalPad)
-                                                }
-                                            }
-                                        }
-                                        .padding(.vertical, 4)
-                                    }
-
-                                    Button {
-                                        let nextIndex = (exercise.sets.last?.setIndex ?? 0) + 1
-                                        exercise.sets.append(EditableSet(setIndex: nextIndex))
-                                    } label: {
-                                        Label("Add Set", systemImage: "plus.circle")
-                                    }
-                                    .buttonStyle(.borderless)
-                                    .padding(.top, 4)
-                                }
-                            }
-
-                            Button {
-                                day.exercises.append(EditableExercise())
-                            } label: {
-                                Label("Add Exercise", systemImage: "plus")
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .padding(.top, 4)
-                        }
-                    }
-                }
-            }
-
-            Section {
-                Button {
-                    generateBlockAndDismiss()
-                } label: {
-                    Text("Generate Block")
-                        .frame(maxWidth: .infinity)
-                }
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || days.isEmpty)
-            }
+            blockInfoSection
+            daysSection
+            generateSection
         }
         .navigationTitle("Build Block")
         .navigationBarTitleDisplayMode(.inline)
@@ -137,6 +50,109 @@ struct BlockBuilderView: View {
             }
         }
     }
+
+    // MARK: - Subsections
+
+    @ViewBuilder
+    private var blockInfoSection: some View {
+        Section("Block Info") {
+            TextField("Block name", text: $name)
+
+            Stepper("Weeks: \(weeks)", value: $weeks, in: 1...52)
+
+            Stepper("Days per week: \(daysCount)", value: $daysCount, in: 1...7)
+                .onChange(of: daysCount) { _, newValue in
+                    syncDays(to: newValue)
+                }
+
+            Picker("Progression", selection: $progression) {
+                ForEach(ProgressionType.allCases) { type in
+                    Text(type.rawValue).tag(type)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var daysSection: some View {
+        Section("Days & Exercises") {
+            if days.isEmpty {
+                Text("Days will be created automatically based on the count above.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach($days) { $day in
+                    DisclosureGroup(day.name) {
+                        TextField("Day name", text: $day.name)
+
+                        ForEach($day.exercises) { $exercise in
+                            DisclosureGroup(exercise.name.isEmpty ? "New Exercise" : exercise.name) {
+                                TextField("Exercise name", text: $exercise.name)
+
+                                Toggle("Conditioning (time-based)", isOn: $exercise.isConditioning)
+
+                                TextField("Notes / text", text: $exercise.notes, axis: .vertical)
+                                    .lineLimit(1...3)
+
+                                ForEach($exercise.sets) { $set in
+                                    VStack(alignment: .leading) {
+                                        Text("Set \(set.setIndex.wrappedValue)")
+                                            .font(.caption)
+
+                                        HStack {
+                                            TextField("Reps", text: $set.reps)
+                                                .keyboardType(.numberPad)
+
+                                            if exercise.isConditioning.wrappedValue {
+                                                TextField("Time (sec)", text: $set.timeSeconds)
+                                                    .keyboardType(.numberPad)
+                                            } else {
+                                                TextField("Weight", text: $set.weight)
+                                                    .keyboardType(.decimalPad)
+                                            }
+                                        }
+                                    }
+                                    .padding(.vertical, 4)
+                                }
+
+                                Button {
+                                    let nextIndex = (exercise.sets.last?.setIndex ?? 0) + 1
+                                    exercise.sets.append(EditableSet(setIndex: nextIndex))
+                                } label: {
+                                    Label("Add Set", systemImage: "plus.circle")
+                                }
+                                .buttonStyle(.borderless)
+                                .padding(.top, 4)
+                            }
+                        }
+
+                        Button {
+                            day.exercises.append(EditableExercise())
+                        } label: {
+                            Label("Add Exercise", systemImage: "plus")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.top, 4)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var generateSection: some View {
+        Section {
+            Button {
+                generateBlockAndDismiss()
+            } label: {
+                Text("Generate Block")
+                    .frame(maxWidth: .infinity)
+            }
+            .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || days.isEmpty)
+        }
+    }
+
+    // MARK: - Logic
 
     private func syncDays(to count: Int) {
         var updated: [EditableDay] = days
