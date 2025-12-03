@@ -2,7 +2,7 @@
 //  HomeView.swift
 //  Savage By Design
 //
-//  Phase 3: Branded home screen using SBDTheme
+//  Phase 3.5: Branded home screen with flame watermark behind title
 //
 
 import SwiftUI
@@ -17,20 +17,28 @@ struct HomeView: View {
 
             VStack(alignment: .leading, spacing: 24) {
 
-                // MARK: - Logo + Slogan (Text-Only for Now)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("SAVAGE BY DESIGN")
-                        .font(.system(size: 24, weight: .heavy))
-                        .foregroundColor(primaryTextColor)
+                // MARK: - Logo + Slogan with Flame Watermark
+                ZStack(alignment: .leading) {
+                    // Flame watermark behind title (subtle)
+                    flameWatermark
+                        .frame(height: 80)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .offset(x: -10, y: -8)
 
-                    Text("WE ARE WHAT WE REPEATEDLY DO")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(primaryTextColor.opacity(0.7))
-                        .multilineTextAlignment(.leading)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("SAVAGE BY DESIGN")
+                            .font(.system(size: 24, weight: .heavy))
+                            .foregroundColor(primaryTextColor)
+
+                        Text("WE ARE WHAT WE REPEATEDLY DO")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(primaryTextColor.opacity(0.7))
+                            .multilineTextAlignment(.leading)
+                    }
                 }
                 .padding(.top, 40)
 
-                // MARK: - Summary Card (Placeholder Copy)
+                // MARK: - Summary Card
                 SBDCard {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("BLOCKS")
@@ -43,11 +51,10 @@ struct HomeView: View {
                     }
                 }
 
-                // MARK: - Primary Actions (No real navigation yet)
+                // MARK: - Primary Actions (navigation hooks later)
                 VStack(spacing: 12) {
                     SBDPrimaryButton("Blocks") {
                         // navigation will hook in later phases
-                        // For now, this is a no-op.
                     }
 
                     SBDPrimaryButton("Today (Future)") {
@@ -73,5 +80,17 @@ struct HomeView: View {
 
     private var primaryTextColor: Color {
         colorScheme == .dark ? theme.primaryTextDark : theme.primaryTextLight
+    }
+
+    // MARK: - Flame Watermark
+
+    private var flameWatermark: some View {
+        // If "SBDFlame" asset is missing, this just renders empty (no crash).
+        Image("SBDFlame")
+            .resizable()
+            .scaledToFit()
+            .foregroundColor(.clear) // in case it's a symbol
+            .opacity(colorScheme == .dark ? 0.10 : 0.06) // subtle
+            .blendMode(.normal)
     }
 }
