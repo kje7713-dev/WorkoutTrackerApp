@@ -1,0 +1,77 @@
+{
+  "images": [
+    {
+      "idiom": "universal",
+      "filename": "SBDFlame_light_1x.png",
+      "scale": "1x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "light"
+        }
+      ]
+    },
+    {
+      "idiom": "universal",
+      "filename": "SBDFlame_light_2x.png",
+      "scale": "2x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "light"
+        }
+      ]
+    },
+    {
+      "idiom": "universal",
+      "filename": "SBDFlame_light_3x.png",
+      "scale": "3x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "light"
+        }
+      ]
+    },
+    {
+      "idiom": "universal",
+      "filename": "SBDFlame_dark_1x.png",
+      "scale": "1x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    },
+    {
+      "idiom": "universal",
+      "filename": "SBDFlame_dark_2x.png",
+      "scale": "2x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    },
+    {
+      "idiom": "universal",
+      "filename": "SBDFlame_dark_3x.png",
+      "scale": "3x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    }
+  ],
+  "info": {
+    "version": 1,
+    "author": "xcode"
+  },
+  "properties": {
+    "template-rendering-intent": "original"
+  }
+}
