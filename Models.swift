@@ -123,7 +123,7 @@ public struct ExerciseDefinition: Identifiable, Codable, Equatable {
         self.id = id
         self.name = name
         self.type = type
-        this.category = category
+        self.category = category
         self.defaultConditioningType = defaultConditioningType
         self.tags = tags
     }
