@@ -368,21 +368,19 @@ struct ExerciseEditorRow: View {
     }
 
     private var strengthEditor: some View {
-        HStack {
-            Stepper(value: $exercise.strengthSetsCount, in: 1...10) {
-                Text("Sets: \(exercise.strengthSetsCount)")
-            }
+    VStack(alignment: .leading, spacing: 4) {
+        Stepper(value: $exercise.strengthSetsCount, in: 1...10) {
+            Text("Sets: \(exercise.strengthSetsCount)")
         }
 
-        HStack {
-            Stepper(value: $exercise.strengthReps, in: 1...30) {
-                Text("Reps: \(exercise.strengthReps)")
-            }
+        Stepper(value: $exercise.strengthReps, in: 1...30) {
+            Text("Reps: \(exercise.strengthReps)")
         }
 
         TextField("Weight (optional)", value: $exercise.strengthWeight, format: .number)
             .keyboardType(.decimalPad)
     }
+}
 
     private var conditioningEditor: some View {
         VStack(alignment: .leading, spacing: 4) {
