@@ -2,7 +2,7 @@
 //  HomeView.swift
 //  Savage By Design
 //
-//  Phase 3.5: Branded home screen with flame watermark behind title
+//  Clean header with flame icon + title
 //
 
 import SwiftUI
@@ -17,24 +17,24 @@ struct HomeView: View {
 
             VStack(alignment: .leading, spacing: 24) {
 
-                // MARK: - Logo + Slogan with Flame Watermark
-                ZStack(alignment: .leading) {
-                    // Flame watermark behind title (subtle)
-                    flameWatermark
-                        .frame(height: 80)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .offset(x: -10, y: -8)
+                // MARK: - Logo + Slogan with Flame Icon
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .center, spacing: 12) {
+                        Image("SBDFlame")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .clipped()
 
-                    VStack(alignment: .leading, spacing: 8) {
                         Text("SAVAGE BY DESIGN")
                             .font(.system(size: 24, weight: .heavy))
                             .foregroundColor(primaryTextColor)
-
-                        Text("WE ARE WHAT WE REPEATEDLY DO")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(primaryTextColor.opacity(0.7))
-                            .multilineTextAlignment(.leading)
                     }
+
+                    Text("WE ARE WHAT WE REPEATEDLY DO")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(primaryTextColor.opacity(0.7))
+                        .multilineTextAlignment(.leading)
                 }
                 .padding(.top, 40)
 
@@ -80,17 +80,5 @@ struct HomeView: View {
 
     private var primaryTextColor: Color {
         colorScheme == .dark ? theme.primaryTextDark : theme.primaryTextLight
-    }
-
-    // MARK: - Flame Watermark
-
-    private var flameWatermark: some View {
-        // If "SBDFlame" asset is missing, this just renders empty (no crash).
-        Image("SBDFlame")
-            .resizable()
-            .scaledToFit()
-            .foregroundColor(.clear) // in case it's a symbol
-            .opacity(colorScheme == .dark ? 0.10 : 0.06) // subtle
-            .blendMode(.normal)
     }
 }
