@@ -2,7 +2,7 @@
 //  HomeView.swift
 //  Savage By Design
 //
-//  Header using primary SBD logo, left-aligned
+//  Branded home screen + navigation entry points
 //
 
 import SwiftUI
@@ -22,7 +22,6 @@ struct HomeView: View {
                     Image("SBDPrimaryLogo")
                         .resizable()
                         .scaledToFit()
-                        // Height roughly matching title + subtitle combined
                         .frame(height: 64)
                         .clipped()
 
@@ -52,18 +51,32 @@ struct HomeView: View {
                     }
                 }
 
-                // MARK: - Primary Actions (navigation hooks later)
+                // MARK: - Primary Actions
                 VStack(spacing: 12) {
-                    SBDPrimaryButton("Blocks") {
-                        // navigation will hook in later phases
-                    }
 
+                    // Blocks -> BlocksListView
+                    NavigationLink {
+                        BlocksListView()
+                    } label: {
+                        Text("BLOCKS")
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .foregroundColor(foregroundButtonColor)
+                            .background(backgroundButtonColor)
+                            .cornerRadius(20)
+                            .textCase(.uppercase)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    // Today (future)
                     SBDPrimaryButton("Today (Future)") {
-                        // stub
+                        // will wire up later
                     }
 
+                    // History (future)
                     SBDPrimaryButton("History (Future)") {
-                        // stub
+                        // will wire up later
                     }
                 }
 
@@ -81,5 +94,13 @@ struct HomeView: View {
 
     private var primaryTextColor: Color {
         colorScheme == .dark ? theme.primaryTextDark : theme.primaryTextLight
+    }
+
+    private var backgroundButtonColor: Color {
+        colorScheme == .dark ? .white : .black
+    }
+
+    private var foregroundButtonColor: Color {
+        colorScheme == .dark ? .black : .white
     }
 }
