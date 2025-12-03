@@ -2,7 +2,7 @@
 //  HomeView.swift
 //  Savage By Design
 //
-//  Clean header with flame icon + title
+//  Header using primary SBD logo, left-aligned
 //
 
 import SwiftUI
@@ -17,24 +17,25 @@ struct HomeView: View {
 
             VStack(alignment: .leading, spacing: 24) {
 
-                // MARK: - Logo + Slogan with Flame Icon
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .center, spacing: 12) {
-                        Image("SBDFlame")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 40, height: 40)
-                            .clipped()
+                // MARK: - Logo + Slogan
+                HStack(alignment: .center, spacing: 16) {
+                    Image("SBDPrimaryLogo")
+                        .resizable()
+                        .scaledToFit()
+                        // Height roughly matching title + subtitle combined
+                        .frame(height: 64)
+                        .clipped()
 
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("SAVAGE BY DESIGN")
                             .font(.system(size: 24, weight: .heavy))
                             .foregroundColor(primaryTextColor)
-                    }
 
-                    Text("WE ARE WHAT WE REPEATEDLY DO")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(primaryTextColor.opacity(0.7))
-                        .multilineTextAlignment(.leading)
+                        Text("WE ARE WHAT WE REPEATEDLY DO")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(primaryTextColor.opacity(0.7))
+                            .multilineTextAlignment(.leading)
+                    }
                 }
                 .padding(.top, 40)
 
