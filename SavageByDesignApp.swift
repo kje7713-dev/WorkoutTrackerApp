@@ -2,18 +2,26 @@
 //  SavageByDesignApp.swift
 //  Savage By Design
 //
-//  Phase 3: App entry -> HomeView
+//  App entry + environment objects + navigation shell
 //
 
 import SwiftUI
 
 @main
 struct SavageByDesignApp: App {
+
+    @StateObject private var blocksRepository = BlocksRepository()
+    @StateObject private var sessionsRepository = SessionsRepository()
+    @StateObject private var exerciseLibraryRepository = ExerciseLibraryRepository()
+
     var body: some Scene {
         WindowGroup {
-            HomeView()
-                // If we ever want to override the theme, we can inject here:
-                // .environment(\.sbdTheme, .default)
+            NavigationStack {
+                HomeView()
+            }
+            .environmentObject(blocksRepository)
+            .environmentObject(sessionsRepository)
+            .environmentObject(exerciseLibraryRepository)
         }
     }
 }
