@@ -2,7 +2,7 @@
 //  BlocksListView.swift
 //  Savage By Design
 //
-//  Phase 5: Blocks list UI (read-only for now)
+//  Phase 5 + 6: Blocks list UI + "New Block" entry point
 //
 
 import SwiftUI
@@ -14,12 +14,19 @@ struct BlocksListView: View {
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var exerciseLibraryRepository: ExerciseLibraryRepository
 
+    @State private var isPresentingBuilder: Bool = false
+
     var body: some View {
         ZStack {
             backgroundColor.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 16) {
                 header
+
+                // New Block button
+                SBDPrimaryButton("New Block") {
+                    isPresentingBuilder = true
+                }
 
                 if blocksRepository.allBlocks().isEmpty {
                     emptyState
@@ -42,8 +49,13 @@ struct BlocksListView: View {
         .navigationTitle("Blocks")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            // Make sure exercise library has seed data for future use
+            // Seed exercise library for future use
             exerciseLibraryRepository.loadDefaultSeedIfEmpty()
+        }
+        .sheet(isPresented: $isPresentingBuilder) {
+            NavigationStack {
+                BlockBuilderView()
+            }
         }
     }
 
