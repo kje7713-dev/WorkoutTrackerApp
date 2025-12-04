@@ -194,6 +194,8 @@ if let reps = set.reps {
 
 // MARK: - Week View
 
+// MARK: - Week View
+
 struct WeekRunView: View {
     @Binding var week: RunWeekState
     let allDays: [DayTemplate]
@@ -203,13 +205,17 @@ struct WeekRunView: View {
         VStack(spacing: 0) {
             DayTabBar(days: allDays, currentDayIndex: $currentDayIndex)
             Divider()
+            content
+        }
+    }
 
-            if week.days.indices.contains(currentDayIndex) {
-                DayRunView(day: $week.days[currentDayIndex])
-            } else {
-                Text("No days configured for this week.")
-                    .padding()
-            }
+    @ViewBuilder
+    private var content: some View {
+        if week.days.indices.contains(currentDayIndex) {
+            DayRunView(day: $week.days[currentDayIndex])
+        } else {
+            Text("No days configured for this week.")
+                .padding()
         }
     }
 }
@@ -224,37 +230,42 @@ struct DayTabBar: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(Array(days.enumerated()), id: \.offset) { index, day in
-                    let isSelected = index == currentDayIndex
-
-                    Button {
-                        currentDayIndex = index
-                    } label: {
-                        Text(day.shortCode)
-                            .font(.subheadline)
-                            .fontWeight(isSelected ? .bold : .regular)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                Group {
-                                    if isSelected {
-                                        Color.black
-                                    } else {
-                                        Color.clear
-                                    }
-                                }
-                            )
-                            .foregroundColor(isSelected ? Color.white : Color.primary)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.black, lineWidth: isSelected ? 0 : 1)
-                            )
-                            .cornerRadius(16)
-                    }
+                    dayButton(for: day, index: index)
                 }
             }
             .padding(.horizontal)
         }
         .padding(.vertical, 8)
+    }
+
+    private func dayButton(for day: DayTemplate, index: Int) -> some View {
+        let isSelected = index == currentDayIndex
+        let label: String
+
+        if let short = day.shortCode, !short.isEmpty {
+            label = short
+        } else {
+            label = day.name
+        }
+
+        return Button(action: {
+            currentDayIndex = index
+        }) {
+            Text(label)
+                .font(.subheadline)
+                .fontWeight(isSelected ? .bold : .regular)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    isSelected ? Color.black : Color.clear
+                )
+                .foregroundColor(isSelected ? Color.white : Color.primary)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.black, lineWidth: isSelected ? 0 : 1)
+                )
+                .cornerRadius(16)
+        }
     }
 }
 
@@ -267,15 +278,7 @@ struct DayRunView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 ForEach($day.exercises) { $exercise in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(exercise.name)
-                            .font(.headline)
-
-                        ForEach($exercise.sets) { $set in
-                            SetRunRow(set: $set)
-                        }
-                    }
-                    .padding()
+                    ExerciseRunCard(exercise: $exercise)
                 }
             }
             .padding(.vertical)
@@ -283,53 +286,71 @@ struct DayRunView: View {
     }
 }
 
-// MARK: - Set Row with COMPLETED Stamp
+struct ExerciseRunCard: View {
+    @Binding var exercise: RunExerciseState
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(exercise.name)
+                .font(.headline)
+
+            ForEach($exercise.sets) { $set in
+                SetRunRow(set: $set)
+            }
+        }
+        .padding()
+    }
+}
+
+// MARK: - Set Row
 
 struct SetRunRow: View {
     @Binding var set: RunSetState
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Set \(set.indexInExercise + 1)")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-
-                Text(set.displayText)
-                    .font(.subheadline)
-            }
-
+            setInfo
             Spacer()
-
-            if !set.isCompleted {
-                Button("Complete") {
-                    set.isCompleted = true
-                }
-                .font(.subheadline)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary, lineWidth: 1)
-                )
-            }
+            completionSection
         }
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(uiColor: .secondarySystemBackground))
         )
-        .overlay(
-            Group {
-                if set.isCompleted {
-                    Text("COMPLETED")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color.primary.opacity(0.7))
-                        .rotationEffect(.degrees(22))
-                }
+    }
+
+    private var setInfo: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Set \(set.indexInExercise + 1)")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+
+            Text(set.displayText)
+                .font(.subheadline)
+        }
+    }
+
+    @ViewBuilder
+    private var completionSection: some View {
+        if set.isCompleted {
+            Text("COMPLETED")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(Color.primary.opacity(0.7))
+                .rotationEffect(.degrees(22))
+        } else {
+            Button("Complete") {
+                set.isCompleted = true
             }
-        )
+            .font(.subheadline)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.primary, lineWidth: 1)
+            )
+        }
     }
 }
 
