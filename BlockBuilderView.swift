@@ -13,7 +13,7 @@ struct EditableExercise: Identifiable, Equatable {
     let id: UUID = UUID()
 
     var name: String = ""
-    var type: ExerciseType = .strength  // .strength or .conditioning
+    var type: ExerciseType = .strength
 
     // Strength fields
     var strengthSetsCount: Int = 3
@@ -23,21 +23,9 @@ struct EditableExercise: Identifiable, Equatable {
     // Conditioning fields
     var conditioningDurationSeconds: Int? = nil
     var conditioningRounds: Int? = nil
+    var conditioningCalories: Int? = nil   // ← NEW
 
     var notes: String = ""
-}
-
-struct EditableDay: Identifiable, Equatable {
-    let id: UUID = UUID()
-
-    var name: String
-    var shortCode: String
-    var exercises: [EditableExercise] = []
-
-    init(index: Int) {
-        self.name = "Day \(index + 1)"
-        self.shortCode = "D\(index + 1)"
-    }
 }
 
 // MARK: - Block Builder View
