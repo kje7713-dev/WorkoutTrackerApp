@@ -221,16 +221,16 @@ struct BlockBuilderView: View {
                 } else if editableExercise.type == .conditioning {
                     conditioningType = .monostructural
                     let baseSet = ConditioningSetTemplate(
-                        index: 0,
-                        durationSeconds: editableExercise.conditioningDurationSeconds,
-                        distanceMeters: nil,
-                        calories: nil,
-                        rounds: editableExercise.conditioningRounds,
-                        targetPace: nil,
-                        effortDescriptor: nil,
-                        restSeconds: nil,
-                        notes: editableExercise.notes
-                    )
+    index: 0,
+    durationSeconds: editableExercise.conditioningDurationSeconds,
+    distanceMeters: nil,
+    calories: editableExercise.conditioningCalories,   // ← HERE
+    rounds: editableExercise.conditioningRounds,
+    targetPace: nil,
+    effortDescriptor: nil,
+    restSeconds: nil,
+    notes: editableExercise.notes
+)
                     conditioningSets = [baseSet]
                 }
 
