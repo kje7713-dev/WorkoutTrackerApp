@@ -285,48 +285,56 @@ struct SetRunRow: View {
 
     var body: some View {
         ZStack {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Set \(set.indexInExercise + 1)")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-
-                    Text(set.displayText)
-                        .font(.subheadline)
-                }
-                Spacer()
-
-                if !set.isCompleted {
-                    Button("Complete") {
-                        set.isCompleted = true
-                    }
-                    .font(.subheadline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.primary, lineWidth: 1)
-                    )
-                }
-            }
-            .padding(8)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(uiColor: .secondarySystemBackground))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
-            )
+            rowContent
 
             if set.isCompleted {
-                Text("COMPLETED")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color.primary.opacity(0.7))
-                    .rotationEffect(.degrees(22))
+                completedStamp
             }
         }
+    }
+
+    private var rowContent: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Set \(set.indexInExercise + 1)")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+
+                Text(set.displayText)
+                    .font(.subheadline)
+            }
+            Spacer()
+
+            if !set.isCompleted {
+                Button("Complete") {
+                    set.isCompleted = true
+                }
+                .font(.subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary, lineWidth: 1)
+                )
+            }
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(uiColor: .secondarySystemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+        )
+    }
+
+    private var completedStamp: some View {
+        Text("COMPLETED")
+            .font(.caption)
+            .fontWeight(.bold)
+            .foregroundColor(Color.primary.opacity(0.7))
+            .rotationEffect(.degrees(22))
     }
 }
 
