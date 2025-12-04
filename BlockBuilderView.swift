@@ -93,7 +93,7 @@ struct BlockBuilderView: View {
                 Button("Save") {
                     saveBlock()
                 }
-                .fontweight(.bold))
+                .fontWeight(.bold)
             }
         }
         .alert("Cannot Save Block", isPresented: $showValidationAlert) {
