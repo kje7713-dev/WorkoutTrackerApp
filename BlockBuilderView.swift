@@ -383,24 +383,30 @@ struct ExerciseEditorRow: View {
 }
 
     private var conditioningEditor: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            TextField(
-                "Duration (seconds, optional)",
-                value: $exercise.conditioningDurationSeconds,
-                format: .number
-            )
-            .keyboardType(.numberPad)
+    VStack(alignment: .leading, spacing: 4) {
+        TextField(
+            "Duration (seconds, optional)",
+            value: $exercise.conditioningDurationSeconds,
+            format: .number
+        )
+        .keyboardType(.numberPad)
 
-            TextField(
-                "Rounds (optional)",
-                value: $exercise.conditioningRounds,
-                format: .number
-            )
-            .keyboardType(.numberPad)
+        TextField(
+            "Calories (optional)",
+            value: $exercise.conditioningCalories,
+            format: .number
+        )
+        .keyboardType(.numberPad)
 
-            Text("Use notes for details like EMOM / AMRAP / pacing.")
-                .font(.footnote)
-                .foregroundColor(theme.mutedText)
-        }
+        TextField(
+            "Rounds (optional)",
+            value: $exercise.conditioningRounds,
+            format: .number
+        )
+        .keyboardType(.numberPad)
+
+        Text("Use notes for details like EMOM / AMRAP / pacing.")
+            .font(.footnote)
+            .foregroundColor(theme.mutedText)
     }
 }
