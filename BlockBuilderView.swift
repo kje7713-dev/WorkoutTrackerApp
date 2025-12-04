@@ -59,7 +59,7 @@ struct BlockBuilderView: View {
     @State private var progressionType: ProgressionType = .weight
     @State private var deltaWeightText: String = ""
     @State private var deltaSetsText: String = ""
-
+    @State private var selectedDayIndex: Int = 0
     // Days + exercises
     @State private var days: [EditableDay] = [
         EditableDay(index: 0),
