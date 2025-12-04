@@ -124,7 +124,12 @@ struct BlockRunModeView: View {
                     case .strength:
                         let strengthSets = exercise.strengthSets ?? []
                         sets = strengthSets.enumerated().map { idx, set in
-                            let repsText = "Reps: \(set.reps)"
+                            let repsText: String
+if let reps = set.reps {
+    repsText = "Reps: \(reps)"
+} else {
+    repsText = ""
+}
                             let weightText: String
                             if let weight = set.weight {
                                 weightText = "Weight: \(weight)"
