@@ -33,9 +33,13 @@ struct BlocksListView: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 12) {
-                            ForEach(blocksRepository.allBlocks()) { block in
-                                BlockCard(block: block)
-                            }
+                            ForEach(blocksRepository.blocks) { block in
+    NavigationLink {
+        BlockRunModeView(block: block)
+    } label: {
+        BlockRow(block: block)
+    }
+}
                         }
                         .padding(.top, 4)
                     }
