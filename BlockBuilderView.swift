@@ -23,7 +23,7 @@ struct EditableExercise: Identifiable, Equatable {
     // Conditioning fields
     var conditioningDurationSeconds: Int? = nil
     var conditioningRounds: Int? = nil
-    var conditioningCalories: Int? = nil
+    var conditioningCalories: Double? = nil
 
     var notes: String = ""
 }
