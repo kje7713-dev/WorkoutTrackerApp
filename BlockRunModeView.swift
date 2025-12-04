@@ -74,7 +74,7 @@ struct BlockRunModeView: View {
 
             let dayShortCode: String = {
                 guard block.days.indices.contains(currentDayIndex) else { return "" }
-                return block.days[currentDayIndex].shortCode
+                return block.days[currentDayIndex].shortCode ?? ""
             }()
 
             Text("Week \(currentWeekIndex + 1) — \(dayShortCode)")
