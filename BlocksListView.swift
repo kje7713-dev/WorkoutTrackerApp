@@ -1,13 +1,11 @@
 import SwiftUI
 
 /// Blocks screen – choose a block to run, or create a new one.
-/// Phase 7: simple, no ProgramStore, no fancy data layer.
-/// We will hook this up to real persisted blocks in a later sub-step.
 struct BlocksListView: View {
 
-    // For now this is just an in-memory list.
-    // Later we can load/save from your existing JSON store.
-    @State private var blocks: [Block] = []
+    // ✅ Use the same repository the builder uses
+    @EnvironmentObject private var blocksRepository: BlocksRepository
+    @Environment(\.sbdTheme) private var theme
 
     @State private var isShowingBuilder = false
 
@@ -29,7 +27,7 @@ struct BlocksListView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Content
-                if blocks.isEmpty {
+                if blocksRepository.blocks.isEmpty {
                     emptyState
                 } else {
                     blocksList
@@ -37,7 +35,6 @@ struct BlocksListView: View {
 
                 Spacer()
 
-                // New Block button
                 newBlockButton
             }
             .padding(.horizontal)
@@ -46,12 +43,45 @@ struct BlocksListView: View {
         .navigationTitle("Blocks")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isShowingBuilder) {
-            // Use your existing builder – no parameters
             NavigationStack {
                 BlockBuilderView()
+                // EnvironmentObjects from parent flow down automatically.
             }
         }
     }
+
+    private var blocksList: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                ForEach(Array(blocksRepository.blocks.enumerated()), id: \.offset) { _, block in
+                    NavigationLink {
+                        BlockRunModeView(block: block)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(block.name)
+                                .font(.headline).bold()
+
+                            if let description = block.description, !description.isEmpty {
+                                Text(description)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(uiColor: .secondarySystemBackground))
+                        )
+                    }
+                }
+            }
+            .padding(.top, 8)
+        }
+    }
+
+    // ... keep `emptyState` and `newBlockButton` exactly as you have them ...
+}
 
     // MARK: - Subviews
 
