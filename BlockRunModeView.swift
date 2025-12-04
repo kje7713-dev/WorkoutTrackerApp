@@ -284,14 +284,49 @@ struct SetRunRow: View {
     @Binding var set: RunSetState
 
     var body: some View {
-        ZStack {
-            rowContent
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Set \(set.indexInExercise + 1)")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
 
-            if set.isCompleted {
-                completedStamp
+                Text(set.displayText)
+                    .font(.subheadline)
+            }
+
+            Spacer()
+
+            if !set.isCompleted {
+                Button("Complete") {
+                    set.isCompleted = true
+                }
+                .font(.subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary, lineWidth: 1)
+                )
             }
         }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(uiColor: .secondarySystemBackground))
+        )
+        .overlay(
+            Group {
+                if set.isCompleted {
+                    Text("COMPLETED")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(Color.primary.opacity(0.7))
+                        .rotationEffect(.degrees(22))
+                }
+            }
+        )
     }
+}
 
     private var rowContent: some View {
         HStack {
