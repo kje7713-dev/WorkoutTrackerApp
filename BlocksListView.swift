@@ -37,19 +37,18 @@ struct BlocksListView: View {
     NavigationLink {
         BlockRunModeView(block: block)
     } label: {
-        BlockRow(block: block)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(block.name)
+                .font(.headline)
+            if let desc = block.description, !desc.isEmpty {
+                Text(desc)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
-                        }
-                        .padding(.top, 4)
-                    }
-                }
-
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 16)
-        }
         .navigationTitle("Blocks")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
