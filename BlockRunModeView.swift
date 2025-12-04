@@ -371,7 +371,7 @@ struct SetRunRow: View {
             .foregroundColor(Color.primary.opacity(0.7))
             .rotationEffect(.degrees(22))
     }
-}
+
 
 // MARK: - Run State Models
 
