@@ -1,109 +1,113 @@
 import SwiftUI
 
 struct BlocksListView: View {
-    @EnvironmentObject var blocksRepository: BlocksRepository
+    @EnvironmentObject var store: ProgramStore
+    @State private var isShowingBuilder = false
 
     var body: some View {
-        ZStack {
-            backgroundColor
+        ZStack(alignment: .bottom) {
+            Color(.systemBackground)
                 .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 16) {
-                header
+            VStack(alignment: .leading, spacing: 24) {
+                // Header
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Blocks")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
 
-                if blocksRepository.blocks.isEmpty {
-                    emptyState
-                } else {
-                    List {
-                        ForEach(blocksRepository.blocks) { block in
-                            NavigationLink {
-                                BlockRunModeView(block: block)
-                            } label: {
-                                BlockCard(block: block)
-                            }
-                            .listRowBackground(Color.clear)
-                        }
+                    Text("Choose a block to run or create a new one.")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 16)
+
+                // Content
+                if store.blocks.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("No blocks yet")
+                            .font(.headline)
+                            .fontWeight(.bold)
+
+                        Text("Create a block in the builder, then come back here to run it.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                    .listStyle(.plain)
+                    .padding(.top, 16)
+
+                    Spacer()
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            ForEach(store.blocks) { block in
+                                NavigationLink {
+                                    BlockRunModeView(block: block)
+                                } label: {
+                                    BlockCard(block: block)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 8)
+                    }
                 }
             }
-            .padding()
+            .padding(.horizontal)
+
+            // Primary “New Block” button
+            Button {
+                isShowingBuilder = true
+            } label: {
+                Text("New Block")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.black)
+                    .foregroundColor(.white)
+                    .cornerRadius(16)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 24)
         }
         .navigationTitle("Blocks")
-    }
-
-    // MARK: - Header
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Blocks")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(primaryTextColor)
-
-            Text("Choose a block to run.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $isShowingBuilder) {
+            NavigationStack {
+                BlockBuilderView(isPresented: $isShowingBuilder)
+                    .environmentObject(store)
+            }
         }
-    }
-
-    // MARK: - Empty State
-
-    private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("No blocks yet")
-                .font(.headline)
-                .foregroundColor(primaryTextColor)
-
-            Text("Create a block in the builder, then come back here to run it.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-        }
-        .padding(.top, 24)
-    }
-
-    // MARK: - Colors
-
-    private var backgroundColor: Color {
-        Color(uiColor: .systemBackground)
-    }
-
-    private var primaryTextColor: Color {
-        Color.primary
     }
 }
 
-// MARK: - Block Card
-
-private struct BlockCard: View {
+// Simple card for each block
+struct BlockCard: View {
     let block: Block
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(block.name)
                 .font(.headline)
 
-            if let desc = block.description, !desc.isEmpty {
-                Text(desc)
+            if let description = block.description, !description.isEmpty {
+                Text(description)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
 
-            HStack(spacing: 12) {
-                if block.numberOfWeeks > 0 {
-                    Text("\(block.numberOfWeeks) weeks")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+            // Meta line: weeks + days/week
+            let weeksText = "\(max(block.numberOfWeeks, 1)) week\(block.numberOfWeeks == 1 ? "" : "s")"
+            let daysText = "\(block.days.count) day\(block.days.count == 1 ? "" : "s") / week"
 
-                let dayCount = block.days.count
-                if dayCount > 0 {
-                    Text("\(dayCount) days")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
+            Text("\(weeksText) • \(daysText)")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
-        .padding(.vertical, 8)
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(uiColor: .secondarySystemBackground))
+        )
     }
 }
