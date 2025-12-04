@@ -38,9 +38,9 @@ struct BlockRunModeView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .onChange(of: currentWeekIndex) { newValue in
-                    handleWeekChange(newWeekIndex: newValue)
-                }
+                .onChange(of: currentWeekIndex) { _, newValue in
+    handleWeekChange(newWeekIndex: newValue)
+}
                 .alert("You can skip — but champions don’t.", isPresented: $showSkipAlert) {
                     Button("Stay on Track", role: .cancel) {
                         pendingWeekIndex = nil
