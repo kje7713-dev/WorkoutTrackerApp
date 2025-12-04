@@ -176,10 +176,10 @@ struct BlockRunModeView: View {
                 }
 
                 return RunDayState(
-                    name: day.name,
-                    shortCode: day.shortCode,
-                    exercises: exerciseStates
-                )
+    name: day.name,
+    shortCode: day.shortCode ?? "",
+    exercises: exerciseStates
+)
             }
 
             return RunWeekState(index: weekIndex, days: dayStates)
