@@ -13,7 +13,7 @@ struct EditableExercise: Identifiable, Equatable {
     let id: UUID = UUID()
 
     var name: String = ""
-    var type: ExerciseType = .strength
+    var type: ExerciseType = .strength  // .strength or .conditioning
 
     // Strength fields
     var strengthSetsCount: Int = 3
@@ -23,9 +23,22 @@ struct EditableExercise: Identifiable, Equatable {
     // Conditioning fields
     var conditioningDurationSeconds: Int? = nil
     var conditioningRounds: Int? = nil
-    var conditioningCalories: Int? = nil   // ← NEW
+    var conditioningCalories: Int? = nil
 
     var notes: String = ""
+}
+
+struct EditableDay: Identifiable, Equatable {
+    let id: UUID = UUID()
+
+    var name: String
+    var shortCode: String
+    var exercises: [EditableExercise] = []
+
+    init(index: Int) {
+        self.name = "Day \(index + 1)"
+        self.shortCode = "D\(index + 1)"
+    }
 }
 
 // MARK: - Block Builder View
@@ -211,7 +224,6 @@ struct BlockBuilderView: View {
                         restSeconds: nil,
                         notes: editableExercise.notes
                     )
-                    // duplicate for count if > 1
                     let count = max(editableExercise.strengthSetsCount, 1)
                     strengthSets = (0..<count).map { idx in
                         var copy = baseSet
@@ -221,16 +233,16 @@ struct BlockBuilderView: View {
                 } else if editableExercise.type == .conditioning {
                     conditioningType = .monostructural
                     let baseSet = ConditioningSetTemplate(
-    index: 0,
-    durationSeconds: editableExercise.conditioningDurationSeconds,
-    distanceMeters: nil,
-    calories: editableExercise.conditioningCalories,   // ← HERE
-    rounds: editableExercise.conditioningRounds,
-    targetPace: nil,
-    effortDescriptor: nil,
-    restSeconds: nil,
-    notes: editableExercise.notes
-)
+                        index: 0,
+                        durationSeconds: editableExercise.conditioningDurationSeconds,
+                        distanceMeters: nil,
+                        calories: editableExercise.conditioningCalories,
+                        rounds: editableExercise.conditioningRounds,
+                        targetPace: nil,
+                        effortDescriptor: nil,
+                        restSeconds: nil,
+                        notes: editableExercise.notes
+                    )
                     conditioningSets = [baseSet]
                 }
 
@@ -347,7 +359,6 @@ struct ExerciseEditorRow: View {
                             .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                     )
             } else {
-                // simple placeholder for notes
                 TextField("Notes (optional)", text: $exercise.notes, axis: .vertical)
                     .lineLimit(1...3)
             }
@@ -356,45 +367,46 @@ struct ExerciseEditorRow: View {
     }
 
     private var strengthEditor: some View {
-    VStack(alignment: .leading, spacing: 4) {
-        Stepper(value: $exercise.strengthSetsCount, in: 1...10) {
-            Text("Sets: \(exercise.strengthSetsCount)")
-        }
+        VStack(alignment: .leading, spacing: 4) {
+            Stepper(value: $exercise.strengthSetsCount, in: 1...10) {
+                Text("Sets: \(exercise.strengthSetsCount)")
+            }
 
-        Stepper(value: $exercise.strengthReps, in: 1...30) {
-            Text("Reps: \(exercise.strengthReps)")
-        }
+            Stepper(value: $exercise.strengthReps, in: 1...30) {
+                Text("Reps: \(exercise.strengthReps)")
+            }
 
-        TextField("Weight (optional)", value: $exercise.strengthWeight, format: .number)
-            .keyboardType(.decimalPad)
+            TextField("Weight (optional)", value: $exercise.strengthWeight, format: .number)
+                .keyboardType(.decimalPad)
+        }
     }
-}
 
     private var conditioningEditor: some View {
-    VStack(alignment: .leading, spacing: 4) {
-        TextField(
-            "Duration (seconds, optional)",
-            value: $exercise.conditioningDurationSeconds,
-            format: .number
-        )
-        .keyboardType(.numberPad)
+        VStack(alignment: .leading, spacing: 4) {
+            TextField(
+                "Duration (seconds, optional)",
+                value: $exercise.conditioningDurationSeconds,
+                format: .number
+            )
+            .keyboardType(.numberPad)
 
-        TextField(
-            "Calories (optional)",
-            value: $exercise.conditioningCalories,
-            format: .number
-        )
-        .keyboardType(.numberPad)
+            TextField(
+                "Calories (optional)",
+                value: $exercise.conditioningCalories,
+                format: .number
+            )
+            .keyboardType(.numberPad)
 
-        TextField(
-            "Rounds (optional)",
-            value: $exercise.conditioningRounds,
-            format: .number
-        )
-        .keyboardType(.numberPad)
+            TextField(
+                "Rounds (optional)",
+                value: $exercise.conditioningRounds,
+                format: .number
+            )
+            .keyboardType(.numberPad)
 
-        Text("Use notes for details like EMOM / AMRAP / pacing.")
-            .font(.footnote)
-            .foregroundColor(theme.mutedText)
+            Text("Use notes for details like EMOM / AMRAP / pacing.")
+                .font(.footnote)
+                .foregroundColor(theme.mutedText)
+        }
     }
 }
