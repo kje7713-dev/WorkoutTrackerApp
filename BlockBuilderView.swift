@@ -473,7 +473,54 @@ struct ExerciseEditorRow: View {
 
             Text("Use notes for details like EMOM / AMRAP / pacing.")
                 .font(.footnote)
-                .foregroundColor(theme.mutedText)
+                .foregroundColor(theme.// MARK: - Exercise Editor Row
+
+struct ExerciseEditorRow: View {
+    @Binding var exercise: EditableExercise
+    @Environment(\.sbdTheme) private var theme
+    var onDelete: (() -> Void)? = nil    // ✅ new
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            TextField("Exercise name", text: $exercise.name)
+
+            Picker("Type", selection: $exercise.type) {
+                Text("Strength").tag(ExerciseType.strength)
+                Text("Conditioning").tag(ExerciseType.conditioning)
+            }
+            .pickerStyle(.segmented)
+
+            if exercise.type == .strength {
+                strengthEditor
+            } else {
+                conditioningEditor
+            }
+
+            if !exercise.notes.isEmpty {
+                TextEditor(text: $exercise.notes)
+                    .frame(minHeight: 40, maxHeight: 80)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+            } else {
+                TextField("Notes (optional)", text: $exercise.notes, axis: .vertical)
+                    .lineLimit(1...3)
+            }
+
+            // ✅ Inline delete button for this exercise
+            if let onDelete {
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Label("Delete Exercise", systemImage: "trash")
+                        .font(.footnote)
+                }
+                .padding(.top, 4)
+            }
         }
+        .padding(.vertical, 4)
     }
+
+    // ... strengthEditor and conditioningEditor stay exactly as you have them ...
 }
