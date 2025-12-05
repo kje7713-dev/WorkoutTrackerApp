@@ -351,6 +351,8 @@ struct BlockBuilderView: View {
 
 // MARK: - Day Editor
 
+// MARK: - Day Editor
+
 struct DayEditorView: View {
     @Binding var day: EditableDay
     @Environment(\.sbdTheme) private var theme
@@ -367,19 +369,18 @@ struct DayEditorView: View {
                         .foregroundColor(theme.mutedText)
                 }
 
-                // Explicit delete button per exercise (FR-BBLD-3 remove Exercise Templates)
-                ForEach(Array(day.exercises.indices), id: \.self) { index in
-                    VStack(alignment: .leading, spacing: 4) {
-                        ExerciseEditorRow(exercise: $day.exercises[index])
+                // ✅ Use stable IDs + per-row delete callback
+                ForEach($day.exercises) { $exercise in
+                    let exerciseID = exercise.id
 
-                        Button(role: .destructive) {
-                            day.exercises.remove(at: index)
-                        } label: {
-                            Label("Delete Exercise", systemImage: "trash")
-                                .font(.footnote)
+                    ExerciseEditorRow(
+                        exercise: $exercise,
+                        onDelete: {
+                            if let idx = day.exercises.firstIndex(where: { $0.id == exerciseID }) {
+                                day.exercises.remove(at: idx)
+                            }
                         }
-                        .padding(.top, 2)
-                    }
+                    )
                 }
 
                 Button {
