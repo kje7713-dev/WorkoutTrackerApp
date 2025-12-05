@@ -363,6 +363,8 @@ struct BlockBuilderView: View {
 
 // MARK: - Day Editor
 
+// MARK: - Day Editor
+
 struct DayEditorView: View {
     @Binding var day: EditableDay
     @Environment(\.sbdTheme) private var theme
@@ -379,16 +381,12 @@ struct DayEditorView: View {
                         .foregroundColor(theme.mutedText)
                 }
 
-                // Use stable IDs + per-row delete callback
-                ForEach($day.exercises) { $exercise in
-                    let exerciseID = exercise.id
-
+                // Stable IDs + inline delete per exercise
+                ForEach(Array(day.exercises.enumerated()), id: \.element.id) { index, _ in
                     ExerciseEditorRow(
-                        exercise: $exercise,
+                        exercise: $day.exercises[index],
                         onDelete: {
-                            if let idx = day.exercises.firstIndex(where: { $0.id == exerciseID }) {
-                                day.exercises.remove(at: idx)
-                            }
+                            day.exercises.remove(at: index)
                         }
                     )
                 }
@@ -415,7 +413,19 @@ struct ExerciseEditorRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            TextField("Exercise name", text: $exercise.name)
+
+            HStack(alignment: .firstTextBaseline) {
+                TextField("Exercise name", text: $exercise.name)
+
+                if let onDelete {
+                    Spacer()
+                    Button(role: .destructive) {
+                        onDelete()
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                }
+            }
 
             Picker("Type", selection: $exercise.type) {
                 Text("Strength").tag(ExerciseType.strength)
@@ -439,17 +449,6 @@ struct ExerciseEditorRow: View {
             } else {
                 TextField("Notes (optional)", text: $exercise.notes, axis: .vertical)
                     .lineLimit(1...3)
-            }
-
-            // Inline delete button for this exercise
-            if let onDelete {
-                Button(role: .destructive) {
-                    onDelete()
-                } label: {
-                    Label("Delete Exercise", systemImage: "trash")
-                        .font(.footnote)
-                }
-                .padding(.top, 4)
             }
         }
         .padding(.vertical, 4)
