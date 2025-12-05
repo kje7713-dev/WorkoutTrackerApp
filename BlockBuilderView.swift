@@ -142,84 +142,55 @@ struct BlockBuilderView: View {
         }
     }
 
-    private var daysSection: some View {
-    Section("Days in Block") {
-        // Horizontal day selector
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(days.indices, id: \.self) { index in
-                    let isSelected = index == selectedDayIndex
+        private var daysSection: some View {
+        Section("Days in Block") {
 
-                    Button {
-                        selectedDayIndex = index
-                    } label: {
-                        Text("Day \(index + 1)")
-                            .font(.subheadline)
-                            .fontWeight(isSelected ? .bold : .regular)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(isSelected ? Color.black : Color.clear)
-                            )
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                            .foregroundColor(isSelected ? .white : .primary)
+            // Horizontal day selector
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(days.indices, id: \.self) { index in
+                        let isSelected = index == selectedDayIndex
+
+                        Button {
+                            selectedDayIndex = index
+                        } label: {
+                            Text("Day \(index + 1)")
+                                .font(.subheadline)
+                                .fontWeight(isSelected ? .bold : .regular)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(isSelected ? Color.black : Color.clear)
+                                )
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.black, lineWidth: 1)
+                                )
+                                .foregroundColor(isSelected ? .white : .primary)
+                        }
                     }
                 }
+                .padding(.vertical, 4)
             }
-            .padding(.vertical, 4)
-        }
 
-        // Editor for the currently selected day
-        if days.indices.contains(selectedDayIndex) {
-            DayEditorView(day: $days[selectedDayIndex])
-        } else {
-            Text("No day selected.")
-                .foregroundColor(.secondary)
-        }
+            // Editor for the currently selected day
+            if days.indices.contains(selectedDayIndex) {
+                DayEditorView(day: $days[selectedDayIndex])
+            } else {
+                Text("No day selected.")
+                    .foregroundColor(.secondary)
+            }
 
-        // Add a new day, and auto-select it
-        Button {
-            addDay()
-            selectedDayIndex = max(days.count - 1, 0)
-        } label: {
-            Label("Add Day", systemImage: "plus")
-        }
-
-        // Delete the currently selected day (if more than one)
-        if days.count > 1 {
-            Button(role: .destructive) {
-                let indexToDelete = selectedDayIndex
-                deleteDays(at: IndexSet(integer: indexToDelete))
-                // keep selection in bounds after delete
-                selectedDayIndex = min(indexToDelete, max(days.count - 1, 0))
+            // Add a new day and auto-select it
+            Button {
+                addDay()
+                selectedDayIndex = max(days.count - 1, 0)
             } label: {
-                Label("Delete Day", systemImage: "trash")
+                Label("Add Day", systemImage: "plus")
             }
         }
     }
-}
-
-        // Editor for the currently selected day
-        if days.indices.contains(selectedDayIndex) {
-            DayEditorView(day: $days[selectedDayIndex])
-        } else {
-            Text("No day selected.")
-                .foregroundColor(.secondary)
-        }
-
-        // Add a new day, and auto-select it
-        Button {
-            addDay()
-            selectedDayIndex = max(days.count - 1, 0)
-        } label: {
-            Label("Add Day", systemImage: "plus")
-        }
-    }
-}
 
     // MARK: - Actions
 
