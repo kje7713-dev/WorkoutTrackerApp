@@ -2,7 +2,7 @@
 //  BlockBuilderView.swift
 //  Savage By Design
 //
-//  Phase 6: Manual Block Builder (template only, no sessions yet)
+//  Phase 6 / 6.5: Manual Block Builder (template only, no sessions yet)
 //
 
 import SwiftUI
@@ -59,7 +59,7 @@ struct BlockBuilderView: View {
     @State private var progressionType: ProgressionType = .weight
     @State private var deltaWeightText: String = ""
     @State private var deltaSetsText: String = ""
-    @State private var selectedDayIndex: Int = 0
+
     // Days + exercises
     @State private var days: [EditableDay] = [
         EditableDay(index: 0),
@@ -67,6 +67,7 @@ struct BlockBuilderView: View {
         EditableDay(index: 2),
         EditableDay(index: 3)
     ]
+    @State private var selectedDayIndex: Int = 0
 
     // Validation alert
     @State private var showValidationAlert: Bool = false
@@ -142,9 +143,8 @@ struct BlockBuilderView: View {
         }
     }
 
-        private var daysSection: some View {
+    private var daysSection: some View {
         Section("Days in Block") {
-
             // Horizontal day selector
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -182,12 +182,21 @@ struct BlockBuilderView: View {
                     .foregroundColor(.secondary)
             }
 
-            // Add a new day and auto-select it
+            // Add Day
             Button {
                 addDay()
                 selectedDayIndex = max(days.count - 1, 0)
             } label: {
                 Label("Add Day", systemImage: "plus")
+            }
+
+            // Delete Day (FR-BBLD-2 – remove Day Templates)
+            if days.count > 1, days.indices.contains(selectedDayIndex) {
+                Button(role: .destructive) {
+                    deleteCurrentDay()
+                } label: {
+                    Label("Delete Day", systemImage: "trash")
+                }
             }
         }
     }
@@ -201,11 +210,25 @@ struct BlockBuilderView: View {
 
     private func deleteDays(at offsets: IndexSet) {
         days.remove(atOffsets: offsets)
+
         // Re-label days to keep names/codes tidy
         for (idx, _) in days.enumerated() {
             days[idx].name = "Day \(idx + 1)"
             days[idx].shortCode = "D\(idx + 1)"
         }
+
+        // Clamp selected index so it always points at a valid day
+        if !days.isEmpty {
+            selectedDayIndex = min(selectedDayIndex, days.count - 1)
+        } else {
+            selectedDayIndex = 0
+        }
+    }
+
+    private func deleteCurrentDay() {
+        guard days.indices.contains(selectedDayIndex) else { return }
+        let indexSet = IndexSet(integer: selectedDayIndex)
+        deleteDays(at: indexSet)
     }
 
     private func saveBlock() {
@@ -226,7 +249,7 @@ struct BlockBuilderView: View {
             return
         }
 
-        // Build progression rule
+        // Build progression rule (shared config, but attached per ExerciseTemplate)
         let deltaWeight = Double(deltaWeightText)
         let deltaSets = Int(deltaSetsText)
 
@@ -242,7 +265,7 @@ struct BlockBuilderView: View {
         let dayTemplates: [DayTemplate] = nonEmptyDays.map { editableDay in
             let exerciseTemplates: [ExerciseTemplate] = editableDay.exercises.map { editableExercise in
 
-                // Strength set(s)
+                // Strength / conditioning sets
                 var strengthSets: [StrengthSetTemplate]? = nil
                 var conditioningSets: [ConditioningSetTemplate]? = nil
                 var conditioningType: ConditioningType? = nil
@@ -344,11 +367,19 @@ struct DayEditorView: View {
                         .foregroundColor(theme.mutedText)
                 }
 
-                ForEach($day.exercises) { $exercise in
-                    ExerciseEditorRow(exercise: $exercise)
-                }
-                .onDelete { offsets in
-                    day.exercises.remove(atOffsets: offsets)
+                // Explicit delete button per exercise (FR-BBLD-3 remove Exercise Templates)
+                ForEach(Array(day.exercises.indices), id: \.self) { index in
+                    VStack(alignment: .leading, spacing: 4) {
+                        ExerciseEditorRow(exercise: $day.exercises[index])
+
+                        Button(role: .destructive) {
+                            day.exercises.remove(at: index)
+                        } label: {
+                            Label("Delete Exercise", systemImage: "trash")
+                                .font(.footnote)
+                        }
+                        .padding(.top, 2)
+                    }
                 }
 
                 Button {
