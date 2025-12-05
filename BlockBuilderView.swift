@@ -232,38 +232,46 @@ struct BlockBuilderView: View {
     }
 
     private func saveBlock() {
-        // Basic validation
-        guard !blockName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            validationMessage = "Please enter a block name."
-            showValidationAlert = true
-            return
+    // Basic validation
+    guard !blockName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        validationMessage = "Please enter a block name."
+        showValidationAlert = true
+        return
+    }
+
+    // ✅ First, strip out exercises whose name is blank
+    let cleanedDays: [EditableDay] = days.map { day in
+        var copy = day
+        copy.exercises = day.exercises.filter {
+            !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
+        return copy
+    }
 
-        let nonEmptyDays = days.filter { day in
-            !day.exercises.isEmpty
-        }
+    let nonEmptyDays = cleanedDays.filter { !$0.exercises.isEmpty }
 
-        guard !nonEmptyDays.isEmpty else {
-            validationMessage = "Add at least one day with at least one exercise."
-            showValidationAlert = true
-            return
-        }
+    guard !nonEmptyDays.isEmpty else {
+        validationMessage = "Add at least one day with at least one exercise."
+        showValidationAlert = true
+        return
+    }
 
-        // Build progression rule (shared config, but attached per ExerciseTemplate)
-        let deltaWeight = Double(deltaWeightText)
-        let deltaSets = Int(deltaSetsText)
+    // Build progression rule (unchanged)
+    let deltaWeight = Double(deltaWeightText)
+    let deltaSets = Int(deltaSetsText)
 
-        let progressionRule = ProgressionRule(
-            type: progressionType,
-            deltaWeight: deltaWeight,
-            deltaSets: deltaSets,
-            deloadWeekIndexes: nil,
-            customParams: nil
-        )
+    let progressionRule = ProgressionRule(
+        type: progressionType,
+        deltaWeight: deltaWeight,
+        deltaSets: deltaSets,
+        deloadWeekIndexes: nil,
+        customParams: nil
+    )
 
-        // Map editable structures into real models
-        let dayTemplates: [DayTemplate] = nonEmptyDays.map { editableDay in
-            let exerciseTemplates: [ExerciseTemplate] = editableDay.exercises.map { editableExercise in
+    // Map editable structures into real models
+    let dayTemplates: [DayTemplate] = nonEmptyDays.map { editableDay in
+        let exerciseTemplates: [ExerciseTemplate] = editableDay.exercises.map { editableExercise in
+            // ... your existing strength / conditioning mapping stays the same ...
 
                 // Strength / conditioning sets
                 var strengthSets: [StrengthSetTemplate]? = nil
