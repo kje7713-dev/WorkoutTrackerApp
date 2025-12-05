@@ -376,17 +376,19 @@ struct DayEditorView: View {
                 }
 
                 // 1 row per exercise – bound by ID
-                ForEach($day.exercises) { $exercise in
-                    ExerciseEditorRow(
-                        exercise: $exercise,
-                        onDelete: {
-                            // delete THIS exercise by id
-                            if let idx = day.exercises.firstIndex(where: { $0.id == exercise.id }) {
-                                day.exercises.remove(at: idx)
-                            }
-                        }
-                    )
-                }
+ForEach($day.exercises) { $exercise in
+    // capture ID safely before UI interactions
+    let exerciseID = exercise.id
+
+    ExerciseEditorRow(
+        exercise: $exercise,
+        onDelete: {
+            if let idx = day.exercises.firstIndex(where: { $0.id == exerciseID }) {
+                day.exercises.remove(at: idx)
+            }
+        }
+    )
+}
 
                 Button {
                     day.exercises.append(EditableExercise())
