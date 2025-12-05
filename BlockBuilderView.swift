@@ -188,6 +188,36 @@ struct BlockBuilderView: View {
         } label: {
             Label("Add Day", systemImage: "plus")
         }
+
+        // Delete the currently selected day (if more than one)
+        if days.count > 1 {
+            Button(role: .destructive) {
+                let indexToDelete = selectedDayIndex
+                deleteDays(at: IndexSet(integer: indexToDelete))
+                // keep selection in bounds after delete
+                selectedDayIndex = min(indexToDelete, max(days.count - 1, 0))
+            } label: {
+                Label("Delete Day", systemImage: "trash")
+            }
+        }
+    }
+}
+
+        // Editor for the currently selected day
+        if days.indices.contains(selectedDayIndex) {
+            DayEditorView(day: $days[selectedDayIndex])
+        } else {
+            Text("No day selected.")
+                .foregroundColor(.secondary)
+        }
+
+        // Add a new day, and auto-select it
+        Button {
+            addDay()
+            selectedDayIndex = max(days.count - 1, 0)
+        } label: {
+            Label("Add Day", systemImage: "plus")
+        }
     }
 }
 
