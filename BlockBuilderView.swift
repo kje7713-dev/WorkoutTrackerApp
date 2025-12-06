@@ -407,6 +407,27 @@ struct ExerciseEditorRow: View {
     @Environment(\.sbdTheme) private var theme
     var onDelete: (() -> Void)? = nil
 
+    // 👇 Helper binding: shows MINUTES, stores SECONDS in exercise.conditioningDurationSeconds
+    private var durationMinutesBinding: Binding<String> {
+        Binding<String>(
+            get: {
+                guard let secs = exercise.conditioningDurationSeconds, secs > 0 else {
+                    return ""
+                }
+                // store seconds, show whole minutes
+                return String(secs / 60)
+            },
+            set: { newValue in
+                let trimmed = newValue.trimmingCharacters(in: .whitespaces)
+                guard let minutes = Int(trimmed), minutes > 0 else {
+                    exercise.conditioningDurationSeconds = nil
+                    return
+                }
+                exercise.conditioningDurationSeconds = minutes * 60
+            }
+        )
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
 
@@ -451,7 +472,7 @@ struct ExerciseEditorRow: View {
         .padding(.vertical, 4)
     }
 
-    // MARK: - Strength Editor
+    // MARK: - Strength Editor (unchanged except for being inside the struct)
 
     private var strengthEditor: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -468,14 +489,14 @@ struct ExerciseEditorRow: View {
         }
     }
 
-    // MARK: - Conditioning Editor
+    // MARK: - Conditioning Editor (NOW minutes-based)
 
     private var conditioningEditor: some View {
         VStack(alignment: .leading, spacing: 4) {
+            // 👇 edited in MINUTES, stored in SECONDS under the hood
             TextField(
-                "Duration (seconds, optional)",
-                value: $exercise.conditioningDurationSeconds,
-                format: .number
+                "Duration (minutes, optional)",
+                text: durationMinutesBinding
             )
             .keyboardType(.numberPad)
 
