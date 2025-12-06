@@ -147,24 +147,34 @@ if let reps = set.reps {
                         }
 
                     case .conditioning:
-                        let condSets = exercise.conditioningSets ?? []
-                        sets = condSets.enumerated().map { idx, set in
-                            var parts: [String] = []
-                            if let dur = set.durationSeconds {
-                                parts.append("\(dur) sec")
-                            }
-                            if let cal = set.calories {
-                                parts.append("\(Int(cal)) cal")
-                            }
-                            if let rounds = set.rounds {
-                                parts.append("\(rounds) rounds")
-                            }
-                            let combined = parts.isEmpty ? "Conditioning" : parts.joined(separator: " • ")
-                            return RunSetState(
-                                indexInExercise: idx,
-                                displayText: combined
-                            )
-                        }
+    let condSets = exercise.conditioningSets ?? []
+    sets = condSets.enumerated().map { idx, set in
+        var parts: [String] = []
+
+        if let dur = set.durationSeconds {
+            if dur % 60 == 0 {
+                // exact minutes
+                let mins = dur / 60
+                parts.append("\(mins) min")
+            } else {
+                // odd values – fall back to seconds
+                parts.append("\(dur) sec")
+            }
+        }
+
+        if let cal = set.calories {
+            parts.append("\(Int(cal)) cal")
+        }
+        if let rounds = set.rounds {
+            parts.append("\(rounds) rounds")
+        }
+
+        let combined = parts.isEmpty ? "Conditioning" : parts.joined(separator: " • ")
+        return RunSetState(
+            indexInExercise: idx,
+            displayText: combined
+        )
+    }
 
                     default:
                         sets = [
