@@ -441,7 +441,7 @@ struct ExerciseEditorRow: View {
                     .frame(minHeight: 40, maxHeight: 80)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity: 0.3, lineWidth: 1)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                     )
             } else {
                 TextField("Notes (optional)", text: $exercise.notes, axis: .vertical)
