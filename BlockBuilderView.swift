@@ -365,45 +365,41 @@ struct DayEditorView: View {
 
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: 8) {
-                TextField("Day name", text: $day.name)
-                TextField("Short code", text: $day.shortCode)
+            // Day name / code are each their own form rows
+            TextField("Day name", text: $day.name)
+            TextField("Short code", text: $day.shortCode)
 
-                if day.exercises.isEmpty {
-                    Text("No exercises yet.")
-                        .font(.footnote)
-                        .foregroundColor(theme.mutedText)
-                }
-
-                // 1 row per exercise – bound by ID
-ForEach($day.exercises) { $exercise in
-    // capture ID safely before UI interactions
-    let exerciseID = exercise.id
-
-    ExerciseEditorRow(
-        exercise: $exercise,
-        onDelete: {
-            if let idx = day.exercises.firstIndex(where: { $0.id == exerciseID }) {
-                day.exercises.remove(at: idx)
+            if day.exercises.isEmpty {
+                Text("No exercises yet.")
+                    .font(.footnote)
+                    .foregroundColor(theme.mutedText)
             }
-        }
-    )
-}
 
-                Button {
-                    day.exercises.append(EditableExercise())
-                } label: {
-                    Label("Add Exercise", systemImage: "plus")
-                }
-                .padding(.top, 4)
+            // One row per exercise – no outer VStack wrapping the whole thing
+            ForEach($day.exercises) { $exercise in
+                let exerciseID = exercise.id
+
+                ExerciseEditorRow(
+                    exercise: $exercise,
+                    onDelete: {
+                        if let idx = day.exercises.firstIndex(where: { $0.id == exerciseID }) {
+                            day.exercises.remove(at: idx)
+                        }
+                    }
+                )
+            }
+
+            // Add Exercise is a clean, separate row in the Section
+            Button {
+                day.exercises.append(EditableExercise())
+            } label: {
+                Label("Add Exercise", systemImage: "plus")
             }
         } header: {
             Text(day.name)
         }
     }
 }
-// MARK: - Exercise Editor Row
-
 struct ExerciseEditorRow: View {
     @Binding var exercise: EditableExercise
     @Environment(\.sbdTheme) private var theme
@@ -412,7 +408,6 @@ struct ExerciseEditorRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
 
-            // Name + inline delete button
             HStack(alignment: .firstTextBaseline) {
                 TextField("Exercise name", text: $exercise.name)
 
@@ -452,6 +447,9 @@ struct ExerciseEditorRow: View {
         }
         .padding(.vertical, 4)
     }
+
+    // strengthEditor / conditioningEditor stay as you have them…
+}
 
     private var strengthEditor: some View {
         VStack(alignment: .leading, spacing: 4) {
