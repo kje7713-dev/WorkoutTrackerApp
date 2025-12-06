@@ -10,30 +10,94 @@ import Combine
 
 // MARK: - BlocksRepository
 
-/// Store for block templates.
-/// ✅ Same public API as before (add / update / delete / replaceAll).
-/// ✅ Type name + property names unchanged.
-/// ✅ Now also persists to disk at Documents/blocks.json.
+/// In-memory store for block templates, with simple JSON disk persistence.
+/// Phase 6.5: append-only semantics (each Save creates a new Block).
 public final class BlocksRepository: ObservableObject {
 
-    // All blocks in memory.
-    @Published private(set) public var blocks: [Block]
-
-    // Location of the JSON file on disk.
-    private let fileURL: URL
+    @Published private(set) public var blocks: [Block] {
+        didSet {
+            persistToDisk()
+        }
+    }
 
     public init(blocks: [Block] = []) {
-        // 1) Start with whatever is passed in
-        self.blocks = blocks
-
-        // 2) Set up a stable file path in the app's Documents directory
-        let fm = FileManager.default
-        let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first!
-        self.fileURL = docs.appendingPathComponent("blocks.json")
-
-        // 3) Try to load any saved blocks from disk (if present)
-        loadFromDiskIfAvailable()
+        // Try to load from disk first; if nothing on disk, use the injected seed.
+        if let saved = Self.loadFromDisk() {
+            self.blocks = saved
+        } else {
+            self.blocks = blocks
+        }
     }
+
+    // Return all blocks
+    public func allBlocks() -> [Block] {
+        blocks
+    }
+
+    // Add a new block (append semantics – each Save creates a new block)
+    public func add(_ block: Block) {
+        blocks.append(block)
+        // didSet on `blocks` will persist
+    }
+
+    // Replace an existing block by id
+    public func update(_ block: Block) {
+        guard let index = blocks.firstIndex(where: { $0.id == block.id }) else { return }
+        blocks[index] = block
+        // didSet on `blocks` will persist
+    }
+
+    // Remove a block
+    public func delete(_ block: Block) {
+        blocks.removeAll { $0.id == block.id }
+        // didSet on `blocks` will persist
+    }
+
+    // Replace entire collection (e.g., when loading from disk in the future)
+    public func replaceAll(with newBlocks: [Block]) {
+        blocks = newBlocks
+        // didSet on `blocks` will persist
+    }
+}
+
+// MARK: - BlocksRepository Persistence
+
+private extension BlocksRepository {
+
+    /// Location of the blocks JSON file on disk.
+    static var blocksFileURL: URL {
+        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return directory.appendingPathComponent("blocks.json")
+    }
+
+    /// Persist the current blocks array to disk as JSON.
+    func persistToDisk() {
+        do {
+            let data = try JSONEncoder().encode(blocks)
+            try data.write(to: Self.blocksFileURL, options: [.atomic])
+        } catch {
+            // For now we just log; we are not surfacing errors in the UI in Phase 6.5.
+            print("⚠️ Failed to save blocks to disk:", error)
+        }
+    }
+
+    /// Load blocks from disk if the file exists and is decodable.
+    static func loadFromDisk() -> [Block]? {
+        let url = blocksFileURL
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return nil
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            let decoded = try JSONDecoder().decode([Block].self, from: data)
+            return decoded
+        } catch {
+            print("⚠️ Failed to load blocks from disk:", error)
+            return nil
+        }
+    }
+}
 
     // MARK: - Public API (unchanged signatures)
 
