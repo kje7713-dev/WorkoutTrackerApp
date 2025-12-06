@@ -452,46 +452,10 @@ struct ExerciseEditorRow: View {
 }
 
     private var strengthEditor: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Stepper(value: $exercise.strengthSetsCount, in: 1...10) {
-                Text("Sets: \(exercise.strengthSetsCount)")
-            }
-
-            Stepper(value: $exercise.strengthReps, in: 1...30) {
-                Text("Reps: \(exercise.strengthReps)")
-            }
-
-            TextField("Weight (optional)", value: $exercise.strengthWeight, format: .number)
-                .keyboardType(.decimalPad)
-        }
+        ...
     }
 
     private var conditioningEditor: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            TextField(
-                "Duration (seconds, optional)",
-                value: $exercise.conditioningDurationSeconds,
-                format: .number
-            )
-            .keyboardType(.numberPad)
-
-            TextField(
-                "Calories (optional)",
-                value: $exercise.conditioningCalories,
-                format: .number
-            )
-            .keyboardType(.numberPad)
-
-            TextField(
-                "Rounds (optional)",
-                value: $exercise.conditioningRounds,
-                format: .number
-            )
-            .keyboardType(.numberPad)
-
-            Text("Use notes for details like EMOM / AMRAP / pacing.")
-                .font(.footnote)
-                .foregroundColor(theme.mutedText)
-        }
+        ...
     }
 }
