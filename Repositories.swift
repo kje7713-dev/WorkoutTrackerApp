@@ -1,22 +1,41 @@
 //
 //  Repositories.swift
-//  Savage By Design – In-Memory Repositories (Phase 4)
+//  Savage By Design – Repositories
 //
-//  Pure data layer. No UI, no disk persistence yet.
+//  Phase 4+: In-memory data layer, now with JSON persistence for Blocks.
 //
+
 import Foundation
 import Combine
 
 // MARK: - BlocksRepository
 
-/// In-memory store for block templates.
-/// Later we can wrap this with disk or cloud persistence.
+/// Store for block templates.
+/// ✅ Same public API as before (add / update / delete / replaceAll).
+/// ✅ Type name + property names unchanged.
+/// ✅ Now also persists to disk at Documents/blocks.json.
 public final class BlocksRepository: ObservableObject {
+
+    // All blocks in memory.
     @Published private(set) public var blocks: [Block]
 
+    // Location of the JSON file on disk.
+    private let fileURL: URL
+
     public init(blocks: [Block] = []) {
+        // 1) Start with whatever is passed in
         self.blocks = blocks
+
+        // 2) Set up a stable file path in the app's Documents directory
+        let fm = FileManager.default
+        let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first!
+        self.fileURL = docs.appendingPathComponent("blocks.json")
+
+        // 3) Try to load any saved blocks from disk (if present)
+        loadFromDiskIfAvailable()
     }
+
+    // MARK: - Public API (unchanged signatures)
 
     // Return all blocks
     public func allBlocks() -> [Block] {
@@ -26,22 +45,56 @@ public final class BlocksRepository: ObservableObject {
     // Add a new block
     public func add(_ block: Block) {
         blocks.append(block)
+        saveToDisk()
     }
 
     // Replace an existing block by id
     public func update(_ block: Block) {
         guard let index = blocks.firstIndex(where: { $0.id == block.id }) else { return }
         blocks[index] = block
+        saveToDisk()
     }
 
     // Remove a block
     public func delete(_ block: Block) {
         blocks.removeAll { $0.id == block.id }
+        saveToDisk()
     }
 
-    // Replace entire collection (e.g., when loading from disk in the future)
+    // Replace entire collection (e.g., when loading from cloud later)
     public func replaceAll(with newBlocks: [Block]) {
         blocks = newBlocks
+        saveToDisk()
+    }
+
+    // MARK: - Persistence
+
+    /// Load blocks from disk if the JSON file exists.
+    private func loadFromDiskIfAvailable() {
+        let path = fileURL.path
+        guard FileManager.default.fileExists(atPath: path) else {
+            // No file yet – keep whatever was passed into init.
+            return
+        }
+
+        do {
+            let data = try Data(contentsOf: fileURL)
+            let decoded = try JSONDecoder().decode([Block].self, from: data)
+            self.blocks = decoded
+        } catch {
+            // Non-fatal: just log. Keeps the app running even if the file is corrupted.
+            print("⚠️ BlocksRepository.loadFromDiskIfAvailable failed: \(error)")
+        }
+    }
+
+    /// Save the current blocks array to disk as JSON.
+    private func saveToDisk() {
+        do {
+            let data = try JSONEncoder().encode(blocks)
+            try data.write(to: fileURL, options: [.atomic])
+        } catch {
+            print("⚠️ BlocksRepository.saveToDisk failed: \(error)")
+        }
     }
 }
 
