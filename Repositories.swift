@@ -2,7 +2,7 @@
 //  Repositories.swift
 //  Savage By Design – Repositories
 //
-//  Phase 4+: In-memory data layer, now with JSON persistence for Blocks.
+//  Phase 4+ : In-memory data layer, now with JSON persistence for Blocks.
 //
 
 import Foundation
@@ -11,13 +11,16 @@ import Combine
 // MARK: - BlocksRepository
 
 /// In-memory store for block templates, with simple JSON disk persistence.
-/// Phase 6.5: append-only semantics (each Save creates a new Block).
+/// Phase 6.5: append-only semantics (each Save creates a new Block),
+/// keeping the same public API you already use elsewhere.
 public final class BlocksRepository: ObservableObject {
 
-    @Published private(set) public var blocks: [Block] {
-        didSet {
-            persistToDisk()
-        }
+    @Published private(set) public var blocks: [Block]
+
+    // Location of the blocks JSON file on disk.
+    private static var fileURL: URL {
+        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return directory.appendingPathComponent("blocks.json")
     }
 
     public init(blocks: [Block] = []) {
@@ -29,103 +32,33 @@ public final class BlocksRepository: ObservableObject {
         }
     }
 
-    // Return all blocks
+    // MARK: - Public API (same signatures as before)
+
+    /// Return all blocks
     public func allBlocks() -> [Block] {
         blocks
     }
 
-    // Add a new block (append semantics – each Save creates a new block)
-    public func add(_ block: Block) {
-        blocks.append(block)
-        // didSet on `blocks` will persist
-    }
-
-    // Replace an existing block by id
-    public func update(_ block: Block) {
-        guard let index = blocks.firstIndex(where: { $0.id == block.id }) else { return }
-        blocks[index] = block
-        // didSet on `blocks` will persist
-    }
-
-    // Remove a block
-    public func delete(_ block: Block) {
-        blocks.removeAll { $0.id == block.id }
-        // didSet on `blocks` will persist
-    }
-
-    // Replace entire collection (e.g., when loading from disk in the future)
-    public func replaceAll(with newBlocks: [Block]) {
-        blocks = newBlocks
-        // didSet on `blocks` will persist
-    }
-}
-
-// MARK: - BlocksRepository Persistence
-
-private extension BlocksRepository {
-
-    /// Location of the blocks JSON file on disk.
-    static var blocksFileURL: URL {
-        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return directory.appendingPathComponent("blocks.json")
-    }
-
-    /// Persist the current blocks array to disk as JSON.
-    func persistToDisk() {
-        do {
-            let data = try JSONEncoder().encode(blocks)
-            try data.write(to: Self.blocksFileURL, options: [.atomic])
-        } catch {
-            // For now we just log; we are not surfacing errors in the UI in Phase 6.5.
-            print("⚠️ Failed to save blocks to disk:", error)
-        }
-    }
-
-    /// Load blocks from disk if the file exists and is decodable.
-    static func loadFromDisk() -> [Block]? {
-        let url = blocksFileURL
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            return nil
-        }
-
-        do {
-            let data = try Data(contentsOf: url)
-            let decoded = try JSONDecoder().decode([Block].self, from: data)
-            return decoded
-        } catch {
-            print("⚠️ Failed to load blocks from disk:", error)
-            return nil
-        }
-    }
-}
-
-    // MARK: - Public API (unchanged signatures)
-
-    // Return all blocks
-    public func allBlocks() -> [Block] {
-        blocks
-    }
-
-    // Add a new block
+    /// Add a new block (append semantics – each Save creates a new block)
     public func add(_ block: Block) {
         blocks.append(block)
         saveToDisk()
     }
 
-    // Replace an existing block by id
+    /// Replace an existing block by id
     public func update(_ block: Block) {
         guard let index = blocks.firstIndex(where: { $0.id == block.id }) else { return }
         blocks[index] = block
         saveToDisk()
     }
 
-    // Remove a block
+    /// Remove a block
     public func delete(_ block: Block) {
         blocks.removeAll { $0.id == block.id }
         saveToDisk()
     }
 
-    // Replace entire collection (e.g., when loading from cloud later)
+    /// Replace entire collection (e.g., from cloud sync in future)
     public func replaceAll(with newBlocks: [Block]) {
         blocks = newBlocks
         saveToDisk()
@@ -134,28 +67,31 @@ private extension BlocksRepository {
     // MARK: - Persistence
 
     /// Load blocks from disk if the JSON file exists.
-    private func loadFromDiskIfAvailable() {
-        let path = fileURL.path
-        guard FileManager.default.fileExists(atPath: path) else {
-            // No file yet – keep whatever was passed into init.
-            return
+    private static func loadFromDisk() -> [Block]? {
+        let url = fileURL
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            // No file yet – first launch, or user has never saved a block.
+            return nil
         }
 
         do {
-            let data = try Data(contentsOf: fileURL)
+            let data = try Data(contentsOf: url)
             let decoded = try JSONDecoder().decode([Block].self, from: data)
-            self.blocks = decoded
+            return decoded
         } catch {
-            // Non-fatal: just log. Keeps the app running even if the file is corrupted.
-            print("⚠️ BlocksRepository.loadFromDiskIfAvailable failed: \(error)")
+            // Non-fatal: log and fall back to in-memory seed.
+            print("⚠️ BlocksRepository.loadFromDisk failed: \(error)")
+            return nil
         }
     }
 
     /// Save the current blocks array to disk as JSON.
     private func saveToDisk() {
+        let url = Self.fileURL
+
         do {
             let data = try JSONEncoder().encode(blocks)
-            try data.write(to: fileURL, options: [.atomic])
+            try data.write(to: url, options: [.atomic])
         } catch {
             print("⚠️ BlocksRepository.saveToDisk failed: \(error)")
         }
