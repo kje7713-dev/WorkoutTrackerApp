@@ -407,14 +407,13 @@ struct ExerciseEditorRow: View {
     @Environment(\.sbdTheme) private var theme
     var onDelete: (() -> Void)? = nil
 
-    // 👇 Helper binding: shows MINUTES, stores SECONDS in exercise.conditioningDurationSeconds
+    // Shows MINUTES in the UI, stores SECONDS in conditioningDurationSeconds
     private var durationMinutesBinding: Binding<String> {
         Binding<String>(
             get: {
                 guard let secs = exercise.conditioningDurationSeconds, secs > 0 else {
                     return ""
                 }
-                // store seconds, show whole minutes
                 return String(secs / 60)
             },
             set: { newValue in
@@ -431,19 +430,8 @@ struct ExerciseEditorRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
 
-            // Name + inline delete button
-            HStack(alignment: .firstTextBaseline) {
-                TextField("Exercise name", text: $exercise.name)
-
-                if let onDelete {
-                    Spacer()
-                    Button(role: .destructive) {
-                        onDelete()
-                    } label: {
-                        Image(systemName: "trash")
-                    }
-                }
-            }
+            // Simple name row – no trash here anymore
+            TextField("Exercise name", text: $exercise.name)
 
             Picker("Type", selection: $exercise.type) {
                 Text("Strength").tag(ExerciseType.strength)
@@ -468,11 +456,22 @@ struct ExerciseEditorRow: View {
                 TextField("Notes (optional)", text: $exercise.notes, axis: .vertical)
                     .lineLimit(1...3)
             }
+
+            // 🔻 Delete row – clearly separated at the bottom
+            if let onDelete {
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Label("Delete Exercise", systemImage: "trash")
+                        .font(.footnote)
+                }
+                .padding(.top, 4)
+            }
         }
         .padding(.vertical, 4)
     }
 
-    // MARK: - Strength Editor (unchanged except for being inside the struct)
+    // MARK: - Strength Editor
 
     private var strengthEditor: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -489,11 +488,10 @@ struct ExerciseEditorRow: View {
         }
     }
 
-    // MARK: - Conditioning Editor (NOW minutes-based)
+    // MARK: - Conditioning Editor (minutes-based)
 
     private var conditioningEditor: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // 👇 edited in MINUTES, stored in SECONDS under the hood
             TextField(
                 "Duration (minutes, optional)",
                 text: durationMinutesBinding
