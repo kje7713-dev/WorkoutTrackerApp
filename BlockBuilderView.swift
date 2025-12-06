@@ -400,6 +400,8 @@ struct DayEditorView: View {
         }
     }
 }
+// MARK: - Exercise Editor Row
+
 struct ExerciseEditorRow: View {
     @Binding var exercise: EditableExercise
     @Environment(\.sbdTheme) private var theme
@@ -408,6 +410,7 @@ struct ExerciseEditorRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
 
+            // Name + inline delete button
             HStack(alignment: .firstTextBaseline) {
                 TextField("Exercise name", text: $exercise.name)
 
@@ -438,7 +441,7 @@ struct ExerciseEditorRow: View {
                     .frame(minHeight: 40, maxHeight: 80)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            .stroke(Color.gray.opacity: 0.3, lineWidth: 1)
                     )
             } else {
                 TextField("Notes (optional)", text: $exercise.notes, axis: .vertical)
@@ -448,14 +451,51 @@ struct ExerciseEditorRow: View {
         .padding(.vertical, 4)
     }
 
-    // strengthEditor / conditioningEditor stay as you have them…
-}
+    // MARK: - Strength Editor
 
     private var strengthEditor: some View {
-        ...
+        VStack(alignment: .leading, spacing: 4) {
+            Stepper(value: $exercise.strengthSetsCount, in: 1...10) {
+                Text("Sets: \(exercise.strengthSetsCount)")
+            }
+
+            Stepper(value: $exercise.strengthReps, in: 1...30) {
+                Text("Reps: \(exercise.strengthReps)")
+            }
+
+            TextField("Weight (optional)", value: $exercise.strengthWeight, format: .number)
+                .keyboardType(.decimalPad)
+        }
     }
 
+    // MARK: - Conditioning Editor
+
     private var conditioningEditor: some View {
-        ...
+        VStack(alignment: .leading, spacing: 4) {
+            TextField(
+                "Duration (seconds, optional)",
+                value: $exercise.conditioningDurationSeconds,
+                format: .number
+            )
+            .keyboardType(.numberPad)
+
+            TextField(
+                "Calories (optional)",
+                value: $exercise.conditioningCalories,
+                format: .number
+            )
+            .keyboardType(.numberPad)
+
+            TextField(
+                "Rounds (optional)",
+                value: $exercise.conditioningRounds,
+                format: .number
+            )
+            .keyboardType(.numberPad)
+
+            Text("Use notes for details like EMOM / AMRAP / pacing.")
+                .font(.footnote)
+                .foregroundColor(theme.mutedText)
+        }
     }
 }
