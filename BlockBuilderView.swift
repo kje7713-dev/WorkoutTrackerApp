@@ -620,15 +620,23 @@ struct ExerciseEditorRow: View {
             }
 
             // 🔻 Delete row – clearly separated at the bottom
-            if let onDelete {
-                Button(role: .destructive) {
-                    onDelete()
-                } label: {
-                    Label("Delete Exercise", systemImage: "trash")
-                        .font(.footnote)
-                }
-                .padding(.top, 4)
-            }
+if let onDelete {
+    Button(role: .destructive) {
+        showDeleteConfirm = true
+    } label: {
+        Label("Delete Exercise", systemImage: "trash")
+            .font(.footnote)
+    }
+    .padding(.top, 4)
+    .alert("Delete this exercise?", isPresented: $showDeleteConfirm) {
+        Button("Delete", role: .destructive) {
+            onDelete()
+        }
+        Button("Cancel", role: .cancel) { }
+    } message: {
+        Text("This will remove the exercise and its settings from this day.")
+    }
+}
         }
         .padding(.vertical, 4)
     }
