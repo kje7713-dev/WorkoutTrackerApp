@@ -102,13 +102,6 @@ public final class BlocksRepository: ObservableObject {
 
 /// In-memory store for generated workout sessions.
 /// Phase 4: simple flat array; later we can add helpers + persistence.
-// Insert into SessionsRepository
-
-public func replaceSessions(forBlockId blockId: BlockID, with new: [WorkoutSession]) {
-    sessions.removeAll { $0.blockId == blockId }
-    sessions.append(contentsOf: new)
-}
-
 public final class SessionsRepository: ObservableObject {
     @Published private(set) public var sessions: [WorkoutSession]
 
@@ -148,6 +141,12 @@ public final class SessionsRepository: ObservableObject {
     // Replace all sessions at once (future: after regeneration)
     public func replaceAll(with newSessions: [WorkoutSession]) {
         sessions = newSessions
+    }
+
+    // ✅ NEW: replace sessions for a single block
+    public func replaceSessions(forBlockId blockId: BlockID, with new: [WorkoutSession]) {
+        sessions.removeAll { $0.blockId == blockId }
+        sessions.append(contentsOf: new)
     }
 }
 
