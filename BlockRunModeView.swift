@@ -344,8 +344,8 @@ struct ExerciseRunCard: View {
                 .disableAutocorrection(true)
 
             // Sets
-            ForEach($exercise.sets) { $set in
-                SetRunRow(set: $set)
+            ForEach($exercise.sets) { $runSet in
+                SetRunRow(runSet: $runSet)
             }
 
             // Add/remove set controls
@@ -354,7 +354,12 @@ struct ExerciseRunCard: View {
                     let newIndex = exercise.sets.count
                     let newSet = RunSetState(
                         indexInExercise: newIndex,
-                        displayText: "Set \(newIndex + 1)"
+                        displayText: "Set \(newIndex + 1)",
+                        plannedReps: nil,
+                        plannedWeight: nil,
+                        actualReps: nil,
+                        actualWeight: nil,
+                        isCompleted: false
                     )
                     exercise.sets.append(newSet)
                 } label: {
@@ -382,26 +387,26 @@ struct ExerciseRunCard: View {
 // MARK: - Set Row
 
 struct SetRunRow: View {
-    @Binding var set: RunSetState
+    @Binding var runSet: RunSetState
 
     // Helpers: what to display if actual is nil
     private var repsValue: Int {
-        set.actualReps ?? set.plannedReps ?? 0
+        runSet.actualReps ?? runSet.plannedReps ?? 0
     }
 
     private var weightValue: Double {
-        set.actualWeight ?? set.plannedWeight ?? 0
+        runSet.actualWeight ?? runSet.plannedWeight ?? 0
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Header
-            Text("Set \(set.indexInExercise + 1)")
+            Text("Set \(runSet.indexInExercise + 1)")
                 .font(.subheadline).bold()
 
             // Planned summary
-            if !set.displayText.isEmpty {
-                Text("Planned: \(set.displayText)")
+            if !runSet.displayText.isEmpty {
+                Text("Planned: \(runSet.displayText)")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
@@ -415,7 +420,7 @@ struct SetRunRow: View {
                 HStack(spacing: 4) {
                     Button {
                         let new = max(0, repsValue - 1)
-                        set.actualReps = new
+                        runSet.actualReps = new
                     } label: {
                         Image(systemName: "minus.circle")
                     }
@@ -426,7 +431,7 @@ struct SetRunRow: View {
 
                     Button {
                         let new = repsValue + 1
-                        set.actualReps = new
+                        runSet.actualReps = new
                     } label: {
                         Image(systemName: "plus.circle")
                     }
@@ -441,7 +446,7 @@ struct SetRunRow: View {
                     Button {
                         let step = 5.0      // tweak if you prefer 2.5, 1, etc.
                         let new = max(0, weightValue - step)
-                        set.actualWeight = new
+                        runSet.actualWeight = new
                     } label: {
                         Image(systemName: "minus.circle")
                     }
@@ -453,7 +458,7 @@ struct SetRunRow: View {
                     Button {
                         let step = 5.0
                         let new = weightValue + step
-                        set.actualWeight = new
+                        runSet.actualWeight = new
                     } label: {
                         Image(systemName: "plus.circle")
                     }
@@ -467,14 +472,14 @@ struct SetRunRow: View {
             // Complete / Undo
             HStack {
                 Spacer()
-                if set.isCompleted {
+                if runSet.isCompleted {
                     Button("Undo") {
-                        set.isCompleted = false
+                        runSet.isCompleted = false
                     }
                     .font(.caption)
                 } else {
                     Button("Complete") {
-                        set.isCompleted = true
+                        runSet.isCompleted = true
                     }
                     .font(.subheadline)
                     .padding(.horizontal, 12)
@@ -491,10 +496,10 @@ struct SetRunRow: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(uiColor: .secondarySystemBackground))
         )
-        // Completed ribbon overlay – no longer hidden by the card
+        // Completed ribbon overlay
         .overlay(
             Group {
-                if set.isCompleted {
+                if runSet.isCompleted {
                     Text("COMPLETED")
                         .font(.caption2).bold()
                         .padding(6)
@@ -510,7 +515,6 @@ struct SetRunRow: View {
     }
 }
 
-                
 // MARK: - Run State Models
 
 struct RunWeekState: Identifiable {
