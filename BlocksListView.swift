@@ -193,3 +193,35 @@ struct BlocksListView: View {
         .padding(.bottom, 24)
     }
 }
+// MARK: - BlockSessionEntryView
+
+/// Entry point for running a block:
+/// - Finds the first generated WorkoutSession for the block
+/// - Shows WorkoutSessionView if found
+/// - Otherwise shows a simple "No sessions" message
+struct BlockSessionEntryView: View {
+    @EnvironmentObject private var sessionsRepository: SessionsRepository
+    @EnvironmentObject private var blocksRepository: BlocksRepository
+
+    let block: Block
+
+    var body: some View {
+        let blockSessions = sessionsRepository.sessions(forBlockId: block.id)
+
+        if let firstSession = blockSessions.first {
+            WorkoutSessionView(session: firstSession)
+        } else {
+            VStack(spacing: 12) {
+                Text("No sessions available for this block yet.")
+                    .font(.headline)
+
+                Text("Save this block again to generate sessions, then try running it.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .navigationTitle(block.name)
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
