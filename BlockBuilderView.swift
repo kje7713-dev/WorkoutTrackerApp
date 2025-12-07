@@ -637,9 +637,7 @@ if let onDelete {
         Text("This will remove the exercise and its settings from this day.")
     }
 }
-        }
-        .padding(.vertical, 4)
-    }
+    
 
     // MARK: - Strength Editor
 
