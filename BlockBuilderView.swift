@@ -567,6 +567,8 @@ struct ExerciseEditorRow: View {
     @Environment(\.sbdTheme) private var theme
     var onDelete: (() -> Void)? = nil
 
+    @State private var showDeleteConfirm = false   // ⬅️ NEW
+
     // Shows MINUTES in the UI, stores SECONDS in conditioningDurationSeconds
     private var durationMinutesBinding: Binding<String> {
         Binding<String>(
