@@ -114,8 +114,9 @@ public struct SessionFactory {
                     loggedTime: nil,
                     loggedDistance: nil,
                     loggedCalories: nil,
-                    isCompleted: false,
-                    notes: strength.notes
+                    notes: strength.notes,
+                    isCompleted: false
+                    
                 )
                 result.append(set)
             }
@@ -136,8 +137,9 @@ public struct SessionFactory {
                     loggedTime: conditioning.durationSeconds,
                     loggedDistance: conditioning.distanceMeters,
                     loggedCalories: conditioning.calories,
-                    isCompleted: false,
-                    notes: conditioning.notes
+                    notes: conditioning.notes,
+                    isCompleted: false
+    
                 )
                 result.append(set)
             }
