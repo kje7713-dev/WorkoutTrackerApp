@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+enum BlockBuilderMode {
+    case new
+    case edit(Block)
+    case clone(Block)   // "Edit as next block" / version-forward
+}
+
 // MARK: - Editable Models (local to the builder)
 
 struct EditableExercise: Identifiable, Equatable {
@@ -41,6 +47,12 @@ struct EditableDay: Identifiable, Equatable {
     }
 }
 
+enum BlockBuilderMode {
+    case new
+    case edit(Block)
+    case clone(Block)   // use existing as blueprint, force new name
+}
+
 // MARK: - Block Builder View
 
 struct BlockBuilderView: View {
@@ -49,6 +61,9 @@ struct BlockBuilderView: View {
     @Environment(\.sbdTheme) private var theme
 
     @EnvironmentObject private var blocksRepository: BlocksRepository
+
+    // What are we doing?
+    private let mode: BlockBuilderMode
 
     // Block-level fields
     @State private var blockName: String = ""
@@ -73,6 +88,32 @@ struct BlockBuilderView: View {
     @State private var showValidationAlert: Bool = false
     @State private var validationMessage: String = ""
 
+    // MARK: - Init with mode
+
+    init(mode: BlockBuilderMode = .new) {
+        self.mode = mode
+
+        switch mode {
+        case .new:
+            // leave defaults as-is (empty builder)
+            break
+
+        case .edit(let block),
+             .clone(let block):
+            // Map Block → editable state
+            let initial = BlockBuilderView.makeInitialState(from: block)
+
+            _blockName       = State(initialValue: initial.blockName)
+            _blockDescription = State(initialValue: initial.blockDescription)
+            _numberOfWeeks   = State(initialValue: initial.numberOfWeeks)
+            _progressionType = State(initialValue: initial.progressionType)
+            _deltaWeightText = State(initialValue: initial.deltaWeightText)
+            _deltaSetsText   = State(initialValue: initial.deltaSetsText)
+            _days            = State(initialValue: initial.days)
+            _selectedDayIndex = State(initialValue: 0)
+        }
+    }
+
     var body: some View {
         ZStack {
             backgroundColor.ignoresSafeArea()
@@ -83,7 +124,7 @@ struct BlockBuilderView: View {
                 daysSection
             }
         }
-        .navigationTitle("New Block")
+        .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -102,6 +143,17 @@ struct BlockBuilderView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(validationMessage)
+        }
+    }
+
+    private var navigationTitle: String {
+        switch mode {
+        case .new:
+            return "New Block"
+        case .edit:
+            return "Edit Block"
+        case .clone:
+            return "Next Block"
         }
     }
 
@@ -190,7 +242,7 @@ struct BlockBuilderView: View {
                 Label("Add Day", systemImage: "plus")
             }
 
-            // Delete Day (FR-BBLD-2 – remove Day Templates)
+            // Delete Day
             if days.count > 1, days.indices.contains(selectedDayIndex) {
                 Button(role: .destructive) {
                     deleteCurrentDay()
@@ -232,46 +284,56 @@ struct BlockBuilderView: View {
     }
 
     private func saveBlock() {
-    // Basic validation
-    guard !blockName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-        validationMessage = "Please enter a block name."
-        showValidationAlert = true
-        return
-    }
-
-    // ✅ First, strip out exercises whose name is blank
-    let cleanedDays: [EditableDay] = days.map { day in
-        var copy = day
-        copy.exercises = day.exercises.filter {
-            !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        // Basic validation
+        let trimmedName = blockName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            validationMessage = "Please enter a block name."
+            showValidationAlert = true
+            return
         }
-        return copy
-    }
 
-    let nonEmptyDays = cleanedDays.filter { !$0.exercises.isEmpty }
+        // ✅ First, strip out exercises whose name is blank
+        let cleanedDays: [EditableDay] = days.map { day in
+            var copy = day
+            copy.exercises = day.exercises.filter {
+                !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
+            return copy
+        }
 
-    guard !nonEmptyDays.isEmpty else {
-        validationMessage = "Add at least one day with at least one exercise."
-        showValidationAlert = true
-        return
-    }
+        let nonEmptyDays = cleanedDays.filter { !$0.exercises.isEmpty }
 
-    // Build progression rule (unchanged)
-    let deltaWeight = Double(deltaWeightText)
-    let deltaSets = Int(deltaSetsText)
+        guard !nonEmptyDays.isEmpty else {
+            validationMessage = "Add at least one day with at least one exercise."
+            showValidationAlert = true
+            return
+        }
 
-    let progressionRule = ProgressionRule(
-        type: progressionType,
-        deltaWeight: deltaWeight,
-        deltaSets: deltaSets,
-        deloadWeekIndexes: nil,
-        customParams: nil
-    )
+        // If cloning, require a new name vs the original
+        if case .clone(let original) = mode {
+            let originalTrimmed = original.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if originalTrimmed == trimmedName {
+                validationMessage = "Enter a new name so this block can be saved as a separate template."
+                showValidationAlert = true
+                return
+            }
+        }
 
-    // Map editable structures into real models
-    let dayTemplates: [DayTemplate] = nonEmptyDays.map { editableDay in
-        let exerciseTemplates: [ExerciseTemplate] = editableDay.exercises.map { editableExercise in
-            // ... your existing strength / conditioning mapping stays the same ...
+        // Build progression rule (unchanged)
+        let deltaWeight = Double(deltaWeightText)
+        let deltaSets = Int(deltaSetsText)
+
+        let progressionRule = ProgressionRule(
+            type: progressionType,
+            deltaWeight: deltaWeight,
+            deltaSets: deltaSets,
+            deloadWeekIndexes: nil,
+            customParams: nil
+        )
+
+        // Map editable structures into real models
+        let dayTemplates: [DayTemplate] = nonEmptyDays.map { editableDay in
+            let exerciseTemplates: [ExerciseTemplate] = editableDay.exercises.map { editableExercise in
 
                 // Strength / conditioning sets
                 var strengthSets: [StrengthSetTemplate]? = nil
@@ -336,8 +398,8 @@ struct BlockBuilderView: View {
             )
         }
 
-        let block = Block(
-            name: blockName,
+        let newBlock = Block(
+            name: trimmedName,
             description: blockDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : blockDescription,
             numberOfWeeks: numberOfWeeks,
             goal: nil,
@@ -346,7 +408,23 @@ struct BlockBuilderView: View {
             aiMetadata: nil
         )
 
-        blocksRepository.add(block)
+        switch mode {
+        case .new,
+             .clone:
+            // New template = new row
+            blocksRepository.add(newBlock)
+
+        case .edit(let original):
+            // Keep id / source / aiMetadata; replace content
+            var updated = original
+            updated.name = newBlock.name
+            updated.description = newBlock.description
+            updated.numberOfWeeks = newBlock.numberOfWeeks
+            updated.days = newBlock.days
+            // source & aiMetadata stay as-is
+            blocksRepository.update(updated)
+        }
+
         dismiss()
     }
 
@@ -355,6 +433,85 @@ struct BlockBuilderView: View {
     private var backgroundColor: Color {
         colorScheme == .dark ? theme.backgroundDark : theme.backgroundLight
     }
+
+    // MARK: - Block → Editable mapping
+
+    private struct InitialState {
+        var blockName: String
+        var blockDescription: String
+        var numberOfWeeks: Int
+        var progressionType: ProgressionType
+        var deltaWeightText: String
+        var deltaSetsText: String
+        var days: [EditableDay]
+    }
+
+    private static func makeInitialState(from block: Block) -> InitialState {
+        // Derive progression from the first exercise that has a rule
+        var derivedType: ProgressionType = .weight
+        var derivedDeltaWeight: String = ""
+        var derivedDeltaSets: String = ""
+
+        outer: for day in block.days {
+            for exercise in day.exercises {
+                let rule = exercise.progressionRule
+                derivedType = rule.type
+                if let dw = rule.deltaWeight {
+                    derivedDeltaWeight = String(dw)
+                }
+                if let ds = rule.deltaSets {
+                    derivedDeltaSets = String(ds)
+                }
+                break outer
+            }
+        }
+
+        let editableDays: [EditableDay] = block.days.enumerated().map { (idx, dayTemplate) in
+            var editableDay = EditableDay(index: idx)
+            editableDay.name = dayTemplate.name
+            editableDay.shortCode = dayTemplate.shortCode
+
+            editableDay.exercises = dayTemplate.exercises.map { exercise in
+                var e = EditableExercise()
+                e.name = exercise.customName ?? ""
+                e.type = exercise.type
+                e.notes = exercise.notes
+
+                // Strength mapping
+                if exercise.type == .strength,
+                   let sets = exercise.strengthSets,
+                   let first = sets.first {
+                    e.strengthSetsCount = sets.count
+                    e.strengthReps = first.reps
+                    e.strengthWeight = first.weight
+                }
+
+                // Conditioning mapping
+                if exercise.type == .conditioning,
+                   let sets = exercise.conditioningSets,
+                   let first = sets.first {
+                    e.conditioningDurationSeconds = first.durationSeconds
+                    e.conditioningCalories = first.calories
+                    e.conditioningRounds = first.rounds
+                }
+
+                return e
+            }
+
+            return editableDay
+        }
+
+        return InitialState(
+            blockName: block.name,
+            blockDescription: block.description ?? "",
+            numberOfWeeks: block.numberOfWeeks,
+            progressionType: derivedType,
+            deltaWeightText: derivedDeltaWeight,
+            deltaSetsText: derivedDeltaSets,
+            days: editableDays
+        )
+    }
+}
 }
 
 // MARK: - Day Editor
