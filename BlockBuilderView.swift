@@ -420,6 +420,12 @@ struct BlockBuilderView: View {
             // source & aiMetadata stay as-is
             blocksRepository.update(updated)
         }
+        // Phase 8: Generate sessions for this block
+let factory = SessionFactory()
+let generated = factory.makeSessions(for: newBlock)
+
+// Persist sessions for this block
+sessionsRepository.replaceSessions(forBlockId: newBlock.id, with: generated)
 
         dismiss()
     }
