@@ -123,14 +123,14 @@ struct BlocksListView: View {
                         HStack(spacing: 8) {
                             // RUN – same behavior as your old NavigationLink row
                             NavigationLink {
-                                BlockRunModeView(block: block)
-                            } label: {
-                                Text("RUN")
-                                    .font(.subheadline).bold()
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                            }
-                            .buttonStyle(.borderedProminent)
+    BlockSessionEntryView(block: block)
+} label: {
+    Text("RUN")
+        .font(.subheadline).bold()
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+}
+.buttonStyle(.borderedProminent)
 
                             // EDIT – open builder in edit mode (update this block)
                             Button {
