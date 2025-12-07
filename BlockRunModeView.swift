@@ -510,37 +510,7 @@ struct SetRunRow: View {
     }
 }
 
-                // Complete / undo
-                HStack {
-                    Spacer()
-                    if set.isCompleted {
-                        Button("Undo") {
-                            set.isCompleted = false
-                        }
-                        .font(.caption)
-                    } else {
-                        Button("Complete") {
-                            set.isCompleted = true
-                        }
-                        .font(.subheadline)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.primary, lineWidth: 1)
-                        )
-                    }
-                }
-            }
-            .padding(10)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(uiColor: .secondarySystemBackground))
-            )
-        }
-        .padding(.vertical, 2)
-    }
-}
+                
 // MARK: - Run State Models
 
 struct RunWeekState: Identifiable {
