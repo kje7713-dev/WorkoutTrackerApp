@@ -488,8 +488,15 @@ struct RunExerciseState: Identifiable {
 struct RunSetState: Identifiable {
     let id = UUID()
     let indexInExercise: Int
-    let displayText: String       // planned summary
-    var actualReps: String = ""   // actual vs planned
-    var actualWeight: String = ""
+    let displayText: String       // planned summary string
+
+    // Planned values (from template, optional)
+    var plannedReps: Int?
+    var plannedWeight: Double?
+
+    // Actual values (what you change during the session)
+    var actualReps: Int?
+    var actualWeight: Double?
+
     var isCompleted: Bool = false
 }
