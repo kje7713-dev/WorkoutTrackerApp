@@ -392,7 +392,7 @@ struct RunDayState: Identifiable {
 
 struct RunExerciseState: Identifiable {
     let id = UUID()
-    let name: String
+    var name: String              // ⬅️ was let; now editable
     let type: ExerciseType
     var sets: [RunSetState]
 }
@@ -400,6 +400,8 @@ struct RunExerciseState: Identifiable {
 struct RunSetState: Identifiable {
     let id = UUID()
     let indexInExercise: Int
-    let displayText: String
+    let displayText: String       // planned summary (reps/weight or conditioning)
+    var actualReps: String = ""   // ⬅️ actual values typed during run
+    var actualWeight: String = ""
     var isCompleted: Bool = false
 }
