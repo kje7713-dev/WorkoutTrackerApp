@@ -124,27 +124,39 @@ struct BlockRunModeView: View {
                     case .strength:
                         let strengthSets = exercise.strengthSets ?? []
                         sets = strengthSets.enumerated().map { idx, set in
-                            let repsText: String
-if let reps = set.reps {
-    repsText = "Reps: \(reps)"
-} else {
-    repsText = ""
-}
-                            let weightText: String
-                            if let weight = set.weight {
-                                weightText = "Weight: \(weight)"
-                            } else {
-                                weightText = ""
-                            }
-                            let combined = [repsText, weightText]
-                                .filter { !$0.isEmpty }
-                                .joined(separator: " • ")
+    let repsText: String
+    if let reps = set.reps {
+        repsText = "Reps: \(reps)"
+    } else {
+        repsText = ""
+    }
 
-                            return RunSetState(
-                                indexInExercise: idx,
-                                displayText: combined.isEmpty ? "Strength set" : combined
-                            )
-                        }
+    let weightText: String
+    if let weight = set.weight {
+        weightText = "Weight: \(weight)"
+    } else {
+        weightText = ""
+    }
+
+    let combined = [repsText, weightText]
+        .filter { !$0.isEmpty }
+        .joined(separator: " • ")
+
+    // Planned from template
+    let plannedReps = set.reps
+    let plannedWeight = set.weight
+
+    return RunSetState(
+        indexInExercise: idx,
+        displayText: combined.isEmpty ? "Strength set" : combined,
+        plannedReps: plannedReps,
+        plannedWeight: plannedWeight,
+        actualReps: plannedReps,      // start actual = planned
+        actualWeight: plannedWeight,
+        isCompleted: false
+    )
+}
+                            
 
                     case .conditioning:
     let condSets = exercise.conditioningSets ?? []
@@ -372,54 +384,131 @@ struct ExerciseRunCard: View {
 struct SetRunRow: View {
     @Binding var set: RunSetState
 
+    // Helpers: what to display if actual is nil
+    private var repsValue: Int {
+        set.actualReps ?? set.plannedReps ?? 0
+    }
+
+    private var weightValue: Double {
+        set.actualWeight ?? set.plannedWeight ?? 0
+    }
+
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            // Completed ribbon
-            if set.isCompleted {
-                Text("COMPLETED")
-                    .font(.caption2).bold()
-                    .padding(6)
-                    .background(Color.black.opacity(0.9))
-                    .foregroundColor(.white)
-                    .rotationEffect(.degrees(22))
-                    .offset(x: 8, y: -8)
+        VStack(alignment: .leading, spacing: 8) {
+            // Header
+            Text("Set \(set.indexInExercise + 1)")
+                .font(.subheadline).bold()
+
+            // Planned summary
+            if !set.displayText.isEmpty {
+                Text("Planned: \(set.displayText)")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                // Header
-                Text("Set \(set.indexInExercise + 1)")
-                    .font(.subheadline).bold()
+            // Actual controls
+            HStack(spacing: 10) {
+                Text("Actual:")
+                    .font(.footnote).bold()
 
-                // Planned row
-                if !set.displayText.isEmpty {
-                    Text("Planned: \(set.displayText)")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
+                // Reps clicker
+                HStack(spacing: 4) {
+                    Button {
+                        let new = max(0, repsValue - 1)
+                        set.actualReps = new
+                    } label: {
+                        Image(systemName: "minus.circle")
+                    }
+
+                    Text("\(repsValue)")
+                        .font(.body.monospacedDigit())
+                        .frame(width: 32, alignment: .center)
+
+                    Button {
+                        let new = repsValue + 1
+                        set.actualReps = new
+                    } label: {
+                        Image(systemName: "plus.circle")
+                    }
                 }
 
-                // Actual row
-                HStack(spacing: 6) {
-                    Text("Actual:")
-                        .font(.footnote).bold()
+                Text("reps")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
 
-                    TextField("Reps", text: $set.actualReps)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 60)
+                // Weight clicker
+                HStack(spacing: 4) {
+                    Button {
+                        let step = 5.0      // tweak if you prefer 2.5, 1, etc.
+                        let new = max(0, weightValue - step)
+                        set.actualWeight = new
+                    } label: {
+                        Image(systemName: "minus.circle")
+                    }
 
-                    Text("reps")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                    Text(weightValue == 0 ? "-" : String(format: "%.0f", weightValue))
+                        .font(.body.monospacedDigit())
+                        .frame(width: 44, alignment: .center)
 
-                    TextField("Wt", text: $set.actualWeight)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 70)
-
-                    Text("lb")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                    Button {
+                        let step = 5.0
+                        let new = weightValue + step
+                        set.actualWeight = new
+                    } label: {
+                        Image(systemName: "plus.circle")
+                    }
                 }
+
+                Text("lb")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+
+            // Complete / Undo
+            HStack {
+                Spacer()
+                if set.isCompleted {
+                    Button("Undo") {
+                        set.isCompleted = false
+                    }
+                    .font(.caption)
+                } else {
+                    Button("Complete") {
+                        set.isCompleted = true
+                    }
+                    .font(.subheadline)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.primary, lineWidth: 1)
+                    )
+                }
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(uiColor: .secondarySystemBackground))
+        )
+        // Completed ribbon overlay – no longer hidden by the card
+        .overlay(
+            Group {
+                if set.isCompleted {
+                    Text("COMPLETED")
+                        .font(.caption2).bold()
+                        .padding(6)
+                        .background(Color.black)
+                        .foregroundColor(.white)
+                        .rotationEffect(.degrees(22))
+                        .offset(x: 8, y: -8)
+                }
+            },
+            alignment: .topTrailing
+        )
+        .padding(.vertical, 2)
+    }
+}
 
                 // Complete / undo
                 HStack {
