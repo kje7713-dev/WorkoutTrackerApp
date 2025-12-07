@@ -47,11 +47,7 @@ struct EditableDay: Identifiable, Equatable {
     }
 }
 
-enum BlockBuilderMode {
-    case new
-    case edit(Block)
-    case clone(Block)   // use existing as blueprint, force new name
-}
+
 
 // MARK: - Block Builder View
 
