@@ -373,63 +373,85 @@ struct SetRunRow: View {
     @Binding var set: RunSetState
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            // Left: planned + actual
-            VStack(alignment: .leading, spacing: 4) {
+        ZStack(alignment: .topTrailing) {
+            // Completed ribbon
+            if set.isCompleted {
+                Text("COMPLETED")
+                    .font(.caption2).bold()
+                    .padding(6)
+                    .background(Color.black.opacity(0.9))
+                    .foregroundColor(.white)
+                    .rotationEffect(.degrees(22))
+                    .offset(x: 8, y: -8)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                // Header
                 Text("Set \(set.indexInExercise + 1)")
                     .font(.subheadline).bold()
 
+                // Planned row
                 if !set.displayText.isEmpty {
-                    Text(set.displayText)          // Planned summary
+                    Text("Planned: \(set.displayText)")
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }
 
-                // Actual inputs
-                HStack(spacing: 8) {
+                // Actual row
+                HStack(spacing: 6) {
+                    Text("Actual:")
+                        .font(.footnote).bold()
+
                     TextField("Reps", text: $set.actualReps)
                         .keyboardType(.numberPad)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 60)
 
+                    Text("reps")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+
                     TextField("Wt", text: $set.actualWeight)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 70)
+
+                    Text("lb")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+
+                // Complete / undo
+                HStack {
+                    Spacer()
+                    if set.isCompleted {
+                        Button("Undo") {
+                            set.isCompleted = false
+                        }
+                        .font(.caption)
+                    } else {
+                        Button("Complete") {
+                            set.isCompleted = true
+                        }
+                        .font(.subheadline)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.primary, lineWidth: 1)
+                        )
+                    }
                 }
             }
-
-            Spacer()
-
-            // Right: completion
-            if set.isCompleted {
-                Text("COMPLETED")
-                    .font(.caption2).bold()
-                    .padding(6)
-                    .background(Color.black.opacity(0.85))
-                    .foregroundColor(.white)
-                    .rotationEffect(.degrees(22))
-            } else {
-                Button("Complete") {
-                    set.isCompleted = true
-                }
-                .font(.subheadline)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.primary, lineWidth: 1)
-                )
-            }
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(uiColor: .secondarySystemBackground))
+            )
         }
-        .padding(8)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(uiColor: .secondarySystemBackground))
-        )
+        .padding(.vertical, 2)
     }
 }
-
 // MARK: - Run State Models
 
 struct RunWeekState: Identifiable {
