@@ -8,7 +8,25 @@ struct BlocksListView: View {
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @Environment(\.sbdTheme) private var theme
 
-    @State private var isShowingBuilder = false
+    // Which builder mode is active (if any)?
+    @State private var builderContext: BuilderContext?
+
+    private enum BuilderContext: Identifiable {
+        case new
+        case edit(Block)
+        case clone(Block)
+
+        var id: String {
+            switch self {
+            case .new:
+                return "new"
+            case .edit(let block):
+                return "edit-\(block.id)"
+            case .clone(let block):
+                return "clone-\(block.id)"
+            }
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -33,11 +51,21 @@ struct BlocksListView: View {
         }
         .navigationTitle("Blocks")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $isShowingBuilder) {
+        .sheet(item: $builderContext) { context in
             NavigationStack {
-                BlockBuilderView()
-                    // This is technically optional, but explicit is fine:
-                    .environmentObject(blocksRepository)
+                switch context {
+                case .new:
+                    BlockBuilderView(mode: .new)
+                        .environmentObject(blocksRepository)
+
+                case .edit(let block):
+                    BlockBuilderView(mode: .edit(block))
+                        .environmentObject(blocksRepository)
+
+                case .clone(let block):
+                    BlockBuilderView(mode: .clone(block))
+                        .environmentObject(blocksRepository)
+                }
             }
         }
     }
@@ -97,6 +125,21 @@ struct BlocksListView: View {
                                 .fill(Color(uiColor: .secondarySystemBackground))
                         )
                     }
+                    .contextMenu {
+                        Button("Edit Block") {
+                            builderContext = .edit(block)
+                        }
+
+                        Button("Edit as New") {
+                            builderContext = .clone(block)
+                        }
+
+                        Button(role: .destructive) {
+                            blocksRepository.delete(block)
+                        } label: {
+                            Text("Delete Block")
+                        }
+                    }
                 }
             }
             .padding(.top, 8)
@@ -107,7 +150,7 @@ struct BlocksListView: View {
 
     private var newBlockButton: some View {
         Button {
-            isShowingBuilder = true
+            builderContext = .new
         } label: {
             Text("NEW BLOCK")
                 .font(.headline).bold()
