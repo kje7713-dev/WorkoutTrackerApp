@@ -367,16 +367,56 @@ struct ExerciseRunCard: View {
     }
 }
 
-// MARK: - Set Row
-
 struct SetRunRow: View {
     @Binding var set: RunSetState
 
     var body: some View {
-        HStack {
-            setInfo
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Set \(set.indexInExercise + 1)")
+                    .font(.subheadline).bold()
+
+                if !set.displayText.isEmpty {
+                    Text(set.displayText)          // Planned
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+
+                // Actual inputs
+                HStack(spacing: 8) {
+                    TextField("Reps", text: $set.actualReps)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 60)
+
+                    TextField("Wt", text: $set.actualWeight)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 70)
+                }
+            }
+
             Spacer()
-            completionSection
+
+            if set.isCompleted {
+                Text("COMPLETED")
+                    .font(.caption2).bold()
+                    .padding(6)
+                    .background(Color.black.opacity(0.85))
+                    .foregroundColor(.white)
+                    .rotationEffect(.degrees(22))
+            } else {
+                Button("Complete") {
+                    set.isCompleted = true
+                }
+                .font(.subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary, lineWidth: 1)
+                )
+            }
         }
         .padding(8)
         .background(
@@ -384,6 +424,7 @@ struct SetRunRow: View {
                 .fill(Color(uiColor: .secondarySystemBackground))
         )
     }
+}
 
     private var setInfo: some View {
         VStack(alignment: .leading, spacing: 4) {
