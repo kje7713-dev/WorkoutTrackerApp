@@ -567,7 +567,7 @@ struct ExerciseEditorRow: View {
     @Environment(\.sbdTheme) private var theme
     var onDelete: (() -> Void)? = nil
 
-    @State private var showDeleteConfirm = false   // ⬅️ NEW
+    @State private var showDeleteConfirm = false
 
     // Shows MINUTES in the UI, stores SECONDS in conditioningDurationSeconds
     private var durationMinutesBinding: Binding<String> {
@@ -620,24 +620,26 @@ struct ExerciseEditorRow: View {
             }
 
             // 🔻 Delete row – clearly separated at the bottom
-if let onDelete {
-    Button(role: .destructive) {
-        showDeleteConfirm = true
-    } label: {
-        Label("Delete Exercise", systemImage: "trash")
-            .font(.footnote)
-    }
-    .padding(.top, 4)
-    .alert("Delete this exercise?", isPresented: $showDeleteConfirm) {
-        Button("Delete", role: .destructive) {
-            onDelete()
+            if let onDelete {
+                Button(role: .destructive) {
+                    showDeleteConfirm = true
+                } label: {
+                    Label("Delete Exercise", systemImage: "trash")
+                        .font(.footnote)
+                }
+                .padding(.top, 4)
+                .alert("Delete this exercise?", isPresented: $showDeleteConfirm) {
+                    Button("Delete", role: .destructive) {
+                        onDelete()
+                    }
+                    Button("Cancel", role: .cancel) { }
+                } message: {
+                    Text("This will remove the exercise and its settings from this day.")
+                }
+            }
         }
-        Button("Cancel", role: .cancel) { }
-    } message: {
-        Text("This will remove the exercise and its settings from this day.")
+        .padding(.vertical, 4)
     }
-}
-    
 
     // MARK: - Strength Editor
 
