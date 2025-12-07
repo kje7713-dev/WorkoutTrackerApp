@@ -367,17 +367,20 @@ struct ExerciseRunCard: View {
     }
 }
 
+// MARK: - Set Row
+
 struct SetRunRow: View {
     @Binding var set: RunSetState
 
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
+            // Left: planned + actual
             VStack(alignment: .leading, spacing: 4) {
                 Text("Set \(set.indexInExercise + 1)")
                     .font(.subheadline).bold()
 
                 if !set.displayText.isEmpty {
-                    Text(set.displayText)          // Planned
+                    Text(set.displayText)          // Planned summary
                         .font(.footnote)
                         .foregroundColor(.secondary)
                 }
@@ -398,6 +401,7 @@ struct SetRunRow: View {
 
             Spacer()
 
+            // Right: completion
             if set.isCompleted {
                 Text("COMPLETED")
                     .font(.caption2).bold()
@@ -423,40 +427,6 @@ struct SetRunRow: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(uiColor: .secondarySystemBackground))
         )
-    }
-}
-
-    private var setInfo: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Set \(set.indexInExercise + 1)")
-                .font(.subheadline)
-                .fontWeight(.semibold)
-
-            Text(set.displayText)
-                .font(.subheadline)
-        }
-    }
-
-    @ViewBuilder
-    private var completionSection: some View {
-        if set.isCompleted {
-            Text("COMPLETED")
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundColor(Color.primary.opacity(0.7))
-                .rotationEffect(.degrees(22))
-        } else {
-            Button("Complete") {
-                set.isCompleted = true
-            }
-            .font(.subheadline)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.primary, lineWidth: 1)
-            )
-        }
     }
 }
 
@@ -488,7 +458,7 @@ struct RunDayState: Identifiable {
 
 struct RunExerciseState: Identifiable {
     let id = UUID()
-    var name: String              // ⬅️ was let; now editable
+    var name: String              // editable in run mode
     let type: ExerciseType
     var sets: [RunSetState]
 }
@@ -496,8 +466,8 @@ struct RunExerciseState: Identifiable {
 struct RunSetState: Identifiable {
     let id = UUID()
     let indexInExercise: Int
-    let displayText: String       // planned summary (reps/weight or conditioning)
-    var actualReps: String = ""   // ⬅️ actual values typed during run
+    let displayText: String       // planned summary
+    var actualReps: String = ""   // actual vs planned
     var actualWeight: String = ""
     var isCompleted: Bool = false
 }
