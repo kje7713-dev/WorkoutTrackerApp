@@ -465,7 +465,7 @@ struct BlockBuilderView: View {
         let editableDays: [EditableDay] = block.days.enumerated().map { (idx, dayTemplate) in
             var editableDay = EditableDay(index: idx)
             editableDay.name = dayTemplate.name
-            editableDay.shortCode = dayTemplate.shortCode
+            editableDay.shortCode = dayTemplate.shortCode ?? "D\(idx + 1)"
 
             editableDay.exercises = dayTemplate.exercises.map { exercise in
                 var e = EditableExercise()
