@@ -279,8 +279,6 @@ struct DayTabBar: View {
     }
 }
 
-// MARK: - Day View
-
 struct DayRunView: View {
     @Binding var day: RunDayState
 
@@ -290,7 +288,33 @@ struct DayRunView: View {
                 ForEach($day.exercises) { $exercise in
                     ExerciseRunCard(exercise: $exercise)
                 }
+
+                Button {
+                    let newExerciseIndex = day.exercises.count + 1
+                    let newExercise = RunExerciseState(
+                        name: "New Exercise \(newExerciseIndex)",
+                        type: .strength,   // default; user can treat it as needed
+                        sets: [
+                            RunSetState(
+                                indexInExercise: 0,
+                                displayText: "Set 1"
+                            )
+                        ]
+                    )
+                    day.exercises.append(newExercise)
+                } label: {
+                    Label("Add Exercise", systemImage: "plus")
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.primary, lineWidth: 1)
+                        )
+                }
+                .padding(.top, 8)
             }
+            .padding(.horizontal)
             .padding(.vertical)
         }
     }
