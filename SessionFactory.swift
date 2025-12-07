@@ -123,27 +123,26 @@ public struct SessionFactory {
         }
 
         if let conditioningSets = template.conditioningSets {
-            for conditioning in conditioningSets {
-                let set = SessionSet(
-                    id: UUID(),
-                    index: conditioning.index,
-                    expectedReps: nil,
-                    expectedWeight: nil,
-                    expectedTime: conditioning.durationSeconds,
-                    expectedDistance: conditioning.distanceMeters,
-                    expectedCalories: conditioning.calories,
-                    loggedReps: nil,
-                    loggedWeight: nil,
-                    loggedTime: conditioning.durationSeconds,
-                    loggedDistance: conditioning.distanceMeters,
-                    loggedCalories: conditioning.calories,
-                    notes: conditioning.notes,
-                    isCompleted: false
-    
-                )
-                result.append(set)
-            }
-        }
+    for conditioning in conditioningSets {
+        let set = SessionSet(
+            id: UUID(),
+            index: conditioning.index,
+            expectedReps: nil,
+            expectedWeight: nil,
+            expectedTime: conditioning.durationSeconds.map { Double($0) },
+            expectedDistance: conditioning.distanceMeters,
+            expectedCalories: conditioning.calories,
+            loggedReps: nil,
+            loggedWeight: nil,
+            loggedTime: conditioning.durationSeconds.map { Double($0) },
+            loggedDistance: conditioning.distanceMeters,
+            loggedCalories: conditioning.calories,
+            notes: conditioning.notes,
+            isCompleted: false
+        )
+        result.append(set)
+    }
+}
 
         // If you later make use of genericSets on ExerciseTemplate,
         // you can add a third branch here that maps those into SessionSets
