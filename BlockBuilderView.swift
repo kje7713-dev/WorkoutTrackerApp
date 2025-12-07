@@ -57,6 +57,7 @@ struct BlockBuilderView: View {
     @Environment(\.sbdTheme) private var theme
 
     @EnvironmentObject private var blocksRepository: BlocksRepository
+@EnvironmentObject private var sessionsRepository: SessionsRepository
 
     // What are we doing?
     private let mode: BlockBuilderMode
