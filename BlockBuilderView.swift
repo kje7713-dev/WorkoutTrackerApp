@@ -307,7 +307,7 @@ struct BlockBuilderView: View {
 
         // If cloning, require a new name vs the original
         if case .clone(let original) = mode {
-            let originalTrimmed = original.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let originalTrimmed = original.name.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             if originalTrimmed == trimmedName {
                 validationMessage = "Enter a new name so this block can be saved as a separate template."
                 showValidationAlert = true
