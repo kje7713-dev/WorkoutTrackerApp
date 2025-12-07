@@ -102,6 +102,13 @@ public final class BlocksRepository: ObservableObject {
 
 /// In-memory store for generated workout sessions.
 /// Phase 4: simple flat array; later we can add helpers + persistence.
+// Insert into SessionsRepository
+
+public func replaceSessions(forBlockId blockId: BlockID, with new: [WorkoutSession]) {
+    sessions.removeAll { $0.blockId == blockId }
+    sessions.append(contentsOf: new)
+}
+
 public final class SessionsRepository: ObservableObject {
     @Published private(set) public var sessions: [WorkoutSession]
 
