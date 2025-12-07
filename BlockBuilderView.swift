@@ -478,7 +478,7 @@ struct BlockBuilderView: View {
                    let sets = exercise.strengthSets,
                    let first = sets.first {
                     e.strengthSetsCount = sets.count
-                    e.strengthReps = first.reps
+                    e.strengthReps = first.reps ?? e.strengthReps
                     e.strengthWeight = first.weight
                 }
 
