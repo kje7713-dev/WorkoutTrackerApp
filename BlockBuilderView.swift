@@ -471,7 +471,7 @@ struct BlockBuilderView: View {
                 var e = EditableExercise()
                 e.name = exercise.customName ?? ""
                 e.type = exercise.type
-                e.notes = exercise.notes
+                e.notes = exercise.notes ?? ""
 
                 // Strength mapping
                 if exercise.type == .strength,
