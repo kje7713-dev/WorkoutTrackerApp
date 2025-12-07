@@ -3,14 +3,7 @@ import SwiftUI
 /// Blocks screen – choose a block to run, or create a new one.
 /// Phase 7: hooked to BlocksRepository (no ProgramStore, no extra layers).
 
-// TEMP TEST BUTTON - REMOVE LATER
-if let first = sessionsRepository.sessions.first {
-    NavigationLink("TEMP: Open Session") {
-        WorkoutSessionView(session: first)
-            .environmentObject(blocksRepository)
-            .environmentObject(sessionsRepository)
-    }
-}
+
 
 struct BlocksListView: View {
 
