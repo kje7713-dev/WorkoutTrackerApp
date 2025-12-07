@@ -324,13 +324,44 @@ struct ExerciseRunCard: View {
     @Binding var exercise: RunExerciseState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(exercise.name)
+        VStack(alignment: .leading, spacing: 12) {
+            // Editable exercise name
+            TextField("Exercise name", text: $exercise.name)
                 .font(.headline)
+                .textFieldStyle(.roundedBorder)
+                .disableAutocorrection(true)
 
+            // Sets
             ForEach($exercise.sets) { $set in
                 SetRunRow(set: $set)
             }
+
+            // Add/remove set controls
+            HStack {
+                Button {
+                    let newIndex = exercise.sets.count
+                    let newSet = RunSetState(
+                        indexInExercise: newIndex,
+                        displayText: "Set \(newIndex + 1)"
+                    )
+                    exercise.sets.append(newSet)
+                } label: {
+                    Label("Add Set", systemImage: "plus")
+                        .font(.caption.bold())
+                }
+
+                Spacer()
+
+                if exercise.sets.count > 1 {
+                    Button {
+                        _ = exercise.sets.popLast()
+                    } label: {
+                        Label("Remove Set", systemImage: "minus")
+                            .font(.caption)
+                    }
+                }
+            }
+            .padding(.top, 4)
         }
         .padding()
     }
