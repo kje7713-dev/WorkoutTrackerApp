@@ -508,7 +508,7 @@ struct BlockBuilderView: View {
         )
     }
 }
-}
+
 
 // MARK: - Day Editor
 
