@@ -99,47 +99,74 @@ struct BlocksListView: View {
         .padding(.top, 16)
     }
 
-    // MARK: - List of Blocks
+        // MARK: - List of Blocks
 
     private var blocksList: some View {
         ScrollView {
             VStack(spacing: 16) {
                 ForEach(Array(blocksRepository.blocks.enumerated()), id: \.offset) { _, block in
-                    NavigationLink {
-                        BlockRunModeView(block: block)
-                    } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(block.name)
-                                .font(.headline).bold()
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Title / description (unchanged behavior)
+                        Text(block.name)
+                            .font(.headline).bold()
 
-                            if let description = block.description, !description.isEmpty {
-                                Text(description)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                        if let description = block.description, !description.isEmpty {
+                            Text(description)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+
+                        // Explicit action row: RUN / EDIT / NEXT BLOCK
+                        HStack(spacing: 8) {
+                            // RUN – same behavior as your old NavigationLink row
+                            NavigationLink {
+                                BlockRunModeView(block: block)
+                            } label: {
+                                Text("RUN")
+                                    .font(.subheadline).bold()
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
                             }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(uiColor: .secondarySystemBackground))
-                        )
-                    }
-                    .contextMenu {
-                        Button("Edit Block") {
-                            builderContext = .edit(block)
+                            .buttonStyle(.borderedProminent)
+
+                            // EDIT – open builder in edit mode (update this block)
+                            Button {
+                                builderContext = .edit(block)
+                            } label: {
+                                Text("EDIT")
+                                    .font(.subheadline).bold()
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.bordered)
+
+                            // NEXT BLOCK – open builder in clone mode (new block based on this one)
+                            Button {
+                                builderContext = .clone(block)
+                            } label: {
+                                Text("NEXT BLOCK")
+                                    .font(.subheadline).bold()
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.bordered)
                         }
 
-                        Button("Edit as New") {
-                            builderContext = .clone(block)
-                        }
-
+                        // Optional: explicit DELETE button (same behavior as old contextMenu delete)
                         Button(role: .destructive) {
                             blocksRepository.delete(block)
                         } label: {
-                            Text("Delete Block")
+                            Text("DELETE")
+                                .font(.footnote)
                         }
+                        .padding(.top, 4)
                     }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(uiColor: .secondarySystemBackground))
+                    )
                 }
             }
             .padding(.top, 8)
