@@ -3,11 +3,13 @@
 //  Savage By Design
 //
 //  Phase 8: Session Execution (inline scroll log, Option 1)
-//  NOTE: Uses existing domain models:
+//
+//  Uses existing domain models:
 //  - WorkoutSession
 //  - SessionExercise
 //  - SessionSet
-//  as defined in DataDictionary.md.
+//  - Block / DayTemplate via BlocksRepository
+//
 //  No model changes, no new fields.
 //
 
@@ -46,14 +48,14 @@ struct WorkoutSessionView: View {
 
                 ScrollView {
                     VStack(spacing: 12) {
-                        ForEach($session.exercises.indices, id: \.self) { idx in
+                        ForEach(session.exercises.indices, id: \.self) { idx in
                             SessionExerciseCardView(exercise: $session.exercises[idx])
                         }
                     }
                     .padding(.vertical, 8)
                 }
 
-                footerButtons
+                footerButton
             }
             .padding(.horizontal)
             .padding(.top, 16)
@@ -68,7 +70,7 @@ struct WorkoutSessionView: View {
                 }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
+                Button(primaryButtonTitle) {
                     saveSessionAndDismiss()
                 }
                 .fontWeight(.bold)
@@ -80,12 +82,16 @@ struct WorkoutSessionView: View {
 
     private var header: some View {
         let block = blocksRepository.blocks.first { $0.id == session.blockId }
+        let dayName = block?
+            .days
+            .first(where: { $0.id == session.dayTemplateId })?
+            .name ?? "Day"
 
         return VStack(alignment: .leading, spacing: 4) {
             Text(block?.name ?? "Session")
                 .font(.title2).bold()
 
-            Text(dayTitle(block: block))
+            Text(dayName)
                 .font(.subheadline)
                 .foregroundColor(theme.mutedText)
 
@@ -94,19 +100,6 @@ struct WorkoutSessionView: View {
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func dayTitle(block: Block?) -> String {
-        // If your DayTemplate has an id of type DayTemplateID,
-        // this will try to derive its name.
-        if
-            let block = block,
-            let day = block.days.first(where: { $0.id == session.dayTemplateId })
-        {
-            return day.name
-        } else {
-            return "Day"
-        }
     }
 
     // MARK: - Progress
@@ -126,8 +119,10 @@ struct WorkoutSessionView: View {
     private var progressBar: some View {
         VStack(alignment: .leading, spacing: 4) {
             if totalSetCount > 0 {
-                ProgressView(value: Double(completedSetCount),
-                             total: Double(totalSetCount))
+                ProgressView(
+                    value: Double(completedSetCount),
+                    total: Double(totalSetCount)
+                )
                 Text("\(completedSetCount) of \(totalSetCount) sets completed")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -142,19 +137,17 @@ struct WorkoutSessionView: View {
 
     // MARK: - Footer
 
-    private var footerButtons: some View {
-        HStack(spacing: 12) {
-            Button {
-                saveSessionAndDismiss()
-            } label: {
-                Text(primaryButtonTitle)
-                    .font(.headline).bold()
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-            }
-            .background(Color.black)
-            .foregroundColor(.white)
-            .cornerRadius(24)
+    private var footerButton: some View {
+        Button {
+            saveSessionAndDismiss()
+        } label: {
+            Text(primaryButtonTitle)
+                .font(.headline).bold()
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.black)
+                .foregroundColor(.white)
+                .cornerRadius(24)
         }
         .padding(.bottom, 8)
     }
@@ -175,7 +168,7 @@ struct WorkoutSessionView: View {
     // MARK: - Save
 
     private func saveSessionAndDismiss() {
-        // Ensure we stamp a date the first time this session is saved/opened
+        // Stamp date first time this session is saved/opened
         if session.date == nil {
             session.date = Date()
         }
@@ -211,8 +204,6 @@ private struct SessionExerciseCardView: View {
         if let custom = exercise.customName, !custom.isEmpty {
             return custom
         } else {
-            // If your SessionExercise / ExerciseDefinition has a nicer lookup,
-            // you can wire it in later. For now we just fall back.
             return "Exercise"
         }
     }
@@ -224,21 +215,23 @@ private struct SessionExerciseCardView: View {
                 .font(.headline)
 
             // Optional inline name editing (session-local)
-            TextField("Custom name (optional)", text: Binding(
-                get: { exercise.customName ?? "" },
-                set: { newValue in
-                    exercise.customName = newValue.isEmpty ? nil : newValue
-                }
-            ))
+            TextField(
+                "Custom name (optional)",
+                text: Binding(
+                    get: { exercise.customName ?? "" },
+                    set: { newValue in
+                        exercise.customName = newValue.isEmpty ? nil : newValue
+                    }
+                )
+            )
             .font(.subheadline)
             .textFieldStyle(.roundedBorder)
             .disableAutocorrection(true)
             .autocapitalization(.words)
 
             // Sets
-            if !exercise.loggedSets.isEmpty && !exercise.expectedSets.isEmpty {
-                let count = min(exercise.expectedSets.count, exercise.loggedSets.count)
-
+            let count = min(exercise.expectedSets.count, exercise.loggedSets.count)
+            if count > 0 {
                 ForEach(0..<count, id: \.self) { index in
                     SessionSetRowView(
                         index: index,
@@ -346,57 +339,75 @@ private struct SessionSetRowView: View {
                     .foregroundColor(.secondary)
 
                 // Reps
-                TextField("Reps", text: bindingForInt(
-                    get: { logged.loggedReps },
-                    set: { logged.loggedReps = $0 }
-                ))
+                TextField(
+                    "Reps",
+                    text: bindingForInt(
+                        get: { logged.loggedReps },
+                        set: { logged.loggedReps = $0 }
+                    )
+                )
                 .keyboardType(.numberPad)
                 .font(.caption)
                 .frame(width: 50)
 
                 // Weight
-                TextField("Wt", text: bindingForDouble(
-                    get: { logged.loggedWeight },
-                    set: { logged.loggedWeight = $0 }
-                ))
+                TextField(
+                    "Wt",
+                    text: bindingForDouble(
+                        get: { logged.loggedWeight },
+                        set: { logged.loggedWeight = $0 }
+                    )
+                )
                 .keyboardType(.decimalPad)
                 .font(.caption)
                 .frame(width: 60)
 
                 // Time
-                TextField("Time (s)", text: bindingForDouble(
-                    get: { logged.loggedTime },
-                    set: { logged.loggedTime = $0 }
-                ))
+                TextField(
+                    "Time (s)",
+                    text: bindingForDouble(
+                        get: { logged.loggedTime },
+                        set: { logged.loggedTime = $0 }
+                    )
+                )
                 .keyboardType(.decimalPad)
                 .font(.caption2)
                 .frame(width: 70)
 
                 // Distance
-                TextField("m", text: bindingForDouble(
-                    get: { logged.loggedDistance },
-                    set: { logged.loggedDistance = $0 }
-                ))
+                TextField(
+                    "m",
+                    text: bindingForDouble(
+                        get: { logged.loggedDistance },
+                        set: { logged.loggedDistance = $0 }
+                    )
+                )
                 .keyboardType(.decimalPad)
                 .font(.caption2)
                 .frame(width: 60)
 
                 // Calories
-                TextField("cal", text: bindingForDouble(
-                    get: { logged.loggedCalories },
-                    set: { logged.loggedCalories = $0 }
-                ))
+                TextField(
+                    "cal",
+                    text: bindingForDouble(
+                        get: { logged.loggedCalories },
+                        set: { logged.loggedCalories = $0 }
+                    )
+                )
                 .keyboardType(.decimalPad)
                 .font(.caption2)
                 .frame(width: 60)
             }
 
-            TextField("Notes (optional)", text: Binding(
-                get: { logged.notes ?? "" },
-                set: { newValue in
-                    logged.notes = newValue.isEmpty ? nil : newValue
-                }
-            ))
+            TextField(
+                "Notes (optional)",
+                text: Binding(
+                    get: { logged.notes ?? "" },
+                    set: { newValue in
+                        logged.notes = newValue.isEmpty ? nil : newValue
+                    }
+                )
+            )
             .font(.caption)
         }
     }
@@ -404,16 +415,12 @@ private struct SessionSetRowView: View {
     // MARK: - Helpers
 
     private func clean(_ value: Double) -> String {
-        // Show integers without .0
         if value.rounded(.towardZero) == value {
             return String(Int(value))
         } else {
             return String(value)
         }
     }
-
-    // Small helpers that work whether loggedReps / loggedWeight etc are optional or not,
-    // as long as they are Int? / Double? in your model.
 
     private func bindingForInt(
         get: @escaping () -> Int?,
