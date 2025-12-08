@@ -368,7 +368,29 @@ struct ExerciseRunCard: View {
                 .textFieldStyle(.roundedBorder)
                 .disableAutocorrection(true)
 
-            // Sets
+            // Existing name field
+TextField("Exercise name", text: $exercise.name)
+    .font(.headline)
+    .textFieldStyle(.roundedBorder)
+    .disableAutocorrection(true)
+
+// 🔹 Show existing notes from the block builder, if any
+if !exercise.notes.isEmpty {
+    Text(exercise.notes)
+        .font(.footnote)
+        .foregroundColor(.secondary)
+}
+
+// 🔹 Editable notes during the session (RPE, cues, etc.)
+TextField("Add notes (RPE, cues, etc.)",
+          text: $exercise.notes,
+          axis: .vertical)
+    .lineLimit(1...3)
+    .font(.footnote)
+    .textFieldStyle(.roundedBorder)
+
+// Then your existing:
+// ForEach($exercise.sets) { $set in ... }
             // Sets
 ForEach($exercise.sets) { $runSet in
     SetRunRow(runSet: $runSet, type: exercise.type)
