@@ -391,6 +391,7 @@ ForEach($exercise.sets) { $runSet in
                     let newSet = RunSetState(
                         indexInExercise: newIndex,
                         displayText: "Set \(newIndex + 1)",
+                        type: .strength
                         plannedReps: nil,
                         plannedWeight: nil,
                         actualReps: nil,
