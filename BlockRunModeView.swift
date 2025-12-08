@@ -743,3 +743,4 @@ struct RunSetState: Identifiable {
         self.isCompleted = isCompleted
     }
 }
+}
