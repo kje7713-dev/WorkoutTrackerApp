@@ -568,6 +568,7 @@ struct RunExerciseState: Identifiable {
     let id = UUID()
     var name: String              // editable in run mode
     let type: ExerciseType
+    var notes: String             // 🔹 shared notes for strength + conditioning
     var sets: [RunSetState]
 }
 
