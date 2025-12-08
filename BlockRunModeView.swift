@@ -62,15 +62,28 @@ struct BlockRunModeView: View {
 
     // MARK: - Top Bar
 
-    private var topBar: some View {
-        VStack(alignment: .leading, spacing: 4) {
+private var topBar: some View {
+    ZStack {
+        // Branded card background
+        RoundedRectangle(cornerRadius: 24)
+            .fill(
+                LinearGradient(
+                    colors: [Color.black, Color.black.opacity(0.8)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .shadow(radius: 8)
+
+        VStack(alignment: .leading, spacing: 6) {
             Text("SAVAGE BY DESIGN")
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.6))
 
             Text(block.name)
-                .font(.headline)
+                .font(.title3).bold()
+                .foregroundColor(.white)
 
             let dayShortCode: String = {
                 guard block.days.indices.contains(currentDayIndex) else { return "" }
@@ -79,11 +92,14 @@ struct BlockRunModeView: View {
 
             Text("Week \(currentWeekIndex + 1) — \(dayShortCode)")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.white.opacity(0.8))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
     }
+    .padding([.horizontal, .top])
+}
 
     // MARK: - Week Change Logic
 
