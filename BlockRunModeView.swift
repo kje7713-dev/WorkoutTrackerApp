@@ -421,108 +421,63 @@ ForEach($exercise.sets) { $runSet in
     }
 }
 
-// MARK: - Set Row
-
 struct SetRunRow: View {
-    @Binding var runSet: RunSetState
-    let type: ExerciseType
+    @Binding var set: RunSetState
 
-    // Helpers: what to display if actual is nil
+    // Strength helpers
     private var repsValue: Int {
-        runSet.actualReps ?? runSet.plannedReps ?? 0
+        set.actualReps ?? set.plannedReps ?? 0
     }
 
     private var weightValue: Double {
-        runSet.actualWeight ?? runSet.plannedWeight ?? 0
+        set.actualWeight ?? set.plannedWeight ?? 0
+    }
+
+    // Conditioning helpers (we show minutes for time)
+    private var timeMinutesValue: Int {
+        let seconds = set.actualTimeSeconds ?? set.plannedTimeSeconds ?? 0
+        return Int(seconds / 60)
+    }
+
+    private var caloriesValue: Int {
+        Int(set.actualCalories ?? set.plannedCalories ?? 0)
+    }
+
+    private var roundsValue: Int {
+        set.actualRounds ?? set.plannedRounds ?? 0
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Header
-            Text("Set \(runSet.indexInExercise + 1)")
+            Text("Set \(set.indexInExercise + 1)")
                 .font(.subheadline).bold()
 
             // Planned summary
-            if !runSet.displayText.isEmpty {
-                Text("Planned: \(runSet.displayText)")
+            if !set.displayText.isEmpty {
+                Text("Planned: \(set.displayText)")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
 
-            // --- Controls differ by type ---
-            if type == .strength {
-                // Strength: reps + weight clickers, no “Actual:” label
-                HStack(spacing: 10) {
-                    // Reps clicker
-                    HStack(spacing: 4) {
-                        Button {
-                            let new = max(0, repsValue - 1)
-                            runSet.actualReps = new
-                        } label: {
-                            Image(systemName: "minus.circle")
-                        }
-
-                        Text("\(repsValue)")
-                            .font(.body.monospacedDigit())
-                            .frame(width: 32, alignment: .center)
-
-                        Button {
-                            let new = repsValue + 1
-                            runSet.actualReps = new
-                        } label: {
-                            Image(systemName: "plus.circle")
-                        }
-                    }
-
-                    Text("reps")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-
-                    // Weight clicker
-                    HStack(spacing: 4) {
-                        Button {
-                            let step = 5.0    // tweak if you want 2.5/1/etc
-                            let new = max(0, weightValue - step)
-                            runSet.actualWeight = new
-                        } label: {
-                            Image(systemName: "minus.circle")
-                        }
-
-                        Text(weightValue == 0 ? "-" : String(format: "%.0f", weightValue))
-                            .font(.body.monospacedDigit())
-                            .frame(width: 44, alignment: .center)
-
-                        Button {
-                            let step = 5.0
-                            let new = weightValue + step
-                            runSet.actualWeight = new
-                        } label: {
-                            Image(systemName: "plus.circle")
-                        }
-                    }
-
-                    Text("lb")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            } else {
-                // Conditioning: keep it simple, no fake reps/weight UI
-                Text("Log it mentally and tap Complete when this interval is done.")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+            // Controls depend on type
+            if set.type == .strength {
+                strengthControls
+            } else if set.type == .conditioning {
+                conditioningControls
             }
 
             // Complete / Undo
             HStack {
                 Spacer()
-                if runSet.isCompleted {
+                if set.isCompleted {
                     Button("Undo") {
-                        runSet.isCompleted = false
+                        set.isCompleted = false
                     }
                     .font(.caption)
                 } else {
                     Button("Complete") {
-                        runSet.isCompleted = true
+                        set.isCompleted = true
                     }
                     .font(.subheadline)
                     .padding(.horizontal, 12)
@@ -542,7 +497,7 @@ struct SetRunRow: View {
         // Completed ribbon overlay
         .overlay(
             Group {
-                if runSet.isCompleted {
+                if set.isCompleted {
                     Text("COMPLETED")
                         .font(.caption2).bold()
                         .padding(6)
@@ -555,6 +510,150 @@ struct SetRunRow: View {
             alignment: .topTrailing
         )
         .padding(.vertical, 2)
+    }
+
+    // MARK: - Strength UI
+
+    private var strengthControls: some View {
+        HStack(spacing: 12) {
+            // Reps clicker
+            HStack(spacing: 4) {
+                Button {
+                    let new = max(0, repsValue - 1)
+                    set.actualReps = new
+                } label: {
+                    Image(systemName: "minus.circle")
+                }
+
+                Text("\(repsValue)")
+                    .font(.body.monospacedDigit())
+                    .frame(width: 32)
+
+                Button {
+                    let new = repsValue + 1
+                    set.actualReps = new
+                } label: {
+                    Image(systemName: "plus.circle")
+                }
+            }
+
+            Text("reps")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+
+            // Weight clicker
+            HStack(spacing: 4) {
+                Button {
+                    let step = 5.0
+                    let new = max(0, weightValue - step)
+                    set.actualWeight = new
+                } label: {
+                    Image(systemName: "minus.circle")
+                }
+
+                Text(weightValue == 0 ? "-" : String(format: "%.0f", weightValue))
+                    .font(.body.monospacedDigit())
+                    .frame(width: 44)
+
+                Button {
+                    let step = 5.0
+                    let new = weightValue + step
+                    set.actualWeight = new
+                } label: {
+                    Image(systemName: "plus.circle")
+                }
+            }
+
+            Text("lb")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+    }
+
+    // MARK: - Conditioning UI
+
+    private var conditioningControls: some View {
+        VStack(alignment: .leading, spacing: 6) {
+
+            // Time (minutes)
+            HStack(spacing: 6) {
+                Text("Time")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+
+                Button {
+                    let mins = max(0, timeMinutesValue - 1)
+                    set.actualTimeSeconds = Double(mins * 60)
+                } label: {
+                    Image(systemName: "minus.circle")
+                }
+
+                Text("\(timeMinutesValue)")
+                    .font(.body.monospacedDigit())
+                    .frame(width: 32)
+
+                Button {
+                    let mins = timeMinutesValue + 1
+                    set.actualTimeSeconds = Double(mins * 60)
+                } label: {
+                    Image(systemName: "plus.circle")
+                }
+
+                Text("min")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+
+            // Calories
+            HStack(spacing: 6) {
+                Text("Cal")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+
+                Button {
+                    let new = max(0, caloriesValue - 5)
+                    set.actualCalories = Double(new)
+                } label: {
+                    Image(systemName: "minus.circle")
+                }
+
+                Text("\(caloriesValue)")
+                    .font(.body.monospacedDigit())
+                    .frame(width: 40)
+
+                Button {
+                    let new = caloriesValue + 5
+                    set.actualCalories = Double(new)
+                } label: {
+                    Image(systemName: "plus.circle")
+                }
+            }
+
+            // Rounds
+            HStack(spacing: 6) {
+                Text("Rounds")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+
+                Button {
+                    let new = max(0, roundsValue - 1)
+                    set.actualRounds = new
+                } label: {
+                    Image(systemName: "minus.circle")
+                }
+
+                Text("\(roundsValue)")
+                    .font(.body.monospacedDigit())
+                    .frame(width: 32)
+
+                Button {
+                    let new = roundsValue + 1
+                    set.actualRounds = new
+                } label: {
+                    Image(systemName: "plus.circle")
+                }
+            }
+        }
     }
 }
 
