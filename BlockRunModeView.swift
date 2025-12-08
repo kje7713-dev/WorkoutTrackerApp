@@ -411,11 +411,14 @@ struct ExerciseRunCard: View {
 }
 
 struct SetRunRow: View {
-    @Binding var set: RunSetState
+    @Binding var set: RunSetState   // if this still errors, rename to runSet and update below
+    // If you prefer to be extra safe, use:
+    // @Binding var runSet: RunSetState
 
     // Strength helpers
     private var repsValue: Int {
         set.actualReps ?? set.plannedReps ?? 0
+        // if you renamed: runSet.actualReps ?? runSet.plannedReps ?? 0
     }
 
     private var weightValue: Double {
