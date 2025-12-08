@@ -411,65 +411,62 @@ struct ExerciseRunCard: View {
 }
 
 struct SetRunRow: View {
-    @Binding var set: RunSetState   // if this still errors, rename to runSet and update below
-    // If you prefer to be extra safe, use:
-    // @Binding var runSet: RunSetState
+    @Binding var runSet: RunSetState    // ⬅️ renamed from `set`
 
     // Strength helpers
     private var repsValue: Int {
-        set.actualReps ?? set.plannedReps ?? 0
-        // if you renamed: runSet.actualReps ?? runSet.plannedReps ?? 0
+        runSet.actualReps ?? runSet.plannedReps ?? 0
     }
 
     private var weightValue: Double {
-        set.actualWeight ?? set.plannedWeight ?? 0
+        runSet.actualWeight ?? runSet.plannedWeight ?? 0
     }
 
     // Conditioning helpers (we show minutes for time)
     private var timeMinutesValue: Int {
-        let seconds = set.actualTimeSeconds ?? set.plannedTimeSeconds ?? 0
+        let seconds = runSet.actualTimeSeconds ?? runSet.plannedTimeSeconds ?? 0
         return Int(seconds / 60)
     }
 
     private var caloriesValue: Int {
-        Int(set.actualCalories ?? set.plannedCalories ?? 0)
+        Int(runSet.actualCalories ?? runSet.plannedCalories ?? 0)
     }
 
     private var roundsValue: Int {
-        set.actualRounds ?? set.plannedRounds ?? 0
+        runSet.actualRounds ?? runSet.plannedRounds ?? 0
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Header
-            Text("Set \(set.indexInExercise + 1)")
+            Text("Set \(runSet.indexInExercise + 1)")
                 .font(.subheadline).bold()
 
             // Planned summary
-            if !set.displayText.isEmpty {
-                Text("Planned: \(set.displayText)")
+            if !runSet.displayText.isEmpty {
+                Text("Planned: \(runSet.displayText)")
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
 
             // Controls depend on type
-            if set.type == .strength {
+            if runSet.type == .strength {
                 strengthControls
-            } else if set.type == .conditioning {
+            } else if runSet.type == .conditioning {
                 conditioningControls
             }
 
             // Complete / Undo
             HStack {
                 Spacer()
-                if set.isCompleted {
+                if runSet.isCompleted {
                     Button("Undo") {
-                        set.isCompleted = false
+                        runSet.isCompleted = false
                     }
                     .font(.caption)
                 } else {
                     Button("Complete") {
-                        set.isCompleted = true
+                        runSet.isCompleted = true
                     }
                     .font(.subheadline)
                     .padding(.horizontal, 12)
@@ -489,7 +486,7 @@ struct SetRunRow: View {
         // Completed ribbon overlay
         .overlay(
             Group {
-                if set.isCompleted {
+                if runSet.isCompleted {
                     Text("COMPLETED")
                         .font(.caption2).bold()
                         .padding(6)
@@ -512,7 +509,7 @@ struct SetRunRow: View {
             HStack(spacing: 4) {
                 Button {
                     let new = max(0, repsValue - 1)
-                    set.actualReps = new
+                    runSet.actualReps = new
                 } label: {
                     Image(systemName: "minus.circle")
                 }
@@ -523,7 +520,7 @@ struct SetRunRow: View {
 
                 Button {
                     let new = repsValue + 1
-                    set.actualReps = new
+                    runSet.actualReps = new
                 } label: {
                     Image(systemName: "plus.circle")
                 }
@@ -538,7 +535,7 @@ struct SetRunRow: View {
                 Button {
                     let step = 5.0
                     let new = max(0, weightValue - step)
-                    set.actualWeight = new
+                    runSet.actualWeight = new
                 } label: {
                     Image(systemName: "minus.circle")
                 }
@@ -550,7 +547,7 @@ struct SetRunRow: View {
                 Button {
                     let step = 5.0
                     let new = weightValue + step
-                    set.actualWeight = new
+                    runSet.actualWeight = new
                 } label: {
                     Image(systemName: "plus.circle")
                 }
@@ -575,7 +572,7 @@ struct SetRunRow: View {
 
                 Button {
                     let mins = max(0, timeMinutesValue - 1)
-                    set.actualTimeSeconds = Double(mins * 60)
+                    runSet.actualTimeSeconds = Double(mins * 60)
                 } label: {
                     Image(systemName: "minus.circle")
                 }
@@ -586,7 +583,7 @@ struct SetRunRow: View {
 
                 Button {
                     let mins = timeMinutesValue + 1
-                    set.actualTimeSeconds = Double(mins * 60)
+                    runSet.actualTimeSeconds = Double(mins * 60)
                 } label: {
                     Image(systemName: "plus.circle")
                 }
@@ -604,7 +601,7 @@ struct SetRunRow: View {
 
                 Button {
                     let new = max(0, caloriesValue - 5)
-                    set.actualCalories = Double(new)
+                    runSet.actualCalories = Double(new)
                 } label: {
                     Image(systemName: "minus.circle")
                 }
@@ -615,7 +612,7 @@ struct SetRunRow: View {
 
                 Button {
                     let new = caloriesValue + 5
-                    set.actualCalories = Double(new)
+                    runSet.actualCalories = Double(new)
                 } label: {
                     Image(systemName: "plus.circle")
                 }
@@ -629,7 +626,7 @@ struct SetRunRow: View {
 
                 Button {
                     let new = max(0, roundsValue - 1)
-                    set.actualRounds = new
+                    runSet.actualRounds = new
                 } label: {
                     Image(systemName: "minus.circle")
                 }
@@ -640,7 +637,7 @@ struct SetRunRow: View {
 
                 Button {
                     let new = roundsValue + 1
-                    set.actualRounds = new
+                    runSet.actualRounds = new
                 } label: {
                     Image(systemName: "plus.circle")
                 }
