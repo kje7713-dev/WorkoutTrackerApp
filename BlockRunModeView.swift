@@ -211,6 +211,14 @@ private var topBar: some View {
                     }
 
                     let name = exercise.customName ?? "Exercise"
+let notes = exercise.notes ?? ""      // 🔹 carry builder notes into run mode
+
+return RunExerciseState(
+    name: name,
+    type: exercise.type,
+    notes: notes,
+    sets: sets
+)
                     return RunExerciseState(
                         name: name,
                         type: exercise.type,
