@@ -405,6 +405,7 @@ ForEach($exercise.sets) { $runSet in
 
 struct SetRunRow: View {
     @Binding var runSet: RunSetState
+    let type: ExerciseType
 
     // Helpers: what to display if actual is nil
     private var repsValue: Int {
@@ -428,60 +429,65 @@ struct SetRunRow: View {
                     .foregroundColor(.secondary)
             }
 
-            // Actual controls
-            HStack(spacing: 10) {
-                Text("Actual:")
-                    .font(.footnote).bold()
+            // --- Controls differ by type ---
+            if type == .strength {
+                // Strength: reps + weight clickers, no “Actual:” label
+                HStack(spacing: 10) {
+                    // Reps clicker
+                    HStack(spacing: 4) {
+                        Button {
+                            let new = max(0, repsValue - 1)
+                            runSet.actualReps = new
+                        } label: {
+                            Image(systemName: "minus.circle")
+                        }
 
-                // Reps clicker
-                HStack(spacing: 4) {
-                    Button {
-                        let new = max(0, repsValue - 1)
-                        runSet.actualReps = new
-                    } label: {
-                        Image(systemName: "minus.circle")
+                        Text("\(repsValue)")
+                            .font(.body.monospacedDigit())
+                            .frame(width: 32, alignment: .center)
+
+                        Button {
+                            let new = repsValue + 1
+                            runSet.actualReps = new
+                        } label: {
+                            Image(systemName: "plus.circle")
+                        }
                     }
 
-                    Text("\(repsValue)")
-                        .font(.body.monospacedDigit())
-                        .frame(width: 32, alignment: .center)
+                    Text("reps")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
 
-                    Button {
-                        let new = repsValue + 1
-                        runSet.actualReps = new
-                    } label: {
-                        Image(systemName: "plus.circle")
+                    // Weight clicker
+                    HStack(spacing: 4) {
+                        Button {
+                            let step = 5.0    // tweak if you want 2.5/1/etc
+                            let new = max(0, weightValue - step)
+                            runSet.actualWeight = new
+                        } label: {
+                            Image(systemName: "minus.circle")
+                        }
+
+                        Text(weightValue == 0 ? "-" : String(format: "%.0f", weightValue))
+                            .font(.body.monospacedDigit())
+                            .frame(width: 44, alignment: .center)
+
+                        Button {
+                            let step = 5.0
+                            let new = weightValue + step
+                            runSet.actualWeight = new
+                        } label: {
+                            Image(systemName: "plus.circle")
+                        }
                     }
+
+                    Text("lb")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
-
-                Text("reps")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-
-                // Weight clicker
-                HStack(spacing: 4) {
-                    Button {
-                        let step = 5.0      // tweak if you prefer 2.5, 1, etc.
-                        let new = max(0, weightValue - step)
-                        runSet.actualWeight = new
-                    } label: {
-                        Image(systemName: "minus.circle")
-                    }
-
-                    Text(weightValue == 0 ? "-" : String(format: "%.0f", weightValue))
-                        .font(.body.monospacedDigit())
-                        .frame(width: 44, alignment: .center)
-
-                    Button {
-                        let step = 5.0
-                        let new = weightValue + step
-                        runSet.actualWeight = new
-                    } label: {
-                        Image(systemName: "plus.circle")
-                    }
-                }
-
-                Text("lb")
+            } else {
+                // Conditioning: keep it simple, no fake reps/weight UI
+                Text("Log it mentally and tap Complete when this interval is done.")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
