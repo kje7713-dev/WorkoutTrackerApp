@@ -360,9 +360,10 @@ struct ExerciseRunCard: View {
                 .disableAutocorrection(true)
 
             // Sets
-            ForEach($exercise.sets) { $runSet in
-                SetRunRow(runSet: $runSet)
-            }
+            // Sets
+ForEach($exercise.sets) { $runSet in
+    SetRunRow(runSet: $runSet, type: exercise.type)
+}
 
             // Add/remove set controls
             HStack {
