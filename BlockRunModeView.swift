@@ -129,59 +129,46 @@ private var topBar: some View {
                     let sets: [RunSetState]
 
                     switch exercise.type {
-                    case .strength:
-                        let strengthSets = exercise.strengthSets ?? []
-                        sets = strengthSets.enumerated().map { idx, set in
-    let repsText: String
-    if let reps = set.reps {
-        repsText = "Reps: \(reps)"
-    } else {
-        repsText = ""
+case .strength:
+    let strengthSets = exercise.strengthSets ?? []
+    sets = strengthSets.enumerated().map { idx, set in
+        let repsText = set.reps.map { "Reps: \($0)" } ?? ""
+        let weightText = set.weight.map { "Weight: \($0)" } ?? ""
+
+        let combined = [repsText, weightText]
+            .filter { !$0.isEmpty }
+            .joined(separator: " • ")
+
+        let plannedReps = set.reps
+        let plannedWeight = set.weight
+
+        return RunSetState(
+            indexInExercise: idx,
+            displayText: combined.isEmpty ? "Strength set" : combined,
+            type: .strength,
+            plannedReps: plannedReps,
+            plannedWeight: plannedWeight,
+            actualReps: plannedReps,          // default actual = planned
+            actualWeight: plannedWeight
+        )
     }
 
-    let weightText: String
-    if let weight = set.weight {
-        weightText = "Weight: \(weight)"
-    } else {
-        weightText = ""
-    }
-
-    let combined = [repsText, weightText]
-        .filter { !$0.isEmpty }
-        .joined(separator: " • ")
-
-    // Planned from template
-    let plannedReps = set.reps
-    let plannedWeight = set.weight
-
-    return RunSetState(
-        indexInExercise: idx,
-        displayText: combined.isEmpty ? "Strength set" : combined,
-        plannedReps: plannedReps,
-        plannedWeight: plannedWeight,
-        actualReps: plannedReps,      // start actual = planned
-        actualWeight: plannedWeight,
-        isCompleted: false
-    )
-}
-                            
-
-                    case .conditioning:
+case .conditioning:
     let condSets = exercise.conditioningSets ?? []
     sets = condSets.enumerated().map { idx, set in
         var parts: [String] = []
 
         if let dur = set.durationSeconds {
             if dur % 60 == 0 {
-                // exact minutes
                 let mins = dur / 60
                 parts.append("\(mins) min")
             } else {
-                // odd values – fall back to seconds
                 parts.append("\(dur) sec")
             }
         }
-
+        if let dist = set.distanceMeters {
+            parts.append("\(Int(dist)) m")
+        }
         if let cal = set.calories {
             parts.append("\(Int(cal)) cal")
         }
@@ -190,27 +177,36 @@ private var topBar: some View {
         }
 
         let combined = parts.isEmpty ? "Conditioning" : parts.joined(separator: " • ")
+
+        let plannedTime = set.durationSeconds.map(Double.init)
+        let plannedDistance = set.distanceMeters
+        let plannedCalories = set.calories
+        let plannedRounds = set.rounds
+
         return RunSetState(
             indexInExercise: idx,
-            displayText: combined
+            displayText: combined,
+            type: .conditioning,
+            plannedTimeSeconds: plannedTime,
+            plannedDistanceMeters: plannedDistance,
+            plannedCalories: plannedCalories,
+            plannedRounds: plannedRounds,
+            actualTimeSeconds: plannedTime,      // default actual = planned
+            actualDistanceMeters: plannedDistance,
+            actualCalories: plannedCalories,
+            actualRounds: plannedRounds
         )
     }
 
-                    default:
-                        sets = [
-                            RunSetState(indexInExercise: 0, displayText: "Set")
-                        ]
-                    }
-
-                    let name = exercise.customName ?? "Exercise"
-let notes = exercise.notes ?? ""      // 🔹 carry builder notes into run mode
-
-return RunExerciseState(
-    name: name,
-    type: exercise.type,
-    notes: notes,
-    sets: sets
-)
+default:
+    sets = [
+        RunSetState(
+            indexInExercise: 0,
+            displayText: "Set",
+            type: exercise.type
+        )
+    ]
+}
                     return RunExerciseState(
                         name: name,
                         type: exercise.type,
