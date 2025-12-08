@@ -63,42 +63,34 @@ struct BlockRunModeView: View {
     // MARK: - Top Bar
 
 private var topBar: some View {
-    ZStack {
-        // Branded card background
-        RoundedRectangle(cornerRadius: 24)
-            .fill(
-                LinearGradient(
-                    colors: [Color.black, Color.black.opacity(0.8)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .shadow(radius: 8)
+    VStack(alignment: .leading, spacing: 6) {
+        // Brand line
+        Text("SAVAGE BY DESIGN")
+            .font(.caption2)
+            .fontWeight(.semibold)
+            .textCase(.uppercase)
+            .foregroundColor(.secondary)
+            .kerning(1.0)
 
-        VStack(alignment: .leading, spacing: 6) {
-            Text("SAVAGE BY DESIGN")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.white.opacity(0.6))
+        // Block name
+        Text(block.name)
+            .font(.title2)
+            .fontWeight(.bold)
 
-            Text(block.name)
-                .font(.title3).bold()
-                .foregroundColor(.white)
+        // Week + day line
+        let dayShortCode: String = {
+            guard block.days.indices.contains(currentDayIndex) else { return "" }
+            return block.days[currentDayIndex].shortCode ?? ""
+        }()
 
-            let dayShortCode: String = {
-                guard block.days.indices.contains(currentDayIndex) else { return "" }
-                return block.days[currentDayIndex].shortCode ?? ""
-            }()
-
-            Text("Week \(currentWeekIndex + 1) — \(dayShortCode)")
-                .font(.subheadline)
-                .foregroundColor(.white.opacity(0.8))
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+        Text("Week \(currentWeekIndex + 1) — \(dayShortCode)")
+            .font(.footnote)
+            .foregroundColor(.secondary)
     }
-    .padding([.horizontal, .top])
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.horizontal, 16)
+    .padding(.top, 8)
+    .padding(.bottom, 4)
 }
 
     // MARK: - Week Change Logic
