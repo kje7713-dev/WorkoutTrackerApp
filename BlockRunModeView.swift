@@ -375,7 +375,8 @@ struct ExerciseRunCard: View {
 
             // Sets
             ForEach($exercise.sets) { $set in
-                SetRunRow(set: $set)
+            SetRunRow(runSet: $set)
+}
             }
 
             // Add/remove set controls
