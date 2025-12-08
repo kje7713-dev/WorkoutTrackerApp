@@ -358,33 +358,25 @@ struct ExerciseRunCard: View {
                 .textFieldStyle(.roundedBorder)
                 .disableAutocorrection(true)
 
-            // Existing name field
-TextField("Exercise name", text: $exercise.name)
-    .font(.headline)
-    .textFieldStyle(.roundedBorder)
-    .disableAutocorrection(true)
+            // Existing notes from the template (if any)
+            if !exercise.notes.isEmpty {
+                Text(exercise.notes)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
 
-// 🔹 Show existing notes from the block builder, if any
-if !exercise.notes.isEmpty {
-    Text(exercise.notes)
-        .font(.footnote)
-        .foregroundColor(.secondary)
-}
+            // Editable notes during the session
+            TextField("Add notes (RPE, cues, etc.)",
+                      text: $exercise.notes,
+                      axis: .vertical)
+                .lineLimit(1...3)
+                .font(.footnote)
+                .textFieldStyle(.roundedBorder)
 
-// 🔹 Editable notes during the session (RPE, cues, etc.)
-TextField("Add notes (RPE, cues, etc.)",
-          text: $exercise.notes,
-          axis: .vertical)
-    .lineLimit(1...3)
-    .font(.footnote)
-    .textFieldStyle(.roundedBorder)
-
-// Then your existing:
-// ForEach($exercise.sets) { $set in ... }
             // Sets
-ForEach($exercise.sets) { $runSet in
-    SetRunRow(runSet: $runSet, type: exercise.type)
-}
+            ForEach($exercise.sets) { $set in
+                SetRunRow(set: $set)
+            }
 
             // Add/remove set controls
             HStack {
@@ -393,12 +385,7 @@ ForEach($exercise.sets) { $runSet in
                     let newSet = RunSetState(
                         indexInExercise: newIndex,
                         displayText: "Set \(newIndex + 1)",
-                        type: .strength
-                        plannedReps: nil,
-                        plannedWeight: nil,
-                        actualReps: nil,
-                        actualWeight: nil,
-                        isCompleted: false
+                        type: exercise.type
                     )
                     exercise.sets.append(newSet)
                 } label: {
