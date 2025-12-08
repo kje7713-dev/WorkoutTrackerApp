@@ -598,15 +598,61 @@ struct RunExerciseState: Identifiable {
 struct RunSetState: Identifiable {
     let id = UUID()
     let indexInExercise: Int
-    let displayText: String       // planned summary string
+    let displayText: String
+    let type: ExerciseType
 
-    // Planned values (from template, optional)
+    // Strength planned/actual
     var plannedReps: Int?
     var plannedWeight: Double?
-
-    // Actual values (what you change during the session)
     var actualReps: Int?
     var actualWeight: Double?
 
+    // Conditioning planned/actual (seconds / meters)
+    var plannedTimeSeconds: Double?
+    var plannedDistanceMeters: Double?
+    var plannedCalories: Double?
+    var plannedRounds: Int?
+
+    var actualTimeSeconds: Double?
+    var actualDistanceMeters: Double?
+    var actualCalories: Double?
+    var actualRounds: Int?
+
     var isCompleted: Bool = false
+
+    init(
+        indexInExercise: Int,
+        displayText: String,
+        type: ExerciseType,
+        plannedReps: Int? = nil,
+        plannedWeight: Double? = nil,
+        actualReps: Int? = nil,
+        actualWeight: Double? = nil,
+        plannedTimeSeconds: Double? = nil,
+        plannedDistanceMeters: Double? = nil,
+        plannedCalories: Double? = nil,
+        plannedRounds: Int? = nil,
+        actualTimeSeconds: Double? = nil,
+        actualDistanceMeters: Double? = nil,
+        actualCalories: Double? = nil,
+        actualRounds: Int? = nil,
+        isCompleted: Bool = false
+    ) {
+        self.indexInExercise = indexInExercise
+        self.displayText = displayText
+        self.type = type
+        self.plannedReps = plannedReps
+        self.plannedWeight = plannedWeight
+        self.actualReps = actualReps
+        self.actualWeight = actualWeight
+        self.plannedTimeSeconds = plannedTimeSeconds
+        self.plannedDistanceMeters = plannedDistanceMeters
+        self.plannedCalories = plannedCalories
+        self.plannedRounds = plannedRounds
+        self.actualTimeSeconds = actualTimeSeconds
+        self.actualDistanceMeters = actualDistanceMeters
+        self.actualCalories = actualCalories
+        self.actualRounds = actualRounds
+        self.isCompleted = isCompleted
+    }
 }
