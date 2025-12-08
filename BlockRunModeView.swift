@@ -328,15 +328,16 @@ struct DayRunView: View {
                 Button {
                     let newExerciseIndex = day.exercises.count + 1
                     let newExercise = RunExerciseState(
-                        name: "New Exercise \(newExerciseIndex)",
-                        type: .strength,   // default; user can treat it as needed
-                        sets: [
-                            RunSetState(
-                                indexInExercise: 0,
-                                displayText: "Set 1"
-                            )
-                        ]
-                    )
+    name: "New Exercise \(newExerciseIndex)",
+    type: .strength,
+    notes: "",   // 🔹 start with empty notes
+    sets: [
+        RunSetState(
+            indexInExercise: 0,
+            displayText: "Set 1"
+        )
+    ]
+)
                     day.exercises.append(newExercise)
                 } label: {
                     Label("Add Exercise", systemImage: "plus")
