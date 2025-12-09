@@ -199,7 +199,7 @@ struct BlocksListView: View {
     }
 }
         
-        private struct BlockRunEntryView: View {
+private struct BlockRunEntryView: View {
     let block: Block
 
     @EnvironmentObject private var blocksRepository: BlocksRepository
