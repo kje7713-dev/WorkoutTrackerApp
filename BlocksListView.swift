@@ -123,7 +123,7 @@ struct BlocksListView: View {
                         HStack(spacing: 8) {
                             // RUN – same behavior as your old NavigationLink row
                             NavigationLink {
-    BlockRunModeView(block: block)
+    SessionRunView(block: block)
 } label: {
     Text("RUN")
         .font(.subheadline).bold()
