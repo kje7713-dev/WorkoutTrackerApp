@@ -14,9 +14,14 @@ struct BlockRunModeView: View {
     @State private var showSkipAlert: Bool = false
 
     init(block: Block) {
-        self.block = block
+    self.block = block
+
+    if let persisted = BlockRunModeView.loadPersistedWeeks(for: block.id) {
+        _weeks = State(initialValue: persisted)
+    } else {
         _weeks = State(initialValue: BlockRunModeView.buildWeeks(from: block))
     }
+}
 
     var body: some View {
         VStack(spacing: 0) {
