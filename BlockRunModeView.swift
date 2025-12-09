@@ -60,32 +60,35 @@ struct BlockRunModeView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    // MARK: - Top Bar
-
-private var topBar: some View {
-    VStack(alignment: .leading, spacing: 6) {
-        // Brand line
-        Text("SAVAGE BY DESIGN")
-            .font(.caption2)
-            .fontWeight(.semibold)
-            .textCase(.uppercase)
-            .foregroundColor(.secondary)
-            .kerning(1.0)
-
-        // Block name
+    private var topBar: some View {
+    VStack(alignment: .leading, spacing: 4) {
+        // Block name BIG
         Text(block.name)
-            .font(.title2)
-            .fontWeight(.bold)
+            .font(.largeTitle)
+            .fontWeight(.black)
+            .textCase(.uppercase)
+            .kerning(1.2)
 
-        // Week + day line
-        let dayShortCode: String = {
+        // Full day name (primary)
+        let fullDay: String = {
+            guard block.days.indices.contains(currentDayIndex) else { return "" }
+            return block.days[currentDayIndex].name
+        }()
+
+        Text(fullDay)
+            .font(.headline)
+            .fontWeight(.semibold)
+
+        // Short code + week in secondary role
+        let short: String = {
             guard block.days.indices.contains(currentDayIndex) else { return "" }
             return block.days[currentDayIndex].shortCode ?? ""
         }()
 
-        Text("Week \(currentWeekIndex + 1) — \(dayShortCode)")
-            .font(.footnote)
+        Text("Week \(currentWeekIndex + 1) • \(short.uppercased())")
+            .font(.subheadline)
             .foregroundColor(.secondary)
+            .kerning(0.5)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.horizontal, 16)
