@@ -241,6 +241,36 @@ struct BlockRunModeView: View {
     }
 }
 
+    // MARK: - Persistence
+
+    private static func persistenceURL(for blockId: BlockID) -> URL {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return dir.appendingPathComponent("runstate-\(blockId.uuidString).json")
+    }
+
+    private static func loadPersistedWeeks(for blockId: BlockID) -> [RunWeekState]? {
+        let url = persistenceURL(for: blockId)
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+
+        do {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode([RunWeekState].self, from: data)
+        } catch {
+            print("⚠️ Failed to load RunWeekState for block \(blockId): \(error)")
+            return nil
+        }
+    }
+
+    private static func saveWeeks(_ weeks: [RunWeekState], for blockId: BlockID) {
+        let url = persistenceURL(for: blockId)
+        do {
+            let data = try JSONEncoder().encode(weeks)
+            try data.write(to: url, options: [.atomic])
+        } catch {
+            print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
+        }
+    }
+
 // MARK: - Week View
 
 struct WeekRunView: View {
