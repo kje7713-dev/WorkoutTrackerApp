@@ -653,7 +653,7 @@ struct SetRunRow: View {
 
 // MARK: - Run State Models
 
-struct RunWeekState: Identifiable {
+struct RunWeekState: Identifiable, Codable {
     let id = UUID()
     let index: Int
     var days: [RunDayState]
@@ -670,14 +670,14 @@ struct RunWeekState: Identifiable {
     }
 }
 
-struct RunDayState: Identifiable {
+struct RunDayState: Identifiable, Codable{
     let id = UUID()
     let name: String
     let shortCode: String
     var exercises: [RunExerciseState]
 }
 
-struct RunExerciseState: Identifiable {
+struct RunExerciseState: Identifiable, Codable {
     let id = UUID()
     var name: String              // editable in run mode
     let type: ExerciseType
@@ -685,7 +685,7 @@ struct RunExerciseState: Identifiable {
     var sets: [RunSetState]
 }
 
-struct RunSetState: Identifiable {
+struct RunSetState: Identifiable, Codable {
     let id = UUID()
     let indexInExercise: Int
     let displayText: String
