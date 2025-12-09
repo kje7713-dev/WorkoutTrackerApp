@@ -193,6 +193,46 @@ struct BlocksListView: View {
                 .foregroundColor(.white)
                 .cornerRadius(24)
         }
-        .padding(.bottom, 24)
+        .padding(.bottom, private struct BlockRunEntryView: View {
+    let block: Block
+
+    @EnvironmentObject private var blocksRepository: BlocksRepository
+    @EnvironmentObject private var sessionsRepository: SessionsRepository
+
+    var body: some View {
+        Group {
+            if let firstSession = firstSessionForBlock() {
+                WorkoutSessionView(session: firstSession)
+                    .environmentObject(blocksRepository)
+                    .environmentObject(sessionsRepository)
+            } else {
+                Text("No sessions available for this block.")
+            }
+        }
+    }
+
+    // Ensure sessions exist for this block, then return the first one
+    private func firstSessionForBlock() -> WorkoutSession? {
+        let existing = sessionsRepository.sessions(forBlockId: block.id)
+        let sessionsForBlock: [WorkoutSession]
+
+        if !existing.isEmpty {
+            sessionsForBlock = existing
+        } else {
+            let factory = SessionFactory()
+            let generated = factory.makeSessions(for: block)
+            sessionsRepository.replaceSessions(forBlockId: block.id, with: generated)
+            sessionsForBlock = generated
+        }
+
+        // Simple sort: weekIndex, then dayTemplateId
+        return sessionsForBlock.sorted(by: sessionSort).first
+    }
+
+    private func sessionSort(_ lhs: WorkoutSession, _ rhs: WorkoutSession) -> Bool {
+        if lhs.weekIndex != rhs.weekIndex {
+            return lhs.weekIndex < rhs.weekIndex
+        }
+        return lhs.dayTemplateId.uuidString < rhs.dayTemplateId.uuidString
     }
 }
