@@ -9,6 +9,7 @@ struct BlocksListView: View {
 
     // Same repository the builder uses
     @EnvironmentObject private var blocksRepository: BlocksRepository
+    @EnvironmentObject private var sessionsRepository: SessionsRepository
     @Environment(\.sbdTheme) private var theme
 
     // Which builder mode is active (if any)?
