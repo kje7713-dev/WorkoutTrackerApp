@@ -61,8 +61,11 @@ struct BlockRunModeView: View {
                     Text("Week \(lastCommittedWeekIndex + 1) still has work open. Move forward anyway?")
                 }
             }
-        }
+                }
         .navigationBarTitleDisplayMode(.inline)
+        .onDisappear {
+            BlockRunModeView.saveWeeks(weeks, for: block.id)
+        }
     }
 
     private var topBar: some View {
