@@ -181,6 +181,8 @@ struct BlocksListView: View {
 
     // MARK: - New Block Button
 
+        // MARK: - New Block Button
+
     private var newBlockButton: some View {
         Button {
             builderContext = .new
@@ -193,7 +195,11 @@ struct BlocksListView: View {
                 .foregroundColor(.white)
                 .cornerRadius(24)
         }
-        .padding(.bottom, private struct BlockRunEntryView: View {
+        .padding(.bottom, 24)
+    }
+}
+        
+        private struct BlockRunEntryView: View {
     let block: Block
 
     @EnvironmentObject private var blocksRepository: BlocksRepository
