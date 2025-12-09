@@ -124,7 +124,7 @@ struct BlocksListView: View {
                         HStack(spacing: 8) {
                             // RUN – same behavior as your old NavigationLink row
                             NavigationLink {
-    BlockRunEntryView(block: block)
+    BlockRunModeView(block: block)
         .environmentObject(blocksRepository)
         .environmentObject(sessionsRepository)
 } label: {
