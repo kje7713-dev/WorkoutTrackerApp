@@ -46,7 +46,7 @@ struct SessionRunView: View {
             content
         }
         .navigationBarTitleDisplayMode(.inline)
-        .// In SessionRunView.swift, replace the entire .toolbar block
+        // In SessionRunView.swift, replace the entire .toolbar block
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 // FIX: Cancellation now calls saveSessionAndDismiss
