@@ -1,99 +1,99 @@
+//
+//  SessionRunView.swift
+//  Savage By Design
+//
+//  Phase 7/8: Consolidated session execution view using canonical models.
+//  (Previously BlockRunModeView)
+//
+
 import SwiftUI
 
-// MARK: - Run Mode Container
+// MARK: - Session Runner Container
 
-struct BlockRunModeView: View {
-    let block: Block
+// 🚨 RENAMED FROM BlockRunModeView
+struct SessionRunView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.sbdTheme) private var theme
+    @EnvironmentObject private var sessionsRepository: SessionsRepository
+    @EnvironmentObject private var blocksRepository: BlocksRepository // Needed for header context
 
-    @State private var weeks: [RunWeekState]
-    @State private var currentWeekIndex: Int = 0
-    @State private var currentDayIndex: Int = 0
-
-    @State private var lastCommittedWeekIndex: Int = 0
-    @State private var pendingWeekIndex: Int? = nil
-    @State private var showSkipAlert: Bool = false
-
-    init(block: Block) {
-        self.block = block
-
-        if let persisted = BlockRunModeView.loadPersistedWeeks(for: block.id) {
-            _weeks = State(initialValue: persisted)
-        } else {
-            _weeks = State(initialValue: BlockRunModeView.buildWeeks(from: block))
-        }
+    // 🚨 NOW uses the canonical Session model
+    @State private var session: WorkoutSession
+    
+    // Internal state for Day and Week navigation (simplified)
+    @State private var currentDayIndex: Int = 0 
+    
+    // This is ONLY used to get the day name/short code from the original block template.
+    private var block: Block? {
+        blocksRepository.blocks.first { $0.id == session.blockId }
+    }
+    
+    // 🚨 Initializer now takes a WorkoutSession
+    init(session: WorkoutSession) {
+        _session = State(initialValue: session)
     }
 
     var body: some View {
         VStack(spacing: 0) {
-            topBar
+            topBar // Now uses the session model for context
 
-            if weeks.isEmpty || block.days.isEmpty {
-                Text("This block has no days configured.")
-                    .padding()
-                Spacer()
-            } else {
-                TabView(selection: $currentWeekIndex) {
-                    ForEach(weeks.indices, id: \.self) { weekIndex in
-                        WeekRunView(
-                            week: $weeks[weekIndex],
-                            allDays: block.days,
-                            currentDayIndex: $currentDayIndex
-                        )
-                        .tag(weekIndex)
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .onChange(of: currentWeekIndex) { _, newValue in
-                    handleWeekChange(newWeekIndex: newValue)
-                }
-                .alert("You can skip — but champions don’t.", isPresented: $showSkipAlert) {
-                    Button("Stay on Track", role: .cancel) {
-                        pendingWeekIndex = nil
-                    }
-                    Button("Continue") {
-                        if let target = pendingWeekIndex {
-                            currentWeekIndex = target
-                            lastCommittedWeekIndex = target
-                            pendingWeekIndex = nil
-                        }
-                    }
-                } message: {
-                    Text("Week \(lastCommittedWeekIndex + 1) still has work open. Move forward anyway?")
-                }
-            }
+            DayTabBar(
+                days: block?.days ?? [], // Days come from the template block
+                currentDayIndex: $currentDayIndex
+            )
+            Divider()
+            
+            content
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save Session") { saveSessionAndDismiss() }
+                    .fontWeight(.bold)
+            }
+        }
         .onDisappear {
-            BlockRunModeView.saveWeeks(weeks, for: block.id)
+            // 🚨 Use the SessionsRepository to save the final state
+            sessionsRepository.save(session)
+        }
+    }
+
+    private var content: some View {
+        // Since we are only viewing one session, we map the exercises directly
+        // to a ScrollView, ignoring `currentDayIndex` for now until a higher-level
+        // navigation is implemented. For simplicity, we show all exercises in the session.
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach($session.exercises) { $exercise in
+                    SessionExerciseCardView(exercise: $exercise)
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical)
         }
     }
 
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 4) {
             // Block name BIG
-            Text(block.name)
+            Text(block?.name ?? "Workout Session")
                 .font(.largeTitle)
                 .fontWeight(.black)
                 .textCase(.uppercase)
                 .kerning(1.2)
 
             // Full day name (primary)
-            let fullDay: String = {
-                guard block.days.indices.contains(currentDayIndex) else { return "" }
-                return block.days[currentDayIndex].name
-            }()
+            let dayTemplate = block?.days.first { $0.id == session.dayTemplateId }
 
-            Text(fullDay)
+            Text(dayTemplate?.name ?? "Day")
                 .font(.headline)
                 .fontWeight(.semibold)
 
             // Short code + week in secondary role
-            let short: String = {
-                guard block.days.indices.contains(currentDayIndex) else { return "" }
-                return block.days[currentDayIndex].shortCode ?? ""
-            }()
-
-            Text("Week \(currentWeekIndex + 1) • \(short.uppercased())")
+            Text("Week \(session.weekIndex) • \(dayTemplate?.shortCode?.uppercased() ?? "SESSION")")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .kerning(0.5)
@@ -103,202 +103,35 @@ struct BlockRunModeView: View {
         .padding(.top, 8)
         .padding(.bottom, 4)
     }
-
-    // MARK: - Week Change Logic
-
-    private func handleWeekChange(newWeekIndex: Int) {
-        // Only warn if user is trying to move forward
-        guard newWeekIndex > lastCommittedWeekIndex else {
-            lastCommittedWeekIndex = newWeekIndex
-            return
+    
+    private func saveSessionAndDismiss() {
+        // Stamp date first time this session is saved/opened
+        if session.date == nil {
+            session.date = Date()
         }
 
-        // If any previous week is not completed, show warning
-        let earlierIncomplete = weeks[0...lastCommittedWeekIndex].contains { !$0.isCompleted }
-        if earlierIncomplete {
-            pendingWeekIndex = newWeekIndex
-            // snap back to last committed until they confirm
-            currentWeekIndex = lastCommittedWeekIndex
-            showSkipAlert = true
+        // Derive status from completion
+        let totalSetCount = session.exercises.reduce(0) { partial, exercise in
+            partial + exercise.loggedSets.count
+        }
+        let completedSetCount = session.exercises.reduce(0) { partial, exercise in
+            partial + exercise.loggedSets.filter { $0.isCompleted }.count
+        }
+
+        if totalSetCount > 0 && completedSetCount == totalSetCount {
+            session.status = .completed
+        } else if completedSetCount > 0 {
+            session.status = .inProgress
         } else {
-            lastCommittedWeekIndex = newWeekIndex
-        }
-    }
-
-    // MARK: - Build Initial Run State
-
-    private static func buildWeeks(from block: Block) -> [RunWeekState] {
-        guard !block.days.isEmpty else {
-            return []
+            session.status = .notStarted
         }
 
-        let weeksCount = max(block.numberOfWeeks, 1)
-
-        return (0..<weeksCount).map { weekIndex in
-            let dayStates: [RunDayState] = block.days.map { day in
-                let exerciseStates: [RunExerciseState] = day.exercises.map { exercise in
-                    let sets: [RunSetState]
-
-                    switch exercise.type {
-                    case .strength:
-                        let strengthSets = exercise.strengthSets ?? []
-                        sets = strengthSets.enumerated().map { idx, set in
-                            let repsText = set.reps.map { "Reps: \($0)" } ?? ""
-                            let weightText = set.weight.map { "Weight: \($0)" } ?? ""
-
-                            let combined = [repsText, weightText]
-                                .filter { !$0.isEmpty }
-                                .joined(separator: " • ")
-
-                            let plannedReps = set.reps
-                            let plannedWeight = set.weight
-
-                            return RunSetState(
-                                indexInExercise: idx,
-                                displayText: combined.isEmpty ? "Strength set" : combined,
-                                type: .strength,
-                                plannedReps: plannedReps,
-                                plannedWeight: plannedWeight,
-                                actualReps: plannedReps,
-                                actualWeight: plannedWeight
-                            )
-                        }
-
-                    case .conditioning:
-                        let condSets = exercise.conditioningSets ?? []
-                        sets = condSets.enumerated().map { idx, set in
-                            var parts: [String] = []
-
-                            if let dur = set.durationSeconds {
-                                if dur % 60 == 0 {
-                                    let mins = dur / 60
-                                    parts.append("\(mins) min")
-                                } else {
-                                    parts.append("\(dur) sec")
-                                }
-                            }
-                            if let dist = set.distanceMeters {
-                                parts.append("\(Int(dist)) m")
-                            }
-                            if let cal = set.calories {
-                                parts.append("\(Int(cal)) cal")
-                            }
-                            if let rounds = set.rounds {
-                                parts.append("\(rounds) rounds")
-                            }
-
-                            let combined = parts.isEmpty ? "Conditioning" : parts.joined(separator: " • ")
-
-                            let plannedTime = set.durationSeconds.map(Double.init)
-                            let plannedDistance = set.distanceMeters
-                            let plannedCalories = set.calories
-                            let plannedRounds = set.rounds
-
-                            return RunSetState(
-                                indexInExercise: idx,
-                                displayText: combined,
-                                type: .conditioning,
-                                plannedTimeSeconds: plannedTime,
-                                plannedDistanceMeters: plannedDistance,
-                                plannedCalories: plannedCalories,
-                                plannedRounds: plannedRounds,
-                                actualTimeSeconds: plannedTime,
-                                actualDistanceMeters: plannedDistance,
-                                actualCalories: plannedCalories,
-                                actualRounds: plannedRounds
-                            )
-                        }
-
-                    default:
-                        sets = [
-                            RunSetState(
-                                indexInExercise: 0,
-                                displayText: "Set",
-                                type: exercise.type
-                            )
-                        ]
-                    }
-
-                    let name = exercise.customName ?? "Exercise"
-                    let notes = exercise.notes ?? ""
-
-                    return RunExerciseState(
-                        name: name,
-                        type: exercise.type,
-                        notes: notes,
-                        sets: sets
-                    )
-                }
-
-                return RunDayState(
-                    name: day.name,
-                    shortCode: day.shortCode ?? "",
-                    exercises: exerciseStates
-                )
-            }
-
-            return RunWeekState(index: weekIndex, days: dayStates)
-        }
-    }
-
-    // MARK: - Persistence
-
-    private static func persistenceURL(for blockId: BlockID) -> URL {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return dir.appendingPathComponent("runstate-\(blockId.uuidString).json")
-    }
-
-    private static func loadPersistedWeeks(for blockId: BlockID) -> [RunWeekState]? {
-        let url = persistenceURL(for: blockId)
-        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-
-        do {
-            let data = try Data(contentsOf: url)
-            return try JSONDecoder().decode([RunWeekState].self, from: data)
-        } catch {
-            print("⚠️ Failed to load RunWeekState for block \(blockId): \(error)")
-            return nil
-        }
-    }
-
-    private static func saveWeeks(_ weeks: [RunWeekState], for blockId: BlockID) {
-        let url = persistenceURL(for: blockId)
-        do {
-            let data = try JSONEncoder().encode(weeks)
-            try data.write(to: url, options: [.atomic])
-        } catch {
-            print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
-        }
-    }
-} // <--- BlockRunModeView ends here
-
-// MARK: - Week View
-
-struct WeekRunView: View {
-    @Binding var week: RunWeekState
-    let allDays: [DayTemplate]
-    @Binding var currentDayIndex: Int
-
-    var body: some View {
-        VStack(spacing: 0) {
-            DayTabBar(days: allDays, currentDayIndex: $currentDayIndex)
-            Divider()
-            content
-        }
-    }
-
-    @ViewBuilder
-    private var content: some View {
-        if week.days.indices.contains(currentDayIndex) {
-            DayRunView(day: $week.days[currentDayIndex])
-        } else {
-            Text("No days configured for this week.")
-                .padding()
-        }
+        sessionsRepository.save(session)
+        dismiss()
     }
 }
 
-// MARK: - Day Tabs
+// MARK: - Day Tabs (Remains largely the same)
 
 struct DayTabBar: View {
     let days: [DayTemplate]
@@ -335,204 +168,75 @@ struct DayTabBar: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
-                    isSelected ? Color.black : Color.clear
+                    Capsule()
+                        .fill(isSelected ? Color.black : Color.clear)
                 )
-                .foregroundColor(isSelected ? Color.white : Color.primary)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
+                    Capsule()
                         .stroke(Color.black, lineWidth: isSelected ? 0 : 1)
                 )
-                .cornerRadius(16)
+                .foregroundColor(isSelected ? .white : .primary)
         }
     }
 }
 
-struct DayRunView: View {
-    @Binding var day: RunDayState
+// 🚨 NEW: Card view for a single SessionExercise, using the SetControl UI architecture
 
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach($day.exercises) { $exercise in
-                    ExerciseRunCard(exercise: $exercise)
-                }
+private struct SessionExerciseCardView: View {
+    @Binding var exercise: SessionExercise
+    @Environment(\.sbdTheme) private var theme
 
-                Button {
-                    let newExerciseIndex = day.exercises.count + 1
-                    let newExercise = RunExerciseState(
-                        name: "New Exercise \(newExerciseIndex)",
-                        type: .strength,
-                        notes: "",
-                        sets: [
-                            RunSetState(
-                                indexInExercise: 0,
-                                displayText: "Set 1",
-                                type: .strength
-                            )
-                        ]
-                    )
-                    day.exercises.append(newExercise)
-                } label: {
-                    Label("Add Exercise", systemImage: "plus")
-                        .font(.subheadline.bold())
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color.primary, lineWidth: 1)
-                        )
-                }
-                .padding(.top, 8)
-            }
-            .padding(.horizontal)
-            .padding(.vertical)
+    private var exerciseName: String {
+        if let custom = exercise.customName, !custom.isEmpty {
+            return custom
+        } else {
+            // Try to find the original exercise name from the block (optional helper)
+            return "Exercise"
         }
     }
-}
-
-struct ExerciseRunCard: View {
-    @Binding var exercise: RunExerciseState
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Editable exercise name
-            TextField("Exercise name", text: $exercise.name)
-                .font(.headline)
-                .textFieldStyle(.roundedBorder)
-                .disableAutocorrection(true)
-
-            // Existing notes from the template (if any)
-            if !exercise.notes.isEmpty {
-                Text(exercise.notes)
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-            }
-
-            // Editable notes during the session
-            TextField("Add notes (RPE, cues, etc.)",
-                      text: $exercise.notes,
-                      axis: .vertical)
-                .lineLimit(1...3)
-                .font(.footnote)
-                .textFieldStyle(.roundedBorder)
+            // Display/Edit name
+            TextField("Exercise name", text: Binding(
+                get: { exercise.customName ?? "" },
+                set: { exercise.customName = $0.isEmpty ? nil : $0 }
+            ))
+            .font(.headline)
+            .textFieldStyle(.roundedBorder)
+            .disableAutocorrection(true)
+            .autocapitalization(.words)
 
             // Sets
-            ForEach($exercise.sets) { $set in
-                SetRunRow(runSet: $set)
-
+            // Uses loggedSets for the actual run-time data
+            ForEach(exercise.loggedSets.indices, id: \.self) { index in
+                SessionSetRunRow(
+                    index: index,
+                    expected: exercise.expectedSets[index],
+                    logged: $exercise.loggedSets[index]
+                )
             }
-
-            // Add/remove set controls
-            HStack {
-                Button {
-                    let newIndex = exercise.sets.count
-                    let newSet = RunSetState(
-                        indexInExercise: newIndex,
-                        displayText: "Set \(newIndex + 1)",
-                        type: exercise.type
-                    )
-                    exercise.sets.append(newSet)
-                } label: {
-                    Label("Add Set", systemImage: "plus")
-                        .font(.caption.bold())
-                }
-
-                Spacer()
-
-                if exercise.sets.count > 1 {
-                    Button {
-                        _ = exercise.sets.popLast()
-                    } label: {
-                        Label("Remove Set", systemImage: "minus")
-                            .font(.caption)
-                    }
-                }
-            }
-            .padding(.top, 4)
         }
         .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(uiColor: .secondarySystemBackground))
+        )
     }
 }
 
-// MARK: - Helper Struct for Reusability (SetControlView is moved to file scope)
 
-struct SetControlView: View {
-    let label: String
-    let unit: String
-    @Binding var value: Double?
-    let step: Double
-    let formatter: NumberFormatter
-    let min: Double
+// 🚨 NEW: SessionSetRowView that uses the SetControlView (The core UI migration)
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Label
-            Text(label)
-                .font(.caption2)
-                .foregroundColor(.secondary)
+private struct SessionSetRunRow: View {
+    let index: Int
+    let expected: SessionSet
+    @Binding var logged: SessionSet
 
-            // Controls
-            HStack(spacing: 4) {
-                Button {
-                    if let currentValue = value {
-                        value = max(min, currentValue - step)
-                    } else {
-                        value = min
-                    }
-                } label: {
-                    Image(systemName: "minus.circle")
-                }
+    @Environment(\.sbdTheme) private var theme
 
-                // FIX: Ensured the string result is calculated outside of Text and is not optional
-                Text(value.flatMap { formatter.string(from: NSNumber(value: $0)) } ?? "-")
-                    .font(.body.monospacedDigit())
-                    .frame(width: 40)
-                    .minimumScaleFactor(0.5)
-
-                Button {
-                    if let currentValue = value {
-                        value = currentValue + step
-                    } else {
-                        value = min + step
-                    }
-                } label: {
-                    Image(systemName: "plus.circle")
-                }
-
-                Text(unit)
-                    .font(.body)
-            }
-        }
-    }
-}
-
-struct SetRunRow: View {
-    @Binding var runSet: RunSetState
-
-    // Strength helpers (keeping these for clarity, though not directly used in the new UI)
-    private var repsValue: Int {
-        runSet.actualReps ?? runSet.plannedReps ?? 0
-    }
-
-    private var weightValue: Double {
-        runSet.actualWeight ?? runSet.plannedWeight ?? 0
-    }
-
-    // Conditioning helpers (we show minutes for time)
-    private var timeMinutesValue: Int {
-        let seconds = runSet.actualTimeSeconds ?? runSet.plannedTimeSeconds ?? 0
-        return Int(seconds / 60)
-    }
-
-    private var caloriesValue: Int {
-        Int(runSet.actualCalories ?? runSet.plannedCalories ?? 0)
-    }
-
-    private var roundsValue: Int {
-        runSet.actualRounds ?? runSet.plannedRounds ?? 0
-    }
-
-    // Common formatter for whole numbers (Reps, Rounds, Minutes)
+    // Formatters (copied from old SetRunRow)
     private static let integerFormatter: NumberFormatter = {
         let f = NumberFormatter()
         f.maximumFractionDigits = 0
@@ -540,7 +244,6 @@ struct SetRunRow: View {
         return f
     }()
 
-    // Common formatter for weight (allows one decimal for precision, but minimal 0)
     private static let weightFormatter: NumberFormatter = {
         let f = NumberFormatter()
         f.maximumFractionDigits = 1
@@ -548,47 +251,62 @@ struct SetRunRow: View {
         return f
     }()
 
+    // Helper to format a Double for display
+    private func cleanDouble(_ value: Double?) -> String? {
+        guard let value = value, value > 0 else { return nil }
+        if value.rounded(.towardZero) == value {
+            return String(Int(value))
+        } else {
+            return String(format: "%.1f", value)
+        }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Header
-            Text("Set \(runSet.indexInExercise + 1)")
+            Text("Set \(index + 1)")
                 .font(.subheadline).bold()
-
-            // Planned summary
-            if !runSet.displayText.isEmpty {
-                Text("Planned: \(runSet.displayText)")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-            }
-
-            // Controls depend on type
-            if runSet.type == .strength {
+            
+            // Planned summary (Display-only)
+            expectedRow
+            
+            // Controls depend on the expected data in the set
+            if expected.expectedReps != nil || expected.expectedWeight != nil {
                 strengthControls
-            } else if runSet.type == .conditioning {
+            } else if expected.expectedTime != nil || expected.expectedCalories != nil || expected.expectedDistance != nil {
                 conditioningControls
             }
+
+            // Notes field
+            TextField(
+                "Notes (RPE, cues, etc.)",
+                text: Binding(
+                    get: { logged.notes ?? "" },
+                    set: { newValue in
+                        logged.notes = newValue.isEmpty ? nil : newValue
+                    }
+                ),
+                axis: .vertical
+            )
+            .font(.footnote)
+            .textFieldStyle(.roundedBorder)
 
             // Complete / Undo
             HStack {
                 Spacer()
-                if runSet.isCompleted {
-                    Button("Undo") {
-                        runSet.isCompleted = false
-                    }
-                    .font(.caption)
-                } else {
-                    Button("Complete") {
-                        runSet.isCompleted = true
-                    }
-                    .font(.subheadline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.primary, lineWidth: 1)
-                    )
+                Button {
+                    logged.isCompleted.toggle()
+                } label: {
+                    Text(logged.isCompleted ? "Undo" : "Complete")
                 }
+                .font(logged.isCompleted ? .caption : .subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(logged.isCompleted ? Color.secondary : Color.primary, lineWidth: 1)
+                )
+                .foregroundColor(logged.isCompleted ? .secondary : .primary)
             }
         }
         .padding(10)
@@ -596,16 +314,13 @@ struct SetRunRow: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(uiColor: .secondarySystemBackground))
         )
-        // Completed ribbon overlay
+        // Completed ribbon overlay (simplified)
         .overlay(
             Group {
-                if runSet.isCompleted {
-                    Text("COMPLETED")
-                        .font(.caption2).bold()
+                if logged.isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
                         .padding(6)
-                        .background(Color.black)
-                        .foregroundColor(.white)
-                        .rotationEffect(.degrees(22))
                         .offset(x: 8, y: -8)
                 }
             },
@@ -614,206 +329,134 @@ struct SetRunRow: View {
         .padding(.vertical, 2)
     }
 
-    // MARK: - Strength UI (Modified to use VStack and SetControlView)
+    // MARK: - Expected Row Display
+
+    private var expectedRow: some View {
+        let plannedParts: [String] = [
+            expected.expectedReps.map { "\($0)x" },
+            expected.expectedWeight.flatMap(cleanDouble).map { "\($0)lb" },
+            expected.expectedTime.flatMap(cleanDouble).map { "\($0)s" },
+            expected.expectedDistance.flatMap(cleanDouble).map { "\($0)m" },
+            expected.expectedCalories.flatMap(cleanDouble).map { "\($0) cal" }
+        ].compactMap { $0 }
+
+        return Text("Planned: \(plannedParts.joined(separator: " • "))")
+            .font(.footnote)
+            .foregroundColor(.secondary)
+            .padding(.bottom, 4)
+    }
+
+    // MARK: - Strength UI (Uses SetControlView from SetControls.swift)
 
     private var strengthControls: some View {
         VStack(alignment: .leading, spacing: 16) {
             
-            // Reps Control
-            SetControlView(
-                label: "REPETITIONS",
-                unit: "reps",
-                // FIX: Used the correct call to the extension method
-                value: $runSet.actualReps.toDouble(),
-                step: 1.0,
-                formatter: Self.integerFormatter,
-                min: 0.0
-            )
+            // Reps Control (if planned reps exist)
+            if expected.expectedReps != nil {
+                SetControlView(
+                    label: "REPETITIONS",
+                    unit: "reps",
+                    value: $logged.loggedReps.toDouble(),
+                    step: 1.0,
+                    formatter: Self.integerFormatter,
+                    min: 0.0
+                )
+            }
 
-            // Weight Control
-            SetControlView(
-                label: "WEIGHT",
-                unit: "lb",
-                value: $runSet.actualWeight,
-                step: 5.0,
-                formatter: Self.weightFormatter,
-                min: 0.0
-            )
+            // Weight Control (if planned weight exists)
+            if expected.expectedWeight != nil {
+                SetControlView(
+                    label: "WEIGHT",
+                    unit: "lb",
+                    value: $logged.loggedWeight,
+                    step: 5.0,
+                    formatter: Self.weightFormatter,
+                    min: 0.0
+                )
+            }
         }
     }
 
-    // MARK: - Conditioning UI (Modified to use SetControlView where possible)
+    // MARK: - Conditioning UI (Uses SetControlView where possible)
 
     private var conditioningControls: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 12) {
 
-            // Time (minutes) - Kept original implementation to avoid complex secondary binding
-            HStack(spacing: 6) {
-                Text("Time")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+            // Time (Seconds)
+            if expected.expectedTime != nil {
+                // NOTE: We log seconds (Double?), but display minutes for UX
+                HStack(spacing: 6) {
+                    Text("Time")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
 
-                Button {
-                    let mins = max(0, timeMinutesValue - 1)
-                    runSet.actualTimeSeconds = Double(mins * 60)
-                } label: {
-                    Image(systemName: "minus.circle")
+                    // Helper to manage binding from Double? (seconds) to Int (minutes) display
+                    let timeMinutesBinding = Binding<Int>(
+                        get: { Int((logged.loggedTime ?? 0) / 60) },
+                        set: { logged.loggedTime = Double($0 * 60) }
+                    )
+
+                    Button {
+                        timeMinutesBinding.wrappedValue = max(0, timeMinutesBinding.wrappedValue - 1)
+                    } label: {
+                        Image(systemName: "minus.circle")
+                    }
+
+                    Text("\(timeMinutesBinding.wrappedValue)")
+                        .font(.body.monospacedDigit())
+                        .frame(width: 32)
+
+                    Button {
+                        timeMinutesBinding.wrappedValue += 1
+                    } label: {
+                        Image(systemName: "plus.circle")
+                    }
+
+                    Text("min")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
-
-                Text("\(timeMinutesValue)")
-                    .font(.body.monospacedDigit())
-                    .frame(width: 32)
-
-                Button {
-                    let mins = timeMinutesValue + 1
-                    runSet.actualTimeSeconds = Double(mins * 60)
-                } label: {
-                    Image(systemName: "plus.circle")
-                }
-
-                Text("min")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
             }
 
 
             // Calories Control
-            SetControlView(
-                label: "CALORIES",
-                unit: "cal",
-                value: $runSet.actualCalories,
-                step: 5.0,
-                formatter: Self.integerFormatter,
-                min: 0.0
-            )
+            if expected.expectedCalories != nil {
+                SetControlView(
+                    label: "CALORIES",
+                    unit: "cal",
+                    value: $logged.loggedCalories,
+                    step: 5.0,
+                    formatter: Self.integerFormatter,
+                    min: 0.0
+                )
+            }
 
-            // Rounds Control
-            SetControlView(
-                label: "ROUNDS",
-                unit: "rounds",
-                // FIX: Used the correct call to the extension method
-                value: $runSet.actualRounds.toDouble(),
-                step: 1.0,
-                formatter: Self.integerFormatter,
-                min: 0.0
-            )
-        }
-    }
-}
-
-// MARK: - Run State Models (No changes here)
-
-struct RunWeekState: Identifiable, Codable {
-    let id = UUID()
-    let index: Int
-    var days: [RunDayState]
-
-    var isCompleted: Bool {
-        for day in days {
-            for exercise in day.exercises {
-                if exercise.sets.contains(where: { !$0.isCompleted }) {
-                    return false
-                }
+            // Distance Control
+            if expected.expectedDistance != nil {
+                SetControlView(
+                    label: "DISTANCE",
+                    unit: "m",
+                    value: $logged.loggedDistance,
+                    step: 100.0,
+                    formatter: Self.integerFormatter,
+                    min: 0.0
+                )
+            }
+            
+            // Rounds Control (from old ConditioningSetTemplate logic)
+            if expected.expectedRounds != nil {
+                SetControlView(
+                    label: "ROUNDS",
+                    unit: "rounds",
+                    value: $logged.loggedRounds.toDouble(),
+                    step: 1.0,
+                    formatter: Self.integerFormatter,
+                    min: 0.0
+                )
             }
         }
-        return true
     }
 }
+// ⚠️ DELETE THE ENTIRE Run State Models SECTION BELOW THIS LINE FROM YOUR ORIGINAL BlockRunModeView FILE
+// (RunWeekState, RunDayState, RunExerciseState, RunSetState and all persistence helpers)
 
-struct RunDayState: Identifiable, Codable{
-    let id = UUID()
-    let name: String
-    let shortCode: String
-    var exercises: [RunExerciseState]
-}
-
-struct RunExerciseState: Identifiable, Codable {
-    let id = UUID()
-    var name: String
-    let type: ExerciseType
-    var notes: String
-    var sets: [RunSetState]
-}
-
-struct RunSetState: Identifiable, Codable {
-    let id = UUID()
-    let indexInExercise: Int
-    let displayText: String
-    let type: ExerciseType
-
-    // Strength planned/actual
-    var plannedReps: Int?
-    var plannedWeight: Double?
-    var actualReps: Int?
-    var actualWeight: Double?
-
-    // Conditioning planned/actual (seconds / meters)
-    var plannedTimeSeconds: Double?
-    var plannedDistanceMeters: Double?
-    var plannedCalories: Double?
-    var plannedRounds: Int?
-
-    var actualTimeSeconds: Double?
-    var actualDistanceMeters: Double?
-    var actualCalories: Double?
-    var actualRounds: Int?
-
-    var isCompleted: Bool = false
-
-    init(
-        indexInExercise: Int,
-        displayText: String,
-        type: ExerciseType,
-        plannedReps: Int? = nil,
-        plannedWeight: Double? = nil,
-        actualReps: Int? = nil,
-        actualWeight: Double? = nil,
-        plannedTimeSeconds: Double? = nil,
-        plannedDistanceMeters: Double? = nil,
-        plannedCalories: Double? = nil,
-        plannedRounds: Int? = nil,
-        actualTimeSeconds: Double? = nil,
-        actualDistanceMeters: Double? = nil,
-        actualCalories: Double? = nil,
-        actualRounds: Int? = nil,
-        isCompleted: Bool = false
-    ) {
-        self.indexInExercise = indexInExercise
-        self.displayText = displayText
-        self.type = type
-        self.plannedReps = plannedReps
-        self.plannedWeight = plannedWeight
-        self.actualReps = actualReps
-        self.actualWeight = actualWeight
-        self.plannedTimeSeconds = plannedTimeSeconds
-        self.plannedDistanceMeters = plannedDistanceMeters
-        self.plannedCalories = plannedCalories
-        self.plannedRounds = plannedRounds
-        self.actualTimeSeconds = actualTimeSeconds
-        self.actualDistanceMeters = actualDistanceMeters
-        self.actualCalories = actualCalories
-        self.actualRounds = actualRounds
-        self.isCompleted = isCompleted
-    }
-}
-
-
-// MARK: - BINDING EXTENSIONS (Moved to File Scope)
-
-extension Binding where Value == Int? {
-    /// Converts an optional Int binding to an optional Double binding.
-    func toDouble() -> Binding<Double?> {
-        return Binding<Double?>(
-            get: { self.wrappedValue.map(Double.init) },
-            // Force optional value back to Int?
-            set: { self.wrappedValue = $0.map { Int($0) } }
-        )
-    }
-}
-
-extension Binding where Value == Double? {
-    /// Utility to simplify passing Double? bindings to SetControlView
-    func toDouble() -> Binding<Double?> {
-        return self
-    }
-}
