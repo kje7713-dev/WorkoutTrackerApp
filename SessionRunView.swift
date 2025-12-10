@@ -72,6 +72,14 @@ struct SessionRunView: View {
 
 // Let's place it after the .navigationBarTitleDisplayMode(.inline) block:
 
+       // In SessionRunView.swift, inside body, around line 70, before the final '}'
+// This must be placed on the *top-level* element in the view hierarchy (the NavigationStack in this case).
+    
+// We will add it back to the main VSTACK inside the ZStack of BlocksListView/BlockSessionEntryView. 
+// Since SessionRunView is inside a NavigationLink, we will place it on the top-level VSTack/ScrollView.
+
+// Let's place it after the .navigationBarTitleDisplayMode(.inline) block:
+
         .navigationBarTitleDisplayMode(.inline)
         // ... (remaining .toolbar and .onChange(of: dismiss) blocks are deleted/fixed)
         
@@ -81,6 +89,7 @@ struct SessionRunView: View {
             saveSessionAndDismiss(isCancel: true)
         }
     }
+
 
 
 
