@@ -466,6 +466,8 @@ public struct SessionExercise: Identifiable, Codable, Equatable {
     }
 }
 
+// In Models.swift (Around line 390)
+
 public struct SessionSet: Identifiable, Codable, Equatable {
     public var id: UUID
     public var index: Int
@@ -476,6 +478,7 @@ public struct SessionSet: Identifiable, Codable, Equatable {
     public var expectedTime: Double?
     public var expectedDistance: Double?
     public var expectedCalories: Double?
+    public var expectedRounds: Int? // 🚨 ADDED
 
     // logged
     public var loggedReps: Int?
@@ -483,16 +486,14 @@ public struct SessionSet: Identifiable, Codable, Equatable {
     public var loggedTime: Double?
     public var loggedDistance: Double?
     public var loggedCalories: Double?
+    public var loggedRounds: Int? // 🚨 ADDED
 
     // optional effort / metadata (Phase-4 choice 4B)
-    public var rpe: Double?
-    public var rir: Double?
-    public var tempo: String?
-    public var restSeconds: Int?
-    public var notes: String?
+    // ... rest of the struct properties
 
     public var isCompleted: Bool
 
+    // 🚨 UPDATE THE INITIALIZER (Around line 420)
     public init(
         id: UUID = UUID(),
         index: Int,
@@ -501,11 +502,13 @@ public struct SessionSet: Identifiable, Codable, Equatable {
         expectedTime: Double? = nil,
         expectedDistance: Double? = nil,
         expectedCalories: Double? = nil,
+        expectedRounds: Int? = nil, // 🚨 ADDED
         loggedReps: Int? = nil,
         loggedWeight: Double? = nil,
         loggedTime: Double? = nil,
         loggedDistance: Double? = nil,
         loggedCalories: Double? = nil,
+        loggedRounds: Int? = nil, // 🚨 ADDED
         rpe: Double? = nil,
         rir: Double? = nil,
         tempo: String? = nil,
@@ -520,11 +523,13 @@ public struct SessionSet: Identifiable, Codable, Equatable {
         self.expectedTime = expectedTime
         self.expectedDistance = expectedDistance
         self.expectedCalories = expectedCalories
+        self.expectedRounds = expectedRounds // 🚨 ASSIGNMENT
         self.loggedReps = loggedReps
         self.loggedWeight = loggedWeight
         self.loggedTime = loggedTime
         self.loggedDistance = loggedDistance
         self.loggedCalories = loggedCalories
+        self.loggedRounds = loggedRounds // 🚨 ASSIGNMENT
         self.rpe = rpe
         self.rir = rir
         self.tempo = tempo
@@ -533,6 +538,7 @@ public struct SessionSet: Identifiable, Codable, Equatable {
         self.isCompleted = isCompleted
     }
 }
+
 
 // MARK: - AI Metadata + Draft Models
 
