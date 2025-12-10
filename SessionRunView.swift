@@ -413,55 +413,21 @@ private struct SessionSetRunRow: View {
         }
     }
 
-    // MARK: - Conditioning UI (Uses SetControlView where possible)
+    // In SessionRunView.swift, inside SessionSetRunRow, replace conditioningControls
+
+    // MARK: - Conditioning UI (Uses SetControlView)
 
     private var conditioningControls: some View {
         VStack(alignment: .leading, spacing: 12) {
 
-            // Time (Seconds)
+            // Time (Minutes) Control 🚨 CLEANED UP
             if expected.expectedTime != nil {
-                // NOTE: We log seconds (Double?), but display minutes for UX
-                HStack(spacing: 6) {
-                    Text("Time")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-
-                    // Helper to manage binding from Double? (seconds) to Int (minutes) display
-                    let timeMinutesBinding = Binding<Int>(
-                        get: { Int((logged.loggedTime ?? 0) / 60) },
-                        set: { logged.loggedTime = Double($0 * 60) }
-                    )
-
-                    Button {
-                        timeMinutesBinding.wrappedValue = max(0, timeMinutesBinding.wrappedValue - 1)
-                    } label: {
-                        Image(systemName: "minus.circle")
-                    }
-
-                    Text("\(timeMinutesBinding.wrappedValue)")
-                        .font(.body.monospacedDigit())
-                        .frame(width: 32)
-
-                    Button {
-                        timeMinutesBinding.wrappedValue += 1
-                    } label: {
-                        Image(systemName: "plus.circle")
-                    }
-
-                    Text("min")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-
-
-            // Calories Control
-            if expected.expectedCalories != nil {
                 SetControlView(
-                    label: "CALORIES",
-                    unit: "cal",
-                    value: $logged.loggedCalories,
-                    step: 5.0,
+                    label: "TIME",
+                    unit: "min",
+                    // FIX: Use the new toMinutes helper extension
+                    value: $logged.loggedTime.toMinutes(),
+                    step: 1.0, // Steps in 1 minute increments
                     formatter: Self.integerFormatter,
                     min: 0.0
                 )
@@ -473,26 +439,38 @@ private struct SessionSetRunRow: View {
                     label: "DISTANCE",
                     unit: "m",
                     value: $logged.loggedDistance,
-                    step: 100.0,
+                    step: 100.0, // Steps in 100m increments
                     formatter: Self.integerFormatter,
                     min: 0.0
                 )
             }
             
-            // Rounds Control (from old ConditioningSetTemplate logic)
+            // Calories Control
+            if expected.expectedCalories != nil {
+                SetControlView(
+                    label: "CALORIES",
+                    unit: "cal",
+                    value: $logged.loggedCalories,
+                    step: 5.0, // Steps in 5 cal increments
+                    formatter: Self.integerFormatter,
+                    min: 0.0
+                )
+            }
+            
+            // Rounds Control
             if expected.expectedRounds != nil {
                 SetControlView(
                     label: "ROUNDS",
                     unit: "rounds",
                     value: $logged.loggedRounds.toDouble(),
-                    step: 1.0,
+                    step: 1.0, // Steps in 1 round increment
                     formatter: Self.integerFormatter,
                     min: 0.0
                 )
             }
         }
     }
-}
+
 // In SessionRunView.swift, replace the RpePickerView and RirPickerView structs
 
 // MARK: - RPE/RIR Pickers (Standardized Ranges)
