@@ -100,13 +100,24 @@ public final class BlocksRepository: ObservableObject {
 
 // MARK: - SessionsRepository
 
-/// In-memory store for generated workout sessions.
-/// Phase 4: simple flat array; later we can add helpers + persistence.
+/// In-memory store for generated workout sessions, now with JSON persistence.
+/// Phase 4: simple flat array; now with disk persistence.
 public final class SessionsRepository: ObservableObject {
     @Published private(set) public var sessions: [WorkoutSession]
 
+    // Location of the sessions JSON file on disk. 🚨 ADDED
+    private static var fileURL: URL {
+        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return directory.appendingPathComponent("sessions.json")
+    }
+
     public init(sessions: [WorkoutSession] = []) {
-        self.sessions = sessions
+        // 🚨 Load from disk first; if nothing on disk, use the injected seed.
+        if let saved = Self.loadFromDisk() {
+            self.sessions = saved
+        } else {
+            self.sessions = sessions
+        }
     }
 
     // All sessions for a given block
@@ -131,24 +142,60 @@ public final class SessionsRepository: ObservableObject {
         } else {
             sessions.append(session)
         }
+        saveToDisk() // 🚨 ADDED
     }
 
     // Remove all sessions for a given block (e.g., if block structure changes)
     public func deleteSessions(forBlockId blockId: BlockID) {
         sessions.removeAll { $0.blockId == blockId }
+        saveToDisk() // 🚨 ADDED
     }
 
     // Replace all sessions at once (future: after regeneration)
     public func replaceAll(with newSessions: [WorkoutSession]) {
         sessions = newSessions
+        saveToDisk() // 🚨 ADDED
     }
 
     // ✅ NEW: replace sessions for a single block
     public func replaceSessions(forBlockId blockId: BlockID, with new: [WorkoutSession]) {
         sessions.removeAll { $0.blockId == blockId }
         sessions.append(contentsOf: new)
+        saveToDisk() // 🚨 ADDED
+    }
+    
+    // MARK: - Persistence 🚨 ADDED METHODS
+
+    /// Load sessions from disk if the JSON file exists.
+    private static func loadFromDisk() -> [WorkoutSession]? {
+        let url = fileURL
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return nil
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            let decoded = try JSONDecoder().decode([WorkoutSession].self, from: data)
+            return decoded
+        } catch {
+            print("⚠️ SessionsRepository.loadFromDisk failed: \(error)")
+            return nil
+        }
+    }
+
+    /// Save the current sessions array to disk as JSON.
+    private func saveToDisk() {
+        let url = Self.fileURL
+
+        do {
+            let data = try JSONEncoder().encode(sessions)
+            try data.write(to: url, options: [.atomic])
+        } catch {
+            print("⚠️ SessionsRepository.saveToDisk failed: \(error)")
+        }
     }
 }
+
 
 // MARK: - ExerciseLibraryRepository
 
