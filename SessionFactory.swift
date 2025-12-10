@@ -122,6 +122,8 @@ public struct SessionFactory {
             }
         }
 
+        // In SessionFactory.swift (Around line 133, inside makeSessionSets)
+
         if let conditioningSets = template.conditioningSets {
     for conditioning in conditioningSets {
         let set = SessionSet(
@@ -132,17 +134,21 @@ public struct SessionFactory {
             expectedTime: conditioning.durationSeconds.map { Double($0) },
             expectedDistance: conditioning.distanceMeters,
             expectedCalories: conditioning.calories,
+            expectedRounds: conditioning.rounds, // 🚨 ADDED
             loggedReps: nil,
             loggedWeight: nil,
             loggedTime: conditioning.durationSeconds.map { Double($0) },
             loggedDistance: conditioning.distanceMeters,
             loggedCalories: conditioning.calories,
+            loggedRounds: conditioning.rounds, // 🚨 ADDED
             notes: conditioning.notes,
             isCompleted: false
         )
         result.append(set)
     }
 }
+// ... rest of the file
+
 
         // If you later make use of genericSets on ExerciseTemplate,
         // you can add a third branch here that maps those into SessionSets
