@@ -64,11 +64,24 @@ struct SessionRunView: View {
         }
         // REMOVE the previous onDisappear, as it was insufficient.
         // FIX: Add hook for swipe-down/system gesture dismissal
-        .onChange(of: dismiss) { _ in
-            // This ensures a save happens if the view is dismissed by a gesture
+      // In SessionRunView.swift, inside body, around line 70, before the final '}'
+// This must be placed on the *top-level* element in the view hierarchy (the NavigationStack in this case).
+    
+// We will add it back to the main VSTACK inside the ZStack of BlocksListView/BlockSessionEntryView. 
+// Since SessionRunView is inside a NavigationLink, we will place it on the top-level VSTack/ScrollView.
+
+// Let's place it after the .navigationBarTitleDisplayMode(.inline) block:
+
+        .navigationBarTitleDisplayMode(.inline)
+        // ... (remaining .toolbar and .onChange(of: dismiss) blocks are deleted/fixed)
+        
+        .onDisappear {
+            // FIX: This ensures a save happens if the view is dismissed by a gesture/swipe.
+            // It runs reliably when the view is about to be removed from the screen.
             saveSessionAndDismiss(isCancel: true)
         }
     }
+
 
 
     private var content: some View {
