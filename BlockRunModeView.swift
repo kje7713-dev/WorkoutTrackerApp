@@ -270,6 +270,7 @@ struct BlockRunModeView: View {
             print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
         }
     }
+} // <--- BlockRunModeView ends here
 
 // MARK: - Week View
 
@@ -361,7 +362,7 @@ struct DayRunView: View {
                     let newExercise = RunExerciseState(
                         name: "New Exercise \(newExerciseIndex)",
                         type: .strength,
-                        notes: "",   // 🔹 start with empty notes
+                        notes: "",
                         sets: [
                             RunSetState(
                                 indexInExercise: 0,
@@ -453,7 +454,7 @@ struct ExerciseRunCard: View {
     }
 }
 
-// MARK: - Helper Struct for Reusability (New code)
+// MARK: - Helper Struct for Reusability (SetControlView is moved to file scope)
 
 struct SetControlView: View {
     let label: String
@@ -473,7 +474,6 @@ struct SetControlView: View {
             // Controls
             HStack(spacing: 4) {
                 Button {
-                    // Decrement, ensuring we don't go below min (and safely unwrap/default)
                     if let currentValue = value {
                         value = max(min, currentValue - step)
                     } else {
@@ -483,14 +483,13 @@ struct SetControlView: View {
                     Image(systemName: "minus.circle")
                 }
 
-                // Display Value (or "-" if nil/zero)
-                Text(value.map { formatter.string(from: NSNumber(value: $0)) } ?? "-")
+                // FIX: Ensured the string result is calculated outside of Text and is not optional
+                Text(value.flatMap { formatter.string(from: NSNumber(value: $0)) } ?? "-")
                     .font(.body.monospacedDigit())
-                    .frame(width: 40) // Ensure consistent width
+                    .frame(width: 40)
                     .minimumScaleFactor(0.5)
 
                 Button {
-                    // Increment (safely unwrap/default to min)
                     if let currentValue = value {
                         value = currentValue + step
                     } else {
@@ -508,9 +507,9 @@ struct SetControlView: View {
 }
 
 struct SetRunRow: View {
-    @Binding var runSet: RunSetState    // ⬅️ renamed from `set`
+    @Binding var runSet: RunSetState
 
-    // Strength helpers
+    // Strength helpers (keeping these for clarity, though not directly used in the new UI)
     private var repsValue: Int {
         runSet.actualReps ?? runSet.plannedReps ?? 0
     }
@@ -624,6 +623,7 @@ struct SetRunRow: View {
             SetControlView(
                 label: "REPETITIONS",
                 unit: "reps",
+                // FIX: Used the correct call to the extension method
                 value: $runSet.actualReps.toDouble(),
                 step: 1.0,
                 formatter: Self.integerFormatter,
@@ -634,7 +634,7 @@ struct SetRunRow: View {
             SetControlView(
                 label: "WEIGHT",
                 unit: "lb",
-                value: $runSet.actualWeight, // This is already Double?, no need for extension
+                value: $runSet.actualWeight,
                 step: 5.0,
                 formatter: Self.weightFormatter,
                 min: 0.0
@@ -647,8 +647,7 @@ struct SetRunRow: View {
     private var conditioningControls: some View {
         VStack(alignment: .leading, spacing: 6) {
 
-            // Time (minutes) - Note: This requires complex binding logic since the state holds seconds
-            // Keeping original implementation for time to avoid complex secondary binding:
+            // Time (minutes) - Kept original implementation to avoid complex secondary binding
             HStack(spacing: 6) {
                 Text("Time")
                     .font(.caption2)
@@ -678,7 +677,7 @@ struct SetRunRow: View {
             }
 
 
-            // Calories Control (uses SetControlView)
+            // Calories Control
             SetControlView(
                 label: "CALORIES",
                 unit: "cal",
@@ -688,10 +687,11 @@ struct SetRunRow: View {
                 min: 0.0
             )
 
-            // Rounds Control (uses SetControlView)
+            // Rounds Control
             SetControlView(
                 label: "ROUNDS",
                 unit: "rounds",
+                // FIX: Used the correct call to the extension method
                 value: $runSet.actualRounds.toDouble(),
                 step: 1.0,
                 formatter: Self.integerFormatter,
@@ -729,9 +729,9 @@ struct RunDayState: Identifiable, Codable{
 
 struct RunExerciseState: Identifiable, Codable {
     let id = UUID()
-    var name: String              // editable in run mode
+    var name: String
     let type: ExerciseType
-    var notes: String             // 🔹 shared notes for strength + conditioning
+    var notes: String
     var sets: [RunSetState]
 }
 
@@ -797,19 +797,20 @@ struct RunSetState: Identifiable, Codable {
     }
 }
 
-// MARK: - BINDING EXTENSIONS (New Utility Code)
+
+// MARK: - BINDING EXTENSIONS (Moved to File Scope)
 
 extension Binding where Value == Int? {
     /// Converts an optional Int binding to an optional Double binding.
     func toDouble() -> Binding<Double?> {
         return Binding<Double?>(
             get: { self.wrappedValue.map(Double.init) },
-            set: { self.wrappedValue = $0.map(Int.init) }
+            // Force optional value back to Int?
+            set: { self.wrappedValue = $0.map { Int($0) } }
         )
     }
 }
 
-// Extension for Double? is also needed for consistency with SetControlView
 extension Binding where Value == Double? {
     /// Utility to simplify passing Double? bindings to SetControlView
     func toDouble() -> Binding<Double?> {
