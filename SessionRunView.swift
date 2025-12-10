@@ -355,13 +355,24 @@ private struct SessionSetRunRow: View {
 
     // MARK: - Expected Row Display
 
+    // In SessionRunView.swift, inside SessionSetRunRow, replace expectedRow
+
+    // MARK: - Expected Row Display
+
     private var expectedRow: some View {
         let plannedParts: [String] = [
             expected.expectedReps.map { "\($0)x" },
             expected.expectedWeight.flatMap(cleanDouble).map { "\($0)lb" },
             expected.expectedTime.flatMap(cleanDouble).map { "\($0)s" },
             expected.expectedDistance.flatMap(cleanDouble).map { "\($0)m" },
-            expected.expectedCalories.flatMap(cleanDouble).map { "\($0) cal" }
+            expected.expectedCalories.flatMap(cleanDouble).map { "\($0) cal" },
+            
+            // 🚨 NEW: Display planned Tempo
+            expected.tempo.map { "Tempo: \($0)" },
+            
+            // 🚨 NEW: Display planned Rest Seconds
+            expected.restSeconds.map { "Rest: \($0)s" }
+            
         ].compactMap { $0 }
 
         return Text("Planned: \(plannedParts.joined(separator: " • "))")
@@ -369,6 +380,7 @@ private struct SessionSetRunRow: View {
             .foregroundColor(.secondary)
             .padding(.bottom, 4)
     }
+
 
     // MARK: - Strength UI (Uses SetControlView from SetControls.swift)
 
