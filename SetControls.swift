@@ -108,4 +108,24 @@ extension Binding where Value == String? {
             }
         )
     }
+    // In SetControls.swift, add this new extension:
+
+// MARK: - Time Conversion Binding Helper
+
+extension Binding where Value == Double? {
+    /// Converts a Binding<Double?> (seconds) to a Binding<Double?> (minutes).
+    func toMinutes() -> Binding<Double?> {
+        return Binding<Double?>(
+            get: {
+                // Read: Convert seconds to minutes
+                self.wrappedValue.map { $0 / 60.0 }
+            },
+            set: { newValue in
+                // Write: Convert minutes back to seconds
+                self.wrappedValue = newValue.map { $0 * 60.0 }
+            }
+        )
+    }
+}
+
 }
