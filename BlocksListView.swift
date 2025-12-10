@@ -3,8 +3,6 @@ import SwiftUI
 /// Blocks screen – choose a block to run, or create a new one.
 /// Phase 7: hooked to BlocksRepository (no ProgramStore, no extra layers).
 
-
-
 struct BlocksListView: View {
 
     // Same repository the builder uses
@@ -61,14 +59,17 @@ struct BlocksListView: View {
                 case .new:
                     BlockBuilderView(mode: .new)
                         .environmentObject(blocksRepository)
+                        .environmentObject(sessionsRepository)
 
                 case .edit(let block):
                     BlockBuilderView(mode: .edit(block))
                         .environmentObject(blocksRepository)
+                        .environmentObject(sessionsRepository)
 
                 case .clone(let block):
                     BlockBuilderView(mode: .clone(block))
                         .environmentObject(blocksRepository)
+                        .environmentObject(sessionsRepository)
                 }
             }
         }
@@ -122,18 +123,18 @@ struct BlocksListView: View {
 
                         // Explicit action row: RUN / EDIT / NEXT BLOCK
                         HStack(spacing: 8) {
-                            // RUN – same behavior as your old NavigationLink row
+                            // RUN – calls the helper view below to find/create the session
                             NavigationLink {
-    BlockRunModeView(block: block)
-        .environmentObject(blocksRepository)
-        .environmentObject(sessionsRepository)
-} label: {
-    Text("RUN")
-        .font(.subheadline).bold()
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-}
-.buttonStyle(.borderedProminent)
+                                BlockSessionEntryView(block: block)
+                                    .environmentObject(blocksRepository)
+                                    .environmentObject(sessionsRepository)
+                            } label: {
+                                Text("RUN")
+                                    .font(.subheadline).bold()
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 8)
+                            }
+                            .buttonStyle(.borderedProminent)
 
                             // EDIT – open builder in edit mode (update this block)
                             Button {
@@ -199,46 +200,50 @@ struct BlocksListView: View {
     }
 }
         
-private struct BlockRunEntryView: View {
+// 🚨 RENAMED FROM BlockRunEntryView and calls the consolidated SessionRunView
+private struct BlockSessionEntryView: View {
     let block: Block
 
-    @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var sessionsRepository: SessionsRepository
 
     var body: some View {
         Group {
             if let firstSession = firstSessionForBlock() {
-                WorkoutSessionView(session: firstSession)
-                    .environmentObject(blocksRepository)
-                    .environmentObject(sessionsRepository)
+                // 🚨 Calls the consolidated SessionRunView (formerly BlockRunModeView)
+                SessionRunView(session: firstSession)
             } else {
                 Text("No sessions available for this block.")
             }
         }
     }
 
-    // Ensure sessions exist for this block, then return the first one
+    // Ensure sessions exist for this block, then return the first uncompleted session
     private func firstSessionForBlock() -> WorkoutSession? {
-        let existing = sessionsRepository.sessions(forBlockId: block.id)
-        let sessionsForBlock: [WorkoutSession]
-
-        if !existing.isEmpty {
-            sessionsForBlock = existing
-        } else {
+        var existing = sessionsRepository.sessions(forBlockId: block.id)
+        
+        // 1. If no sessions exist, generate them
+        if existing.isEmpty {
             let factory = SessionFactory()
             let generated = factory.makeSessions(for: block)
             sessionsRepository.replaceSessions(forBlockId: block.id, with: generated)
-            sessionsForBlock = generated
+            existing = generated
         }
 
-        // Simple sort: weekIndex, then dayTemplateId
-        return sessionsForBlock.sorted(by: sessionSort).first
+        // 2. Sort by weekIndex, then dayTemplateId
+        let sortedSessions = existing.sorted(by: sessionSort)
+        
+        // 3. Find the first uncompleted session, or the very first one if all are completed
+        let uncompleted = sortedSessions.first(where: { $0.status != .completed })
+        
+        // Return the first uncompleted session, falling back to the very first one if none are incomplete.
+        return uncompleted ?? sortedSessions.first
     }
 
     private func sessionSort(_ lhs: WorkoutSession, _ rhs: WorkoutSession) -> Bool {
         if lhs.weekIndex != rhs.weekIndex {
             return lhs.weekIndex < rhs.weekIndex
         }
+        // This relies on the UUID string comparison being stable, which is fine for ordering.
         return lhs.dayTemplateId.uuidString < rhs.dayTemplateId.uuidString
     }
 }
