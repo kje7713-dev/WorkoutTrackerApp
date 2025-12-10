@@ -277,19 +277,20 @@ private struct SessionSetRunRow: View {
                 conditioningControls
             }
 
-            // Notes field
+            // In SessionRunView.swift (Inside SessionSetRunRow.body, around line 280)
+
+            // Notes field 🚨 SIMPLIFIED BINDING
             TextField(
                 "Notes (RPE, cues, etc.)",
-                text: Binding(
-                    get: { logged.notes ?? "" },
-                    set: { newValue in
-                        logged.notes = newValue.isEmpty ? nil : newValue
-                    }
-                ),
+                // Bind directly to the optional property on the binding wrapper
+                text: $logged.notes.toNonOptionalString(), 
                 axis: .vertical
             )
             .font(.footnote)
             .textFieldStyle(.roundedBorder)
+
+            // ... rest of the view
+
 
             // Complete / Undo
             HStack {
