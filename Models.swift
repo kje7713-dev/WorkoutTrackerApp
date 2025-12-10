@@ -480,18 +480,27 @@ public struct SessionSet: Identifiable, Codable, Equatable {
     public var expectedCalories: Double?
     public var expectedRounds: Int? // 🚨 ADDED
 
+    // In Models.swift (Inside SessionSet struct definition, around line 407)
+
     // logged
     public var loggedReps: Int?
     public var loggedWeight: Double?
     public var loggedTime: Double?
     public var loggedDistance: Double?
     public var loggedCalories: Double?
-    public var loggedRounds: Int? // 🚨 ADDED
+    public var loggedRounds: Int? // This was added in the previous fix
 
-    // optional effort / metadata (Phase-4 choice 4B)
-    // ... rest of the struct properties
+    // optional effort / metadata (Phase-4 choice 4B) 🚨 ADD THESE PROPERTIES
+    public var rpe: Double?         // 🚨 ADDED
+    public var rir: Double?         // 🚨 ADDED
+    public var tempo: String?       // 🚨 ADDED
+    public var restSeconds: Int?    // 🚨 ADDED
+    public var notes: String?       // 🚨 ADDED
 
     public var isCompleted: Bool
+    
+    // ... rest of the struct and initializer are now correct after the previous fix.
+
 
     // 🚨 UPDATE THE INITIALIZER (Around line 420)
     public init(
