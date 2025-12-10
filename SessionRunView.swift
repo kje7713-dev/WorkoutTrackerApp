@@ -114,13 +114,14 @@ struct SessionRunView: View {
         .padding(.bottom, 4)
     }
     
-    private func saveSessionAndDismiss() {
+    // In SessionRunView.swift, replace the entire saveSessionAndDismiss function
+
+    private func saveSessionAndDismiss(isCancel: Bool) {
         // Stamp date first time this session is saved/opened
         if session.date == nil {
             session.date = Date()
         }
 
-        // Derive status from completion
         let totalSetCount = session.exercises.reduce(0) { partial, exercise in
             partial + exercise.loggedSets.count
         }
@@ -128,18 +129,26 @@ struct SessionRunView: View {
             partial + exercise.loggedSets.filter { $0.isCompleted }.count
         }
 
+        // Derive status from completion
         if totalSetCount > 0 && completedSetCount == totalSetCount {
             session.status = .completed
         } else if completedSetCount > 0 {
             session.status = .inProgress
         } else {
+            // If the user hasn't logged anything, status remains notStarted
             session.status = .notStarted
         }
 
+        // FIX: Persist the current state to the repository
         sessionsRepository.save(session)
-        dismiss()
+        
+        // Only explicitly dismiss if it's NOT a background/cancel save, 
+        // as cancel/gesture-dismiss will be handled implicitly or by the button action.
+        if !isCancel {
+            dismiss()
+        }
     }
-}
+
 
 // MARK: - Day Tabs (Remains largely the same)
 
