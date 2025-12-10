@@ -91,3 +91,21 @@ extension Binding where Value == Double? {
         return self
     }
 }
+// In SetControls.swift (Outside all other structs/extensions)
+
+// MARK: - String Optional Binding Helper
+
+extension Binding where Value == String? {
+    /// Creates a non-optional String binding that defaults to "" when the underlying optional is nil.
+    public func toNonOptionalString() -> Binding<String> {
+        return Binding<String>(
+            get: {
+                return self.wrappedValue ?? ""
+            },
+            set: { newValue in
+                // Set back to nil if empty, otherwise set new value
+                self.wrappedValue = newValue.isEmpty ? nil : newValue
+            }
+        )
+    }
+}
