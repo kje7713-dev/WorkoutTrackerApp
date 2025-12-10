@@ -784,4 +784,4 @@ struct RunSetState: Identifiable, Codable {
         self.isCompleted = isCompleted
     }
 }
-
+}
