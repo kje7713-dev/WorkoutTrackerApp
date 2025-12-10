@@ -481,6 +481,68 @@ private struct SessionSetRunRow: View {
         }
     }
 }
+// In SessionRunView.swift, replace the RpePickerView and RirPickerView structs
+
+// MARK: - RPE/RIR Pickers (Standardized Ranges)
+
+private struct RpePickerView: View {
+    @Binding var rpe: Double?
+    
+    // RPE standard working range: 6.0 to 10.0 in 0.5 increments.
+    private let rpeRange: [Double] = Array(stride(from: 6.0, through: 10.0, by: 0.5))
+
+    var body: some View {
+        HStack {
+            Text("RPE")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+
+            // Picker
+            Picker("RPE", selection: $rpe) {
+                Text("-").tag(nil as Double?)
+                ForEach(rpeRange, id: \.self) { value in
+                    // Display 10.0 as "10" for cleaner UI
+                    Text(value.truncatingRemainder(dividingBy: 1) == 0 ? 
+                         String(format: "%.0f", value) : String(format: "%.1f", value))
+                    .tag(Optional(value) as Double?)
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .frame(width: 80)
+        }
+    }
+}
+
+private struct RirPickerView: View {
+    @Binding var rir: Double?
+    
+    // RIR standard working range: 0 to 4 in 1.0 increments.
+    private let rirRange: [Double] = Array(stride(from: 0.0, through: 4.0, by: 1.0))
+
+    var body: some View {
+        HStack {
+            Text("RIR")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+
+            // Picker
+            Picker("RIR", selection: $rir) {
+                Text("-").tag(nil as Double?)
+                ForEach(rirRange, id: \.self) { value in
+                    // Display as integer (0, 1, 2, 3, 4)
+                    Text(String(format: "%.0f", value))
+                        .tag(Optional(value) as Double?)
+                }
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .frame(width: 80)
+        }
+    }
+}
+
+
 }
 // ⚠️ DELETE THE ENTIRE Run State Models SECTION BELOW THIS LINE FROM YOUR ORIGINAL BlockRunModeView FILE
 // (RunWeekState, RunDayState, RunExerciseState, RunSetState and all persistence helpers)
