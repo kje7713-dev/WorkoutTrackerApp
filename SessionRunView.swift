@@ -46,20 +46,30 @@ struct SessionRunView: View {
             content
         }
         .navigationBarTitleDisplayMode(.inline)
+        .// In SessionRunView.swift, replace the entire .toolbar block
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") { dismiss() }
+                // FIX: Cancellation now calls saveSessionAndDismiss
+                Button("Cancel") {
+                    saveSessionAndDismiss(isCancel: true)
+                }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save Session") { saveSessionAndDismiss() }
-                    .fontWeight(.bold)
+                // FIX: Confirmation calls saveSessionAndDismiss
+                Button("Save Session") {
+                    saveSessionAndDismiss(isCancel: false)
+                }
+                .fontWeight(.bold)
             }
         }
-        .onDisappear {
-            // 🚨 Use the SessionsRepository to save the final state
-            sessionsRepository.save(session)
+        // REMOVE the previous onDisappear, as it was insufficient.
+        // FIX: Add hook for swipe-down/system gesture dismissal
+        .onChange(of: dismiss) { _ in
+            // This ensures a save happens if the view is dismissed by a gesture
+            saveSessionAndDismiss(isCancel: true)
         }
     }
+
 
     private var content: some View {
         // Since we are only viewing one session, we map the exercises directly
