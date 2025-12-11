@@ -27,6 +27,7 @@ struct SessionRunView: View {
     
     // 🚨 Initializer now takes a WorkoutSession
     init(session: WorkoutSession) {
+        // Use the new session object passed from the parent view
         _session = State(initialValue: session)
     }
 
@@ -89,6 +90,7 @@ struct SessionRunView: View {
                 .fontWeight(.semibold)
 
             // Short code + week in secondary role
+            // FIX: The weekIndex and day template ID are pulled directly from the session
             Text("Week \(session.weekIndex) • \(dayTemplate?.shortCode?.uppercased() ?? "SESSION")")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
@@ -134,6 +136,9 @@ struct SessionRunView: View {
         }
     }
 } // <--- END OF SessionRunView struct
+
+
+// ⚠️ The old, redundant DayTabBar struct is NOT included here.
 
 
 // MARK: - Exercise Card View
