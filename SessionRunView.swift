@@ -34,7 +34,7 @@ struct SessionRunView: View {
         VStack(spacing: 0) {
             topBar // Now uses the session model for context
 
-            // ⚠️ FIX: REMOVED the call to the redundant DayTabBar struct here.
+            // ⚠️ FIX: The redundant DayTabBar call is removed.
             
             content
         }
@@ -134,9 +134,6 @@ struct SessionRunView: View {
         }
     }
 } // <--- END OF SessionRunView struct
-
-
-// ⚠️ FIX: The old, redundant DayTabBar struct has been DELETED from here.
 
 
 // MARK: - Exercise Card View
