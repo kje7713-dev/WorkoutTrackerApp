@@ -209,14 +209,18 @@ private struct SessionExerciseCardView: View {
     @Binding var exercise: SessionExercise
     @Environment(\.sbdTheme) private var theme
 
+    // In SessionRunView.swift, inside SessionExerciseCardView, replace exerciseName
+
     private var exerciseName: String {
+        // FIX: Prioritize the session-local custom name, which came from the template
         if let custom = exercise.customName, !custom.isEmpty {
             return custom
         } else {
-            // Try to find the original exercise name from the block (optional helper)
-            return "Exercise"
+            // Use a clear placeholder if no name exists.
+            return "Untitled Exercise" 
         }
     }
+
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
