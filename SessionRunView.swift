@@ -20,9 +20,6 @@ struct SessionRunView: View {
     // 🚨 NOW uses the canonical Session model
     @State private var session: WorkoutSession
     
-    // Internal state for Day and Week navigation (simplified)
-    @State private var currentDayIndex: Int = 0 
-    
     // This is ONLY used to get the day name/short code from the original block template.
     private var block: Block? {
         blocksRepository.blocks.first { $0.id == session.blockId }
@@ -37,18 +34,16 @@ struct SessionRunView: View {
         VStack(spacing: 0) {
             topBar // Now uses the session model for context
 
+            // DayTabBar should ideally be in the parent view, but we keep it here 
+            // for compilation compatibility if the parent hasn't been updated.
             DayTabBar(
-                days: block?.days ?? [], // Days come from the template block
-                currentDayIndex: $currentDayIndex
+                days: block?.days ?? [], 
+                currentDayIndex: .constant(0) // FIX: Hardcode to constant for compilation safety
             )
             Divider()
             
             content
         }
-        .navigationBarTitleDisplayMode(.inline)
-        // In SessionRunView.swift, replace the modification chain after .navigationBarTitleDisplayMode(.inline)
-
-// ...
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -63,22 +58,15 @@ struct SessionRunView: View {
                 .fontWeight(.bold)
             }
         }
-        // FIX: Remove the illegal .onChange(of: dismiss) block
         .onDisappear {
             // FIX: Use onDisappear as the reliable save hook for gesture dismissals/cancellation
             saveSessionAndDismiss(isCancel: true)
         }
-    } // <--- This is the closing brace for the SessionRunView body property
-// ...
-
-
-
+    } // <--- END OF SessionRunView.body
 
 
     private var content: some View {
-        // Since we are only viewing one session, we map the exercises directly
-        // to a ScrollView, ignoring `currentDayIndex` for now until a higher-level
-        // navigation is implemented. For simplicity, we show all exercises in the session.
+        // We show all exercises in the loaded session object.
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 ForEach($session.exercises) { $exercise in
@@ -118,7 +106,6 @@ struct SessionRunView: View {
         .padding(.bottom, 4)
     }
     
-    // In SessionRunView.swift, replace the entire saveSessionAndDismiss function
 
     private func saveSessionAndDismiss(isCancel: Bool) {
         // Stamp date first time this session is saved/opened
@@ -152,6 +139,7 @@ struct SessionRunView: View {
             dismiss()
         }
     }
+} // <--- END OF SessionRunView struct (CRITICAL CLOSURE)
 
 
 // MARK: - Day Tabs (Remains largely the same)
@@ -203,13 +191,12 @@ struct DayTabBar: View {
     }
 }
 
-// 🚨 NEW: Card view for a single SessionExercise, using the SetControl UI architecture
+
+// MARK: - Exercise Card View
 
 private struct SessionExerciseCardView: View {
     @Binding var exercise: SessionExercise
     @Environment(\.sbdTheme) private var theme
-
-    // In SessionRunView.swift, inside SessionExerciseCardView, replace exerciseName
 
     private var exerciseName: String {
         // FIX: Prioritize the session-local custom name, which came from the template
@@ -225,11 +212,16 @@ private struct SessionExerciseCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Display/Edit name
+            Text(exerciseName) // FIX: Display the resolved name
+                .font(.headline)
+                .padding(.top, 4)
+
+            // Name edit field (using a binding helper)
             TextField("Exercise name", text: Binding(
                 get: { exercise.customName ?? "" },
                 set: { exercise.customName = $0.isEmpty ? nil : $0 }
             ))
-            .font(.headline)
+            .font(.subheadline)
             .textFieldStyle(.roundedBorder)
             .disableAutocorrection(true)
             .autocapitalization(.words)
@@ -254,7 +246,7 @@ private struct SessionExerciseCardView: View {
 }
 
 
-// 🚨 NEW: SessionSetRowView that uses the SetControlView (The core UI migration)
+// MARK: - Session Set Row View
 
 private struct SessionSetRunRow: View {
     let index: Int
@@ -263,7 +255,7 @@ private struct SessionSetRunRow: View {
 
     @Environment(\.sbdTheme) private var theme
 
-    // Formatters (copied from old SetRunRow)
+    // Formatters
     private static let integerFormatter: NumberFormatter = {
         let f = NumberFormatter()
         f.maximumFractionDigits = 0
@@ -298,26 +290,20 @@ private struct SessionSetRunRow: View {
             expectedRow
             
             // Controls depend on the expected data in the set
-            if expected.expectedReps != nil || expected.expectedWeight != nil {
+            if expected.expectedReps != nil || expected.expectedWeight != nil || expected.rpe != nil || expected.rir != nil {
                 strengthControls
-            } else if expected.expectedTime != nil || expected.expectedCalories != nil || expected.expectedDistance != nil {
+            } else if expected.expectedTime != nil || expected.expectedCalories != nil || expected.expectedDistance != nil || expected.expectedRounds != nil {
                 conditioningControls
             }
 
-            // In SessionRunView.swift (Inside SessionSetRunRow.body, around line 280)
-
-            // Notes field 🚨 SIMPLIFIED BINDING
+            // Notes field
             TextField(
                 "Notes (RPE, cues, etc.)",
-                // Bind directly to the optional property on the binding wrapper
                 text: $logged.notes.toNonOptionalString(), 
                 axis: .vertical
             )
             .font(.footnote)
             .textFieldStyle(.roundedBorder)
-
-            // ... rest of the view
-
 
             // Complete / Undo
             HStack {
@@ -330,9 +316,10 @@ private struct SessionSetRunRow: View {
                 .font(logged.isCompleted ? .caption : .subheadline)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
+                // FIX: Use the branding fix previously requested
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(logged.isCompleted ? Color.secondary : Color.primary, lineWidth: 1)
+                        .stroke(logged.isCompleted ? Color.gray.opacity(0.4) : Color.black, lineWidth: 1)
                 )
                 .foregroundColor(logged.isCompleted ? .secondary : .primary)
             }
@@ -341,25 +328,15 @@ private struct SessionSetRunRow: View {
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(uiColor: .secondarySystemBackground))
+                // FIX: Add a subtle green border on completion
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(logged.isCompleted ? .green : .clear, lineWidth: 2)
+                )
         )
-        // Completed ribbon overlay (simplified)
-        .overlay(
-            Group {
-                if logged.isCompleted {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .padding(6)
-                        .offset(x: 8, y: -8)
-                }
-            },
-            alignment: .topTrailing
-        )
+        // FIX: Remove the old checkmark overlay entirely
         .padding(.vertical, 2)
     }
-
-    // MARK: - Expected Row Display
-
-    // In SessionRunView.swift, inside SessionSetRunRow, replace expectedRow
 
     // MARK: - Expected Row Display
 
@@ -370,13 +347,8 @@ private struct SessionSetRunRow: View {
             expected.expectedTime.flatMap(cleanDouble).map { "\($0)s" },
             expected.expectedDistance.flatMap(cleanDouble).map { "\($0)m" },
             expected.expectedCalories.flatMap(cleanDouble).map { "\($0) cal" },
-            
-            // 🚨 NEW: Display planned Tempo
             expected.tempo.map { "Tempo: \($0)" },
-            
-            // 🚨 NEW: Display planned Rest Seconds
             expected.restSeconds.map { "Rest: \($0)s" }
-            
         ].compactMap { $0 }
 
         return Text("Planned: \(plannedParts.joined(separator: " • "))")
@@ -386,52 +358,59 @@ private struct SessionSetRunRow: View {
     }
 
 
-    // MARK: - Strength UI (Uses SetControlView from SetControls.swift)
+    // MARK: - Strength UI (Uses SetControlView and Pickers)
 
     private var strengthControls: some View {
         VStack(alignment: .leading, spacing: 16) {
             
-            // Reps Control (if planned reps exist)
-            if expected.expectedReps != nil {
-                SetControlView(
-                    label: "REPETITIONS",
-                    unit: "reps",
-                    value: $logged.loggedReps.toDouble(),
-                    step: 1.0,
-                    formatter: Self.integerFormatter,
-                    min: 0.0
-                )
-            }
+            HStack(spacing: 20) {
+                // Reps Control (if planned reps exist)
+                if expected.expectedReps != nil {
+                    SetControlView(
+                        label: "REPS",
+                        unit: "reps",
+                        value: $logged.loggedReps.toDouble(),
+                        step: 1.0,
+                        formatter: Self.integerFormatter,
+                        min: 0.0
+                    )
+                }
 
-            // Weight Control (if planned weight exists)
-            if expected.expectedWeight != nil {
-                SetControlView(
-                    label: "WEIGHT",
-                    unit: "lb",
-                    value: $logged.loggedWeight,
-                    step: 5.0,
-                    formatter: Self.weightFormatter,
-                    min: 0.0
-                )
+                // Weight Control (if planned weight exists)
+                if expected.expectedWeight != nil {
+                    SetControlView(
+                        label: "WEIGHT",
+                        unit: "lb",
+                        value: $logged.loggedWeight,
+                        step: 5.0,
+                        formatter: Self.weightFormatter,
+                        min: 0.0
+                    )
+                }
+            }
+            
+            // 🚨 FIX: Integrate RPE/RIR Pickers
+            HStack(spacing: 20) {
+                RpePickerView(rpe: $logged.rpe)
+                RirPickerView(rir: $logged.rir)
             }
         }
     }
 
-    // In SessionRunView.swift, inside SessionSetRunRow, replace conditioningControls
 
     // MARK: - Conditioning UI (Uses SetControlView)
 
     private var conditioningControls: some View {
         VStack(alignment: .leading, spacing: 12) {
-
-            // Time (Minutes) Control 🚨 CLEANED UP
+            // ... (Conditioning controls remain the same, relying on SetControls.swift)
+            
+            // Time (Minutes) Control
             if expected.expectedTime != nil {
                 SetControlView(
                     label: "TIME",
                     unit: "min",
-                    // FIX: Use the new toMinutes helper extension
                     value: $logged.loggedTime.toMinutes(),
-                    step: 1.0, // Steps in 1 minute increments
+                    step: 1.0, 
                     formatter: Self.integerFormatter,
                     min: 0.0
                 )
@@ -443,7 +422,7 @@ private struct SessionSetRunRow: View {
                     label: "DISTANCE",
                     unit: "m",
                     value: $logged.loggedDistance,
-                    step: 100.0, // Steps in 100m increments
+                    step: 100.0, 
                     formatter: Self.integerFormatter,
                     min: 0.0
                 )
@@ -455,7 +434,7 @@ private struct SessionSetRunRow: View {
                     label: "CALORIES",
                     unit: "cal",
                     value: $logged.loggedCalories,
-                    step: 5.0, // Steps in 5 cal increments
+                    step: 5.0, 
                     formatter: Self.integerFormatter,
                     min: 0.0
                 )
@@ -467,15 +446,14 @@ private struct SessionSetRunRow: View {
                     label: "ROUNDS",
                     unit: "rounds",
                     value: $logged.loggedRounds.toDouble(),
-                    step: 1.0, // Steps in 1 round increment
+                    step: 1.0, 
                     formatter: Self.integerFormatter,
                     min: 0.0
                 )
             }
         }
     }
-
-// In SessionRunView.swift, replace the RpePickerView and RirPickerView structs
+}
 
 // MARK: - RPE/RIR Pickers (Standardized Ranges)
 
@@ -495,7 +473,6 @@ private struct RpePickerView: View {
             Picker("RPE", selection: $rpe) {
                 Text("-").tag(nil as Double?)
                 ForEach(rpeRange, id: \.self) { value in
-                    // Display 10.0 as "10" for cleaner UI
                     Text(value.truncatingRemainder(dividingBy: 1) == 0 ? 
                          String(format: "%.0f", value) : String(format: "%.1f", value))
                     .tag(Optional(value) as Double?)
@@ -524,7 +501,6 @@ private struct RirPickerView: View {
             Picker("RIR", selection: $rir) {
                 Text("-").tag(nil as Double?)
                 ForEach(rirRange, id: \.self) { value in
-                    // Display as integer (0, 1, 2, 3, 4)
                     Text(String(format: "%.0f", value))
                         .tag(Optional(value) as Double?)
                 }
@@ -535,10 +511,3 @@ private struct RirPickerView: View {
         }
     }
 }
-}
-}
-
-
-// ⚠️ DELETE THE ENTIRE Run State Models SECTION BELOW THIS LINE FROM YOUR ORIGINAL BlockRunModeView FILE
-// (RunWeekState, RunDayState, RunExerciseState, RunSetState and all persistence helpers)
-
