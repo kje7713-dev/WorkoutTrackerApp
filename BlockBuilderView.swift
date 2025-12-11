@@ -48,7 +48,6 @@ struct EditableDay: Identifiable, Equatable {
 }
 
 
-
 // MARK: - Block Builder View
 
 struct BlockBuilderView: View {
@@ -57,7 +56,7 @@ struct BlockBuilderView: View {
     @Environment(\.sbdTheme) private var theme
 
     @EnvironmentObject private var blocksRepository: BlocksRepository
-@EnvironmentObject private var sessionsRepository: SessionsRepository
+    @EnvironmentObject private var sessionsRepository: SessionsRepository
 
     // What are we doing?
     private let mode: BlockBuilderMode
@@ -514,14 +513,11 @@ sessionsRepository.replaceSessions(forBlockId: newBlock.id, with: generated)
             days: editableDays
         )
     }
-}
-
-
-// In BlockBuilderView.swift, insert this struct definition:
+} // <--- FIX: This closes the BlockBuilderView struct
 
 // MARK: - Day Editor
 
-struct DayEditorView: View {
+struct DayEditorView: View { // <--- This is the missing struct
     @Binding var day: EditableDay
     @Environment(\.sbdTheme) private var theme
 
