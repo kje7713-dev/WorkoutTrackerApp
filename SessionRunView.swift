@@ -531,7 +531,8 @@ private struct RirPickerView: View {
         }
     }
 }
-
+}
+}
 
 
 // ⚠️ DELETE THE ENTIRE Run State Models SECTION BELOW THIS LINE FROM YOUR ORIGINAL BlockRunModeView FILE
