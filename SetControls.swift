@@ -91,7 +91,6 @@ extension Binding where Value == Double? {
         return self
     }
 }
-// In SetControls.swift (Outside all other structs/extensions)
 
 // MARK: - String Optional Binding Helper
 
@@ -108,43 +107,7 @@ extension Binding where Value == String? {
             }
         )
     }
-    // In SetControls.swift, add this new extension:
-
-// MARK: - BINDING EXTENSIONS
-
-extension Binding where Value == Int? {
-    /// Converts an optional Int binding to an optional Double binding.
-    func toDouble() -> Binding<Double?> {
-        return Binding<Double?>(
-            get: { self.wrappedValue.map(Double.init) },
-            set: { self.wrappedValue = $0.map { Int($0) } }
-        )
-    }
 }
-
-extension Binding where Value == Double? {
-    /// Utility to simplify passing Double? bindings to SetControlView
-    func toDouble() -> Binding<Double?> {
-        return self
-    }
-}
-
-// MARK: - String Optional Binding Helper
-
-extension Binding where Value == String? {
-    /// Creates a non-optional String binding that defaults to "" when the underlying optional is nil.
-    public func toNonOptionalString() -> Binding<String> {
-        return Binding<String>(
-            get: {
-                return self.wrappedValue ?? ""
-            },
-            set: { newValue in
-                // Set back to nil if empty, otherwise set new value
-                self.wrappedValue = newValue.isEmpty ? nil : newValue
-            }
-        )
-    }
-} // <--- 🚨 This closing brace was missing, causing nesting errors 🚨
 
 // MARK: - Time Conversion Binding Helper
 
@@ -163,6 +126,7 @@ extension Binding where Value == Double? {
         )
     }
 }
+
 
 
 
