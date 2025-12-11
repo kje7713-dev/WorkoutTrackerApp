@@ -59,17 +59,17 @@ struct BlocksListView: View {
                 case .new:
                     BlockBuilderView(mode: .new)
                         .environmentObject(blocksRepository)
-                        .environmentObject(sessionsRepository) // 🚨 FIX: Ensure session repo is passed
+                        .environmentObject(sessionsRepository)
 
                 case .edit(let block):
                     BlockBuilderView(mode: .edit(block))
                         .environmentObject(blocksRepository)
-                        .environmentObject(sessionsRepository) // 🚨 FIX: Ensure session repo is passed
+                        .environmentObject(sessionsRepository)
 
                 case .clone(let block):
                     BlockBuilderView(mode: .clone(block))
                         .environmentObject(blocksRepository)
-                        .environmentObject(sessionsRepository) // 🚨 FIX: Ensure session repo is passed
+                        .environmentObject(sessionsRepository)
                 }
             }
         }
@@ -124,12 +124,11 @@ struct BlocksListView: View {
                         // Explicit action row: RUN / EDIT / NEXT BLOCK
                         HStack(spacing: 8) {
                             // RUN – calls the helper view below to find/create the session
-                                                        // RUN – calls the helper view below to find/create the session
                             NavigationLink {
                                 BlockSessionEntryView(block: block)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(sessionsRepository)
-                            } label: { // <--- FIX: Added colon to denote the label closure
+                            } label: { 
                                 Text("RUN")
                                     .font(.subheadline).bold()
                                     .frame(maxWidth: .infinity)
