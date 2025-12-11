@@ -128,7 +128,7 @@ struct BlocksListView: View {
                                 BlockSessionEntryView(block: block)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(sessionsRepository)
-                            } label {
+                            label {
                                 Text("RUN")
                                     .font(.subheadline).bold()
                                     .frame(maxWidth: .infinity)
