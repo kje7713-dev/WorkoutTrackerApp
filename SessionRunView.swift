@@ -34,13 +34,7 @@ struct SessionRunView: View {
         VStack(spacing: 0) {
             topBar // Now uses the session model for context
 
-            // DayTabBar should ideally be in the parent view, but we keep it here 
-            // for compilation compatibility if the parent hasn't been updated.
-            DayTabBar(
-                days: block?.days ?? [], 
-                currentDayIndex: .constant(0) // FIX: Hardcode to constant for compilation safety
-            )
-            Divider()
+            // ⚠️ FIX: REMOVED the call to the redundant DayTabBar struct here.
             
             content
         }
@@ -139,57 +133,10 @@ struct SessionRunView: View {
             dismiss()
         }
     }
-} // <--- END OF SessionRunView struct (CRITICAL CLOSURE)
+} // <--- END OF SessionRunView struct
 
 
-// MARK: - Day Tabs (Remains largely the same)
-
-struct DayTabBar: View {
-    let days: [DayTemplate]
-    @Binding var currentDayIndex: Int
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Array(days.enumerated()), id: \.offset) { index, day in
-                    dayButton(for: day, index: index)
-                }
-            }
-            .padding(.horizontal)
-        }
-        .padding(.vertical, 8)
-    }
-
-    private func dayButton(for day: DayTemplate, index: Int) -> some View {
-        let isSelected = index == currentDayIndex
-        let label: String
-
-        if let short = day.shortCode, !short.isEmpty {
-            label = short
-        } else {
-            label = day.name
-        }
-
-        return Button(action: {
-            currentDayIndex = index
-        }) {
-            Text(label)
-                .font(.subheadline)
-                .fontWeight(isSelected ? .bold : .regular)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(isSelected ? Color.black : Color.clear)
-                )
-                .overlay(
-                    Capsule()
-                        .stroke(Color.black, lineWidth: isSelected ? 0 : 1)
-                )
-                .foregroundColor(isSelected ? .white : .primary)
-        }
-    }
-}
+// ⚠️ FIX: The old, redundant DayTabBar struct has been DELETED from here.
 
 
 // MARK: - Exercise Card View
@@ -211,9 +158,9 @@ private struct SessionExerciseCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Display/Edit name
-            Text(exerciseName) // FIX: Display the resolved name
-                .font(.headline)
+            // FIX: Use a single Text field for the prominent display of the name
+            Text(exerciseName)
+                .font(.title2).bold() // Make it prominent
                 .padding(.top, 4)
 
             // Name edit field (using a binding helper)
@@ -402,8 +349,6 @@ private struct SessionSetRunRow: View {
 
     private var conditioningControls: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // ... (Conditioning controls remain the same, relying on SetControls.swift)
-            
             // Time (Minutes) Control
             if expected.expectedTime != nil {
                 SetControlView(
