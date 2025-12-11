@@ -109,11 +109,18 @@ public struct SessionFactory {
                     expectedTime: nil,
                     expectedDistance: nil,
                     expectedCalories: nil,
+                    expectedRounds: nil, // Note: Rounds field is for conditioning
                     loggedReps: strength.reps,
                     loggedWeight: strength.weight,
                     loggedTime: nil,
                     loggedDistance: nil,
                     loggedCalories: nil,
+                    loggedRounds: nil, // Note: Rounds field is for conditioning
+                    // 🚨 FIX: Ensure RPE/RIR/Tempo/RestSeconds are mapped from the template
+                    rpe: strength.rpe,
+                    rir: strength.rir,
+                    tempo: strength.tempo,
+                    restSeconds: strength.restSeconds,
                     notes: strength.notes,
                     isCompleted: false
                     
@@ -122,33 +129,34 @@ public struct SessionFactory {
             }
         }
 
-        // In SessionFactory.swift (Around line 133, inside makeSessionSets)
-
         if let conditioningSets = template.conditioningSets {
-    for conditioning in conditioningSets {
-        let set = SessionSet(
-            id: UUID(),
-            index: conditioning.index,
-            expectedReps: nil,
-            expectedWeight: nil,
-            expectedTime: conditioning.durationSeconds.map { Double($0) },
-            expectedDistance: conditioning.distanceMeters,
-            expectedCalories: conditioning.calories,
-            expectedRounds: conditioning.rounds, // 🚨 ADDED
-            loggedReps: nil,
-            loggedWeight: nil,
-            loggedTime: conditioning.durationSeconds.map { Double($0) },
-            loggedDistance: conditioning.distanceMeters,
-            loggedCalories: conditioning.calories,
-            loggedRounds: conditioning.rounds, // 🚨 ADDED
-            notes: conditioning.notes,
-            isCompleted: false
-        )
-        result.append(set)
-    }
-}
-// ... rest of the file
-
+            for conditioning in conditioningSets {
+                let set = SessionSet(
+                    id: UUID(),
+                    index: conditioning.index,
+                    expectedReps: nil,
+                    expectedWeight: nil,
+                    expectedTime: conditioning.durationSeconds.map { Double($0) },
+                    expectedDistance: conditioning.distanceMeters,
+                    expectedCalories: conditioning.calories,
+                    expectedRounds: conditioning.rounds,
+                    loggedReps: nil,
+                    loggedWeight: nil,
+                    loggedTime: conditioning.durationSeconds.map { Double($0) },
+                    loggedDistance: conditioning.distanceMeters,
+                    loggedCalories: conditioning.calories,
+                    loggedRounds: conditioning.rounds,
+                    // 🚨 FIX: Ensure RPE/RIR/Tempo/RestSeconds are mapped from the template (if they exist on the template model)
+                    rpe: nil,
+                    rir: nil,
+                    tempo: nil,
+                    restSeconds: conditioning.restSeconds, // Rest is the most common shared field
+                    notes: conditioning.notes,
+                    isCompleted: false
+                )
+                result.append(set)
+            }
+        }
 
         // If you later make use of genericSets on ExerciseTemplate,
         // you can add a third branch here that maps those into SessionSets
