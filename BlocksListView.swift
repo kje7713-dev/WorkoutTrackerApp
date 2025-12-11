@@ -30,41 +30,29 @@ struct BlocksListView: View {
         }
     }
 
-    // In BlocksListView.swift, replace the body of BlockSessionEntryView (around line 240)
-
     var body: some View {
-        let sessions = getSessions()
-        
-        Group {
-            if sessions.isEmpty {
-                Text("No sessions available for this block.")
-            } else if let currentSession = sessions.first(where: { $0.id == selectedSessionId }) {
-                VStack(spacing: 0) {
-                    // FIX: Day Tab Bar now controls which SessionRunView is loaded
-                    SessionDayTabBar(
-                        block: block,
-                        sessions: sessions,
-                        selectedSessionId: $selectedSessionId
-                    )
-                    .padding(.vertical, 8)
-                    
-                    // Load the selected Session
-                    SessionRunView(session: currentSession)
-                }
-            } else {
-                Text("Select a day to start.")
-            }
-        }
-        // 🚨 FIX: Move .onAppear to the Group (top-level view)
-        .onAppear {
-            if selectedSessionId == nil, let initialId = getInitialSession(from: sessions)?.id {
-                selectedSessionId = initialId
-            }
-        }
-        .navigationTitle(block.name)
-        .navigationBarTitleDisplayMode(.inline)
-    }
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
 
+            VStack(alignment: .leading, spacing: 24) {
+
+                header
+
+                if blocksRepository.blocks.isEmpty {
+                    emptyState
+                } else {
+                    blocksList
+                }
+
+                Spacer()
+
+                newBlockButton
+            }
+            .padding(.horizontal)
+            .padding(.top, 32)
+        }
+        .navigationTitle("Blocks")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $builderContext) { context in
             NavigationStack {
                 switch context {
@@ -86,7 +74,7 @@ struct BlocksListView: View {
             }
         }
     }
-}
+
     // MARK: - Header
 
     private var header: some View {
@@ -121,7 +109,8 @@ struct BlocksListView: View {
     private var blocksList: some View {
         ScrollView {
             VStack(spacing: 16) {
-                ForEach(Array(blocksRepository.blocks.enumerated()), id: \.offset) { _, block in
+                // FIX: Simple ForEach assuming Block is Identifiable
+                ForEach(blocksRepository.blocks) { block in 
                     VStack(alignment: .leading, spacing: 8) {
                         // Title / description (unchanged behavior)
                         Text(block.name)
@@ -140,7 +129,7 @@ struct BlocksListView: View {
                                 BlockSessionEntryView(block: block)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(sessionsRepository)
-                            } label: {
+                            } label: { 
                                 Text("RUN")
                                     .font(.subheadline).bold()
                                     .frame(maxWidth: .infinity)
@@ -209,7 +198,8 @@ struct BlocksListView: View {
         }
         .padding(.bottom, 24)
     }
-}
+} // <--- This closes the BlocksListView struct (CRITICAL CLOSURE)
+
 
 // MARK: - Session Entry View (The Fix Target)
 
@@ -257,13 +247,6 @@ private struct BlockSessionEntryView: View {
     var body: some View {
         let sessions = getSessions()
         
-        // Initialize selectedSessionId on first appearance
-        .onAppear {
-            if selectedSessionId == nil, let initialId = getInitialSession(from: sessions)?.id {
-                selectedSessionId = initialId
-            }
-        }
-        
         Group {
             if sessions.isEmpty {
                 Text("No sessions available for this block.")
@@ -282,6 +265,12 @@ private struct BlockSessionEntryView: View {
                 }
             } else {
                 Text("Select a day to start.")
+            }
+        }
+        // FIX 4: Move .onAppear to the Group (top-level view)
+        .onAppear {
+            if selectedSessionId == nil, let initialId = getInitialSession(from: sessions)?.id {
+                selectedSessionId = initialId
             }
         }
         .navigationTitle(block.name)
