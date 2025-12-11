@@ -124,17 +124,19 @@ struct BlocksListView: View {
                         // Explicit action row: RUN / EDIT / NEXT BLOCK
                         HStack(spacing: 8) {
                             // RUN – calls the helper view below to find/create the session
+                                                        // RUN – calls the helper view below to find/create the session
                             NavigationLink {
                                 BlockSessionEntryView(block: block)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(sessionsRepository)
-                            label {
+                            } label: { // <--- FIX: Added colon to denote the label closure
                                 Text("RUN")
                                     .font(.subheadline).bold()
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
                             }
                             .buttonStyle(.borderedProminent)
+
 
                             // EDIT – open builder in edit mode (update this block)
                             Button {
