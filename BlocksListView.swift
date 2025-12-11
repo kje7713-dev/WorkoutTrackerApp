@@ -30,29 +30,41 @@ struct BlocksListView: View {
         }
     }
 
+    // In BlocksListView.swift, replace the body of BlockSessionEntryView (around line 240)
+
     var body: some View {
-        ZStack {
-            Color(.systemBackground).ignoresSafeArea()
-
-            VStack(alignment: .leading, spacing: 24) {
-
-                header
-
-                if blocksRepository.blocks.isEmpty {
-                    emptyState
-                } else {
-                    blocksList
+        let sessions = getSessions()
+        
+        Group {
+            if sessions.isEmpty {
+                Text("No sessions available for this block.")
+            } else if let currentSession = sessions.first(where: { $0.id == selectedSessionId }) {
+                VStack(spacing: 0) {
+                    // FIX: Day Tab Bar now controls which SessionRunView is loaded
+                    SessionDayTabBar(
+                        block: block,
+                        sessions: sessions,
+                        selectedSessionId: $selectedSessionId
+                    )
+                    .padding(.vertical, 8)
+                    
+                    // Load the selected Session
+                    SessionRunView(session: currentSession)
                 }
-
-                Spacer()
-
-                newBlockButton
+            } else {
+                Text("Select a day to start.")
             }
-            .padding(.horizontal)
-            .padding(.top, 32)
         }
-        .navigationTitle("Blocks")
+        // 🚨 FIX: Move .onAppear to the Group (top-level view)
+        .onAppear {
+            if selectedSessionId == nil, let initialId = getInitialSession(from: sessions)?.id {
+                selectedSessionId = initialId
+            }
+        }
+        .navigationTitle(block.name)
         .navigationBarTitleDisplayMode(.inline)
+    }
+
         .sheet(item: $builderContext) { context in
             NavigationStack {
                 switch context {
