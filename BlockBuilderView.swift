@@ -519,7 +519,6 @@ sessionsRepository.replaceSessions(forBlockId: newBlock.id, with: generated)
 
 // MARK: - Day Editor
 
-Binding
 // MARK: - Exercise Editor Row
 
 struct ExerciseEditorRow: View {
