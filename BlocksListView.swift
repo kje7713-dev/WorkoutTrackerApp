@@ -86,7 +86,7 @@ struct BlocksListView: View {
             }
         }
     }
-
+}
     // MARK: - Header
 
     private var header: some View {
