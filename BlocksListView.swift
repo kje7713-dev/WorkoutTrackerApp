@@ -59,17 +59,17 @@ struct BlocksListView: View {
                 case .new:
                     BlockBuilderView(mode: .new)
                         .environmentObject(blocksRepository)
-                        .environmentObject(sessionsRepository)
+                        .environmentObject(sessionsRepository) // 🚨 FIX: Ensure session repo is passed
 
                 case .edit(let block):
                     BlockBuilderView(mode: .edit(block))
                         .environmentObject(blocksRepository)
-                        .environmentObject(sessionsRepository)
+                        .environmentObject(sessionsRepository) // 🚨 FIX: Ensure session repo is passed
 
                 case .clone(let block):
                     BlockBuilderView(mode: .clone(block))
                         .environmentObject(blocksRepository)
-                        .environmentObject(sessionsRepository)
+                        .environmentObject(sessionsRepository) // 🚨 FIX: Ensure session repo is passed
                 }
             }
         }
@@ -128,7 +128,7 @@ struct BlocksListView: View {
                                 BlockSessionEntryView(block: block)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(sessionsRepository)
-                            } label: {
+                            } label {
                                 Text("RUN")
                                     .font(.subheadline).bold()
                                     .frame(maxWidth: .infinity)
