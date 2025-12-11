@@ -519,47 +519,7 @@ sessionsRepository.replaceSessions(forBlockId: newBlock.id, with: generated)
 
 // MARK: - Day Editor
 
-struct DayEditorView: View {
-    @Binding var day: EditableDay
-    @Environment(\.sbdTheme) private var theme
-
-    var body: some View {
-        Section {
-            // Day name / code are each their own form rows
-            TextField("Day name", text: $day.name)
-            TextField("Short code", text: $day.shortCode)
-
-            if day.exercises.isEmpty {
-                Text("No exercises yet.")
-                    .font(.footnote)
-                    .foregroundColor(theme.mutedText)
-            }
-
-            // One row per exercise – no outer VStack wrapping the whole thing
-            ForEach($day.exercises) { $exercise in
-                let exerciseID = exercise.id
-
-                ExerciseEditorRow(
-                    exercise: $exercise,
-                    onDelete: {
-                        if let idx = day.exercises.firstIndex(where: { $0.id == exerciseID }) {
-                            day.exercises.remove(at: idx)
-                        }
-                    }
-                )
-            }
-
-            // Add Exercise is a clean, separate row in the Section
-            Button {
-                day.exercises.append(EditableExercise())
-            } label: {
-                Label("Add Exercise", systemImage: "plus")
-            }
-        } header: {
-            Text(day.name)
-        }
-    }
-}
+Binding
 // MARK: - Exercise Editor Row
 
 struct ExerciseEditorRow: View {
