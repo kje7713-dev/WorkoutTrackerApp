@@ -124,9 +124,9 @@ struct BlocksListView: View {
 
                         // Explicit action row: RUN / EDIT / NEXT BLOCK
                         HStack(spacing: 8) {
-                            // RUN – calls the helper view below to find/create the session
+                            // RUN – navigate to WeeksView to select a week
                             NavigationLink {
-                                BlockSessionEntryView(block: block)
+                                WeeksView(block: block)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(sessionsRepository)
                             } label: { 
@@ -199,127 +199,3 @@ struct BlocksListView: View {
         .padding(.bottom, 24)
     }
 } // <--- This closes the BlocksListView struct (CRITICAL CLOSURE)
-
-
-// MARK: - Session Entry View (The Fix Target)
-
-private struct BlockSessionEntryView: View {
-    let block: Block
-
-    @EnvironmentObject private var sessionsRepository: SessionsRepository
-    
-    // 🚨 FIX 1: State to track the currently selected session ID
-    @State private var selectedSessionId: WorkoutSessionID? 
-
-    // Helper to sort sessions
-    private func sessionSort(_ lhs: WorkoutSession, _ rhs: WorkoutSession) -> Bool {
-        if lhs.weekIndex != rhs.weekIndex {
-            return lhs.weekIndex < rhs.weekIndex
-        }
-        return lhs.dayTemplateId.uuidString < rhs.dayTemplateId.uuidString
-    }
-    
-    // Helper to determine the session list
-    private func getSessions() -> [WorkoutSession] {
-        var existing = sessionsRepository.sessions(forBlockId: block.id)
-        
-        // 1. If no sessions exist, generate them
-        if existing.isEmpty {
-            let factory = SessionFactory()
-            let generated = factory.makeSessions(for: block)
-            // Persist the newly generated sessions
-            sessionsRepository.replaceSessions(forBlockId: block.id, with: generated)
-            existing = generated
-        }
-        
-        // 2. Sort sessions
-        return existing.sorted(by: sessionSort)
-    }
-    
-    // Helper to determine the initial session to load
-    private func getInitialSession(from sessions: [WorkoutSession]) -> WorkoutSession? {
-        // Find the first uncompleted session, or the very first one if all are completed
-        let uncompleted = sessions.first(where: { $0.status != .completed })
-        return uncompleted ?? sessions.first
-    }
-
-
-    var body: some View {
-        let sessions = getSessions()
-        
-        Group {
-            if sessions.isEmpty {
-                Text("No sessions available for this block.")
-            } else if let currentSession = sessions.first(where: { $0.id == selectedSessionId }) {
-                VStack(spacing: 0) {
-                    // 🚨 FIX 2: Day Tab Bar now controls which SessionRunView is loaded
-                    SessionDayTabBar(
-                        block: block,
-                        sessions: sessions,
-                        selectedSessionId: $selectedSessionId
-                    )
-                    .padding(.vertical, 8)
-                    
-                    // 🚨 FIX 3: Load the SessionRunView with the *selected* session
-                    SessionRunView(session: currentSession)
-                }
-            } else {
-                Text("Select a day to start.")
-            }
-        }
-        // FIX 4: Move .onAppear to the Group (top-level view)
-        .onAppear {
-            if selectedSessionId == nil, let initialId = getInitialSession(from: sessions)?.id {
-                selectedSessionId = initialId
-            }
-        }
-        .navigationTitle(block.name)
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-// MARK: - Session Day Tab Bar (NEW HELPER)
-
-private struct SessionDayTabBar: View {
-    let block: Block // Needed to look up day names/short codes
-    let sessions: [WorkoutSession]
-    @Binding var selectedSessionId: WorkoutSessionID?
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                // Generate a chip for every unique session in the block
-                ForEach(sessions, id: \.id) { session in
-                    let isSelected = session.id == selectedSessionId
-                    
-                    // Look up the DayTemplate using the block
-                    let dayTemplate = block.days.first { $0.id == session.dayTemplateId }
-                    let dayLabel = dayTemplate?.shortCode ?? dayTemplate?.name ?? "Day"
-                    
-                    // Label format: W[weekIndex] [DayLabel] (e.g., W1 Day 1, W2 D3)
-                    let sessionLabel = "W\(session.weekIndex) \(dayLabel)"
-                    
-                    Button {
-                        selectedSessionId = session.id
-                    } label: {
-                        Text(sessionLabel)
-                            .font(.subheadline)
-                            .fontWeight(isSelected ? .bold : .regular)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                Capsule()
-                                    .fill(isSelected ? Color.black : Color.clear)
-                            )
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.black, lineWidth: 1)
-                            )
-                            .foregroundColor(isSelected ? .white : .primary)
-                    }
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-}
