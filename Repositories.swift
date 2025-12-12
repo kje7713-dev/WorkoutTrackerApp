@@ -164,6 +164,21 @@ public final class SessionsRepository: ObservableObject {
         saveToDisk() // 🚨 ADDED
     }
     
+    // Helper to get or generate sessions for a block
+    public func getOrGenerateSessions(for block: Block) -> [WorkoutSession] {
+        var existing = sessions(forBlockId: block.id)
+        
+        // Generate sessions if they don't exist
+        if existing.isEmpty {
+            let factory = SessionFactory()
+            let generated = factory.makeSessions(for: block)
+            replaceSessions(forBlockId: block.id, with: generated)
+            existing = generated
+        }
+        
+        return existing
+    }
+    
     // MARK: - Persistence 🚨 ADDED METHODS
 
     /// Load sessions from disk if the JSON file exists.

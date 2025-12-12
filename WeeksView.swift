@@ -15,22 +15,9 @@ struct WeeksView: View {
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @Environment(\.sbdTheme) private var theme
     
-    // Track which week was selected
-    @State private var selectedWeekIndex: Int?
-    
     // Helper to get or generate sessions for this block
     private func getSessions() -> [WorkoutSession] {
-        var existing = sessionsRepository.sessions(forBlockId: block.id)
-        
-        // Generate sessions if they don't exist
-        if existing.isEmpty {
-            let factory = SessionFactory()
-            let generated = factory.makeSessions(for: block)
-            sessionsRepository.replaceSessions(forBlockId: block.id, with: generated)
-            existing = generated
-        }
-        
-        return existing
+        return sessionsRepository.getOrGenerateSessions(for: block)
     }
     
     // Helper to determine the active week based on session progress
@@ -68,12 +55,6 @@ struct WeeksView: View {
         }
         .navigationTitle(block.name)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            // Set initial selected week to the active week
-            if selectedWeekIndex == nil {
-                selectedWeekIndex = activeWeek
-            }
-        }
     }
     
     // MARK: - Header
@@ -172,11 +153,16 @@ private struct WeekSessionsView: View {
     // Get sessions for this specific week
     private func getSessionsForWeek() -> [WorkoutSession] {
         let allSessions = sessionsRepository.sessions(forBlockId: block.id)
-        return allSessions
-            .filter { $0.weekIndex == weekIndex }
-            .sorted { lhs, rhs in
-                lhs.dayTemplateId.uuidString < rhs.dayTemplateId.uuidString
+        let weekSessions = allSessions.filter { $0.weekIndex == weekIndex }
+        
+        // Sort by day template order in the block
+        return weekSessions.sorted { lhs, rhs in
+            guard let lhsIndex = block.days.firstIndex(where: { $0.id == lhs.dayTemplateId }),
+                  let rhsIndex = block.days.firstIndex(where: { $0.id == rhs.dayTemplateId }) else {
+                return false
             }
+            return lhsIndex < rhsIndex
+        }
     }
     
     // Helper to determine the initial session to load
