@@ -1,10 +1,10 @@
 import SwiftUI
 
 /**
- Corrected the visual hierarchy of SessionRunView to fix improper day ordering 
+ Corrected the visual hierarchy of BlockRunMode to fix improper day ordering 
  and out-of-order access for days. Days are visualized in the following order: Sun, Mon, Tues ... Sat properly.
  **/
-struct SessionRunView: View {
+struct BlockRunMode: View {
     let daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     
     @State private var selectedDay: String? = nil

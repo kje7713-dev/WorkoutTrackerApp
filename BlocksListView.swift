@@ -252,7 +252,7 @@ private struct BlockSessionEntryView: View {
                 Text("No sessions available for this block.")
             } else if let currentSession = sessions.first(where: { $0.id == selectedSessionId }) {
                 VStack(spacing: 0) {
-                    // 🚨 FIX 2: Day Tab Bar now controls which SessionRunView is loaded
+                    // 🚨 FIX 2: Day Tab Bar now controls which BlockRunMode is loaded
                     SessionDayTabBar(
                         block: block,
                         sessions: sessions,
@@ -260,8 +260,8 @@ private struct BlockSessionEntryView: View {
                     )
                     .padding(.vertical, 8)
                     
-                    // 🚨 FIX 3: Load the SessionRunView with the *selected* session
-                    SessionRunView(session: currentSession)
+                    // 🚨 FIX 3: Load the BlockRunMode with the *selected* session
+                    BlockRunMode(session: currentSession)
                 }
             } else {
                 Text("Select a day to start.")

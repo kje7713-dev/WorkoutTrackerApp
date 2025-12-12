@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SessionRunView: View {
+struct BlockRunMode: View {
     let session: WorkoutSession
 
     var body: some View {
