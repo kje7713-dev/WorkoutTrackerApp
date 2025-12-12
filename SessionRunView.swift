@@ -1,460 +1,58 @@
-//
-//  SessionRunView.swift
-//  Savage By Design
-//
-//  Phase 7/8: Consolidated session execution view using canonical models.
-//  (Previously BlockRunModeView)
-//
-
 import SwiftUI
 
-// MARK: - Session Runner Container
-
-// 🚨 RENAMED FROM BlockRunModeView
 struct SessionRunView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.sbdTheme) private var theme
-    @EnvironmentObject private var sessionsRepository: SessionsRepository
-    @EnvironmentObject private var blocksRepository: BlocksRepository // Needed for header context
-
-    // 🚨 NOW uses the canonical Session model
-    @State private var session: WorkoutSession
-    
-    // This is ONLY used to get the day name/short code from the original block template.
-    private var block: Block? {
-        blocksRepository.blocks.first { $0.id == session.blockId }
-    }
-    
-    // 🚨 Initializer now takes a WorkoutSession
-    init(session: WorkoutSession) {
-        // Use the new session object passed from the parent view
-        _session = State(initialValue: session)
-    }
+    @ObservedObject var session: WorkoutSession
 
     var body: some View {
-        VStack(spacing: 0) {
-            topBar // Now uses the session model for context
+        VStack {
+            // SessionDayTabBar for navigating sessions
+            SessionDayTabBar(session: $session.selectedSessionId)
 
-            // ⚠️ FIX: The redundant DayTabBar call is removed.
-            
-            content
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    saveSessionAndDismiss(isCancel: true)
+            TabView(selection: $session.weekIndex) {
+                ForEach(0..<session.totalWeeks, id: \_.self) { week in
+                    WeekView(session: session, weekIndex: week)
+                        .tag(week)
                 }
             }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save Session") {
-                    saveSessionAndDismiss(isCancel: false)
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .gesture(DragGesture().onEnded { value in
+                if value.translation.width < 0 { // Swipe left
+                    if session.weekIndex < session.totalWeeks - 1 {
+                        session.weekIndex += 1
+                    }
+                } else if value.translation.width > 0 { // Swipe right
+                    if session.weekIndex > 0 {
+                        session.weekIndex -= 1
+                    }
                 }
-                .fontWeight(.bold)
-            }
-        }
-        .onDisappear {
-            // FIX: Use onDisappear as the reliable save hook for gesture dismissals/cancellation
-            saveSessionAndDismiss(isCancel: true)
-        }
-    } // <--- END OF SessionRunView.body
-
-
-    private var content: some View {
-        // We show all exercises in the loaded session object.
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach($session.exercises) { $exercise in
-                    SessionExerciseCardView(exercise: $exercise)
-                }
-            }
-            .padding(.horizontal)
-            .padding(.vertical)
-        }
-    }
-
-    private var topBar: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Block name BIG
-            Text(block?.name ?? "Workout Session")
-                .font(.largeTitle)
-                .fontWeight(.black)
-                .textCase(.uppercase)
-                .kerning(1.2)
-
-            // Full day name (primary)
-            let dayTemplate = block?.days.first { $0.id == session.dayTemplateId }
-
-            Text(dayTemplate?.name ?? "Day")
-                .font(.headline)
-                .fontWeight(.semibold)
-
-            // Short code + week in secondary role
-            // FIX: The weekIndex and day template ID are pulled directly from the session
-            Text("Week \(session.weekIndex) • \(dayTemplate?.shortCode?.uppercased() ?? "SESSION")")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .kerning(0.5)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 4)
-    }
-    
-
-    private func saveSessionAndDismiss(isCancel: Bool) {
-        // Stamp date first time this session is saved/opened
-        if session.date == nil {
-            session.date = Date()
-        }
-
-        let totalSetCount = session.exercises.reduce(0) { partial, exercise in
-            partial + exercise.loggedSets.count
-        }
-        let completedSetCount = session.exercises.reduce(0) { partial, exercise in
-            partial + exercise.loggedSets.filter { $0.isCompleted }.count
-        }
-
-        // Derive status from completion
-        if totalSetCount > 0 && completedSetCount == totalSetCount {
-            session.status = .completed
-        } else if completedSetCount > 0 {
-            session.status = .inProgress
-        } else {
-            // If the user hasn't logged anything, status remains notStarted
-            session.status = .notStarted
-        }
-
-        // FIX: Persist the current state to the repository
-        sessionsRepository.save(session)
-        
-        // Only explicitly dismiss if it's NOT a background/cancel save, 
-        // as cancel/gesture-dismiss will be handled implicitly or by the button action.
-        if !isCancel {
-            dismiss()
-        }
-    }
-} // <--- END OF SessionRunView struct
-
-
-// ⚠️ The old, redundant DayTabBar struct is NOT included here.
-
-
-// MARK: - Exercise Card View
-
-private struct SessionExerciseCardView: View {
-    @Binding var exercise: SessionExercise
-    @Environment(\.sbdTheme) private var theme
-
-    private var exerciseName: String {
-        // FIX: Prioritize the session-local custom name, which came from the template
-        if let custom = exercise.customName, !custom.isEmpty {
-            return custom
-        } else {
-            // Use a clear placeholder if no name exists.
-            return "Untitled Exercise" 
-        }
-    }
-
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // FIX: Use a single Text field for the prominent display of the name
-            Text(exerciseName)
-                .font(.title2).bold() // Make it prominent
-                .padding(.top, 4)
-
-            // Name edit field (using a binding helper)
-            TextField("Exercise name", text: Binding(
-                get: { exercise.customName ?? "" },
-                set: { exercise.customName = $0.isEmpty ? nil : $0 }
-            ))
-            .font(.subheadline)
-            .textFieldStyle(.roundedBorder)
-            .disableAutocorrection(true)
-            .autocapitalization(.words)
-
-            // Sets
-            // Uses loggedSets for the actual run-time data
-            ForEach(exercise.loggedSets.indices, id: \.self) { index in
-                SessionSetRunRow(
-                    index: index,
-                    expected: exercise.expectedSets[index],
-                    logged: $exercise.loggedSets[index]
-                )
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(uiColor: .secondarySystemBackground))
-        )
-    }
-}
-
-
-// MARK: - Session Set Row View
-
-private struct SessionSetRunRow: View {
-    let index: Int
-    let expected: SessionSet
-    @Binding var logged: SessionSet
-
-    @Environment(\.sbdTheme) private var theme
-
-    // Formatters
-    private static let integerFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.maximumFractionDigits = 0
-        f.minimumFractionDigits = 0
-        return f
-    }()
-
-    private static let weightFormatter: NumberFormatter = {
-        let f = NumberFormatter()
-        f.maximumFractionDigits = 1
-        f.minimumFractionDigits = 0
-        return f
-    }()
-
-    // Helper to format a Double for display
-    private func cleanDouble(_ value: Double?) -> String? {
-        guard let value = value, value > 0 else { return nil }
-        if value.rounded(.towardZero) == value {
-            return String(Int(value))
-        } else {
-            return String(format: "%.1f", value)
-        }
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            // Header
-            Text("Set \(index + 1)")
-                .font(.subheadline).bold()
-            
-            // Planned summary (Display-only)
-            expectedRow
-            
-            // Controls depend on the expected data in the set
-            if expected.expectedReps != nil || expected.expectedWeight != nil || expected.rpe != nil || expected.rir != nil {
-                strengthControls
-            } else if expected.expectedTime != nil || expected.expectedCalories != nil || expected.expectedDistance != nil || expected.expectedRounds != nil {
-                conditioningControls
-            }
-
-            // Notes field
-            TextField(
-                "Notes (RPE, cues, etc.)",
-                text: $logged.notes.toNonOptionalString(), 
-                axis: .vertical
-            )
-            .font(.footnote)
-            .textFieldStyle(.roundedBorder)
-
-            // Complete / Undo
-            HStack {
-                Spacer()
-                Button {
-                    logged.isCompleted.toggle()
-                } label: {
-                    Text(logged.isCompleted ? "Undo" : "Complete")
-                }
-                .font(logged.isCompleted ? .caption : .subheadline)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                // FIX: Use the branding fix previously requested
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(logged.isCompleted ? Color.gray.opacity(0.4) : Color.black, lineWidth: 1)
-                )
-                .foregroundColor(logged.isCompleted ? .secondary : .primary)
-            }
-        }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(uiColor: .secondarySystemBackground))
-                // FIX: Add a subtle green border on completion
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(logged.isCompleted ? .green : .clear, lineWidth: 2)
-                )
-        )
-        // FIX: Remove the old checkmark overlay entirely
-        .padding(.vertical, 2)
-    }
-
-    // MARK: - Expected Row Display
-
-    private var expectedRow: some View {
-        let plannedParts: [String] = [
-            expected.expectedReps.map { "\($0)x" },
-            expected.expectedWeight.flatMap(cleanDouble).map { "\($0)lb" },
-            expected.expectedTime.flatMap(cleanDouble).map { "\($0)s" },
-            expected.expectedDistance.flatMap(cleanDouble).map { "\($0)m" },
-            expected.expectedCalories.flatMap(cleanDouble).map { "\($0) cal" },
-            expected.tempo.map { "Tempo: \($0)" },
-            expected.restSeconds.map { "Rest: \($0)s" }
-        ].compactMap { $0 }
-
-        return Text("Planned: \(plannedParts.joined(separator: " • "))")
-            .font(.footnote)
-            .foregroundColor(.secondary)
-            .padding(.bottom, 4)
-    }
-
-
-    // MARK: - Strength UI (Uses SetControlView and Pickers)
-
-    private var strengthControls: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            
-            HStack(spacing: 20) {
-                // Reps Control (if planned reps exist)
-                if expected.expectedReps != nil {
-                    SetControlView(
-                        label: "REPS",
-                        unit: "reps",
-                        value: $logged.loggedReps.toDouble(),
-                        step: 1.0,
-                        formatter: Self.integerFormatter,
-                        min: 0.0
-                    )
-                }
-
-                // Weight Control (if planned weight exists)
-                if expected.expectedWeight != nil {
-                    SetControlView(
-                        label: "WEIGHT",
-                        unit: "lb",
-                        value: $logged.loggedWeight,
-                        step: 5.0,
-                        formatter: Self.weightFormatter,
-                        min: 0.0
-                    )
-                }
-            }
-            
-            // 🚨 FIX: Integrate RPE/RIR Pickers
-            HStack(spacing: 20) {
-                RpePickerView(rpe: $logged.rpe)
-                RirPickerView(rir: $logged.rir)
-            }
-        }
-    }
-
-
-    // MARK: - Conditioning UI (Uses SetControlView)
-
-    private var conditioningControls: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Time (Minutes) Control
-            if expected.expectedTime != nil {
-                SetControlView(
-                    label: "TIME",
-                    unit: "min",
-                    value: $logged.loggedTime.toMinutes(),
-                    step: 1.0, 
-                    formatter: Self.integerFormatter,
-                    min: 0.0
-                )
-            }
-
-            // Distance Control
-            if expected.expectedDistance != nil {
-                SetControlView(
-                    label: "DISTANCE",
-                    unit: "m",
-                    value: $logged.loggedDistance,
-                    step: 100.0, 
-                    formatter: Self.integerFormatter,
-                    min: 0.0
-                )
-            }
-            
-            // Calories Control
-            if expected.expectedCalories != nil {
-                SetControlView(
-                    label: "CALORIES",
-                    unit: "cal",
-                    value: $logged.loggedCalories,
-                    step: 5.0, 
-                    formatter: Self.integerFormatter,
-                    min: 0.0
-                )
-            }
-            
-            // Rounds Control
-            if expected.expectedRounds != nil {
-                SetControlView(
-                    label: "ROUNDS",
-                    unit: "rounds",
-                    value: $logged.loggedRounds.toDouble(),
-                    step: 1.0, 
-                    formatter: Self.integerFormatter,
-                    min: 0.0
-                )
-            }
+            })
         }
     }
 }
 
-// MARK: - RPE/RIR Pickers (Standardized Ranges)
+struct SessionRunView_Previews: PreviewProvider {
+    static var previews: some View {
+        SessionRunView(session: WorkoutSession())
+    }
+}
 
-private struct RpePickerView: View {
-    @Binding var rpe: Double?
-    
-    // RPE standard working range: 6.0 to 10.0 in 0.5 increments.
-    private let rpeRange: [Double] = Array(stride(from: 6.0, through: 10.0, by: 0.5))
+// SessionDayTabBar to correct navigation and binding
+struct SessionDayTabBar: View {
+    @Binding var session: Int
 
     var body: some View {
         HStack {
-            Text("RPE")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-
-            // Picker
-            Picker("RPE", selection: $rpe) {
-                Text("-").tag(nil as Double?)
-                ForEach(rpeRange, id: \.self) { value in
-                    Text(value.truncatingRemainder(dividingBy: 1) == 0 ? 
-                         String(format: "%.0f", value) : String(format: "%.1f", value))
-                    .tag(Optional(value) as Double?)
+            ForEach(0..<7, id: \_.self) { day in
+                Button(action: {
+                    session = day
+                }) {
+                    Text("Day \(day + 1)")
+                        .padding()
+                        .background(session == day ? Color.blue : Color.gray)
+                        .cornerRadius(8)
+                        .foregroundColor(.white)
                 }
             }
-            .pickerStyle(.menu)
-            .labelsHidden()
-            .frame(width: 80)
-        }
-    }
-}
-
-private struct RirPickerView: View {
-    @Binding var rir: Double?
-    
-    // RIR standard working range: 0 to 4 in 1.0 increments.
-    private let rirRange: [Double] = Array(stride(from: 0.0, through: 4.0, by: 1.0))
-
-    var body: some View {
-        HStack {
-            Text("RIR")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-
-            // Picker
-            Picker("RIR", selection: $rir) {
-                Text("-").tag(nil as Double?)
-                ForEach(rirRange, id: \.self) { value in
-                    Text(String(format: "%.0f", value))
-                        .tag(Optional(value) as Double?)
-                }
-            }
-            .pickerStyle(.menu)
-            .labelsHidden()
-            .frame(width: 80)
         }
     }
 }
