@@ -14,7 +14,7 @@ jobs:
       - name: List available Xcode versions
         run: |
           echo "===== Available Xcode versions ====="
-          ls -la /Applications | grep -i xcode || echo "No Xcode installations found"
+          ls -1 /Applications | grep -i xcode || echo "No Xcode installations found"
           echo ""
           echo "Current default Xcode:"
           xcode-select -p || echo "No default Xcode set"
