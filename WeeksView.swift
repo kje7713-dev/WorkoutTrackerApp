@@ -157,11 +157,18 @@ private struct WeekSessionsView: View {
         
         // Sort by day template order in the block
         return weekSessions.sorted { lhs, rhs in
-            guard let lhsIndex = block.days.firstIndex(where: { $0.id == lhs.dayTemplateId }),
-                  let rhsIndex = block.days.firstIndex(where: { $0.id == rhs.dayTemplateId }) else {
-                return false
+            let lhsIndex = block.days.firstIndex(where: { $0.id == lhs.dayTemplateId })
+            let rhsIndex = block.days.firstIndex(where: { $0.id == rhs.dayTemplateId })
+            
+            // Handle missing template references: sort them to the end
+            switch (lhsIndex, rhsIndex) {
+            case let (l?, r?):
+                return l < r
+            case (nil, _):
+                return false  // lhs goes to end
+            case (_, nil):
+                return true   // rhs goes to end
             }
-            return lhsIndex < rhsIndex
         }
     }
     
@@ -220,7 +227,7 @@ private struct SessionDayTabBar: View {
                     
                     // Look up the DayTemplate using the block
                     let dayTemplate = block.days.first { $0.id == session.dayTemplateId }
-                    let dayLabel = dayTemplate?.shortCode ?? dayTemplate?.name ?? "Day"
+                    let dayLabel = dayTemplate?.shortCode ?? dayTemplate?.name ?? "Unknown Day"
                     
                     Button {
                         selectedSessionId = session.id
