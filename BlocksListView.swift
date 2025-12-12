@@ -247,7 +247,7 @@ private struct BlockSessionEntryView: View {
     var body: some View {
         let sessions = getSessions()
         
-        Group {
+        ZStack {
             if sessions.isEmpty {
                 Text("No sessions available for this block.")
             } else if let currentSession = sessions.first(where: { $0.id == selectedSessionId }) {
