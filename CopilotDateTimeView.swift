@@ -6,13 +6,20 @@
 //
 
 import SwiftUI
+import Combine
 
 struct CopilotDateTimeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.sbdTheme) private var theme
     @State private var currentDateTime: String = ""
+    @State private var timerCancellable: Cancellable?
     
-    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
+        return formatter
+    }()
     
     var body: some View {
         SBDCard {
@@ -30,9 +37,15 @@ struct CopilotDateTimeView: View {
         }
         .onAppear {
             updateDateTime()
+            timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+                .autoconnect()
+                .sink { _ in
+                    updateDateTime()
+                }
         }
-        .onReceive(timer) { _ in
-            updateDateTime()
+        .onDisappear {
+            timerCancellable?.cancel()
+            timerCancellable = nil
         }
     }
     
@@ -41,9 +54,6 @@ struct CopilotDateTimeView: View {
     }
     
     private func updateDateTime() {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .medium
-        currentDateTime = formatter.string(from: Date())
+        currentDateTime = Self.dateFormatter.string(from: Date())
     }
 }
