@@ -11,8 +11,32 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: List available Xcode versions
+        run: |
+          echo "===== Available Xcode versions ====="
+          ls -1 /Applications | grep -i xcode || echo "No Xcode installations found"
+          echo ""
+          echo "Current default Xcode:"
+          xcode-select -p || echo "No default Xcode set"
+
       - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+        run: |
+          XCODE_PATH="/Applications/Xcode_16.4.app/Contents/Developer"
+          
+          if [ -d "$XCODE_PATH" ]; then
+            echo "Setting Xcode to: $XCODE_PATH"
+            sudo xcode-select -s "$XCODE_PATH"
+          else
+            echo "⚠️ Xcode 16.4 not found at $XCODE_PATH"
+            echo "Falling back to default Xcode version"
+            # Reset to default Xcode (typically the latest stable version)
+            sudo xcode-select --reset
+          fi
+          
+          echo ""
+          echo "Selected Xcode version:"
+          xcode-select -p
+          xcodebuild -version
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
