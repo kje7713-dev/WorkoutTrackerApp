@@ -38,6 +38,9 @@ struct HomeView: View {
                 }
                 .padding(.top, 40)
 
+                // MARK: - Copilot DateTime Display
+                CopilotDateTimeView()
+
                 // MARK: - Summary Card
                 SBDCard {
                     VStack(alignment: .leading, spacing: 4) {
