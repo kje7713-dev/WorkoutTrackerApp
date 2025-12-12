@@ -1,58 +1,41 @@
 import SwiftUI
 
 struct SessionRunView: View {
-    @ObservedObject var session: WorkoutSession
+    let session: WorkoutSession
 
     var body: some View {
-        VStack {
-            // SessionDayTabBar for navigating sessions
-            SessionDayTabBar(session: $session.selectedSessionId)
-
-            TabView(selection: $session.weekIndex) {
-                ForEach(0..<session.totalWeeks, id: \_.self) { week in
-                    WeekView(session: session, weekIndex: week)
-                        .tag(week)
+        ScrollView {
+            VStack(spacing: 16) {
+                ForEach(session.exercises) { exercise in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(exercise.customName ?? "Exercise")
+                            .font(.headline)
+                            .bold()
+                        
+                        ForEach(exercise.expectedSets) { set in
+                            HStack {
+                                Text("Set \(set.index + 1)")
+                                Spacer()
+                                if let reps = set.expectedReps {
+                                    Text("\(reps) reps")
+                                }
+                                if let weight = set.expectedWeight {
+                                    Text("@ \(String(format: "%.1f", weight)) lbs")
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(uiColor: .secondarySystemBackground))
+                    )
                 }
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .gesture(DragGesture().onEnded { value in
-                if value.translation.width < 0 { // Swipe left
-                    if session.weekIndex < session.totalWeeks - 1 {
-                        session.weekIndex += 1
-                    }
-                } else if value.translation.width > 0 { // Swipe right
-                    if session.weekIndex > 0 {
-                        session.weekIndex -= 1
-                    }
-                }
-            })
+            .padding()
         }
-    }
-}
-
-struct SessionRunView_Previews: PreviewProvider {
-    static var previews: some View {
-        SessionRunView(session: WorkoutSession())
-    }
-}
-
-// SessionDayTabBar to correct navigation and binding
-struct SessionDayTabBar: View {
-    @Binding var session: Int
-
-    var body: some View {
-        HStack {
-            ForEach(0..<7, id: \_.self) { day in
-                Button(action: {
-                    session = day
-                }) {
-                    Text("Day \(day + 1)")
-                        .padding()
-                        .background(session == day ? Color.blue : Color.gray)
-                        .cornerRadius(8)
-                        .foregroundColor(.white)
-                }
-            }
-        }
+        .navigationTitle("Workout Session")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
