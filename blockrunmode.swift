@@ -37,7 +37,8 @@ struct BlockRunModeView: View {
                         WeekRunView(
                             week: $weeks[weekIndex],
                             allDays: block.days,
-                            currentDayIndex: $currentDayIndex
+                            currentDayIndex: $currentDayIndex,
+                            onSave: saveWeeks
                         )
                         .tag(weekIndex)
                     }
@@ -45,6 +46,9 @@ struct BlockRunModeView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .onChange(of: currentWeekIndex) { _, newValue in
                     handleWeekChange(newWeekIndex: newValue)
+                }
+                .onChange(of: weeks) { _, _ in
+                    saveWeeks()
                 }
                 .alert("You can skip â but champions donât.", isPresented: $showSkipAlert) {
                     Button("Stay on Track", role: .cancel) {
@@ -64,7 +68,7 @@ struct BlockRunModeView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .onDisappear {
-            BlockRunModeView.saveWeeks(weeks, for: block.id)
+            saveWeeks()
         }
     }
 
@@ -102,6 +106,12 @@ struct BlockRunModeView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 4)
+    }
+
+    // MARK: - Save Helper
+    
+    private func saveWeeks() {
+        BlockRunModeView.saveWeeks(weeks, for: block.id)
     }
 
     // MARK: - Week Change Logic
@@ -266,6 +276,9 @@ struct BlockRunModeView: View {
         do {
             let data = try JSONEncoder().encode(weeks)
             try data.write(to: url, options: [.atomic])
+            print("Successfully saved state for block \(blockId): \(weeks.count) weeks")
+        } catch let encodingError as EncodingError {
+            print("Failed to encode RunWeekState for block \(blockId): \(encodingError)")
         } catch {
             print("â ï¸ Failed to save RunWeekState for block \(blockId): \(error)")
         }
@@ -278,6 +291,7 @@ struct WeekRunView: View {
     @Binding var week: RunWeekState
     let allDays: [DayTemplate]
     @Binding var currentDayIndex: Int
+    let onSave: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -290,7 +304,7 @@ struct WeekRunView: View {
     @ViewBuilder
     private var content: some View {
         if week.days.indices.contains(currentDayIndex) {
-            DayRunView(day: $week.days[currentDayIndex])
+            DayRunView(day: $week.days[currentDayIndex], onSave: onSave)
         } else {
             Text("No days configured for this week.")
                 .padding()
@@ -349,12 +363,13 @@ struct DayTabBar: View {
 
 struct DayRunView: View {
     @Binding var day: RunDayState
+    let onSave: () -> Void
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 ForEach($day.exercises) { $exercise in
-                    ExerciseRunCard(exercise: $exercise)
+                    ExerciseRunCard(exercise: $exercise, onSave: onSave)
                 }
 
                 Button {
@@ -392,6 +407,7 @@ struct DayRunView: View {
 
 struct ExerciseRunCard: View {
     @Binding var exercise: RunExerciseState
+    let onSave: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -418,7 +434,7 @@ struct ExerciseRunCard: View {
 
             // Sets
             ForEach($exercise.sets) { $set in
-                SetRunRow(runSet: $set)
+                SetRunRow(runSet: $set, onSave: onSave)
 
             }
 
@@ -458,6 +474,7 @@ struct ExerciseRunCard: View {
 
 struct SetRunRow: View {
     @Binding var runSet: RunSetState
+    let onSave: () -> Void
 
     // Strength helpers (keeping these for clarity, though not directly used in the new UI)
     private var repsValue: Int {
@@ -525,11 +542,13 @@ struct SetRunRow: View {
                 if runSet.isCompleted {
                     Button("Undo") {
                         runSet.isCompleted = false
+                        onSave()
                     }
                     .font(.caption)
                 } else {
                     Button("Complete") {
                         runSet.isCompleted = true
+                        onSave()
                     }
                     .font(.subheadline)
                     .padding(.horizontal, 12)
