@@ -47,7 +47,13 @@ struct BlockRunModeView: View {
                 .onChange(of: currentWeekIndex) { _, newValue in
                     handleWeekChange(newWeekIndex: newValue)
                 }
-                .onChange(of: weeks) { _, _ in
+                .onChange(of: weeks.map { week in
+                    week.days.map { day in
+                        day.exercises.map { exercise in
+                            exercise.sets.map(\.isCompleted)
+                        }
+                    }
+                }) { _, _ in
                     saveWeeks()
                 }
                 .alert("You can skip â but champions donât.", isPresented: $showSkipAlert) {
