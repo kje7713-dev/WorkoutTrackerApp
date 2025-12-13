@@ -63,7 +63,13 @@ struct BlockRunModeView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: weeks) { _, newWeeks in
+            // Auto-save whenever weeks state changes
+            print("📝 Auto-saving workout progress...")
+            BlockRunModeView.saveWeeks(newWeeks, for: block.id)
+        }
         .onDisappear {
+            // Final save when leaving the view
             BlockRunModeView.saveWeeks(weeks, for: block.id)
         }
     }
@@ -250,13 +256,40 @@ struct BlockRunModeView: View {
 
     private static func loadPersistedWeeks(for blockId: BlockID) -> [RunWeekState]? {
         let url = persistenceURL(for: blockId)
-        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        
+        // Check if file exists
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("ℹ️ No persisted RunWeekState file found for block \(blockId)")
+            return nil
+        }
 
         do {
             let data = try Data(contentsOf: url)
-            return try JSONDecoder().decode([RunWeekState].self, from: data)
+            
+            // Validate data is not empty
+            guard !data.isEmpty else {
+                print("⚠️ RunWeekState file is empty for block \(blockId)")
+                return nil
+            }
+            
+            let weeks = try JSONDecoder().decode([RunWeekState].self, from: data)
+            
+            // Validate decoded data
+            guard !weeks.isEmpty else {
+                print("⚠️ Decoded RunWeekState is empty for block \(blockId)")
+                return nil
+            }
+            
+            print("✅ Successfully loaded \(weeks.count) weeks for block \(blockId)")
+            return weeks
+        } catch let decodingError as DecodingError {
+            print("⚠️ Failed to decode RunWeekState for block \(blockId): \(decodingError)")
+            print("   Corrupted data detected, will rebuild from template")
+            // Delete corrupted file
+            try? FileManager.default.removeItem(at: url)
+            return nil
         } catch {
-            print("â ï¸ Failed to load RunWeekState for block \(blockId): \(error)")
+            print("⚠️ Failed to load RunWeekState for block \(blockId): \(error)")
             return nil
         }
     }
@@ -266,8 +299,9 @@ struct BlockRunModeView: View {
         do {
             let data = try JSONEncoder().encode(weeks)
             try data.write(to: url, options: [.atomic])
+            print("✅ Saved \(weeks.count) weeks for block \(blockId)")
         } catch {
-            print("â ï¸ Failed to save RunWeekState for block \(blockId): \(error)")
+            print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
         }
     }
 } // <--- BlockRunModeView ends here
@@ -653,7 +687,7 @@ struct SetRunRow: View {
 
 // MARK: - Run State Models (No changes here)
 
-struct RunWeekState: Identifiable, Codable {
+struct RunWeekState: Identifiable, Codable, Equatable {
     let id = UUID()
     let index: Int
     var days: [RunDayState]
@@ -670,14 +704,14 @@ struct RunWeekState: Identifiable, Codable {
     }
 }
 
-struct RunDayState: Identifiable, Codable{
+struct RunDayState: Identifiable, Codable, Equatable {
     let id = UUID()
     let name: String
     let shortCode: String
     var exercises: [RunExerciseState]
 }
 
-struct RunExerciseState: Identifiable, Codable {
+struct RunExerciseState: Identifiable, Codable, Equatable {
     let id = UUID()
     var name: String
     let type: ExerciseType
@@ -685,7 +719,7 @@ struct RunExerciseState: Identifiable, Codable {
     var sets: [RunSetState]
 }
 
-struct RunSetState: Identifiable, Codable {
+struct RunSetState: Identifiable, Codable, Equatable {
     let id = UUID()
     let indexInExercise: Int
     let displayText: String
