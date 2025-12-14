@@ -1,5 +1,21 @@
 import SwiftUI
 
+// MARK: - Run Mode Errors
+
+enum BlockRunModeError: Error, LocalizedError {
+    case weekCountMismatch(expected: Int, actual: Int)
+    case setCompletionMismatch(week: Int, expected: Int, actual: Int)
+    
+    var errorDescription: String? {
+        switch self {
+        case .weekCountMismatch(let expected, let actual):
+            return "Week count validation failed: expected \(expected) weeks but got \(actual)"
+        case .setCompletionMismatch(let week, let expected, let actual):
+            return "Week \(week) set completion validation failed: expected \(expected) completed sets but got \(actual)"
+        }
+    }
+}
+
 // MARK: - Run Mode Container
 
 struct BlockRunModeView: View {
@@ -170,8 +186,9 @@ struct BlockRunModeView: View {
         // SwiftUI binding updates have been processed. We use asyncAfter with a
         // minimal delay to allow the current run loop to complete and process
         // any pending state changes before we save.
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.stateCommitDelay) { [weak self] in
-            guard let self = self else { return }
+        // Note: We use strong self here to ensure the save completes even if the view
+        // is being deallocated, as data persistence is critical.
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.stateCommitDelay) { [self] in
             
             // Log validation data before save
             self.validateAndLogWeeksData()
@@ -203,8 +220,9 @@ struct BlockRunModeView: View {
         
         // Schedule new save after a short delay using DispatchQueue for more reliable timing
         // that won't be blocked by UI interactions
-        let workItem = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
+        // Note: We use strong self here to ensure saves complete even during view transitions,
+        // as data persistence is critical and we don't want to silently drop saves.
+        let workItem = DispatchWorkItem { [self] in
             print("🔵 Debounced save executing")
             self.validateAndLogWeeksData()
             
@@ -427,9 +445,9 @@ struct BlockRunModeView: View {
             
             // Additional validation: compare counts
             if validated.count != weeks.count {
-                let error = "Week count validation failed: decoded \(validated.count) weeks but expected \(weeks.count)"
-                print("❌ ERROR: \(error)")
-                throw NSError(domain: "BlockRunModeView", code: 1, userInfo: [NSLocalizedDescriptionKey: error])
+                let error = BlockRunModeError.weekCountMismatch(expected: weeks.count, actual: validated.count)
+                print("❌ ERROR: \(error.localizedDescription)")
+                throw error
             }
             
             // Validate set completion status is preserved
@@ -439,9 +457,9 @@ struct BlockRunModeView: View {
                 let validatedCompleted = Self.countCompletedSets(in: week)
                 
                 if originalCompleted != validatedCompleted {
-                    let error = "Week \(idx) set completion validation failed: original \(originalCompleted) sets, validated \(validatedCompleted) sets"
-                    print("❌ ERROR: \(error)")
-                    throw NSError(domain: "BlockRunModeView", code: 2, userInfo: [NSLocalizedDescriptionKey: error])
+                    let error = BlockRunModeError.setCompletionMismatch(week: idx, expected: originalCompleted, actual: validatedCompleted)
+                    print("❌ ERROR: \(error.localizedDescription)")
+                    throw error
                 }
             }
             
