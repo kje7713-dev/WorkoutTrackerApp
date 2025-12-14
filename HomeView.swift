@@ -102,9 +102,15 @@ struct HomeView: View {
                 // MARK: - Build Branch Label
                 VStack(spacing: 4) {
                     Text(buildBranchLabel)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(primaryTextColor.opacity(0.5))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(primaryTextColor.opacity(0.8))
                         .multilineTextAlignment(.center)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(primaryTextColor.opacity(0.1))
+                        )
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.bottom, 8)
