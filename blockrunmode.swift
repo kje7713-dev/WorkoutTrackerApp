@@ -56,6 +56,7 @@ struct BlockRunModeView: View {
                         }
                     }
                 }) { _, _ in
+                    print("🔵 Set completion changed - auto-saving")
                     saveWeeks()
                 }
                 .alert("You can skip â but champions donât.", isPresented: $showSkipAlert) {
@@ -79,8 +80,16 @@ struct BlockRunModeView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
+                    print("🔵 Toolbar 'Back to Blocks' button pressed")
                     saveWeeks()
-                    dismiss()
+                    // Add a small delay to ensure the save operation completes
+                    Task {
+                        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+                        await MainActor.run {
+                            print("🔵 Dismissing after save delay")
+                            dismiss()
+                        }
+                    }
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
@@ -95,6 +104,7 @@ struct BlockRunModeView: View {
             }
         }
         .onDisappear {
+            print("🔵 BlockRunModeView onDisappear - saving state")
             saveWeeks()
         }
     }
@@ -138,6 +148,7 @@ struct BlockRunModeView: View {
     // MARK: - Save Helper
     
     private func saveWeeks() {
+        print("🔵 Instance saveWeeks() called - saving \(weeks.count) weeks for block \(block.id)")
         BlockRunModeView.saveWeeks(weeks, for: block.id)
     }
 
