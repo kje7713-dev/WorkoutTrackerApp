@@ -12,7 +12,12 @@ struct HomeView: View {
     @Environment(\.sbdTheme) private var theme
     
     private var buildBranchLabel: String {
-        return "copilot/\(getBuildBranch())"
+        let branch = getBuildBranch()
+        // If branch already starts with "copilot/", don't add it again
+        if branch.hasPrefix("copilot/") {
+            return branch
+        }
+        return "copilot/\(branch)"
     }
     
     private func getBuildBranch() -> String {
