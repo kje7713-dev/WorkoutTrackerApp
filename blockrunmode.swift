@@ -393,6 +393,7 @@ struct DayRunView: View {
                         ]
                     )
                     day.exercises.append(newExercise)
+                    onSave()
                 } label: {
                     Label("Add Exercise", systemImage: "plus")
                         .font(.subheadline.bold())
@@ -422,6 +423,9 @@ struct ExerciseRunCard: View {
                 .font(.headline)
                 .textFieldStyle(.roundedBorder)
                 .disableAutocorrection(true)
+                .onChange(of: exercise.name) { _, _ in
+                    onSave()
+                }
 
             // Existing notes from the template (if any)
             if !exercise.notes.isEmpty {
@@ -437,6 +441,9 @@ struct ExerciseRunCard: View {
                 .lineLimit(1...3)
                 .font(.footnote)
                 .textFieldStyle(.roundedBorder)
+                .onChange(of: exercise.notes) { _, _ in
+                    onSave()
+                }
 
             // Sets
             ForEach($exercise.sets) { $set in
@@ -454,6 +461,7 @@ struct ExerciseRunCard: View {
                         type: exercise.type
                     )
                     exercise.sets.append(newSet)
+                    onSave()
                 } label: {
                     Label("Add Set", systemImage: "plus")
                         .font(.caption.bold())
@@ -464,6 +472,7 @@ struct ExerciseRunCard: View {
                 if exercise.sets.count > 1 {
                     Button {
                         _ = exercise.sets.popLast()
+                        onSave()
                     } label: {
                         Label("Remove Set", systemImage: "minus")
                             .font(.caption)
@@ -587,6 +596,24 @@ struct SetRunRow: View {
             alignment: .topTrailing
         )
         .padding(.vertical, 2)
+        .onChange(of: runSet.actualReps) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.actualWeight) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.actualTimeSeconds) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.actualDistanceMeters) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.actualCalories) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.actualRounds) { _, _ in
+            onSave()
+        }
     }
 
     // MARK: - Strength UI (Modified to use VStack and SetControlView)
