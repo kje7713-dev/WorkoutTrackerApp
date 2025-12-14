@@ -87,6 +87,8 @@ struct BlockRunModeView: View {
                         Text("Blocks")
                     }
                 }
+                .accessibilityLabel("Go back to Blocks")
+                .accessibilityHint("Saves current progress and returns to the Blocks view")
             }
         }
         .onDisappear {
