@@ -226,10 +226,19 @@ struct BlockRunModeView: View {
         print("   - Total weeks: \(weeks.count)")
         
         for (weekIdx, week) in weeks.enumerated() {
-            // Optimize by computing all sets once, then filtering for completed
-            let allSets = week.days.flatMap { $0.exercises }.flatMap { $0.sets }
-            let completedSets = allSets.filter { $0.isCompleted }.count
-            let totalSets = allSets.count
+            // Optimize by counting in a single pass
+            var totalSets = 0
+            var completedSets = 0
+            for day in week.days {
+                for exercise in day.exercises {
+                    for set in exercise.sets {
+                        totalSets += 1
+                        if set.isCompleted {
+                            completedSets += 1
+                        }
+                    }
+                }
+            }
             print("   - Week \(weekIdx): \(completedSets)/\(totalSets) sets completed")
         }
     }
@@ -424,13 +433,10 @@ struct BlockRunModeView: View {
             }
             
             // Validate set completion status is preserved
-            // Optimize by computing all sets once per week, then filtering for completed
+            // Use helper function to count completed sets efficiently
             for (idx, week) in validated.enumerated() {
-                let originalAllSets = weeks[idx].days.flatMap { $0.exercises }.flatMap { $0.sets }
-                let originalCompleted = originalAllSets.filter { $0.isCompleted }.count
-                
-                let validatedAllSets = week.days.flatMap { $0.exercises }.flatMap { $0.sets }
-                let validatedCompleted = validatedAllSets.filter { $0.isCompleted }.count
+                let originalCompleted = Self.countCompletedSets(in: weeks[idx])
+                let validatedCompleted = Self.countCompletedSets(in: week)
                 
                 if originalCompleted != validatedCompleted {
                     let error = "Week \(idx) set completion validation failed: original \(originalCompleted) sets, validated \(validatedCompleted) sets"
@@ -458,10 +464,28 @@ struct BlockRunModeView: View {
         }
     }
     
+    /// Helper function to efficiently count completed sets in a week (single pass)
+    private static func countCompletedSets(in week: RunWeekState) -> Int {
+        var count = 0
+        for day in week.days {
+            for exercise in day.exercises {
+                for set in exercise.sets where set.isCompleted {
+                    count += 1
+                }
+            }
+        }
+        return count
+    }
+    
     private static func restoreFromBackup(from backupURL: URL, to url: URL, for blockId: BlockID) {
         if FileManager.default.fileExists(atPath: backupURL.path) {
             print("🔄 Attempting to restore run state for block \(blockId) from backup...")
             do {
+                // Remove existing corrupted file if it exists
+                if FileManager.default.fileExists(atPath: url.path) {
+                    try FileManager.default.removeItem(at: url)
+                }
+                // Copy backup to original location
                 try FileManager.default.copyItem(at: backupURL, to: url)
                 print("✅ Successfully restored run state from backup")
             } catch {
