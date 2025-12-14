@@ -4,6 +4,8 @@ import SwiftUI
 
 struct BlockRunModeView: View {
     let block: Block
+    
+    @Environment(\.dismiss) private var dismiss
 
     @State private var weeks: [RunWeekState]
     @State private var currentWeekIndex: Int = 0
@@ -73,6 +75,20 @@ struct BlockRunModeView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    saveWeeks()
+                    dismiss()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.left")
+                        Text("Blocks")
+                    }
+                }
+            }
+        }
         .onDisappear {
             saveWeeks()
         }
