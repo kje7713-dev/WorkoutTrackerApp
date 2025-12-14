@@ -10,6 +10,23 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.sbdTheme) private var theme
+    
+    private var buildBranchLabel: String {
+        let branch = getBuildBranch()
+        // If branch already starts with "copilot/", don't add it again
+        if branch.hasPrefix("copilot/") {
+            return branch
+        }
+        return "copilot/\(branch)"
+    }
+    
+    private func getBuildBranch() -> String {
+        // This will be replaced by the build script or default to "unknown"
+        if let branch = Bundle.main.infoDictionary?["BUILD_BRANCH"] as? String, !branch.isEmpty {
+            return branch
+        }
+        return "unknown"
+    }
 
     var body: some View {
         ZStack {
@@ -81,6 +98,16 @@ struct HomeView: View {
                 }
 
                 Spacer(minLength: 0)
+                
+                // MARK: - Build Branch Label
+                VStack(spacing: 4) {
+                    Text(buildBranchLabel)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(primaryTextColor.opacity(0.5))
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 8)
             }
             .padding(.horizontal, 20)
         }

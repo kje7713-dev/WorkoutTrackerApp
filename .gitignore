@@ -1,0 +1,42 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+!*.xcworkspace/contents.xcworkspacedata
+*.xcuserdata
+xcuserdata/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Backup files from hardened persistence
+*.backup.json
+
+# Ruby / Bundler
+vendor/
+.bundle/
+Gemfile.lock
+
+# CI logs
+ci_logs/
+
+# macOS
+.DS_Store
+
+# Auth keys
+AuthKey*.p8
