@@ -1,5 +1,21 @@
 import SwiftUI
 
+// MARK: - Run Mode Errors
+
+enum BlockRunModeError: Error, LocalizedError {
+    case weekCountMismatch(expected: Int, actual: Int)
+    case setCompletionMismatch(week: Int, expected: Int, actual: Int)
+    
+    var errorDescription: String? {
+        switch self {
+        case .weekCountMismatch(let expected, let actual):
+            return "Week count validation failed: expected \(expected) weeks but got \(actual)"
+        case .setCompletionMismatch(let week, let expected, let actual):
+            return "Week \(week) set completion validation failed: expected \(expected) completed sets but got \(actual)"
+        }
+    }
+}
+
 // MARK: - Run Mode Container
 
 struct BlockRunModeView: View {
@@ -14,6 +30,20 @@ struct BlockRunModeView: View {
     @State private var lastCommittedWeekIndex: Int = 0
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
+    
+    // Debounce work item to prevent excessive saves during rapid edits
+    @State private var saveDebounceWorkItem: DispatchWorkItem? = nil
+    
+    // Flag to handle save-then-dismiss flow
+    @State private var shouldDismissAfterSave: Bool = false
+    
+    // MARK: - Constants
+    
+    /// Minimal delay to allow SwiftUI to process pending binding updates before saving
+    private static let stateCommitDelay: TimeInterval = 0.01
+    
+    /// Debounce delay to prevent excessive file I/O during rapid user edits
+    private static let debounceDelay: TimeInterval = 0.5
 
     init(block: Block) {
         self.block = block
@@ -81,9 +111,8 @@ struct BlockRunModeView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     print("🔵 Toolbar 'Back to Blocks' button pressed")
-                    saveWeeks()
-                    print("🔵 Dismissing after save")
-                    dismiss()
+                    shouldDismissAfterSave = true
+                    commitAndSave()
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
@@ -99,7 +128,9 @@ struct BlockRunModeView: View {
         }
         .onDisappear {
             print("🔵 BlockRunModeView onDisappear - saving state")
-            saveWeeks()
+            // Cancel any pending debounced saves and do a final save
+            saveDebounceWorkItem?.cancel()
+            commitAndSave()
         }
     }
 
@@ -139,11 +170,99 @@ struct BlockRunModeView: View {
         .padding(.bottom, 4)
     }
 
-    // MARK: - Save Helper
+    // MARK: - Save Helpers
     
+    /// Commits all pending binding changes and performs an immediate save.
+    /// This method should be called when we need to ensure all state is synchronized
+    /// before performing critical operations like navigation or app backgrounding.
+    private func commitAndSave() {
+        print("🔵 commitAndSave() called - forcing state synchronization")
+        
+        // Cancel any pending debounced saves
+        saveDebounceWorkItem?.cancel()
+        saveDebounceWorkItem = nil
+        
+        // Schedule the save on the next run loop iteration to ensure all pending
+        // SwiftUI binding updates have been processed. We use asyncAfter with a
+        // minimal delay to allow the current run loop to complete and process
+        // any pending state changes before we save.
+        // Note: We intentionally use strong [self] capture here (not weak) to ensure the save
+        // completes even if the view is being deallocated. This is critical for data integrity.
+        // The closure is short-lived (completes in ~10ms) and doesn't create a retain cycle
+        // because it doesn't permanently capture self - it releases after execution.
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.stateCommitDelay) { [self] in
+            
+            // Log validation data before save
+            self.validateAndLogWeeksData()
+            
+            // Perform the save with error handling
+            print("🔵 Performing immediate save after commit")
+            do {
+                try BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
+            } catch {
+                print("❌ Failed to save in commitAndSave: \(error)")
+                // If save fails, at least we tried. The backup should still exist.
+            }
+            
+            // If we need to dismiss after save, do it now
+            if self.shouldDismissAfterSave {
+                print("🔵 Dismissing after save completed")
+                self.dismiss()
+            }
+        }
+    }
+    
+    /// Debounced save that prevents excessive file I/O during rapid edits.
+    /// This is called by onChange handlers during normal editing.
     private func saveWeeks() {
-        print("🔵 Instance saveWeeks() called - saving \(weeks.count) weeks for block \(block.id)")
-        BlockRunModeView.saveWeeks(weeks, for: block.id)
+        print("🔵 Instance saveWeeks() called - debouncing save")
+        
+        // Cancel existing pending save
+        saveDebounceWorkItem?.cancel()
+        
+        // Schedule new save after a short delay using DispatchQueue for more reliable timing
+        // that won't be blocked by UI interactions
+        // Note: We intentionally use strong [self] capture here (not weak) to ensure saves
+        // complete even during view transitions. Data persistence is critical and we cannot
+        // risk silently dropping saves. The closure is short-lived (~500ms) and doesn't
+        // create a retain cycle because it's a one-time execution that releases self after completion.
+        let workItem = DispatchWorkItem { [self] in
+            print("🔵 Debounced save executing")
+            self.validateAndLogWeeksData()
+            
+            do {
+                try BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
+            } catch {
+                print("❌ Failed to save in debounced save: \(error)")
+                // Continue - we'll try again on the next edit or on dismiss
+            }
+        }
+        
+        saveDebounceWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.debounceDelay, execute: workItem)
+    }
+    
+    /// Validates and logs the current weeks data structure to help diagnose save issues.
+    private func validateAndLogWeeksData() {
+        print("🔵 Validating weeks data before save:")
+        print("   - Total weeks: \(weeks.count)")
+        
+        for (weekIdx, week) in weeks.enumerated() {
+            // Optimize by counting in a single pass
+            var totalSets = 0
+            var completedSets = 0
+            for day in week.days {
+                for exercise in day.exercises {
+                    for set in exercise.sets {
+                        totalSets += 1
+                        if set.isCompleted {
+                            completedSets += 1
+                        }
+                    }
+                }
+            }
+            print("   - Week \(weekIdx): \(completedSets)/\(totalSets) sets completed")
+        }
     }
 
     // MARK: - Week Change Logic
@@ -303,27 +422,56 @@ struct BlockRunModeView: View {
         }
     }
 
-    private static func saveWeeks(_ weeks: [RunWeekState], for blockId: BlockID) {
+    private static func saveWeeks(_ weeks: [RunWeekState], for blockId: BlockID) throws {
         let url = persistenceURL(for: blockId)
         let backupURL = url.deletingLastPathComponent().appendingPathComponent("runstate-\(blockId.uuidString).backup.json")
+        
+        print("🔵 Static saveWeeks() called for block \(blockId)")
+        print("🔵 Saving to: \(url.path)")
         
         do {
             // Create backup of existing file before overwriting
             if FileManager.default.fileExists(atPath: url.path) {
                 try? FileManager.default.removeItem(at: backupURL)
                 try? FileManager.default.copyItem(at: url, to: backupURL)
+                print("🔵 Created backup at: \(backupURL.path)")
             }
             
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             let data = try encoder.encode(weeks)
             
-            // Validate data before writing
-            _ = try JSONDecoder().decode([RunWeekState].self, from: data)
+            print("🔵 Encoded \(data.count) bytes of data")
+            
+            // Validate data before writing by decoding it back
+            let validated = try JSONDecoder().decode([RunWeekState].self, from: data)
+            print("🔵 Validation successful - decoded \(validated.count) weeks")
+            
+            // Additional validation: compare counts
+            if validated.count != weeks.count {
+                let error = BlockRunModeError.weekCountMismatch(expected: weeks.count, actual: validated.count)
+                print("❌ ERROR: \(error.localizedDescription)")
+                throw error
+            }
+            
+            // Validate set completion status is preserved
+            // Note: This is O(weeks * sets_per_week) which is optimal for validation.
+            // Each call to countCompletedSets is O(n) where n is sets in that week.
+            // We must validate each week, so the overall complexity is unavoidable.
+            for idx in 0..<validated.count {
+                let originalCompleted = Self.countCompletedSets(in: weeks[idx])
+                let validatedCompleted = Self.countCompletedSets(in: validated[idx])
+                
+                if originalCompleted != validatedCompleted {
+                    let error = BlockRunModeError.setCompletionMismatch(week: idx, expected: originalCompleted, actual: validatedCompleted)
+                    print("❌ ERROR: \(error.localizedDescription)")
+                    throw error
+                }
+            }
             
             // Write atomically to prevent corruption
             try data.write(to: url, options: [.atomic, .completeFileProtection])
-            print("✅ Successfully saved state for block \(blockId): \(weeks.count) weeks")
+            print("✅ Successfully saved state for block \(blockId): \(weeks.count) weeks, \(data.count) bytes")
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
@@ -332,16 +480,36 @@ struct BlockRunModeView: View {
         } catch let encodingError as EncodingError {
             print("⚠️ Failed to encode RunWeekState for block \(blockId): \(encodingError)")
             restoreFromBackup(from: backupURL, to: url, for: blockId)
+            throw encodingError
         } catch {
             print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
             restoreFromBackup(from: backupURL, to: url, for: blockId)
+            throw error
         }
+    }
+    
+    /// Helper function to efficiently count completed sets in a week (single pass)
+    private static func countCompletedSets(in week: RunWeekState) -> Int {
+        var count = 0
+        for day in week.days {
+            for exercise in day.exercises {
+                for set in exercise.sets where set.isCompleted {
+                    count += 1
+                }
+            }
+        }
+        return count
     }
     
     private static func restoreFromBackup(from backupURL: URL, to url: URL, for blockId: BlockID) {
         if FileManager.default.fileExists(atPath: backupURL.path) {
             print("🔄 Attempting to restore run state for block \(blockId) from backup...")
             do {
+                // Remove existing corrupted file if it exists
+                if FileManager.default.fileExists(atPath: url.path) {
+                    try FileManager.default.removeItem(at: url)
+                }
+                // Copy backup to original location
                 try FileManager.default.copyItem(at: backupURL, to: url)
                 print("✅ Successfully restored run state from backup")
             } catch {
