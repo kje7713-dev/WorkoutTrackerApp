@@ -20,6 +20,14 @@ struct BlockRunModeView: View {
     
     // Flag to handle save-then-dismiss flow
     @State private var shouldDismissAfterSave: Bool = false
+    
+    // MARK: - Constants
+    
+    /// Minimal delay to allow SwiftUI to process pending binding updates before saving
+    private static let stateCommitDelay: TimeInterval = 0.01
+    
+    /// Debounce delay to prevent excessive file I/O during rapid user edits
+    private static let debounceDelay: TimeInterval = 0.5
 
     init(block: Block) {
         self.block = block
@@ -162,7 +170,7 @@ struct BlockRunModeView: View {
         // SwiftUI binding updates have been processed. We use asyncAfter with a
         // minimal delay to allow the current run loop to complete and process
         // any pending state changes before we save.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.stateCommitDelay) { [weak self] in
             guard let self = self else { return }
             
             // Log validation data before save
@@ -209,7 +217,7 @@ struct BlockRunModeView: View {
         }
         
         saveDebounceWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.debounceDelay, execute: workItem)
     }
     
     /// Validates and logs the current weeks data structure to help diagnose save issues.
@@ -218,8 +226,10 @@ struct BlockRunModeView: View {
         print("   - Total weeks: \(weeks.count)")
         
         for (weekIdx, week) in weeks.enumerated() {
-            let completedSets = week.days.flatMap { $0.exercises }.flatMap { $0.sets }.filter { $0.isCompleted }.count
-            let totalSets = week.days.flatMap { $0.exercises }.flatMap { $0.sets }.count
+            // Optimize by computing all sets once, then filtering for completed
+            let allSets = week.days.flatMap { $0.exercises }.flatMap { $0.sets }
+            let completedSets = allSets.filter { $0.isCompleted }.count
+            let totalSets = allSets.count
             print("   - Week \(weekIdx): \(completedSets)/\(totalSets) sets completed")
         }
     }
@@ -414,9 +424,14 @@ struct BlockRunModeView: View {
             }
             
             // Validate set completion status is preserved
+            // Optimize by computing all sets once per week, then filtering for completed
             for (idx, week) in validated.enumerated() {
-                let originalCompleted = weeks[idx].days.flatMap { $0.exercises }.flatMap { $0.sets }.filter { $0.isCompleted }.count
-                let validatedCompleted = week.days.flatMap { $0.exercises }.flatMap { $0.sets }.filter { $0.isCompleted }.count
+                let originalAllSets = weeks[idx].days.flatMap { $0.exercises }.flatMap { $0.sets }
+                let originalCompleted = originalAllSets.filter { $0.isCompleted }.count
+                
+                let validatedAllSets = week.days.flatMap { $0.exercises }.flatMap { $0.sets }
+                let validatedCompleted = validatedAllSets.filter { $0.isCompleted }.count
+                
                 if originalCompleted != validatedCompleted {
                     let error = "Week \(idx) set completion validation failed: original \(originalCompleted) sets, validated \(validatedCompleted) sets"
                     print("❌ ERROR: \(error)")
@@ -435,9 +450,11 @@ struct BlockRunModeView: View {
         } catch let encodingError as EncodingError {
             print("⚠️ Failed to encode RunWeekState for block \(blockId): \(encodingError)")
             restoreFromBackup(from: backupURL, to: url, for: blockId)
+            throw encodingError
         } catch {
             print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
             restoreFromBackup(from: backupURL, to: url, for: blockId)
+            throw error
         }
     }
     
