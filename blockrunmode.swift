@@ -15,8 +15,8 @@ struct BlockRunModeView: View {
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
     
-    // Debounce timer to prevent excessive saves during rapid edits
-    @State private var saveDebounceTimer: Timer? = nil
+    // Debounce work item to prevent excessive saves during rapid edits
+    @State private var saveDebounceWorkItem: DispatchWorkItem? = nil
 
     init(block: Block) {
         self.block = block
@@ -103,7 +103,7 @@ struct BlockRunModeView: View {
         .onDisappear {
             print("🔵 BlockRunModeView onDisappear - saving state")
             // Cancel any pending debounced saves and do a final save
-            saveDebounceTimer?.invalidate()
+            saveDebounceWorkItem?.cancel()
             commitAndSave()
         }
     }
@@ -153,13 +153,20 @@ struct BlockRunModeView: View {
         print("🔵 commitAndSave() called - forcing state synchronization")
         
         // Cancel any pending debounced saves
-        saveDebounceTimer?.invalidate()
-        saveDebounceTimer = nil
+        saveDebounceWorkItem?.cancel()
+        saveDebounceWorkItem = nil
         
-        // Force SwiftUI to process any pending binding updates by triggering
-        // a state change on a temporary variable. This ensures all nested bindings
-        // have propagated their changes to the parent @State.
-        let _ = weeks.count
+        // Force SwiftUI to process any pending binding updates using a minimal
+        // async dispatch. This ensures all nested bindings have propagated their
+        // changes to the parent @State before we proceed with the save operation.
+        // We use a semaphore to make this synchronous so the save happens after
+        // state synchronization is complete.
+        let semaphore = DispatchSemaphore(value: 0)
+        DispatchQueue.main.async {
+            // At this point, all pending SwiftUI state updates have been processed
+            semaphore.signal()
+        }
+        semaphore.wait()
         
         // Log validation data before save
         validateAndLogWeeksData()
@@ -174,16 +181,20 @@ struct BlockRunModeView: View {
     private func saveWeeks() {
         print("🔵 Instance saveWeeks() called - debouncing save")
         
-        // Cancel existing timer
-        saveDebounceTimer?.invalidate()
+        // Cancel existing pending save
+        saveDebounceWorkItem?.cancel()
         
-        // Schedule new save after a short delay
-        saveDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+        // Schedule new save after a short delay using DispatchQueue for more reliable timing
+        // that won't be blocked by UI interactions
+        let workItem = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             print("🔵 Debounced save executing")
-            validateAndLogWeeksData()
+            self.validateAndLogWeeksData()
             BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
         }
+        
+        saveDebounceWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
     }
     
     /// Validates and logs the current weeks data structure to help diagnose save issues.
@@ -382,7 +393,9 @@ struct BlockRunModeView: View {
             
             // Additional validation: compare counts
             if validated.count != weeks.count {
-                print("⚠️ WARNING: Decoded week count (\(validated.count)) doesn't match input (\(weeks.count))")
+                let error = "Week count validation failed: decoded \(validated.count) weeks but expected \(weeks.count)"
+                print("❌ ERROR: \(error)")
+                throw NSError(domain: "BlockRunModeView", code: 1, userInfo: [NSLocalizedDescriptionKey: error])
             }
             
             // Validate set completion status is preserved
@@ -390,7 +403,9 @@ struct BlockRunModeView: View {
                 let originalCompleted = weeks[idx].days.flatMap { $0.exercises }.flatMap { $0.sets }.filter { $0.isCompleted }.count
                 let validatedCompleted = week.days.flatMap { $0.exercises }.flatMap { $0.sets }.filter { $0.isCompleted }.count
                 if originalCompleted != validatedCompleted {
-                    print("⚠️ WARNING: Week \(idx) completed set count mismatch - original: \(originalCompleted), validated: \(validatedCompleted)")
+                    let error = "Week \(idx) set completion validation failed: original \(originalCompleted) sets, validated \(validatedCompleted) sets"
+                    print("❌ ERROR: \(error)")
+                    throw NSError(domain: "BlockRunModeView", code: 2, userInfo: [NSLocalizedDescriptionKey: error])
                 }
             }
             
