@@ -326,15 +326,21 @@ struct BlockRunModeView: View {
             }
         } catch let encodingError as EncodingError {
             print("⚠️ Failed to encode RunWeekState for block \(blockId): \(encodingError)")
-            // Attempt to restore from backup if available
-            if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.copyItem(at: backupURL, to: url)
-            }
+            restoreFromBackup(from: backupURL, to: url, for: blockId)
         } catch {
             print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
-            // Attempt to restore from backup if available
-            if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.copyItem(at: backupURL, to: url)
+            restoreFromBackup(from: backupURL, to: url, for: blockId)
+        }
+    }
+    
+    private static func restoreFromBackup(from backupURL: URL, to url: URL, for blockId: BlockID) {
+        if FileManager.default.fileExists(atPath: backupURL.path) {
+            print("🔄 Attempting to restore run state for block \(blockId) from backup...")
+            do {
+                try FileManager.default.copyItem(at: backupURL, to: url)
+                print("✅ Successfully restored run state from backup")
+            } catch {
+                print("❌ Failed to restore run state from backup: \(error)")
             }
         }
     }

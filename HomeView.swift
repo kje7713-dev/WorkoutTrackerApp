@@ -12,11 +12,7 @@ struct HomeView: View {
     @Environment(\.sbdTheme) private var theme
     
     private var buildBranchLabel: String {
-        #if DEBUG
         return "copilot/\(getBuildBranch())"
-        #else
-        return "copilot/\(getBuildBranch())"
-        #endif
     }
     
     private func getBuildBranch() -> String {

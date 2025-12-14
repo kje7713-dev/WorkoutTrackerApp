@@ -115,13 +115,25 @@ public final class BlocksRepository: ObservableObject {
             print("⚠️ BlocksRepository.saveToDisk encoding failed: \(encodingError)")
             // Attempt to restore from backup if available
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.copyItem(at: backupURL, to: url)
+                print("🔄 Attempting to restore blocks from backup...")
+                do {
+                    try FileManager.default.copyItem(at: backupURL, to: url)
+                    print("✅ Successfully restored blocks from backup")
+                } catch {
+                    print("❌ Failed to restore blocks from backup: \(error)")
+                }
             }
         } catch {
             print("⚠️ BlocksRepository.saveToDisk failed: \(error)")
             // Attempt to restore from backup if available
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.copyItem(at: backupURL, to: url)
+                print("🔄 Attempting to restore blocks from backup...")
+                do {
+                    try FileManager.default.copyItem(at: backupURL, to: url)
+                    print("✅ Successfully restored blocks from backup")
+                } catch {
+                    print("❌ Failed to restore blocks from backup: \(error)")
+                }
             }
         }
     }
@@ -242,13 +254,25 @@ public final class SessionsRepository: ObservableObject {
             print("⚠️ SessionsRepository.saveToDisk encoding failed: \(encodingError)")
             // Attempt to restore from backup if available
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.copyItem(at: backupURL, to: url)
+                print("🔄 Attempting to restore sessions from backup...")
+                do {
+                    try FileManager.default.copyItem(at: backupURL, to: url)
+                    print("✅ Successfully restored sessions from backup")
+                } catch {
+                    print("❌ Failed to restore sessions from backup: \(error)")
+                }
             }
         } catch {
             print("⚠️ SessionsRepository.saveToDisk failed: \(error)")
             // Attempt to restore from backup if available
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.copyItem(at: backupURL, to: url)
+                print("🔄 Attempting to restore sessions from backup...")
+                do {
+                    try FileManager.default.copyItem(at: backupURL, to: url)
+                    print("✅ Successfully restored sessions from backup")
+                } catch {
+                    print("❌ Failed to restore sessions from backup: \(error)")
+                }
             }
         }
     }
