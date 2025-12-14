@@ -17,6 +17,9 @@ struct BlockRunModeView: View {
     
     // Debounce work item to prevent excessive saves during rapid edits
     @State private var saveDebounceWorkItem: DispatchWorkItem? = nil
+    
+    // Flag to handle save-then-dismiss flow
+    @State private var shouldDismissAfterSave: Bool = false
 
     init(block: Block) {
         self.block = block
@@ -84,9 +87,8 @@ struct BlockRunModeView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     print("🔵 Toolbar 'Back to Blocks' button pressed")
+                    shouldDismissAfterSave = true
                     commitAndSave()
-                    print("🔵 Dismissing after save")
-                    dismiss()
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
@@ -156,24 +158,31 @@ struct BlockRunModeView: View {
         saveDebounceWorkItem?.cancel()
         saveDebounceWorkItem = nil
         
-        // Force SwiftUI to process any pending binding updates using a minimal
-        // async dispatch. This ensures all nested bindings have propagated their
-        // changes to the parent @State before we proceed with the save operation.
-        // We use a semaphore to make this synchronous so the save happens after
-        // state synchronization is complete.
-        let semaphore = DispatchSemaphore(value: 0)
-        DispatchQueue.main.async {
-            // At this point, all pending SwiftUI state updates have been processed
-            semaphore.signal()
+        // Schedule the save on the next run loop iteration to ensure all pending
+        // SwiftUI binding updates have been processed. We use asyncAfter with a
+        // minimal delay to allow the current run loop to complete and process
+        // any pending state changes before we save.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) { [weak self] in
+            guard let self = self else { return }
+            
+            // Log validation data before save
+            self.validateAndLogWeeksData()
+            
+            // Perform the save with error handling
+            print("🔵 Performing immediate save after commit")
+            do {
+                try BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
+            } catch {
+                print("❌ Failed to save in commitAndSave: \(error)")
+                // If save fails, at least we tried. The backup should still exist.
+            }
+            
+            // If we need to dismiss after save, do it now
+            if self.shouldDismissAfterSave {
+                print("🔵 Dismissing after save completed")
+                self.dismiss()
+            }
         }
-        semaphore.wait()
-        
-        // Log validation data before save
-        validateAndLogWeeksData()
-        
-        // Perform the save
-        print("🔵 Performing immediate save after commit")
-        BlockRunModeView.saveWeeks(weeks, for: block.id)
     }
     
     /// Debounced save that prevents excessive file I/O during rapid edits.
@@ -190,7 +199,13 @@ struct BlockRunModeView: View {
             guard let self = self else { return }
             print("🔵 Debounced save executing")
             self.validateAndLogWeeksData()
-            BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
+            
+            do {
+                try BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
+            } catch {
+                print("❌ Failed to save in debounced save: \(error)")
+                // Continue - we'll try again on the next edit or on dismiss
+            }
         }
         
         saveDebounceWorkItem = workItem
@@ -366,7 +381,7 @@ struct BlockRunModeView: View {
         }
     }
 
-    private static func saveWeeks(_ weeks: [RunWeekState], for blockId: BlockID) {
+    private static func saveWeeks(_ weeks: [RunWeekState], for blockId: BlockID) throws {
         let url = persistenceURL(for: blockId)
         let backupURL = url.deletingLastPathComponent().appendingPathComponent("runstate-\(blockId.uuidString).backup.json")
         
