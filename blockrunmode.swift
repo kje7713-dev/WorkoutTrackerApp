@@ -82,10 +82,13 @@ struct BlockRunModeView: View {
                     saveWeeks()
                     dismiss()
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
                         Text("Blocks")
+                            .font(.system(size: 17))
                     }
+                    .foregroundColor(.accentColor)
                 }
                 .accessibilityLabel("Go back to Blocks")
                 .accessibilityHint("Saves current progress and returns to the Blocks view")
@@ -297,14 +300,42 @@ struct BlockRunModeView: View {
 
     private static func saveWeeks(_ weeks: [RunWeekState], for blockId: BlockID) {
         let url = persistenceURL(for: blockId)
+        let backupURL = url.deletingLastPathComponent().appendingPathComponent("runstate-\(blockId.uuidString).backup.json")
+        
         do {
-            let data = try JSONEncoder().encode(weeks)
-            try data.write(to: url, options: [.atomic])
-            print("Successfully saved state for block \(blockId): \(weeks.count) weeks")
+            // Create backup of existing file before overwriting
+            if FileManager.default.fileExists(atPath: url.path) {
+                try? FileManager.default.removeItem(at: backupURL)
+                try? FileManager.default.copyItem(at: url, to: backupURL)
+            }
+            
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let data = try encoder.encode(weeks)
+            
+            // Validate data before writing
+            _ = try JSONDecoder().decode([RunWeekState].self, from: data)
+            
+            // Write atomically to prevent corruption
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            print("✅ Successfully saved state for block \(blockId): \(weeks.count) weeks")
+            
+            // Clean up old backup after successful write
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.removeItem(at: backupURL)
+            }
         } catch let encodingError as EncodingError {
-            print("Failed to encode RunWeekState for block \(blockId): \(encodingError)")
+            print("⚠️ Failed to encode RunWeekState for block \(blockId): \(encodingError)")
+            // Attempt to restore from backup if available
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.copyItem(at: backupURL, to: url)
+            }
         } catch {
-            print("â ï¸ Failed to save RunWeekState for block \(blockId): \(error)")
+            print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
+            // Attempt to restore from backup if available
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.copyItem(at: backupURL, to: url)
+            }
         }
     }
 } // <--- BlockRunModeView ends here

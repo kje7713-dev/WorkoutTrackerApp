@@ -85,15 +85,44 @@ public final class BlocksRepository: ObservableObject {
         }
     }
 
-    /// Save the current blocks array to disk as JSON.
+    /// Save the current blocks array to disk as JSON with backup mechanism.
     private func saveToDisk() {
         let url = Self.fileURL
+        let backupURL = url.deletingLastPathComponent().appendingPathComponent("blocks.backup.json")
 
         do {
-            let data = try JSONEncoder().encode(blocks)
-            try data.write(to: url, options: [.atomic])
+            // Create backup of existing file before overwriting
+            if FileManager.default.fileExists(atPath: url.path) {
+                try? FileManager.default.removeItem(at: backupURL)
+                try? FileManager.default.copyItem(at: url, to: backupURL)
+            }
+            
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let data = try encoder.encode(blocks)
+            
+            // Validate data before writing
+            _ = try JSONDecoder().decode([Block].self, from: data)
+            
+            // Write atomically to prevent corruption
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            
+            // Clean up old backup after successful write
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.removeItem(at: backupURL)
+            }
+        } catch let encodingError as EncodingError {
+            print("⚠️ BlocksRepository.saveToDisk encoding failed: \(encodingError)")
+            // Attempt to restore from backup if available
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.copyItem(at: backupURL, to: url)
+            }
         } catch {
             print("⚠️ BlocksRepository.saveToDisk failed: \(error)")
+            // Attempt to restore from backup if available
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.copyItem(at: backupURL, to: url)
+            }
         }
     }
 }
@@ -183,15 +212,44 @@ public final class SessionsRepository: ObservableObject {
         }
     }
 
-    /// Save the current sessions array to disk as JSON.
+    /// Save the current sessions array to disk as JSON with backup mechanism.
     private func saveToDisk() {
         let url = Self.fileURL
+        let backupURL = url.deletingLastPathComponent().appendingPathComponent("sessions.backup.json")
 
         do {
-            let data = try JSONEncoder().encode(sessions)
-            try data.write(to: url, options: [.atomic])
+            // Create backup of existing file before overwriting
+            if FileManager.default.fileExists(atPath: url.path) {
+                try? FileManager.default.removeItem(at: backupURL)
+                try? FileManager.default.copyItem(at: url, to: backupURL)
+            }
+            
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
+            let data = try encoder.encode(sessions)
+            
+            // Validate data before writing
+            _ = try JSONDecoder().decode([WorkoutSession].self, from: data)
+            
+            // Write atomically to prevent corruption
+            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            
+            // Clean up old backup after successful write
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.removeItem(at: backupURL)
+            }
+        } catch let encodingError as EncodingError {
+            print("⚠️ SessionsRepository.saveToDisk encoding failed: \(encodingError)")
+            // Attempt to restore from backup if available
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.copyItem(at: backupURL, to: url)
+            }
         } catch {
             print("⚠️ SessionsRepository.saveToDisk failed: \(error)")
+            // Attempt to restore from backup if available
+            if FileManager.default.fileExists(atPath: backupURL.path) {
+                try? FileManager.default.copyItem(at: backupURL, to: url)
+            }
         }
     }
 }

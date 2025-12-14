@@ -44,5 +44,9 @@
     <key>UIApplicationSupportsMultipleScenes</key>
     <false/>
   </dict>
+  
+  <!-- Build branch identifier for testing -->
+  <key>BUILD_BRANCH</key>
+  <string>unknown</string>
 </dict>
 </plist>

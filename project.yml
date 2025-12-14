@@ -16,6 +16,17 @@ targets:
   YourAppName:
     type: application
     platform: iOS
+    
+    preBuildScripts:
+      - name: Embed Git Branch
+        script: |
+          # Get the current git branch name
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+          echo "Build branch: $BRANCH_NAME"
+          
+          # Update Info.plist with branch name
+          /usr/libexec/PlistBuddy -c "Delete :BUILD_BRANCH" "${INFOPLIST_FILE}" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :BUILD_BRANCH string $BRANCH_NAME" "${INFOPLIST_FILE}"
 
     info:
       path: Info.plist
