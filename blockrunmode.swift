@@ -186,8 +186,10 @@ struct BlockRunModeView: View {
         // SwiftUI binding updates have been processed. We use asyncAfter with a
         // minimal delay to allow the current run loop to complete and process
         // any pending state changes before we save.
-        // Note: We use strong self here to ensure the save completes even if the view
-        // is being deallocated, as data persistence is critical.
+        // Note: We intentionally use strong [self] capture here (not weak) to ensure the save
+        // completes even if the view is being deallocated. This is critical for data integrity.
+        // The closure is short-lived (completes in ~10ms) and doesn't create a retain cycle
+        // because it doesn't permanently capture self - it releases after execution.
         DispatchQueue.main.asyncAfter(deadline: .now() + Self.stateCommitDelay) { [self] in
             
             // Log validation data before save
@@ -220,8 +222,10 @@ struct BlockRunModeView: View {
         
         // Schedule new save after a short delay using DispatchQueue for more reliable timing
         // that won't be blocked by UI interactions
-        // Note: We use strong self here to ensure saves complete even during view transitions,
-        // as data persistence is critical and we don't want to silently drop saves.
+        // Note: We intentionally use strong [self] capture here (not weak) to ensure saves
+        // complete even during view transitions. Data persistence is critical and we cannot
+        // risk silently dropping saves. The closure is short-lived (~500ms) and doesn't
+        // create a retain cycle because it's a one-time execution that releases self after completion.
         let workItem = DispatchWorkItem { [self] in
             print("🔵 Debounced save executing")
             self.validateAndLogWeeksData()
@@ -451,10 +455,12 @@ struct BlockRunModeView: View {
             }
             
             // Validate set completion status is preserved
-            // Use helper function to count completed sets efficiently
-            for (idx, week) in validated.enumerated() {
+            // Note: This is O(weeks * sets_per_week) which is optimal for validation.
+            // Each call to countCompletedSets is O(n) where n is sets in that week.
+            // We must validate each week, so the overall complexity is unavoidable.
+            for idx in 0..<validated.count {
                 let originalCompleted = Self.countCompletedSets(in: weeks[idx])
-                let validatedCompleted = Self.countCompletedSets(in: week)
+                let validatedCompleted = Self.countCompletedSets(in: validated[idx])
                 
                 if originalCompleted != validatedCompleted {
                     let error = BlockRunModeError.setCompletionMismatch(week: idx, expected: originalCompleted, actual: validatedCompleted)
