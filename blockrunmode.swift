@@ -14,10 +14,6 @@ struct BlockRunModeView: View {
     @State private var lastCommittedWeekIndex: Int = 0
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
-    
-    // Delay in nanoseconds to ensure save completes before dismissal
-    // This allows the synchronous file I/O operations (backup, encode, validate, write) to complete
-    private static let saveDelayNanoseconds: UInt64 = 100_000_000 // 0.1 seconds
 
     init(block: Block) {
         self.block = block
@@ -86,14 +82,8 @@ struct BlockRunModeView: View {
                 Button {
                     print("🔵 Toolbar 'Back to Blocks' button pressed")
                     saveWeeks()
-                    // Add a small delay to ensure the save operation completes before dismiss
-                    Task {
-                        try? await Task.sleep(nanoseconds: Self.saveDelayNanoseconds)
-                        await MainActor.run {
-                            print("🔵 Dismissing after save delay")
-                            dismiss()
-                        }
-                    }
+                    print("🔵 Dismissing after save")
+                    dismiss()
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
