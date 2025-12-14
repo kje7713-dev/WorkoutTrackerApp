@@ -14,6 +14,10 @@ struct BlockRunModeView: View {
     @State private var lastCommittedWeekIndex: Int = 0
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
+    
+    // Delay in nanoseconds to ensure save completes before dismissal
+    // This allows the synchronous file I/O operations (backup, encode, validate, write) to complete
+    private static let saveDelayNanoseconds: UInt64 = 100_000_000 // 0.1 seconds
 
     init(block: Block) {
         self.block = block
@@ -56,6 +60,7 @@ struct BlockRunModeView: View {
                         }
                     }
                 }) { _, _ in
+                    print("🔵 Set completion changed - auto-saving")
                     saveWeeks()
                 }
                 .alert("You can skip â but champions donât.", isPresented: $showSkipAlert) {
@@ -79,8 +84,16 @@ struct BlockRunModeView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
+                    print("🔵 Toolbar 'Back to Blocks' button pressed")
                     saveWeeks()
-                    dismiss()
+                    // Add a small delay to ensure the save operation completes before dismiss
+                    Task {
+                        try? await Task.sleep(nanoseconds: Self.saveDelayNanoseconds)
+                        await MainActor.run {
+                            print("🔵 Dismissing after save delay")
+                            dismiss()
+                        }
+                    }
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
@@ -95,6 +108,7 @@ struct BlockRunModeView: View {
             }
         }
         .onDisappear {
+            print("🔵 BlockRunModeView onDisappear - saving state")
             saveWeeks()
         }
     }
@@ -138,6 +152,7 @@ struct BlockRunModeView: View {
     // MARK: - Save Helper
     
     private func saveWeeks() {
+        print("🔵 Instance saveWeeks() called - saving \(weeks.count) weeks for block \(block.id)")
         BlockRunModeView.saveWeeks(weeks, for: block.id)
     }
 
