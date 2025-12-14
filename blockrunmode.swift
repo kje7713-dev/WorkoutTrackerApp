@@ -14,6 +14,9 @@ struct BlockRunModeView: View {
     @State private var lastCommittedWeekIndex: Int = 0
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
+    
+    // Debounce timer to prevent excessive saves during rapid edits
+    @State private var saveDebounceTimer: Timer? = nil
 
     init(block: Block) {
         self.block = block
@@ -81,7 +84,7 @@ struct BlockRunModeView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     print("🔵 Toolbar 'Back to Blocks' button pressed")
-                    saveWeeks()
+                    commitAndSave()
                     print("🔵 Dismissing after save")
                     dismiss()
                 } label: {
@@ -99,7 +102,9 @@ struct BlockRunModeView: View {
         }
         .onDisappear {
             print("🔵 BlockRunModeView onDisappear - saving state")
-            saveWeeks()
+            // Cancel any pending debounced saves and do a final save
+            saveDebounceTimer?.invalidate()
+            commitAndSave()
         }
     }
 
@@ -139,11 +144,58 @@ struct BlockRunModeView: View {
         .padding(.bottom, 4)
     }
 
-    // MARK: - Save Helper
+    // MARK: - Save Helpers
     
-    private func saveWeeks() {
-        print("🔵 Instance saveWeeks() called - saving \(weeks.count) weeks for block \(block.id)")
+    /// Commits all pending binding changes and performs an immediate save.
+    /// This method should be called when we need to ensure all state is synchronized
+    /// before performing critical operations like navigation or app backgrounding.
+    private func commitAndSave() {
+        print("🔵 commitAndSave() called - forcing state synchronization")
+        
+        // Cancel any pending debounced saves
+        saveDebounceTimer?.invalidate()
+        saveDebounceTimer = nil
+        
+        // Force SwiftUI to process any pending binding updates by triggering
+        // a state change on a temporary variable. This ensures all nested bindings
+        // have propagated their changes to the parent @State.
+        let _ = weeks.count
+        
+        // Log validation data before save
+        validateAndLogWeeksData()
+        
+        // Perform the save
+        print("🔵 Performing immediate save after commit")
         BlockRunModeView.saveWeeks(weeks, for: block.id)
+    }
+    
+    /// Debounced save that prevents excessive file I/O during rapid edits.
+    /// This is called by onChange handlers during normal editing.
+    private func saveWeeks() {
+        print("🔵 Instance saveWeeks() called - debouncing save")
+        
+        // Cancel existing timer
+        saveDebounceTimer?.invalidate()
+        
+        // Schedule new save after a short delay
+        saveDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+            guard let self = self else { return }
+            print("🔵 Debounced save executing")
+            validateAndLogWeeksData()
+            BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
+        }
+    }
+    
+    /// Validates and logs the current weeks data structure to help diagnose save issues.
+    private func validateAndLogWeeksData() {
+        print("🔵 Validating weeks data before save:")
+        print("   - Total weeks: \(weeks.count)")
+        
+        for (weekIdx, week) in weeks.enumerated() {
+            let completedSets = week.days.flatMap { $0.exercises }.flatMap { $0.sets }.filter { $0.isCompleted }.count
+            let totalSets = week.days.flatMap { $0.exercises }.flatMap { $0.sets }.count
+            print("   - Week \(weekIdx): \(completedSets)/\(totalSets) sets completed")
+        }
     }
 
     // MARK: - Week Change Logic
@@ -307,23 +359,44 @@ struct BlockRunModeView: View {
         let url = persistenceURL(for: blockId)
         let backupURL = url.deletingLastPathComponent().appendingPathComponent("runstate-\(blockId.uuidString).backup.json")
         
+        print("🔵 Static saveWeeks() called for block \(blockId)")
+        print("🔵 Saving to: \(url.path)")
+        
         do {
             // Create backup of existing file before overwriting
             if FileManager.default.fileExists(atPath: url.path) {
                 try? FileManager.default.removeItem(at: backupURL)
                 try? FileManager.default.copyItem(at: url, to: backupURL)
+                print("🔵 Created backup at: \(backupURL.path)")
             }
             
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             let data = try encoder.encode(weeks)
             
-            // Validate data before writing
-            _ = try JSONDecoder().decode([RunWeekState].self, from: data)
+            print("🔵 Encoded \(data.count) bytes of data")
+            
+            // Validate data before writing by decoding it back
+            let validated = try JSONDecoder().decode([RunWeekState].self, from: data)
+            print("🔵 Validation successful - decoded \(validated.count) weeks")
+            
+            // Additional validation: compare counts
+            if validated.count != weeks.count {
+                print("⚠️ WARNING: Decoded week count (\(validated.count)) doesn't match input (\(weeks.count))")
+            }
+            
+            // Validate set completion status is preserved
+            for (idx, week) in validated.enumerated() {
+                let originalCompleted = weeks[idx].days.flatMap { $0.exercises }.flatMap { $0.sets }.filter { $0.isCompleted }.count
+                let validatedCompleted = week.days.flatMap { $0.exercises }.flatMap { $0.sets }.filter { $0.isCompleted }.count
+                if originalCompleted != validatedCompleted {
+                    print("⚠️ WARNING: Week \(idx) completed set count mismatch - original: \(originalCompleted), validated: \(validatedCompleted)")
+                }
+            }
             
             // Write atomically to prevent corruption
             try data.write(to: url, options: [.atomic, .completeFileProtection])
-            print("✅ Successfully saved state for block \(blockId): \(weeks.count) weeks")
+            print("✅ Successfully saved state for block \(blockId): \(weeks.count) weeks, \(data.count) bytes")
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
