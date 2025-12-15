@@ -326,197 +326,20 @@ struct BlockBuilderView: View {
         let indexSet = IndexSet(integer: selectedDayIndex)
         deleteDays(at: indexSet)
     }
-
-    private func saveBlock() {
-        // Basic validation
-        let trimmedName = blockName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else {
-            validationMessage = "Please enter a block name."
-            showValidationAlert = true
-            return
-        }
-
-        // ✅ First, strip out exercises whose name is blank
-        let cleanedDays: [EditableDay] = days.map { day in
-            var copy = day
-            copy.exercises = day.exercises.filter {
-                !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            }
-            return copy
-        }
-
-        let nonEmptyDays = cleanedDays.filter { !$0.exercises.isEmpty }
-
-        guard !nonEmptyDays.isEmpty else {
-            validationMessage = "Add at least one day with at least one exercise."
-            showValidationAlert = true
-            return
-        }
-
-        // If cloning, require a new name vs the original
-        if case .clone(let original) = mode {
-            let originalTrimmed = original.name.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-            if originalTrimmed == trimmedName {
-                validationMessage = "Enter a new name so this block can be saved as a separate template."
-                showValidationAlert = true
-                return
-            }
-        }
-
-        // Build progression rule (unchanged)
-        let deltaWeight = Double(deltaWeightText)
-        let deltaSets = Int(deltaSetsText)
-
-        let progressionRule = ProgressionRule(
-            type: progressionType,
-            deltaWeight: deltaWeight,
-            deltaSets: deltaSets,
-            deloadWeekIndexes: nil,
-            customParams: nil
-        )
-
-        // Map editable structures into real models
-        let dayTemplates: [DayTemplate] = nonEmptyDays.map { editableDay in
-            let exerciseTemplates: [ExerciseTemplate] = editableDay.exercises.map { editableExercise in
-
-                // Strength / conditioning sets
-                var strengthSets: [StrengthSetTemplate]? = nil
-                var conditioningSets: [ConditioningSetTemplate]? = nil
-                var conditioningType: ConditioningType? = nil
-
-                if editableExercise.type == .strength {
-                    let baseSet = StrengthSetTemplate(
-                        index: 0,
-                        reps: editableExercise.strengthReps,
-                        weight: editableExercise.strengthWeight,
-                        percentageOfMax: nil,
-                        rpe: nil,
-                        rir: nil,
-                        tempo: nil,
-                        restSeconds: nil,
-                        notes: editableExercise.notes
-                    )
-                    let count = max(editableExercise.strengthSetsCount, 1)
-                    strengthSets = (0..<count).map { idx in
-                        var copy = baseSet
-                        copy.index = idx
-                        return copy
-                    }
-                } else if editableExercise.type == .conditioning {
-                    conditioningType = .monostructural
-                    let baseSet = ConditioningSetTemplate(
-                        index: 0,
-                        durationSeconds: editableExercise.conditioningDurationSeconds,
-                        distanceMeters: nil,
-                        calories: editableExercise.conditioningCalories,
-                        rounds: editableExercise.conditioningRounds,
-                        targetPace: nil,
-                        effortDescriptor: nil,
-                        restSeconds: nil,
-                        notes: editableExercise.notes
-                    )
-                    conditioningSets = [baseSet]
-                }
-
-                return ExerciseTemplate(
-                    exerciseDefinitionId: nil,
-                    customName: editableExercise.name,
-                    type: editableExercise.type,
-                    category: nil,
-                    conditioningType: conditioningType,
-                    notes: editableExercise.notes,
-                    setGroupId: nil,
-                    strengthSets: strengthSets,
-                    conditioningSets: conditioningSets,
-                    genericSets: nil,
-                    progressionRule: progressionRule
-                )
-            }
-
-            return DayTemplate(
-                name: editableDay.name,
-                shortCode: editableDay.shortCode,
-                goal: nil,
-                notes: nil,
-                exercises: exerciseTemplates
-            )
-        }
-
-        // Determine source and metadata based on mode
-        let blockSource: BlockSource
-        let aiMeta: AIMetadata?
-        
-        switch mode {
-        case .new, .clone:
-            blockSource = .user
-            aiMeta = nil
-        case .edit(let original):
-            blockSource = original.source
-            aiMeta = original.aiMetadata
-        }
-        
-        // Build block with the working ID (already exists if auto-save was used)
-        let savedBlock = Block(
-            id: workingBlockId,
-            name: trimmedName,
-            description: blockDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : blockDescription,
-            numberOfWeeks: numberOfWeeks,
-            goal: nil,
-            days: dayTemplates,
-            source: blockSource,
-            aiMetadata: aiMeta
-        )
-
-        // Update the block in repository (it may already exist from auto-save)
-        if blocksRepository.blocks.contains(where: { $0.id == workingBlockId }) {
-            blocksRepository.update(savedBlock)
-        } else {
-            blocksRepository.add(savedBlock)
-        }
-
-        // Phase 8: Generate sessions for this block
-        let factory = SessionFactory()
-        let generated = factory.makeSessions(for: savedBlock)
-
-        // Persist sessions for this block
-        sessionsRepository.replaceSessions(forBlockId: savedBlock.id, with: generated)
-
-        #if DEBUG
-        print("🔵 Save button persisted block id: \(savedBlock.id) with \(generated.count) sessions")
-        #endif
-
-        dismiss()
-    }
     
-    // MARK: - Auto-save
+    // MARK: - Block Building Helper
     
-    private func autoSave() {
-        // Only auto-save if enabled (to avoid saving initial state)
-        guard autoSaveEnabled else { return }
-        
-        // Cancel previous timer if exists
-        autoSaveTimer?.invalidate()
-        
-        // Debounce: save after 1 second of no changes
-        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
-            performAutoSave()
-        }
-    }
-    
-    private func performAutoSave() {
-        #if DEBUG
-        print("🔄 Auto-saving block: \(blockName)")
-        #endif
-        
-        // Build the current block state
+    /// Builds a Block from current editable state
+    /// Returns nil if the block doesn't meet minimum requirements
+    private func buildBlockFromCurrentState(requireName: Bool = false) -> Block? {
         let trimmedName = blockName.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // Don't save completely empty blocks
-        guard !trimmedName.isEmpty || !days.allSatisfy({ $0.exercises.isEmpty }) else {
-            return
+        // If requireName is true, we need a non-empty name
+        if requireName && trimmedName.isEmpty {
+            return nil
         }
         
-        // Use "Untitled Block" if name is empty
+        // Use "Untitled Block" if name is empty (for auto-save)
         let actualName = trimmedName.isEmpty ? "Untitled Block" : trimmedName
         
         // Clean up days: remove exercises with empty names
@@ -526,6 +349,14 @@ struct BlockBuilderView: View {
                 !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             }
             return copy
+        }
+        
+        // Filter to only days with exercises
+        let nonEmptyDays = cleanedDays.filter { !$0.exercises.isEmpty }
+        
+        // Must have at least one day with exercises
+        guard !nonEmptyDays.isEmpty else {
+            return nil
         }
         
         // Build progression rule
@@ -541,7 +372,7 @@ struct BlockBuilderView: View {
         )
         
         // Map editable structures into real models
-        let dayTemplates: [DayTemplate] = cleanedDays.map { editableDay in
+        let dayTemplates: [DayTemplate] = nonEmptyDays.map { editableDay in
             let exerciseTemplates: [ExerciseTemplate] = editableDay.exercises.map { editableExercise in
                 
                 // Strength / conditioning sets
@@ -607,7 +438,7 @@ struct BlockBuilderView: View {
             )
         }
         
-        // Determine the source based on mode
+        // Determine source and metadata based on mode
         let blockSource: BlockSource
         let aiMeta: AIMetadata?
         
@@ -620,8 +451,8 @@ struct BlockBuilderView: View {
             aiMeta = original.aiMetadata
         }
         
-        // Create or update the block with the persistent ID
-        let block = Block(
+        // Build the block with persistent ID
+        return Block(
             id: workingBlockId,
             name: actualName,
             description: blockDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : blockDescription,
@@ -631,13 +462,85 @@ struct BlockBuilderView: View {
             source: blockSource,
             aiMetadata: aiMeta
         )
+    }
+
+    private func saveBlock() {
+        // Validate name is not empty
+        let trimmedName = blockName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            validationMessage = "Please enter a block name."
+            showValidationAlert = true
+            return
+        }
+
+        // If cloning, require a new name vs the original
+        if case .clone(let original) = mode {
+            let originalTrimmed = original.name.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            if originalTrimmed == trimmedName {
+                validationMessage = "Enter a new name so this block can be saved as a separate template."
+                showValidationAlert = true
+                return
+            }
+        }
         
-        // Check if block already exists in repository
-        if let existingBlock = blocksRepository.blocks.first(where: { $0.id == workingBlockId }) {
-            // Update existing block
+        // Build the block (requireName: true ensures validation)
+        guard let savedBlock = buildBlockFromCurrentState(requireName: true) else {
+            validationMessage = "Add at least one day with at least one exercise."
+            showValidationAlert = true
+            return
+        }
+
+        // Update the block in repository (it may already exist from auto-save)
+        if blocksRepository.blocks.contains(where: { $0.id == workingBlockId }) {
+            blocksRepository.update(savedBlock)
+        } else {
+            blocksRepository.add(savedBlock)
+        }
+
+        // Phase 8: Generate sessions for this block
+        let factory = SessionFactory()
+        let generated = factory.makeSessions(for: savedBlock)
+
+        // Persist sessions for this block
+        sessionsRepository.replaceSessions(forBlockId: savedBlock.id, with: generated)
+
+        #if DEBUG
+        print("🔵 Save button persisted block id: \(savedBlock.id) with \(generated.count) sessions")
+        #endif
+
+        dismiss()
+    }
+    
+    // MARK: - Auto-save
+    
+    private func autoSave() {
+        // Only auto-save if enabled (to avoid saving initial state)
+        guard autoSaveEnabled else { return }
+        
+        // Cancel previous timer if exists
+        autoSaveTimer?.invalidate()
+        
+        // Debounce: save after 1 second of no changes
+        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
+            performAutoSave()
+        }
+    }
+    
+    private func performAutoSave() {
+        #if DEBUG
+        print("🔄 Auto-saving block: \(blockName)")
+        #endif
+        
+        // Build the block (requireName: false allows auto-save with "Untitled Block")
+        guard let block = buildBlockFromCurrentState(requireName: false) else {
+            // Not enough data to save yet
+            return
+        }
+        
+        // Check if block already exists in repository and update or add
+        if blocksRepository.blocks.contains(where: { $0.id == workingBlockId }) {
             blocksRepository.update(block)
         } else {
-            // Add new block
             blocksRepository.add(block)
         }
         
