@@ -216,16 +216,29 @@ struct BlockRunModeView: View {
                 
                 if originalCompletedCount == reloadedCompletedCount {
                     print("✅ Save verification successful: \(originalCompletedCount) completed sets")
+                    // Verification passed, safe to dismiss
+                    dismiss()
                 } else {
-                    print("⚠️ WARNING: Completed sets mismatch after save - original: \(originalCompletedCount), reloaded: \(reloadedCompletedCount)")
+                    // Verification failed - show error instead of dismissing
+                    let error = NSError(
+                        domain: "WorkoutTrackerApp",
+                        code: 1001,
+                        userInfo: [NSLocalizedDescriptionKey: "Save verification failed. Expected \(originalCompletedCount) completed sets but found \(reloadedCompletedCount). Please try closing again."]
+                    )
+                    print("❌ Save verification failed - showing error to user")
+                    saveError = error
+                    showSaveError = true
                 }
             } else {
-                print("⚠️ WARNING: Could not verify save by reloading")
-            }
-            
-            // Small delay to ensure save is fully persisted to disk
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                dismiss()
+                // Could not reload for verification - show error
+                let error = NSError(
+                    domain: "WorkoutTrackerApp",
+                    code: 1002,
+                    userInfo: [NSLocalizedDescriptionKey: "Could not verify save. Please try closing the session again."]
+                )
+                print("❌ Could not verify save - showing error to user")
+                saveError = error
+                showSaveError = true
             }
         } catch {
             print("❌ Failed to save before closing: \(error)")
@@ -236,11 +249,7 @@ struct BlockRunModeView: View {
     
     /// Counts all completed sets across all weeks for verification
     private func countAllCompletedSets(in weeks: [RunWeekState]) -> Int {
-        var count = 0
-        for week in weeks {
-            count += BlockRunModeView.countCompletedSets(in: week)
-        }
-        return count
+        return weeks.reduce(0) { $0 + BlockRunModeView.countCompletedSets(in: $1) }
     }
     
     /// Validates and logs the current weeks data structure to help diagnose save issues.
