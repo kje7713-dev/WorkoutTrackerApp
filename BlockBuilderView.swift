@@ -61,6 +61,9 @@ struct BlockBuilderView: View {
     // What are we doing?
     private let mode: BlockBuilderMode
 
+    // Track the block ID we're working with (for auto-save)
+    @State private var workingBlockId: BlockID
+
     // Block-level fields
     @State private var blockName: String = ""
     @State private var blockDescription: String = ""
@@ -83,6 +86,9 @@ struct BlockBuilderView: View {
     // Validation alert
     @State private var showValidationAlert: Bool = false
     @State private var validationMessage: String = ""
+    
+    // Track if auto-save is enabled (after initial setup)
+    @State private var autoSaveEnabled: Bool = false
 
     // MARK: - Init with mode
 
@@ -91,11 +97,30 @@ struct BlockBuilderView: View {
 
         switch mode {
         case .new:
+            // Create a new block ID that will persist across auto-saves
+            let newId = BlockID()
+            _workingBlockId = State(initialValue: newId)
             // leave defaults as-is (empty builder)
-            break
 
-        case .edit(let block),
-             .clone(let block):
+        case .edit(let block):
+            // Use the existing block's ID
+            _workingBlockId = State(initialValue: block.id)
+            // Map Block → editable state
+            let initial = BlockBuilderView.makeInitialState(from: block)
+
+            _blockName       = State(initialValue: initial.blockName)
+            _blockDescription = State(initialValue: initial.blockDescription)
+            _numberOfWeeks   = State(initialValue: initial.numberOfWeeks)
+            _progressionType = State(initialValue: initial.progressionType)
+            _deltaWeightText = State(initialValue: initial.deltaWeightText)
+            _deltaSetsText   = State(initialValue: initial.deltaSetsText)
+            _days            = State(initialValue: initial.days)
+            _selectedDayIndex = State(initialValue: 0)
+            
+        case .clone(let block):
+            // Create a new block ID for the clone
+            let newId = BlockID()
+            _workingBlockId = State(initialValue: newId)
             // Map Block → editable state
             let initial = BlockBuilderView.makeInitialState(from: block)
 
@@ -140,6 +165,19 @@ struct BlockBuilderView: View {
         } message: {
             Text(validationMessage)
         }
+        .onAppear {
+            // Enable auto-save after a short delay to avoid saving initial state
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                autoSaveEnabled = true
+            }
+        }
+        .onChange(of: blockName) { _, _ in autoSave() }
+        .onChange(of: blockDescription) { _, _ in autoSave() }
+        .onChange(of: numberOfWeeks) { _, _ in autoSave() }
+        .onChange(of: progressionType) { _, _ in autoSave() }
+        .onChange(of: deltaWeightText) { _, _ in autoSave() }
+        .onChange(of: deltaSetsText) { _, _ in autoSave() }
+        .onChange(of: days) { _, _ in autoSave() }
     }
 
     private var navigationTitle: String {
@@ -394,36 +432,36 @@ struct BlockBuilderView: View {
             )
         }
 
-        let newBlock = Block(
+        // Determine source and metadata based on mode
+        let blockSource: BlockSource
+        let aiMeta: AIMetadata?
+        
+        switch mode {
+        case .new, .clone:
+            blockSource = .user
+            aiMeta = nil
+        case .edit(let original):
+            blockSource = original.source
+            aiMeta = original.aiMetadata
+        }
+        
+        // Build block with the working ID (already exists if auto-save was used)
+        let savedBlock = Block(
+            id: workingBlockId,
             name: trimmedName,
             description: blockDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : blockDescription,
             numberOfWeeks: numberOfWeeks,
             goal: nil,
             days: dayTemplates,
-            source: .user,
-            aiMetadata: nil
+            source: blockSource,
+            aiMetadata: aiMeta
         )
 
-        // Determine which block instance to use for session generation:
-        var savedBlock: Block
-
-        switch mode {
-        case .new,
-             .clone:
-            // New template = new row
-            blocksRepository.add(newBlock)
-            savedBlock = newBlock
-
-        case .edit(let original):
-            // Keep id / source / aiMetadata; replace content
-            var updated = original
-            updated.name = newBlock.name
-            updated.description = newBlock.description
-            updated.numberOfWeeks = newBlock.numberOfWeeks
-            updated.days = newBlock.days
-            // source & aiMetadata stay as-is
-            blocksRepository.update(updated)
-            savedBlock = updated
+        // Update the block in repository (it may already exist from auto-save)
+        if blocksRepository.blocks.contains(where: { $0.id == workingBlockId }) {
+            blocksRepository.update(savedBlock)
+        } else {
+            blocksRepository.add(savedBlock)
         }
 
         // Phase 8: Generate sessions for this block
@@ -438,6 +476,155 @@ struct BlockBuilderView: View {
         #endif
 
         dismiss()
+    }
+    
+    // MARK: - Auto-save
+    
+    private func autoSave() {
+        // Only auto-save if enabled (to avoid saving initial state)
+        guard autoSaveEnabled else { return }
+        
+        #if DEBUG
+        print("🔄 Auto-saving block: \(blockName)")
+        #endif
+        
+        // Build the current block state
+        let trimmedName = blockName.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Don't save completely empty blocks
+        guard !trimmedName.isEmpty || !days.allSatisfy({ $0.exercises.isEmpty }) else {
+            return
+        }
+        
+        // Use "Untitled Block" if name is empty
+        let actualName = trimmedName.isEmpty ? "Untitled Block" : trimmedName
+        
+        // Clean up days: remove exercises with empty names
+        let cleanedDays: [EditableDay] = days.map { day in
+            var copy = day
+            copy.exercises = day.exercises.filter {
+                !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
+            return copy
+        }
+        
+        // Build progression rule
+        let deltaWeight = Double(deltaWeightText)
+        let deltaSets = Int(deltaSetsText)
+        
+        let progressionRule = ProgressionRule(
+            type: progressionType,
+            deltaWeight: deltaWeight,
+            deltaSets: deltaSets,
+            deloadWeekIndexes: nil,
+            customParams: nil
+        )
+        
+        // Map editable structures into real models
+        let dayTemplates: [DayTemplate] = cleanedDays.map { editableDay in
+            let exerciseTemplates: [ExerciseTemplate] = editableDay.exercises.map { editableExercise in
+                
+                // Strength / conditioning sets
+                var strengthSets: [StrengthSetTemplate]? = nil
+                var conditioningSets: [ConditioningSetTemplate]? = nil
+                var conditioningType: ConditioningType? = nil
+                
+                if editableExercise.type == .strength {
+                    let baseSet = StrengthSetTemplate(
+                        index: 0,
+                        reps: editableExercise.strengthReps,
+                        weight: editableExercise.strengthWeight,
+                        percentageOfMax: nil,
+                        rpe: nil,
+                        rir: nil,
+                        tempo: nil,
+                        restSeconds: nil,
+                        notes: editableExercise.notes
+                    )
+                    let count = max(editableExercise.strengthSetsCount, 1)
+                    strengthSets = (0..<count).map { idx in
+                        var copy = baseSet
+                        copy.index = idx
+                        return copy
+                    }
+                } else if editableExercise.type == .conditioning {
+                    conditioningType = .monostructural
+                    let baseSet = ConditioningSetTemplate(
+                        index: 0,
+                        durationSeconds: editableExercise.conditioningDurationSeconds,
+                        distanceMeters: nil,
+                        calories: editableExercise.conditioningCalories,
+                        rounds: editableExercise.conditioningRounds,
+                        targetPace: nil,
+                        effortDescriptor: nil,
+                        restSeconds: nil,
+                        notes: editableExercise.notes
+                    )
+                    conditioningSets = [baseSet]
+                }
+                
+                return ExerciseTemplate(
+                    exerciseDefinitionId: nil,
+                    customName: editableExercise.name,
+                    type: editableExercise.type,
+                    category: nil,
+                    conditioningType: conditioningType,
+                    notes: editableExercise.notes,
+                    setGroupId: nil,
+                    strengthSets: strengthSets,
+                    conditioningSets: conditioningSets,
+                    genericSets: nil,
+                    progressionRule: progressionRule
+                )
+            }
+            
+            return DayTemplate(
+                name: editableDay.name,
+                shortCode: editableDay.shortCode,
+                goal: nil,
+                notes: nil,
+                exercises: exerciseTemplates
+            )
+        }
+        
+        // Determine the source based on mode
+        let blockSource: BlockSource
+        let aiMeta: AIMetadata?
+        
+        switch mode {
+        case .new, .clone:
+            blockSource = .user
+            aiMeta = nil
+        case .edit(let original):
+            blockSource = original.source
+            aiMeta = original.aiMetadata
+        }
+        
+        // Create or update the block with the persistent ID
+        let block = Block(
+            id: workingBlockId,
+            name: actualName,
+            description: blockDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : blockDescription,
+            numberOfWeeks: numberOfWeeks,
+            goal: nil,
+            days: dayTemplates,
+            source: blockSource,
+            aiMetadata: aiMeta
+        )
+        
+        // Check if block already exists in repository
+        if let existingBlock = blocksRepository.blocks.first(where: { $0.id == workingBlockId }) {
+            // Update existing block
+            blocksRepository.update(block)
+        } else {
+            // Add new block
+            blocksRepository.add(block)
+        }
+        
+        // Auto-generate sessions for this block
+        let factory = SessionFactory()
+        let generated = factory.makeSessions(for: block)
+        sessionsRepository.replaceSessions(forBlockId: block.id, with: generated)
     }
 
     // MARK: - Colors
