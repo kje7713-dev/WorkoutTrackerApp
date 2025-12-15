@@ -31,8 +31,9 @@ struct BlockRunModeView: View {
     let block: Block
     
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var sessionsRepository: SessionsRepository
 
-    @State private var weeks: [RunWeekState]
+    @State private var weeks: [RunWeekState] = []
     @State private var currentWeekIndex: Int = 0
     @State private var currentDayIndex: Int = 0
 
@@ -43,16 +44,6 @@ struct BlockRunModeView: View {
     @State private var saveError: Error? = nil
     @State private var showSaveError: Bool = false
     @State private var backgroundSaveError: Error? = nil
-
-    init(block: Block) {
-        self.block = block
-
-        if let persisted = BlockRunModeView.loadPersistedWeeks(for: block.id) {
-            _weeks = State(initialValue: persisted)
-        } else {
-            _weeks = State(initialValue: BlockRunModeView.buildWeeks(from: block))
-        }
-    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -106,6 +97,9 @@ struct BlockRunModeView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
+        .onAppear {
+            initializeWeeks()
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
@@ -190,22 +184,52 @@ struct BlockRunModeView: View {
         .padding(.bottom, 4)
     }
 
+    // MARK: - Initialization
+    
+    /// Initialize weeks from SessionsRepository or generate new sessions if none exist
+    private func initializeWeeks() {
+        print("🔵 Initializing weeks from SessionsRepository for block \(block.id)")
+        
+        // Load sessions for this block from repository
+        var blockSessions = sessionsRepository.sessions(forBlockId: block.id)
+        
+        // If no sessions exist, generate them
+        if blockSessions.isEmpty {
+            print("🔵 No sessions found, generating new sessions via SessionFactory")
+            let factory = SessionFactory()
+            blockSessions = factory.makeSessions(for: block)
+            
+            // Save the generated sessions to repository
+            sessionsRepository.replaceSessions(forBlockId: block.id, with: blockSessions)
+            print("✅ Generated and saved \(blockSessions.count) sessions")
+        }
+        
+        // Convert sessions to run state
+        weeks = RunStateMapper.sessionsToRunWeeks(blockSessions, block: block)
+        print("✅ Initialized \(weeks.count) weeks from sessions")
+    }
+    
     // MARK: - Save Helpers
     
-    /// Performs an immediate synchronous save to disk.
+    /// Performs an immediate synchronous save to repository.
     /// This is called by onChange handlers, toolbar buttons, and view lifecycle events.
     private func saveWeeks() {
-        print("🔵 Instance saveWeeks() called - saving immediately")
+        print("🔵 Instance saveWeeks() called - saving to SessionsRepository")
         validateAndLogWeeksData()
         
-        do {
-            try BlockRunModeView.saveWeeks(weeks, for: block.id)
-            print("✅ Immediate save completed successfully")
-        } catch {
-            print("❌ Failed to save: \(error)")
-            // Store error for display in case of explicit save failures
-            saveError = error
-        }
+        // Get original sessions from repository
+        let originalSessions = sessionsRepository.sessions(forBlockId: block.id)
+        
+        // Convert run state back to sessions
+        let updatedSessions = RunStateMapper.runWeeksToSessions(
+            weeks,
+            originalSessions: originalSessions,
+            block: block
+        )
+        
+        // Replace sessions in repository
+        sessionsRepository.replaceSessions(forBlockId: block.id, with: updatedSessions)
+        print("✅ Saved \(updatedSessions.count) sessions to repository")
     }
     
     /// Closes the session with robust save confirmation.
@@ -217,43 +241,31 @@ struct BlockRunModeView: View {
         // Cache data structure metrics before save for verification
         let originalMetrics = computeDataMetrics(for: weeks)
         
-        do {
-            // Perform the save
-            try BlockRunModeView.saveWeeks(weeks, for: block.id)
-            print("✅ Final save completed successfully - closing session")
-            
-            // Verify the save by attempting to reload
-            if let reloaded = BlockRunModeView.loadPersistedWeeks(for: block.id) {
-                let reloadedMetrics = computeDataMetrics(for: reloaded)
-                
-                // Verify multiple data integrity checks
-                if originalMetrics.weekCount != reloadedMetrics.weekCount {
-                    print("❌ Week count mismatch - showing error to user")
-                    saveError = BlockRunModeError.weekCountMismatch(expected: originalMetrics.weekCount, actual: reloadedMetrics.weekCount)
-                    showSaveError = true
-                } else if originalMetrics.completedSetCount != reloadedMetrics.completedSetCount {
-                    print("❌ Completed set count mismatch - showing error to user")
-                    saveError = BlockRunModeError.saveVerificationFailed(expected: originalMetrics.completedSetCount, actual: reloadedMetrics.completedSetCount)
-                    showSaveError = true
-                } else if originalMetrics.totalSetCount != reloadedMetrics.totalSetCount {
-                    print("❌ Total set count mismatch - showing error to user")
-                    saveError = BlockRunModeError.totalSetCountMismatch(expected: originalMetrics.totalSetCount, actual: reloadedMetrics.totalSetCount)
-                    showSaveError = true
-                } else {
-                    print("✅ Save verification successful: \(originalMetrics.completedSetCount) completed sets")
-                    // Verification passed, safe to dismiss
-                    dismiss()
-                }
-            } else {
-                // Could not reload for verification - show error
-                print("❌ Could not verify save - showing error to user")
-                saveError = BlockRunModeError.saveVerificationUnableToReload
-                showSaveError = true
-            }
-        } catch {
-            print("❌ Failed to save before closing: \(error)")
-            saveError = error
+        // Perform the save
+        saveWeeks()
+        
+        // Verify the save by reloading from repository
+        let reloadedSessions = sessionsRepository.sessions(forBlockId: block.id)
+        let reloadedWeeks = RunStateMapper.sessionsToRunWeeks(reloadedSessions, block: block)
+        let reloadedMetrics = computeDataMetrics(for: reloadedWeeks)
+        
+        // Verify multiple data integrity checks
+        if originalMetrics.weekCount != reloadedMetrics.weekCount {
+            print("❌ Week count mismatch - showing error to user")
+            saveError = BlockRunModeError.weekCountMismatch(expected: originalMetrics.weekCount, actual: reloadedMetrics.weekCount)
             showSaveError = true
+        } else if originalMetrics.completedSetCount != reloadedMetrics.completedSetCount {
+            print("❌ Completed set count mismatch - showing error to user")
+            saveError = BlockRunModeError.saveVerificationFailed(expected: originalMetrics.completedSetCount, actual: reloadedMetrics.completedSetCount)
+            showSaveError = true
+        } else if originalMetrics.totalSetCount != reloadedMetrics.totalSetCount {
+            print("❌ Total set count mismatch - showing error to user")
+            saveError = BlockRunModeError.totalSetCountMismatch(expected: originalMetrics.totalSetCount, actual: reloadedMetrics.totalSetCount)
+            showSaveError = true
+        } else {
+            print("✅ Save verification successful: \(originalMetrics.completedSetCount) completed sets")
+            // Verification passed, safe to dismiss
+            dismiss()
         }
     }
     
@@ -452,139 +464,12 @@ struct BlockRunModeView: View {
         }
     }
 
-    // MARK: - Persistence
 
-    private static func persistenceURL(for blockId: BlockID) -> URL {
-        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return dir.appendingPathComponent("runstate-\(blockId.uuidString).json")
-    }
-
-    private static func loadPersistedWeeks(for blockId: BlockID) -> [RunWeekState]? {
-        let url = persistenceURL(for: blockId)
-        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-
-        do {
-            let data = try Data(contentsOf: url)
-            return try JSONDecoder().decode([RunWeekState].self, from: data)
-        } catch {
-            print("â ï¸ Failed to load RunWeekState for block \(blockId): \(error)")
-            return nil
-        }
-    }
-
-    private static func saveWeeks(_ weeks: [RunWeekState], for blockId: BlockID) throws {
-        let url = persistenceURL(for: blockId)
-        let backupURL = url.deletingLastPathComponent().appendingPathComponent("runstate-\(blockId.uuidString).backup.json")
-        
-        print("🔵 Static saveWeeks() called for block \(blockId)")
-        print("🔵 Saving to: \(url.path)")
-        
-        // Create backup of existing file before overwriting
-        if FileManager.default.fileExists(atPath: url.path) {
-            do {
-                // Remove old backup if it exists to ensure a clean backup
-                if FileManager.default.fileExists(atPath: backupURL.path) {
-                    try FileManager.default.removeItem(at: backupURL)
-                }
-                try FileManager.default.copyItem(at: url, to: backupURL)
-                print("🔵 Created backup at: \(backupURL.path)")
-            } catch {
-                print("⚠️ WARNING: Failed to create backup: \(error)")
-            }
-        }
-        
-        // Encode the data - throw on encoding errors
-        // Note: Encoding failure doesn't corrupt the original file, so no restore needed
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .prettyPrinted
-        let data: Data
-        do {
-            data = try encoder.encode(weeks)
-            print("🔵 Encoded \(data.count) bytes of data")
-        } catch let encodingError as EncodingError {
-            print("❌ Failed to encode RunWeekState for block \(blockId): \(encodingError)")
-            throw encodingError
-        }
-        
-        // Validate data before writing by decoding it back
-        // Note: Validation failure doesn't corrupt the original file, so no restore needed
-        let validated: [RunWeekState]
-        do {
-            validated = try JSONDecoder().decode([RunWeekState].self, from: data)
-            print("🔵 Validation successful - decoded \(validated.count) weeks")
-        } catch {
-            print("❌ Failed to decode during validation for block \(blockId): \(error)")
-            throw error
-        }
-        
-        // Relaxed validation: log warnings but continue
-        // Compare week counts
-        if validated.count != weeks.count {
-            print("⚠️ WARNING: Week count mismatch during validation - expected \(weeks.count) weeks but got \(validated.count). Continuing with save.")
-        }
-        
-        // Validate set completion status is preserved
-        // Note: This is O(weeks * sets_per_week) which is optimal for validation.
-        // Each call to countCompletedSets is O(n) where n is sets in that week.
-        // We must validate each week, so the overall complexity is unavoidable.
-        for idx in 0..<min(validated.count, weeks.count) {
-            let originalCompleted = Self.countCompletedSets(in: weeks[idx])
-            let validatedCompleted = Self.countCompletedSets(in: validated[idx])
-            
-            if originalCompleted != validatedCompleted {
-                print("⚠️ WARNING: Week \(idx) set completion mismatch - expected \(originalCompleted) completed sets but got \(validatedCompleted). Continuing with save.")
-            }
-        }
-        
-        // Write atomically to prevent corruption (removed .completeFileProtection)
-        do {
-            try data.write(to: url, options: [.atomic])
-            print("✅ Successfully saved state for block \(blockId): \(weeks.count) weeks, \(data.count) bytes")
-            
-            // Clean up old backup after successful write
-            if FileManager.default.fileExists(atPath: backupURL.path) {
-                do {
-                    try FileManager.default.removeItem(at: backupURL)
-                } catch {
-                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
-                }
-            }
-        } catch {
-            print("❌ Failed to write RunWeekState for block \(blockId): \(error)")
-            restoreFromBackup(from: backupURL, to: url, for: blockId)
-            throw error
-        }
-    }
+    // MARK: - Old Persistence (DISABLED - Now using SessionsRepository)
     
-    /// Helper function to efficiently count completed sets in a week (single pass)
-    private static func countCompletedSets(in week: RunWeekState) -> Int {
-        var count = 0
-        for day in week.days {
-            for exercise in day.exercises {
-                for set in exercise.sets where set.isCompleted {
-                    count += 1
-                }
-            }
-        }
-        return count
-    }
-    
-    private static func restoreFromBackup(from backupURL: URL, to url: URL, for blockId: BlockID) {
-        if FileManager.default.fileExists(atPath: backupURL.path) {
-            print("🔄 Attempting to restore run state for block \(blockId) from backup...")
-            do {
-                // Remove existing corrupted file if it exists
-                if FileManager.default.fileExists(atPath: url.path) {
-                    try FileManager.default.removeItem(at: url)
-                }
-                // Copy backup to original location
-                try FileManager.default.copyItem(at: backupURL, to: url)
-                print("✅ Successfully restored run state from backup")
-            } catch {
-                print("❌ Failed to restore run state from backup: \(error)")
-            }
-        }
-    }
+    // NOTE: The old runstate-*.json file persistence has been disabled.
+    // All workout session data is now persisted via SessionsRepository to sessions.json.
+    // This provides a single source of truth for all workout data.
 } // <--- BlockRunModeView ends here
 
 // MARK: - Week View

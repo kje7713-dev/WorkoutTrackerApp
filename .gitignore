@@ -27,6 +27,9 @@ fastlane/test_output
 # Backup files from hardened persistence
 *.backup.json
 
+# Old run state files (deprecated - now using SessionsRepository)
+runstate-*.json
+
 # Ruby / Bundler
 vendor/
 .bundle/

@@ -127,6 +127,7 @@ struct BlocksListView: View {
                             // RUN – navigate directly to BlockRunModeView
                             NavigationLink {
                                 BlockRunModeView(block: block)
+                                    .environmentObject(sessionsRepository)
                             } label: { 
                                 Text("RUN")
                                     .font(.subheadline).bold()

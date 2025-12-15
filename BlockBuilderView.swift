@@ -83,6 +83,10 @@ struct BlockBuilderView: View {
     // Validation alert
     @State private var showValidationAlert: Bool = false
     @State private var validationMessage: String = ""
+    
+    // Confirmation for overwriting sessions
+    @State private var showSessionOverwriteConfirmation: Bool = false
+    @State private var pendingSave: (() -> Void)? = nil
 
     // MARK: - Init with mode
 
@@ -139,6 +143,17 @@ struct BlockBuilderView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(validationMessage)
+        }
+        .alert("Overwrite Existing Sessions?", isPresented: $showSessionOverwriteConfirmation) {
+            Button("Cancel", role: .cancel) {
+                pendingSave = nil
+            }
+            Button("Continue", role: .destructive) {
+                pendingSave?()
+                pendingSave = nil
+            }
+        } message: {
+            Text("This block already has workout sessions with logged progress. Regenerating sessions will overwrite any existing run data. Continue?")
         }
     }
 
@@ -426,17 +441,43 @@ struct BlockBuilderView: View {
             savedBlock = updated
         }
 
+        // Check if block already has sessions with logged data
+        if case .edit = mode {
+            let existingSessions = sessionsRepository.sessions(forBlockId: savedBlock.id)
+            let hasLoggedData = existingSessions.contains { session in
+                session.exercises.contains { exercise in
+                    exercise.loggedSets.contains { $0.isCompleted }
+                }
+            }
+            
+            if hasLoggedData {
+                // Show confirmation dialog before overwriting
+                pendingSave = { [weak self] in
+                    guard let self = self else { return }
+                    self.performSessionRegeneration(for: savedBlock)
+                }
+                showSessionOverwriteConfirmation = true
+                return // Wait for user confirmation
+            }
+        }
+        
+        // No existing data or new block - proceed with regeneration
+        performSessionRegeneration(for: savedBlock)
+        dismiss()
+    }
+    
+    private func performSessionRegeneration(for block: Block) {
         // Phase 8: Generate sessions for this block
         let factory = SessionFactory()
-        let generated = factory.makeSessions(for: savedBlock)
+        let generated = factory.makeSessions(for: block)
 
         // Persist sessions for this block
-        sessionsRepository.replaceSessions(forBlockId: savedBlock.id, with: generated)
+        sessionsRepository.replaceSessions(forBlockId: block.id, with: generated)
 
         #if DEBUG
-        print("🔵 Save button persisted block id: \(savedBlock.id) with \(generated.count) sessions")
+        print("🔵 Save button persisted block id: \(block.id) with \(generated.count) sessions")
         #endif
-
+        
         dismiss()
     }
 
