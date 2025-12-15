@@ -359,9 +359,13 @@ struct BlockRunModeView: View {
         
         // Create backup of existing file before overwriting
         if FileManager.default.fileExists(atPath: url.path) {
-            try? FileManager.default.removeItem(at: backupURL)
-            try? FileManager.default.copyItem(at: url, to: backupURL)
-            print("🔵 Created backup at: \(backupURL.path)")
+            do {
+                try? FileManager.default.removeItem(at: backupURL)
+                try FileManager.default.copyItem(at: url, to: backupURL)
+                print("🔵 Created backup at: \(backupURL.path)")
+            } catch {
+                print("⚠️ WARNING: Failed to create backup: \(error)")
+            }
         }
         
         // Encode the data - throw on encoding errors
@@ -414,7 +418,11 @@ struct BlockRunModeView: View {
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.removeItem(at: backupURL)
+                do {
+                    try FileManager.default.removeItem(at: backupURL)
+                } catch {
+                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
+                }
             }
         } catch {
             print("❌ Failed to write RunWeekState for block \(blockId): \(error)")
