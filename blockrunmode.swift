@@ -117,9 +117,11 @@ struct BlockRunModeView: View {
         .onDisappear {
             print("🔵 BlockRunModeView onDisappear - saving state")
             saveWeeks()
-            // Post notification after view has been dismissed if requested
+            // Post notification after view dismissal animation completes
             if shouldDismissToRoot {
-                NotificationCenter.default.post(name: .dismissToRoot, object: nil)
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(name: .dismissToRoot, object: nil)
+                }
             }
         }
     }
