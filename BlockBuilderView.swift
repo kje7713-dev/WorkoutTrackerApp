@@ -103,7 +103,6 @@ struct BlockBuilderView: View {
             // Create a new block ID that will persist across auto-saves
             let newId = BlockID()
             _workingBlockId = State(initialValue: newId)
-            // leave defaults as-is (empty builder)
 
         case .edit(let block):
             // Use the existing block's ID
@@ -181,13 +180,13 @@ struct BlockBuilderView: View {
                 performAutoSave()
             }
         }
-        .onChange(of: blockName) { _, _ in autoSave() }
-        .onChange(of: blockDescription) { _, _ in autoSave() }
-        .onChange(of: numberOfWeeks) { _, _ in autoSave() }
-        .onChange(of: progressionType) { _, _ in autoSave() }
-        .onChange(of: deltaWeightText) { _, _ in autoSave() }
-        .onChange(of: deltaSetsText) { _, _ in autoSave() }
-        .onChange(of: days) { _, _ in autoSave() }
+        .onChange(of: blockName) { _ in autoSave() }
+        .onChange(of: blockDescription) { _ in autoSave() }
+        .onChange(of: numberOfWeeks) { _ in autoSave() }
+        .onChange(of: progressionType) { _ in autoSave() }
+        .onChange(of: deltaWeightText) { _ in autoSave() }
+        .onChange(of: deltaSetsText) { _ in autoSave() }
+        .onChange(of: days) { _ in autoSave() }
     }
 
     private var navigationTitle: String {
@@ -522,7 +521,9 @@ struct BlockBuilderView: View {
         
         // Debounce: save after 1 second of no changes
         autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
-            performAutoSave()
+            DispatchQueue.main.async {
+                self.performAutoSave()
+            }
         }
     }
     
