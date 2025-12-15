@@ -39,6 +39,7 @@ struct BlockRunModeView: View {
     @State private var showCloseConfirmation: Bool = false
     @State private var saveError: Error? = nil
     @State private var showSaveError: Bool = false
+    @State private var backgroundSaveError: Error? = nil
 
     init(block: Block) {
         self.block = block
@@ -146,6 +147,10 @@ struct BlockRunModeView: View {
                 print("✅ onDisappear save completed successfully")
             } catch {
                 print("❌ Failed to save in onDisappear: \(error)")
+                // Store error for potential display (though view is already disappearing)
+                // This at least logs the error and stores it in case we implement
+                // a mechanism to show deferred errors later
+                backgroundSaveError = error
             }
         }
     }
@@ -210,8 +215,8 @@ struct BlockRunModeView: View {
         print("🔵 closeSessionWithSave() called - performing final save before close")
         validateAndLogWeeksData()
         
-        // Cache the original count before save to avoid redundant computation
-        let originalCompletedCount = countAllCompletedSets(in: weeks)
+        // Cache data structure metrics before save for verification
+        let originalMetrics = computeDataMetrics(for: weeks)
         
         do {
             // Perform the save
@@ -220,17 +225,27 @@ struct BlockRunModeView: View {
             
             // Verify the save by attempting to reload
             if let reloaded = BlockRunModeView.loadPersistedWeeks(for: block.id) {
-                let reloadedCompletedCount = countAllCompletedSets(in: reloaded)
+                let reloadedMetrics = computeDataMetrics(for: reloaded)
                 
-                if originalCompletedCount == reloadedCompletedCount {
-                    print("✅ Save verification successful: \(originalCompletedCount) completed sets")
+                // Verify multiple data integrity checks
+                if originalMetrics.weekCount != reloadedMetrics.weekCount {
+                    print("❌ Week count mismatch - showing error to user")
+                    saveError = BlockRunModeError.weekCountMismatch(expected: originalMetrics.weekCount, actual: reloadedMetrics.weekCount)
+                    showSaveError = true
+                } else if originalMetrics.completedSetCount != reloadedMetrics.completedSetCount {
+                    print("❌ Completed set count mismatch - showing error to user")
+                    saveError = BlockRunModeError.saveVerificationFailed(expected: originalMetrics.completedSetCount, actual: reloadedMetrics.completedSetCount)
+                    showSaveError = true
+                } else if originalMetrics.totalSetCount != reloadedMetrics.totalSetCount {
+                    print("❌ Total set count mismatch - showing error to user")
+                    let error = NSError(domain: "WorkoutTrackerApp", code: 1003, 
+                                      userInfo: [NSLocalizedDescriptionKey: "Save verification failed. Total set count mismatch. Please try closing again."])
+                    saveError = error
+                    showSaveError = true
+                } else {
+                    print("✅ Save verification successful: \(originalMetrics.completedSetCount) completed sets")
                     // Verification passed, safe to dismiss
                     dismiss()
-                } else {
-                    // Verification failed - show error instead of dismissing
-                    print("❌ Save verification failed - showing error to user")
-                    saveError = BlockRunModeError.saveVerificationFailed(expected: originalCompletedCount, actual: reloadedCompletedCount)
-                    showSaveError = true
                 }
             } else {
                 // Could not reload for verification - show error
@@ -245,9 +260,36 @@ struct BlockRunModeView: View {
         }
     }
     
-    /// Counts all completed sets across all weeks for verification
-    private func countAllCompletedSets(in weeks: [RunWeekState]) -> Int {
-        return weeks.reduce(0) { $0 + BlockRunModeView.countCompletedSets(in: $1) }
+    /// Data structure for holding verification metrics
+    private struct DataMetrics {
+        let weekCount: Int
+        let totalSetCount: Int
+        let completedSetCount: Int
+    }
+    
+    /// Computes data metrics for verification in a single pass
+    private func computeDataMetrics(for weeks: [RunWeekState]) -> DataMetrics {
+        var totalSets = 0
+        var completedSets = 0
+        
+        for week in weeks {
+            for day in week.days {
+                for exercise in day.exercises {
+                    for set in exercise.sets {
+                        totalSets += 1
+                        if set.isCompleted {
+                            completedSets += 1
+                        }
+                    }
+                }
+            }
+        }
+        
+        return DataMetrics(
+            weekCount: weeks.count,
+            totalSetCount: totalSets,
+            completedSetCount: completedSets
+        )
     }
     
     /// Validates and logs the current weeks data structure to help diagnose save issues.
