@@ -105,7 +105,7 @@ public final class BlocksRepository: ObservableObject {
             _ = try JSONDecoder().decode([Block].self, from: data)
 
             // Write atomically to avoid partially written files
-            try data.write(to: url, options: .atomic)
+            try data.write(to: url, options: [.atomic])
 
             #if DEBUG
             print("✅ BlocksRepository: saved \(blocks.count) blocks to \(url.path)")
