@@ -89,6 +89,9 @@ struct BlockBuilderView: View {
     
     // Track if auto-save is enabled (after initial setup)
     @State private var autoSaveEnabled: Bool = false
+    
+    // Debounce timer for auto-save
+    @State private var autoSaveTimer: Timer?
 
     // MARK: - Init with mode
 
@@ -169,6 +172,13 @@ struct BlockBuilderView: View {
             // Enable auto-save after a short delay to avoid saving initial state
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 autoSaveEnabled = true
+            }
+        }
+        .onDisappear {
+            // Ensure any pending auto-save is executed before view disappears
+            autoSaveTimer?.invalidate()
+            if autoSaveEnabled {
+                performAutoSave()
             }
         }
         .onChange(of: blockName) { _, _ in autoSave() }
@@ -484,6 +494,16 @@ struct BlockBuilderView: View {
         // Only auto-save if enabled (to avoid saving initial state)
         guard autoSaveEnabled else { return }
         
+        // Cancel previous timer if exists
+        autoSaveTimer?.invalidate()
+        
+        // Debounce: save after 1 second of no changes
+        autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
+            performAutoSave()
+        }
+    }
+    
+    private func performAutoSave() {
         #if DEBUG
         print("🔄 Auto-saving block: \(blockName)")
         #endif
