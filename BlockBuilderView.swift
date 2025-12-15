@@ -404,11 +404,15 @@ struct BlockBuilderView: View {
             aiMetadata: nil
         )
 
+        // After building `newBlock`:
+        var savedBlock: Block
+
         switch mode {
         case .new,
              .clone:
             // New template = new row
             blocksRepository.add(newBlock)
+            savedBlock = newBlock
 
         case .edit(let original):
             // Keep id / source / aiMetadata; replace content
@@ -419,13 +423,19 @@ struct BlockBuilderView: View {
             updated.days = newBlock.days
             // source & aiMetadata stay as-is
             blocksRepository.update(updated)
+            savedBlock = updated
         }
-        // Phase 8: Generate sessions for this block
-let factory = SessionFactory()
-let generated = factory.makeSessions(for: newBlock)
 
-// Persist sessions for this block
-sessionsRepository.replaceSessions(forBlockId: newBlock.id, with: generated)
+        // Phase 8: Generate sessions for this block
+        let factory = SessionFactory()
+        let generated = factory.makeSessions(for: savedBlock)
+
+        // Persist sessions for this block
+        sessionsRepository.replaceSessions(forBlockId: savedBlock.id, with: generated)
+
+        #if DEBUG
+        print("🔵 Save button persisted block id: \(savedBlock.id) with \(generated.count) sessions")
+        #endif
 
         dismiss()
     }
