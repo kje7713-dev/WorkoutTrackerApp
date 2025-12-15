@@ -14,6 +14,7 @@ struct RunStateMapper {
     
     /// Convert WorkoutSessions to RunWeekState array for UI
     /// Groups sessions by weekIndex and creates run state for each week
+    /// NOTE: WorkoutSession.weekIndex is 1-based (starts at 1), RunWeekState.index is 0-based (starts at 0)
     static func sessionsToRunWeeks(
         _ sessions: [WorkoutSession],
         block: Block
@@ -30,6 +31,9 @@ struct RunStateMapper {
         
         // Create RunWeekState for each week
         return weekIndices.map { weekIndex in
+            // Validate weekIndex is 1-based as expected
+            assert(weekIndex >= 1, "WorkoutSession.weekIndex must be 1-based (>= 1)")
+            
             let weekSessions = sessionsByWeek[weekIndex] ?? []
             let dayStates = createRunDayStates(
                 from: weekSessions,
@@ -37,7 +41,7 @@ struct RunStateMapper {
             )
             
             return RunWeekState(
-                index: weekIndex - 1, // Convert to 0-based for UI
+                index: weekIndex - 1, // Convert 1-based storage to 0-based UI index
                 days: dayStates
             )
         }
@@ -163,6 +167,7 @@ struct RunStateMapper {
     
     /// Convert RunWeekState array back to WorkoutSessions
     /// Updates existing sessions with logged values from run state
+    /// NOTE: RunWeekState.index is 0-based (starts at 0), WorkoutSession.weekIndex is 1-based (starts at 1)
     static func runWeeksToSessions(
         _ weeks: [RunWeekState],
         originalSessions: [WorkoutSession],
@@ -171,7 +176,10 @@ struct RunStateMapper {
         var updatedSessions: [WorkoutSession] = []
         
         for week in weeks {
-            let weekIndex = week.index + 1 // Convert from 0-based UI to 1-based storage
+            // Validate week.index is 0-based as expected
+            assert(week.index >= 0, "RunWeekState.index must be 0-based (>= 0)")
+            
+            let weekIndex = week.index + 1 // Convert 0-based UI to 1-based storage
             
             // Process each day in the week
             for (dayIndex, runDay) in week.days.enumerated() {

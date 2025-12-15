@@ -452,8 +452,9 @@ struct BlockBuilderView: View {
             
             if hasLoggedData {
                 // Show confirmation dialog before overwriting
-                pendingSave = { [self] in
-                    performSessionRegeneration(for: savedBlock)
+                pendingSave = { [weak self] in
+                    guard let self = self else { return }
+                    self.performSessionRegeneration(for: savedBlock)
                 }
                 showSessionOverwriteConfirmation = true
                 return // Wait for user confirmation
