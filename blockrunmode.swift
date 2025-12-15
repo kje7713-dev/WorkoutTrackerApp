@@ -72,13 +72,8 @@ struct BlockRunModeView: View {
                         }
                     }
                 }) { _, _ in
-                    print("🔵 Set completion changed - auto-saving immediately")
-                    do {
-                        try BlockRunModeView.saveWeeks(weeks, for: block.id)
-                        print("✅ Immediate save completed successfully")
-                    } catch {
-                        print("❌ Failed to save: \(error)")
-                    }
+                    print("🔵 Set completion changed - auto-saving")
+                    saveWeeks()
                 }
                 .alert("You can skip â but champions donât.", isPresented: $showSkipAlert) {
                     Button("Stay on Track", role: .cancel) {
@@ -101,13 +96,8 @@ struct BlockRunModeView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    print("🔵 Toolbar 'Back to Blocks' button pressed - saving immediately")
-                    do {
-                        try BlockRunModeView.saveWeeks(weeks, for: block.id)
-                        print("✅ Save completed, dismissing")
-                    } catch {
-                        print("❌ Failed to save: \(error)")
-                    }
+                    print("🔵 Toolbar 'Back to Blocks' button pressed")
+                    saveWeeks()
                     dismiss()
                 } label: {
                     HStack(spacing: 4) {
@@ -123,13 +113,8 @@ struct BlockRunModeView: View {
             }
         }
         .onDisappear {
-            print("🔵 BlockRunModeView onDisappear - saving state immediately")
-            do {
-                try BlockRunModeView.saveWeeks(weeks, for: block.id)
-                print("✅ Final save on disappear completed")
-            } catch {
-                print("❌ Failed to save on disappear: \(error)")
-            }
+            print("🔵 BlockRunModeView onDisappear - saving state")
+            saveWeeks()
         }
     }
 
