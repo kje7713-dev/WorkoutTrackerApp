@@ -109,7 +109,11 @@ public final class BlocksRepository: ObservableObject {
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.removeItem(at: backupURL)
+                do {
+                    try FileManager.default.removeItem(at: backupURL)
+                } catch {
+                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
+                }
             }
         } catch let encodingError as EncodingError {
             print("⚠️ BlocksRepository.saveToDisk encoding failed: \(encodingError)")
@@ -248,7 +252,11 @@ public final class SessionsRepository: ObservableObject {
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.removeItem(at: backupURL)
+                do {
+                    try FileManager.default.removeItem(at: backupURL)
+                } catch {
+                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
+                }
             }
         } catch let encodingError as EncodingError {
             print("⚠️ SessionsRepository.saveToDisk encoding failed: \(encodingError)")

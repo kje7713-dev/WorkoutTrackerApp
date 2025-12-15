@@ -360,7 +360,10 @@ struct BlockRunModeView: View {
         // Create backup of existing file before overwriting
         if FileManager.default.fileExists(atPath: url.path) {
             do {
-                try? FileManager.default.removeItem(at: backupURL)
+                // Remove old backup if it exists (expected to fail if not present)
+                if FileManager.default.fileExists(atPath: backupURL.path) {
+                    try FileManager.default.removeItem(at: backupURL)
+                }
                 try FileManager.default.copyItem(at: url, to: backupURL)
                 print("🔵 Created backup at: \(backupURL.path)")
             } catch {
