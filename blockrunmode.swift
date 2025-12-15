@@ -120,7 +120,7 @@ struct BlockRunModeView: View {
                     }
                     .foregroundColor(.accentColor)
                 }
-                .accessibilityLabel("Close session")
+                .accessibilityLabel("Close Session")
                 .accessibilityHint("Saves all progress and closes the workout session")
             }
         }
@@ -301,10 +301,21 @@ struct BlockRunModeView: View {
         print("   - Total sets: \(metrics.totalSetCount)")
         print("   - Completed sets: \(metrics.completedSetCount)")
         
-        // Log individual week details for debugging
+        // Log individual week details for debugging (single pass)
         for (weekIdx, week) in weeks.enumerated() {
-            let weekMetrics = computeDataMetrics(for: [week])
-            print("   - Week \(weekIdx): \(weekMetrics.completedSetCount)/\(weekMetrics.totalSetCount) sets completed")
+            var weekTotalSets = 0
+            var weekCompletedSets = 0
+            for day in week.days {
+                for exercise in day.exercises {
+                    for set in exercise.sets {
+                        weekTotalSets += 1
+                        if set.isCompleted {
+                            weekCompletedSets += 1
+                        }
+                    }
+                }
+            }
+            print("   - Week \(weekIdx): \(weekCompletedSets)/\(weekTotalSets) sets completed")
         }
     }
 
