@@ -30,20 +30,6 @@ struct BlockRunModeView: View {
     @State private var lastCommittedWeekIndex: Int = 0
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
-    
-    // Debounce work item to prevent excessive saves during rapid edits
-    @State private var saveDebounceWorkItem: DispatchWorkItem? = nil
-    
-    // Flag to handle save-then-dismiss flow
-    @State private var shouldDismissAfterSave: Bool = false
-    
-    // MARK: - Constants
-    
-    /// Minimal delay to allow SwiftUI to process pending binding updates before saving
-    private static let stateCommitDelay: TimeInterval = 0.01
-    
-    /// Debounce delay to prevent excessive file I/O during rapid user edits
-    private static let debounceDelay: TimeInterval = 0.5
 
     init(block: Block) {
         self.block = block
@@ -111,8 +97,8 @@ struct BlockRunModeView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     print("🔵 Toolbar 'Back to Blocks' button pressed")
-                    shouldDismissAfterSave = true
-                    commitAndSave()
+                    saveWeeks()
+                    dismiss()
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
@@ -128,9 +114,7 @@ struct BlockRunModeView: View {
         }
         .onDisappear {
             print("🔵 BlockRunModeView onDisappear - saving state")
-            // Cancel any pending debounced saves and do a final save
-            saveDebounceWorkItem?.cancel()
-            commitAndSave()
+            saveWeeks()
         }
     }
 
@@ -172,74 +156,18 @@ struct BlockRunModeView: View {
 
     // MARK: - Save Helpers
     
-    /// Commits all pending binding changes and performs an immediate save.
-    /// This method should be called when we need to ensure all state is synchronized
-    /// before performing critical operations like navigation or app backgrounding.
-    private func commitAndSave() {
-        print("🔵 commitAndSave() called - forcing state synchronization")
-        
-        // Cancel any pending debounced saves
-        saveDebounceWorkItem?.cancel()
-        saveDebounceWorkItem = nil
-        
-        // Schedule the save on the next run loop iteration to ensure all pending
-        // SwiftUI binding updates have been processed. We use asyncAfter with a
-        // minimal delay to allow the current run loop to complete and process
-        // any pending state changes before we save.
-        // Note: We intentionally use strong [self] capture here (not weak) to ensure the save
-        // completes even if the view is being deallocated. This is critical for data integrity.
-        // The closure is short-lived (completes in ~10ms) and doesn't create a retain cycle
-        // because it doesn't permanently capture self - it releases after execution.
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.stateCommitDelay) { [self] in
-            
-            // Log validation data before save
-            self.validateAndLogWeeksData()
-            
-            // Perform the save with error handling
-            print("🔵 Performing immediate save after commit")
-            do {
-                try BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
-            } catch {
-                print("❌ Failed to save in commitAndSave: \(error)")
-                // If save fails, at least we tried. The backup should still exist.
-            }
-            
-            // If we need to dismiss after save, do it now
-            if self.shouldDismissAfterSave {
-                print("🔵 Dismissing after save completed")
-                self.dismiss()
-            }
-        }
-    }
-    
-    /// Debounced save that prevents excessive file I/O during rapid edits.
-    /// This is called by onChange handlers during normal editing.
+    /// Performs an immediate synchronous save to disk.
+    /// This is called by onChange handlers, toolbar buttons, and view lifecycle events.
     private func saveWeeks() {
-        print("🔵 Instance saveWeeks() called - debouncing save")
+        print("🔵 Instance saveWeeks() called - saving immediately")
+        validateAndLogWeeksData()
         
-        // Cancel existing pending save
-        saveDebounceWorkItem?.cancel()
-        
-        // Schedule new save after a short delay using DispatchQueue for more reliable timing
-        // that won't be blocked by UI interactions
-        // Note: We intentionally use strong [self] capture here (not weak) to ensure saves
-        // complete even during view transitions. Data persistence is critical and we cannot
-        // risk silently dropping saves. The closure is short-lived (~500ms) and doesn't
-        // create a retain cycle because it's a one-time execution that releases self after completion.
-        let workItem = DispatchWorkItem { [self] in
-            print("🔵 Debounced save executing")
-            self.validateAndLogWeeksData()
-            
-            do {
-                try BlockRunModeView.saveWeeks(self.weeks, for: self.block.id)
-            } catch {
-                print("❌ Failed to save in debounced save: \(error)")
-                // Continue - we'll try again on the next edit or on dismiss
-            }
+        do {
+            try BlockRunModeView.saveWeeks(weeks, for: block.id)
+            print("✅ Immediate save completed successfully")
+        } catch {
+            print("❌ Failed to save: \(error)")
         }
-        
-        saveDebounceWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.debounceDelay, execute: workItem)
     }
     
     /// Validates and logs the current weeks data structure to help diagnose save issues.
