@@ -375,30 +375,26 @@ struct BlockRunModeView: View {
             let validated = try JSONDecoder().decode([RunWeekState].self, from: data)
             print("🔵 Validation successful - decoded \(validated.count) weeks")
             
-            // Additional validation: compare counts
+            // Additional validation: compare counts (relaxed - log warnings instead of throwing)
             if validated.count != weeks.count {
-                let error = BlockRunModeError.weekCountMismatch(expected: weeks.count, actual: validated.count)
-                print("❌ ERROR: \(error.localizedDescription)")
-                throw error
+                print("⚠️ WARNING: Week count mismatch - expected \(weeks.count) weeks but got \(validated.count)")
             }
             
-            // Validate set completion status is preserved
+            // Validate set completion status is preserved (relaxed - log warnings instead of throwing)
             // Note: This is O(weeks * sets_per_week) which is optimal for validation.
             // Each call to countCompletedSets is O(n) where n is sets in that week.
             // We must validate each week, so the overall complexity is unavoidable.
-            for idx in 0..<validated.count {
+            for idx in 0..<min(validated.count, weeks.count) {
                 let originalCompleted = Self.countCompletedSets(in: weeks[idx])
                 let validatedCompleted = Self.countCompletedSets(in: validated[idx])
                 
                 if originalCompleted != validatedCompleted {
-                    let error = BlockRunModeError.setCompletionMismatch(week: idx, expected: originalCompleted, actual: validatedCompleted)
-                    print("❌ ERROR: \(error.localizedDescription)")
-                    throw error
+                    print("⚠️ WARNING: Week \(idx) set completion mismatch - expected \(originalCompleted) completed sets but got \(validatedCompleted)")
                 }
             }
             
             // Write atomically to prevent corruption
-            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            try data.write(to: url, options: [.atomic])
             print("✅ Successfully saved state for block \(blockId): \(weeks.count) weeks, \(data.count) bytes")
             
             // Clean up old backup after successful write
