@@ -96,47 +96,36 @@ public final class BlocksRepository: ObservableObject {
                 try? FileManager.default.removeItem(at: backupURL)
                 try? FileManager.default.copyItem(at: url, to: backupURL)
             }
-            
+
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
             let data = try encoder.encode(blocks)
-            
+
             // Validate data before writing
             _ = try JSONDecoder().decode([Block].self, from: data)
-            
-            // Write atomically to prevent corruption
-            try data.write(to: url, options: [.atomic])
-            
-            // Clean up old backup after successful write
-            if FileManager.default.fileExists(atPath: backupURL.path) {
-                do {
-                    try FileManager.default.removeItem(at: backupURL)
-                } catch {
-                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
-                }
-            }
-        } catch let encodingError as EncodingError {
-            print("⚠️ BlocksRepository.saveToDisk encoding failed: \(encodingError)")
-            // Attempt to restore from backup if available
-            if FileManager.default.fileExists(atPath: backupURL.path) {
-                print("🔄 Attempting to restore blocks from backup...")
-                do {
-                    try FileManager.default.copyItem(at: backupURL, to: url)
-                    print("✅ Successfully restored blocks from backup")
-                } catch {
-                    print("❌ Failed to restore blocks from backup: \(error)")
-                }
-            }
+
+            // Write atomically to avoid partially written files
+            try data.write(to: url, options: .atomic)
+
+            #if DEBUG
+            print("✅ BlocksRepository: saved \(blocks.count) blocks to \(url.path)")
+            #endif
+
         } catch {
+            // Log the error
             print("⚠️ BlocksRepository.saveToDisk failed: \(error)")
-            // Attempt to restore from backup if available
+
+            // Try to restore backup if available
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                print("🔄 Attempting to restore blocks from backup...")
                 do {
+                    // Remove the possibly-broken file and restore the backup
+                    if FileManager.default.fileExists(atPath: url.path) {
+                        try FileManager.default.removeItem(at: url)
+                    }
                     try FileManager.default.copyItem(at: backupURL, to: url)
-                    print("✅ Successfully restored blocks from backup")
+                    print("ℹ️ BlocksRepository: restored backup to \(url.path)")
                 } catch {
-                    print("❌ Failed to restore blocks from backup: \(error)")
+                    print("⚠️ BlocksRepository: failed to restore backup: \(error)")
                 }
             }
         }
