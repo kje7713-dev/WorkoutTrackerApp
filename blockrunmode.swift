@@ -842,6 +842,10 @@ struct SetRunRow: View {
         .onChange(of: runSet.actualRounds) { _, _ in
             onSave()
         }
+        .onChange(of: runSet.isCompleted) { _, _ in
+            print("🔵 Set isCompleted changed - triggering save")
+            onSave()
+        }
     }
 
     // MARK: - Strength UI (Modified to use VStack and SetControlView)
