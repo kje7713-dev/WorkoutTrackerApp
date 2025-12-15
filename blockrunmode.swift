@@ -144,15 +144,11 @@ struct BlockRunModeView: View {
         .onDisappear {
             print("🔵 BlockRunModeView onDisappear - performing final save")
             // Ensure state is saved even if view is dismissed programmatically
-            validateAndLogWeeksData()
-            do {
-                try BlockRunModeView.saveWeeks(weeks, for: block.id)
-                print("✅ onDisappear save completed successfully")
-            } catch {
-                print("❌ Failed to save in onDisappear: \(error)")
-                // Store error for potential display (though view is already disappearing)
-                // This at least logs the error and stores it in case we implement
-                // a mechanism to show deferred errors later
+            // Use the instance saveWeeks() method for consistent error handling
+            saveWeeks()
+            // Note: Errors from saveWeeks are logged but cannot be shown to user
+            // since the view is already disappearing
+            if let error = saveError {
                 backgroundSaveError = error
             }
         }
