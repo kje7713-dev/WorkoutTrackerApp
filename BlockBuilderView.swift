@@ -404,7 +404,7 @@ struct BlockBuilderView: View {
             aiMetadata: nil
         )
 
-        // After building `newBlock`:
+        // Determine which block instance to use for session generation:
         var savedBlock: Block
 
         switch mode {
