@@ -6,6 +6,7 @@ enum BlockRunModeError: Error, LocalizedError {
     case weekCountMismatch(expected: Int, actual: Int)
     case setCompletionMismatch(week: Int, expected: Int, actual: Int)
     case saveVerificationFailed(expected: Int, actual: Int)
+    case totalSetCountMismatch(expected: Int, actual: Int)
     case saveVerificationUnableToReload
     
     var errorDescription: String? {
@@ -16,6 +17,8 @@ enum BlockRunModeError: Error, LocalizedError {
             return "Week \(week) set completion validation failed: expected \(expected) completed sets but got \(actual)"
         case .saveVerificationFailed(let expected, let actual):
             return "Save verification failed. Expected \(expected) completed sets but found \(actual). Please try closing again."
+        case .totalSetCountMismatch(let expected, let actual):
+            return "Save verification failed. Total set count mismatch (expected \(expected), got \(actual)). Please try closing again."
         case .saveVerificationUnableToReload:
             return "Could not verify save. Please try closing the session again."
         }
@@ -238,9 +241,7 @@ struct BlockRunModeView: View {
                     showSaveError = true
                 } else if originalMetrics.totalSetCount != reloadedMetrics.totalSetCount {
                     print("❌ Total set count mismatch - showing error to user")
-                    let error = NSError(domain: "WorkoutTrackerApp", code: 1003, 
-                                      userInfo: [NSLocalizedDescriptionKey: "Save verification failed. Total set count mismatch. Please try closing again."])
-                    saveError = error
+                    saveError = BlockRunModeError.totalSetCountMismatch(expected: originalMetrics.totalSetCount, actual: reloadedMetrics.totalSetCount)
                     showSaveError = true
                 } else {
                     print("✅ Save verification successful: \(originalMetrics.completedSetCount) completed sets")
@@ -294,24 +295,16 @@ struct BlockRunModeView: View {
     
     /// Validates and logs the current weeks data structure to help diagnose save issues.
     private func validateAndLogWeeksData() {
+        let metrics = computeDataMetrics(for: weeks)
         print("🔵 Validating weeks data before save:")
-        print("   - Total weeks: \(weeks.count)")
+        print("   - Total weeks: \(metrics.weekCount)")
+        print("   - Total sets: \(metrics.totalSetCount)")
+        print("   - Completed sets: \(metrics.completedSetCount)")
         
+        // Log individual week details for debugging
         for (weekIdx, week) in weeks.enumerated() {
-            // Optimize by counting in a single pass
-            var totalSets = 0
-            var completedSets = 0
-            for day in week.days {
-                for exercise in day.exercises {
-                    for set in exercise.sets {
-                        totalSets += 1
-                        if set.isCompleted {
-                            completedSets += 1
-                        }
-                    }
-                }
-            }
-            print("   - Week \(weekIdx): \(completedSets)/\(totalSets) sets completed")
+            let weekMetrics = computeDataMetrics(for: [week])
+            print("   - Week \(weekIdx): \(weekMetrics.completedSetCount)/\(weekMetrics.totalSetCount) sets completed")
         }
     }
 
