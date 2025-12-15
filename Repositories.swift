@@ -105,7 +105,7 @@ public final class BlocksRepository: ObservableObject {
             _ = try JSONDecoder().decode([Block].self, from: data)
             
             // Write atomically to prevent corruption
-            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            try data.write(to: url, options: [.atomic])
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
@@ -244,7 +244,7 @@ public final class SessionsRepository: ObservableObject {
             _ = try JSONDecoder().decode([WorkoutSession].self, from: data)
             
             // Write atomically to prevent corruption
-            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            try data.write(to: url, options: [.atomic])
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
