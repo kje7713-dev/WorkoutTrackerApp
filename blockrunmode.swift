@@ -5,6 +5,8 @@ import SwiftUI
 enum BlockRunModeError: Error, LocalizedError {
     case weekCountMismatch(expected: Int, actual: Int)
     case setCompletionMismatch(week: Int, expected: Int, actual: Int)
+    case saveVerificationFailed(expected: Int, actual: Int)
+    case saveVerificationUnableToReload
     
     var errorDescription: String? {
         switch self {
@@ -12,6 +14,10 @@ enum BlockRunModeError: Error, LocalizedError {
             return "Week count validation failed: expected \(expected) weeks but got \(actual)"
         case .setCompletionMismatch(let week, let expected, let actual):
             return "Week \(week) set completion validation failed: expected \(expected) completed sets but got \(actual)"
+        case .saveVerificationFailed(let expected, let actual):
+            return "Save verification failed. Expected \(expected) completed sets but found \(actual). Please try closing again."
+        case .saveVerificationUnableToReload:
+            return "Could not verify save. Please try closing the session again."
         }
     }
 }
@@ -204,6 +210,9 @@ struct BlockRunModeView: View {
         print("🔵 closeSessionWithSave() called - performing final save before close")
         validateAndLogWeeksData()
         
+        // Cache the original count before save to avoid redundant computation
+        let originalCompletedCount = countAllCompletedSets(in: weeks)
+        
         do {
             // Perform the save
             try BlockRunModeView.saveWeeks(weeks, for: block.id)
@@ -211,7 +220,6 @@ struct BlockRunModeView: View {
             
             // Verify the save by attempting to reload
             if let reloaded = BlockRunModeView.loadPersistedWeeks(for: block.id) {
-                let originalCompletedCount = countAllCompletedSets(in: weeks)
                 let reloadedCompletedCount = countAllCompletedSets(in: reloaded)
                 
                 if originalCompletedCount == reloadedCompletedCount {
@@ -220,24 +228,14 @@ struct BlockRunModeView: View {
                     dismiss()
                 } else {
                     // Verification failed - show error instead of dismissing
-                    let error = NSError(
-                        domain: "WorkoutTrackerApp",
-                        code: 1001,
-                        userInfo: [NSLocalizedDescriptionKey: "Save verification failed. Expected \(originalCompletedCount) completed sets but found \(reloadedCompletedCount). Please try closing again."]
-                    )
                     print("❌ Save verification failed - showing error to user")
-                    saveError = error
+                    saveError = BlockRunModeError.saveVerificationFailed(expected: originalCompletedCount, actual: reloadedCompletedCount)
                     showSaveError = true
                 }
             } else {
                 // Could not reload for verification - show error
-                let error = NSError(
-                    domain: "WorkoutTrackerApp",
-                    code: 1002,
-                    userInfo: [NSLocalizedDescriptionKey: "Could not verify save. Please try closing the session again."]
-                )
                 print("❌ Could not verify save - showing error to user")
-                saveError = error
+                saveError = BlockRunModeError.saveVerificationUnableToReload
                 showSaveError = true
             }
         } catch {
