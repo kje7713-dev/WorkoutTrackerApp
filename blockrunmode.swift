@@ -98,11 +98,10 @@ struct BlockRunModeView: View {
                 Button {
                     print("🔵 Toolbar 'End Session' button pressed")
                     saveWeeks()
+                    // Post notification first, then dismiss
+                    // When we dismiss, BlocksListView becomes active and receives the notification
+                    NotificationCenter.default.post(name: .dismissToRoot, object: nil)
                     dismiss()
-                    // Post notification after dismiss to ensure proper order of operations
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        NotificationCenter.default.post(name: .dismissToRoot, object: nil)
-                    }
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
