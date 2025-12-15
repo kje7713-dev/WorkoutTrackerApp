@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+// MARK: - App-wide Notification Names
+
+extension Notification.Name {
+    /// Notification to dismiss the entire navigation stack back to root (HomeView)
+    static let dismissToRoot = Notification.Name("dismissToRoot")
+}
+
 @main
 struct SavageByDesignApp: App {
 

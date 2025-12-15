@@ -1,11 +1,5 @@
 import SwiftUI
 
-// MARK: - Notification for dismissing to root (shared with BlockRunModeView)
-
-extension Notification.Name {
-    static let dismissToRoot = Notification.Name("dismissToRoot")
-}
-
 /// Blocks screen – choose a block to run, or create a new one.
 /// Phase 7: hooked to BlocksRepository (no ProgramStore, no extra layers).
 

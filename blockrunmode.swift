@@ -1,11 +1,5 @@
 import SwiftUI
 
-// MARK: - Notification for dismissing to root
-
-extension Notification.Name {
-    static let dismissToRoot = Notification.Name("dismissToRoot")
-}
-
 // MARK: - Run Mode Errors
 
 enum BlockRunModeError: Error, LocalizedError {
