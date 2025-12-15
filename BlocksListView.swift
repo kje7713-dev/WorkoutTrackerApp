@@ -1,5 +1,11 @@
 import SwiftUI
 
+// MARK: - Notification for dismissing to root (shared with BlockRunModeView)
+
+extension Notification.Name {
+    static let dismissToRoot = Notification.Name("dismissToRoot")
+}
+
 /// Blocks screen – choose a block to run, or create a new one.
 /// Phase 7: hooked to BlocksRepository (no ProgramStore, no extra layers).
 
@@ -9,6 +15,7 @@ struct BlocksListView: View {
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var sessionsRepository: SessionsRepository
     @Environment(\.sbdTheme) private var theme
+    @Environment(\.dismiss) private var dismiss
 
     // Which builder mode is active (if any)?
     @State private var builderContext: BuilderContext?
@@ -53,6 +60,10 @@ struct BlocksListView: View {
         }
         .navigationTitle("Blocks")
         .navigationBarTitleDisplayMode(.inline)
+        .onReceive(NotificationCenter.default.publisher(for: .dismissToRoot)) { _ in
+            print("🔵 BlocksListView received dismissToRoot notification")
+            dismiss()
+        }
         .sheet(item: $builderContext) { context in
             NavigationStack {
                 switch context {

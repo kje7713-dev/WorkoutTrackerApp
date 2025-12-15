@@ -1,5 +1,11 @@
 import SwiftUI
 
+// MARK: - Notification for dismissing to root
+
+extension Notification.Name {
+    static let dismissToRoot = Notification.Name("dismissToRoot")
+}
+
 // MARK: - Run Mode Errors
 
 enum BlockRunModeError: Error, LocalizedError {
@@ -96,20 +102,22 @@ struct BlockRunModeView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    print("🔵 Toolbar 'Back to Blocks' button pressed")
+                    print("🔵 Toolbar 'End Session' button pressed")
                     saveWeeks()
+                    // Post notification to dismiss to root
+                    NotificationCenter.default.post(name: .dismissToRoot, object: nil)
                     dismiss()
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 17, weight: .semibold))
-                        Text("Blocks")
+                        Text("End Session")
                             .font(.system(size: 17))
                     }
                     .foregroundColor(.accentColor)
                 }
-                .accessibilityLabel("Go back to Blocks")
-                .accessibilityHint("Saves current progress and returns to the Blocks view")
+                .accessibilityLabel("End session and return to Home")
+                .accessibilityHint("Saves current progress and returns to the Home screen")
             }
         }
         .onDisappear {
