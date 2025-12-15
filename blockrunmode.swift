@@ -30,6 +30,9 @@ struct BlockRunModeView: View {
     @State private var lastCommittedWeekIndex: Int = 0
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
+    @State private var showCloseConfirmation: Bool = false
+    @State private var saveError: Error? = nil
+    @State private var showSaveError: Bool = false
 
     init(block: Block) {
         self.block = block
@@ -96,25 +99,48 @@ struct BlockRunModeView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
-                    print("🔵 Toolbar 'Back to Blocks' button pressed")
-                    saveWeeks()
-                    dismiss()
+                    print("🔵 Toolbar 'Close Session' button pressed")
+                    showCloseConfirmation = true
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
+                        Image(systemName: "xmark.circle")
                             .font(.system(size: 17, weight: .semibold))
-                        Text("Blocks")
+                        Text("Close Session")
                             .font(.system(size: 17))
                     }
                     .foregroundColor(.accentColor)
                 }
-                .accessibilityLabel("Go back to Blocks")
-                .accessibilityHint("Saves current progress and returns to the Blocks view")
+                .accessibilityLabel("Close session")
+                .accessibilityHint("Saves all progress and closes the workout session")
+            }
+        }
+        .alert("Close Workout Session?", isPresented: $showCloseConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Save & Close") {
+                closeSessionWithSave()
+            }
+        } message: {
+            Text("Your progress will be saved before closing.")
+        }
+        .alert("Save Error", isPresented: $showSaveError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            if let error = saveError {
+                Text("Failed to save workout session: \(error.localizedDescription)")
+            } else {
+                Text("An unknown error occurred while saving.")
             }
         }
         .onDisappear {
-            print("🔵 BlockRunModeView onDisappear - saving state")
-            saveWeeks()
+            print("🔵 BlockRunModeView onDisappear - performing final save")
+            // Ensure state is saved even if view is dismissed programmatically
+            validateAndLogWeeksData()
+            do {
+                try BlockRunModeView.saveWeeks(weeks, for: block.id)
+                print("✅ onDisappear save completed successfully")
+            } catch {
+                print("❌ Failed to save in onDisappear: \(error)")
+            }
         }
     }
 
@@ -167,7 +193,54 @@ struct BlockRunModeView: View {
             print("✅ Immediate save completed successfully")
         } catch {
             print("❌ Failed to save: \(error)")
+            // Store error for display in case of explicit save failures
+            saveError = error
         }
+    }
+    
+    /// Closes the session with robust save confirmation.
+    /// Shows error alert if save fails, otherwise dismisses the view.
+    private func closeSessionWithSave() {
+        print("🔵 closeSessionWithSave() called - performing final save before close")
+        validateAndLogWeeksData()
+        
+        do {
+            // Perform the save
+            try BlockRunModeView.saveWeeks(weeks, for: block.id)
+            print("✅ Final save completed successfully - closing session")
+            
+            // Verify the save by attempting to reload
+            if let reloaded = BlockRunModeView.loadPersistedWeeks(for: block.id) {
+                let originalCompletedCount = countAllCompletedSets(in: weeks)
+                let reloadedCompletedCount = countAllCompletedSets(in: reloaded)
+                
+                if originalCompletedCount == reloadedCompletedCount {
+                    print("✅ Save verification successful: \(originalCompletedCount) completed sets")
+                } else {
+                    print("⚠️ WARNING: Completed sets mismatch after save - original: \(originalCompletedCount), reloaded: \(reloadedCompletedCount)")
+                }
+            } else {
+                print("⚠️ WARNING: Could not verify save by reloading")
+            }
+            
+            // Small delay to ensure save is fully persisted to disk
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                dismiss()
+            }
+        } catch {
+            print("❌ Failed to save before closing: \(error)")
+            saveError = error
+            showSaveError = true
+        }
+    }
+    
+    /// Counts all completed sets across all weeks for verification
+    private func countAllCompletedSets(in weeks: [RunWeekState]) -> Int {
+        var count = 0
+        for week in weeks {
+            count += BlockRunModeView.countCompletedSets(in: week)
+        }
+        return count
     }
     
     /// Validates and logs the current weeks data structure to help diagnose save issues.
