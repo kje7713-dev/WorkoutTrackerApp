@@ -105,11 +105,15 @@ public final class BlocksRepository: ObservableObject {
             _ = try JSONDecoder().decode([Block].self, from: data)
             
             // Write atomically to prevent corruption
-            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            try data.write(to: url, options: [.atomic])
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.removeItem(at: backupURL)
+                do {
+                    try FileManager.default.removeItem(at: backupURL)
+                } catch {
+                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
+                }
             }
         } catch let encodingError as EncodingError {
             print("⚠️ BlocksRepository.saveToDisk encoding failed: \(encodingError)")
@@ -244,11 +248,15 @@ public final class SessionsRepository: ObservableObject {
             _ = try JSONDecoder().decode([WorkoutSession].self, from: data)
             
             // Write atomically to prevent corruption
-            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            try data.write(to: url, options: [.atomic])
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.removeItem(at: backupURL)
+                do {
+                    try FileManager.default.removeItem(at: backupURL)
+                } catch {
+                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
+                }
             }
         } catch let encodingError as EncodingError {
             print("⚠️ SessionsRepository.saveToDisk encoding failed: \(encodingError)")

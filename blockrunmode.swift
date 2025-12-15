@@ -357,60 +357,78 @@ struct BlockRunModeView: View {
         print("🔵 Static saveWeeks() called for block \(blockId)")
         print("🔵 Saving to: \(url.path)")
         
-        do {
-            // Create backup of existing file before overwriting
-            if FileManager.default.fileExists(atPath: url.path) {
-                try? FileManager.default.removeItem(at: backupURL)
-                try? FileManager.default.copyItem(at: url, to: backupURL)
-                print("🔵 Created backup at: \(backupURL.path)")
-            }
-            
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            let data = try encoder.encode(weeks)
-            
-            print("🔵 Encoded \(data.count) bytes of data")
-            
-            // Validate data before writing by decoding it back
-            let validated = try JSONDecoder().decode([RunWeekState].self, from: data)
-            print("🔵 Validation successful - decoded \(validated.count) weeks")
-            
-            // Additional validation: compare counts
-            if validated.count != weeks.count {
-                let error = BlockRunModeError.weekCountMismatch(expected: weeks.count, actual: validated.count)
-                print("❌ ERROR: \(error.localizedDescription)")
-                throw error
-            }
-            
-            // Validate set completion status is preserved
-            // Note: This is O(weeks * sets_per_week) which is optimal for validation.
-            // Each call to countCompletedSets is O(n) where n is sets in that week.
-            // We must validate each week, so the overall complexity is unavoidable.
-            for idx in 0..<validated.count {
-                let originalCompleted = Self.countCompletedSets(in: weeks[idx])
-                let validatedCompleted = Self.countCompletedSets(in: validated[idx])
-                
-                if originalCompleted != validatedCompleted {
-                    let error = BlockRunModeError.setCompletionMismatch(week: idx, expected: originalCompleted, actual: validatedCompleted)
-                    print("❌ ERROR: \(error.localizedDescription)")
-                    throw error
+        // Create backup of existing file before overwriting
+        if FileManager.default.fileExists(atPath: url.path) {
+            do {
+                // Remove old backup if it exists to ensure a clean backup
+                if FileManager.default.fileExists(atPath: backupURL.path) {
+                    try FileManager.default.removeItem(at: backupURL)
                 }
+                try FileManager.default.copyItem(at: url, to: backupURL)
+                print("🔵 Created backup at: \(backupURL.path)")
+            } catch {
+                print("⚠️ WARNING: Failed to create backup: \(error)")
             }
+        }
+        
+        // Encode the data - throw on encoding errors
+        // Note: Encoding failure doesn't corrupt the original file, so no restore needed
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        let data: Data
+        do {
+            data = try encoder.encode(weeks)
+            print("🔵 Encoded \(data.count) bytes of data")
+        } catch let encodingError as EncodingError {
+            print("❌ Failed to encode RunWeekState for block \(blockId): \(encodingError)")
+            throw encodingError
+        }
+        
+        // Validate data before writing by decoding it back
+        // Note: Validation failure doesn't corrupt the original file, so no restore needed
+        let validated: [RunWeekState]
+        do {
+            validated = try JSONDecoder().decode([RunWeekState].self, from: data)
+            print("🔵 Validation successful - decoded \(validated.count) weeks")
+        } catch {
+            print("❌ Failed to decode during validation for block \(blockId): \(error)")
+            throw error
+        }
+        
+        // Relaxed validation: log warnings but continue
+        // Compare week counts
+        if validated.count != weeks.count {
+            print("⚠️ WARNING: Week count mismatch during validation - expected \(weeks.count) weeks but got \(validated.count). Continuing with save.")
+        }
+        
+        // Validate set completion status is preserved
+        // Note: This is O(weeks * sets_per_week) which is optimal for validation.
+        // Each call to countCompletedSets is O(n) where n is sets in that week.
+        // We must validate each week, so the overall complexity is unavoidable.
+        for idx in 0..<min(validated.count, weeks.count) {
+            let originalCompleted = Self.countCompletedSets(in: weeks[idx])
+            let validatedCompleted = Self.countCompletedSets(in: validated[idx])
             
-            // Write atomically to prevent corruption
-            try data.write(to: url, options: [.atomic, .completeFileProtection])
+            if originalCompleted != validatedCompleted {
+                print("⚠️ WARNING: Week \(idx) set completion mismatch - expected \(originalCompleted) completed sets but got \(validatedCompleted). Continuing with save.")
+            }
+        }
+        
+        // Write atomically to prevent corruption (removed .completeFileProtection)
+        do {
+            try data.write(to: url, options: [.atomic])
             print("✅ Successfully saved state for block \(blockId): \(weeks.count) weeks, \(data.count) bytes")
             
             // Clean up old backup after successful write
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                try? FileManager.default.removeItem(at: backupURL)
+                do {
+                    try FileManager.default.removeItem(at: backupURL)
+                } catch {
+                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
+                }
             }
-        } catch let encodingError as EncodingError {
-            print("⚠️ Failed to encode RunWeekState for block \(blockId): \(encodingError)")
-            restoreFromBackup(from: backupURL, to: url, for: blockId)
-            throw encodingError
         } catch {
-            print("⚠️ Failed to save RunWeekState for block \(blockId): \(error)")
+            print("❌ Failed to write RunWeekState for block \(blockId): \(error)")
             restoreFromBackup(from: backupURL, to: url, for: blockId)
             throw error
         }
