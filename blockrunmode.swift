@@ -360,7 +360,7 @@ struct BlockRunModeView: View {
         // Create backup of existing file before overwriting
         if FileManager.default.fileExists(atPath: url.path) {
             do {
-                // Remove old backup if it exists (expected to fail if not present)
+                // Remove old backup if it exists to ensure a clean backup
                 if FileManager.default.fileExists(atPath: backupURL.path) {
                     try FileManager.default.removeItem(at: backupURL)
                 }
@@ -372,6 +372,7 @@ struct BlockRunModeView: View {
         }
         
         // Encode the data - throw on encoding errors
+        // Note: Encoding failure doesn't corrupt the original file, so no restore needed
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         let data: Data
@@ -380,18 +381,17 @@ struct BlockRunModeView: View {
             print("🔵 Encoded \(data.count) bytes of data")
         } catch let encodingError as EncodingError {
             print("❌ Failed to encode RunWeekState for block \(blockId): \(encodingError)")
-            restoreFromBackup(from: backupURL, to: url, for: blockId)
             throw encodingError
         }
         
         // Validate data before writing by decoding it back
+        // Note: Validation failure doesn't corrupt the original file, so no restore needed
         let validated: [RunWeekState]
         do {
             validated = try JSONDecoder().decode([RunWeekState].self, from: data)
             print("🔵 Validation successful - decoded \(validated.count) weeks")
         } catch {
             print("❌ Failed to decode during validation for block \(blockId): \(error)")
-            restoreFromBackup(from: backupURL, to: url, for: blockId)
             throw error
         }
         
