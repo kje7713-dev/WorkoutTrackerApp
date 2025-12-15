@@ -31,6 +31,7 @@ struct BlockRunModeView: View {
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
     @State private var shouldDismissToRoot: Bool = false
+    @State private var hasPostedDismissNotification: Bool = false
 
     init(block: Block) {
         self.block = block
@@ -118,7 +119,9 @@ struct BlockRunModeView: View {
             print("🔵 BlockRunModeView onDisappear - saving state")
             saveWeeks()
             // Post notification after view dismissal animation completes
-            if shouldDismissToRoot {
+            // Only post once per session to avoid race conditions
+            if shouldDismissToRoot && !hasPostedDismissNotification {
+                hasPostedDismissNotification = true
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(name: .dismissToRoot, object: nil)
                 }
