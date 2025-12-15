@@ -30,6 +30,7 @@ struct BlockRunModeView: View {
     @State private var lastCommittedWeekIndex: Int = 0
     @State private var pendingWeekIndex: Int? = nil
     @State private var showSkipAlert: Bool = false
+    @State private var shouldDismissToRoot: Bool = false
 
     init(block: Block) {
         self.block = block
@@ -98,9 +99,7 @@ struct BlockRunModeView: View {
                 Button {
                     print("🔵 Toolbar 'End Session' button pressed")
                     saveWeeks()
-                    // Post notification first, then dismiss
-                    // When we dismiss, BlocksListView becomes active and receives the notification
-                    NotificationCenter.default.post(name: .dismissToRoot, object: nil)
+                    shouldDismissToRoot = true
                     dismiss()
                 } label: {
                     HStack(spacing: 4) {
@@ -118,6 +117,10 @@ struct BlockRunModeView: View {
         .onDisappear {
             print("🔵 BlockRunModeView onDisappear - saving state")
             saveWeeks()
+            // Post notification after view has been dismissed if requested
+            if shouldDismissToRoot {
+                NotificationCenter.default.post(name: .dismissToRoot, object: nil)
+            }
         }
     }
 
