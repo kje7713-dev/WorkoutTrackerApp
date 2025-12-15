@@ -520,10 +520,9 @@ struct BlockBuilderView: View {
         autoSaveTimer?.invalidate()
         
         // Debounce: save after 1 second of no changes
+        // Timer.scheduledTimer already executes on the main thread
         autoSaveTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { _ in
-            DispatchQueue.main.async {
-                self.performAutoSave()
-            }
+            self.performAutoSave()
         }
     }
     
