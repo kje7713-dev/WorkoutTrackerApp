@@ -396,9 +396,9 @@ struct BlockRunModeView: View {
                 
                 // Check if all weeks are now completed (block completion)
                 let allWeeksCompleted = currentWeeks.allSatisfy { $0.isCompleted }
-                let notAllPreviouslyCompleted = !previousWeeks.allSatisfy { $0.isCompleted }
+                let hadIncompleteWeeks = !previousWeeks.allSatisfy { $0.isCompleted }
                 
-                if allWeeksCompleted && notAllPreviouslyCompleted {
+                if allWeeksCompleted && hadIncompleteWeeks {
                     print("🎉🎉 BLOCK COMPLETED! All weeks are done!")
                     // Block completion takes precedence
                     showBlockCompletionModal = true

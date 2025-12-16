@@ -35,6 +35,7 @@ struct WeekCompletionModal: View {
                 .onTapGesture {
                     onDismiss()
                 }
+                .accessibilityHidden(true)
             
             // Modal card
             VStack(spacing: 0) {
@@ -66,6 +67,9 @@ struct WeekCompletionModal: View {
             .frame(maxWidth: 320)
             .cornerRadius(16)
             .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(title)
+            .accessibilityHint(message)
         }
     }
     

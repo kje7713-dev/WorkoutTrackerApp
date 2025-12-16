@@ -49,9 +49,9 @@ struct BlockRunModeCompletionTests {
             if !wasCompleted && isNowCompleted {
                 // Check if all weeks are now completed (block completion)
                 let allWeeksCompleted = currentWeeks.allSatisfy { $0.isCompleted }
-                let notAllPreviouslyCompleted = !previousWeeks.allSatisfy { $0.isCompleted }
+                let hadIncompleteWeeks = !previousWeeks.allSatisfy { $0.isCompleted }
                 
-                if allWeeksCompleted && notAllPreviouslyCompleted {
+                if allWeeksCompleted && hadIncompleteWeeks {
                     // Block completion takes precedence
                     showBlockModal = true
                     showWeekModal = false
@@ -253,6 +253,3 @@ struct BlockRunModeCompletionTests {
         }
     }
 }
-
-// Run tests if this file is executed directly
-BlockRunModeCompletionTests.runAllTests()
