@@ -658,8 +658,9 @@ struct ExerciseEditorRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
 
-            // Simple name row – no trash here anymore
-            TextField("Exercise name", text: $exercise.name)
+            // Exercise name picker with dropdown support
+            ExerciseNamePicker(exerciseName: $exercise.name, exerciseType: exercise.type)
+                .id(exercise.type) // Force refresh when type changes
 
             Picker("Type", selection: $exercise.type) {
                 Text("Strength").tag(ExerciseType.strength)
@@ -779,6 +780,91 @@ struct ExerciseEditorRow: View {
             Text("Use notes for details like EMOM / AMRAP / pacing.")
                 .font(.footnote)
                 .foregroundColor(theme.mutedText)
+        }
+    }
+}
+
+// MARK: - Exercise Name Picker with Dropdown
+
+struct ExerciseNamePicker: View {
+    @Binding var exerciseName: String
+    let exerciseType: ExerciseType
+    @EnvironmentObject private var exerciseLibrary: ExerciseLibraryRepository
+    
+    @State private var showingDropdown = false
+    @State private var isCustomEntry = false
+    
+    private var availableExercises: [ExerciseDefinition] {
+        exerciseLibrary.all().filter { $0.type == exerciseType }
+    }
+    
+    private var selectedExerciseDefinition: ExerciseDefinition? {
+        availableExercises.first { $0.name == exerciseName }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                if isCustomEntry || availableExercises.isEmpty {
+                    // Free-form text entry
+                    TextField("Exercise name", text: $exerciseName)
+                        .textFieldStyle(.roundedBorder)
+                } else {
+                    // Dropdown picker
+                    Menu {
+                        // Standard exercises from library
+                        ForEach(availableExercises) { exercise in
+                            Button(action: {
+                                exerciseName = exercise.name
+                            }) {
+                                Text(exercise.name)
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        // Option to enter custom exercise
+                        Button(action: {
+                            isCustomEntry = true
+                            // Preserve the current exercise name for editing
+                        }) {
+                            Label("Custom Exercise", systemImage: "pencil")
+                        }
+                    } label: {
+                        HStack {
+                            Text(exerciseName.isEmpty ? "Select exercise" : exerciseName)
+                                .foregroundColor(exerciseName.isEmpty ? .secondary : .primary)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .foregroundColor(.secondary)
+                                .font(.footnote)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 8)
+                        .background(Color(UIColor.systemBackground))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(UIColor.separator), lineWidth: 1)
+                        )
+                    }
+                }
+                
+                // Toggle between custom and dropdown
+                if !availableExercises.isEmpty {
+                    Button(action: {
+                        isCustomEntry.toggle()
+                        // Preserve the exercise name when toggling modes
+                    }) {
+                        Image(systemName: isCustomEntry ? "list.bullet" : "pencil")
+                            .font(.footnote)
+                            .foregroundColor(.blue)
+                            .padding(8)
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(6)
+                    }
+                }
+            }
         }
     }
 }

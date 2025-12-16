@@ -22,6 +22,10 @@ struct SavageByDesignApp: App {
             .environmentObject(blocksRepository)
             .environmentObject(sessionsRepository)
             .environmentObject(exerciseLibraryRepository)
+            .onAppear {
+                // Load default exercises when app appears
+                exerciseLibraryRepository.loadDefaultSeedIfEmpty()
+            }
         }
     }
 }

@@ -349,21 +349,73 @@ public final class ExerciseLibraryRepository: ObservableObject {
             seeded.append(def)
         }
 
-        // Strength basics
+        // Strength - Squat variations
         seed("Back Squat", type: .strength, category: .squat)
         seed("Front Squat", type: .strength, category: .squat)
+        seed("Goblet Squat", type: .strength, category: .squat)
+        seed("Bulgarian Split Squat", type: .strength, category: .squat)
+        seed("Leg Press", type: .strength, category: .squat)
+        
+        // Strength - Hinge variations
         seed("Deadlift", type: .strength, category: .hinge)
+        seed("Romanian Deadlift", type: .strength, category: .hinge)
+        seed("Sumo Deadlift", type: .strength, category: .hinge)
+        seed("Trap Bar Deadlift", type: .strength, category: .hinge)
+        seed("Good Morning", type: .strength, category: .hinge)
+        
+        // Strength - Horizontal Press
         seed("Bench Press", type: .strength, category: .pressHorizontal)
+        seed("Incline Bench Press", type: .strength, category: .pressHorizontal)
+        seed("Decline Bench Press", type: .strength, category: .pressHorizontal)
+        seed("Dumbbell Bench Press", type: .strength, category: .pressHorizontal)
+        seed("Push-Up", type: .strength, category: .pressHorizontal)
+        
+        // Strength - Vertical Press
         seed("Overhead Press", type: .strength, category: .pressVertical)
+        seed("Push Press", type: .strength, category: .pressVertical)
+        seed("Dumbbell Shoulder Press", type: .strength, category: .pressVertical)
+        seed("Handstand Push-Up", type: .strength, category: .pressVertical)
+        
+        // Strength - Horizontal Pull
         seed("Barbell Row", type: .strength, category: .pullHorizontal)
+        seed("Dumbbell Row", type: .strength, category: .pullHorizontal)
+        seed("Cable Row", type: .strength, category: .pullHorizontal)
+        seed("Pendlay Row", type: .strength, category: .pullHorizontal)
+        
+        // Strength - Vertical Pull
         seed("Pull-Up", type: .strength, category: .pullVertical)
+        seed("Chin-Up", type: .strength, category: .pullVertical)
+        seed("Lat Pulldown", type: .strength, category: .pullVertical)
+        seed("Ring Muscle-Up", type: .strength, category: .pullVertical)
+        
+        // Strength - Olympic lifts
+        seed("Clean", type: .strength, category: .olympic)
+        seed("Snatch", type: .strength, category: .olympic)
+        seed("Clean & Jerk", type: .strength, category: .olympic)
+        seed("Power Clean", type: .strength, category: .olympic)
+        seed("Power Snatch", type: .strength, category: .olympic)
+        
+        // Strength - Core
+        seed("Plank", type: .strength, category: .core)
+        seed("Sit-Up", type: .strength, category: .core)
+        seed("Hanging Knee Raise", type: .strength, category: .core)
+        seed("Toes to Bar", type: .strength, category: .core)
 
-        // Conditioning basics
+        // Conditioning - Monostructural
         seed("Assault Bike", type: .conditioning, category: .conditioning, defaultConditioningType: .monostructural)
         seed("Row Erg", type: .conditioning, category: .conditioning, defaultConditioningType: .monostructural)
         seed("Ski Erg", type: .conditioning, category: .conditioning, defaultConditioningType: .monostructural)
+        seed("BikeErg", type: .conditioning, category: .conditioning, defaultConditioningType: .monostructural)
         seed("Run", type: .conditioning, category: .conditioning, defaultConditioningType: .forDistance)
+        seed("Swimming", type: .conditioning, category: .conditioning, defaultConditioningType: .forDistance)
+        
+        // Conditioning - Mixed Modal
         seed("Burpee", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
+        seed("Box Jump", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
+        seed("Double-Under", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
+        seed("Wall Ball", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
+        seed("Thruster", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
+        seed("Kettlebell Swing", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
 
         exercises = seeded
     }
