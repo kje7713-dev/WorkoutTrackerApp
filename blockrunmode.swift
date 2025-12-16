@@ -919,7 +919,7 @@ struct SetRunRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     HStack {
-                        TextField("0-10", value: $runSet.rpe, format: .number)
+                        TextField("0-10", value: .clamped($runSet.rpe, to: 0...10), format: .number)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(.roundedBorder)
                             .frame(width: 80)
@@ -934,7 +934,7 @@ struct SetRunRow: View {
                     Text("RIR (Reps in Reserve)")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    TextField("e.g., 2", value: $runSet.rir, format: .number)
+                    TextField("e.g., 2", value: .clamped($runSet.rir, to: 0...20), format: .number)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 80)
@@ -945,11 +945,8 @@ struct SetRunRow: View {
                     Text("Tempo (e.g., 3-1-1-0)")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    TextField("Tempo", text: Binding(
-                        get: { runSet.tempo ?? "" },
-                        set: { runSet.tempo = $0.isEmpty ? nil : $0 }
-                    ))
-                    .textFieldStyle(.roundedBorder)
+                    TextField("Tempo", text: .emptyToNil($runSet.tempo))
+                        .textFieldStyle(.roundedBorder)
                 }
             }
 
@@ -959,7 +956,7 @@ struct SetRunRow: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 HStack {
-                    TextField("e.g., 60", value: $runSet.restSeconds, format: .number)
+                    TextField("e.g., 60", value: .nonNegative($runSet.restSeconds), format: .number)
                         .keyboardType(.numberPad)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 80)
@@ -974,14 +971,63 @@ struct SetRunRow: View {
                 Text("Set Notes")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                TextField("Add notes (form, cues, etc.)", text: Binding(
-                    get: { runSet.notes ?? "" },
-                    set: { runSet.notes = $0.isEmpty ? nil : $0 }
-                ), axis: .vertical)
-                .lineLimit(1...3)
-                .textFieldStyle(.roundedBorder)
+                TextField("Add notes (form, cues, etc.)", text: .emptyToNil($runSet.notes), axis: .vertical)
+                    .lineLimit(1...3)
+                    .textFieldStyle(.roundedBorder)
             }
         }
+    }
+}
+
+// MARK: - Helper Extensions
+
+extension Binding where Value == String? {
+    /// Creates a binding that converts between optional String and empty/non-empty String
+    /// - Parameter binding: The source optional String binding
+    /// - Returns: A non-optional String binding where nil becomes "" and "" becomes nil
+    static func emptyToNil(_ binding: Binding<String?>) -> Binding<String> {
+        Binding<String>(
+            get: { binding.wrappedValue ?? "" },
+            set: { binding.wrappedValue = $0.isEmpty ? nil : $0 }
+        )
+    }
+}
+
+extension Binding where Value == Double? {
+    /// Clamps the value to a specified range when set
+    /// - Parameters:
+    ///   - binding: The source optional Double binding
+    ///   - range: The valid range for values
+    /// - Returns: A clamped binding where values outside the range are constrained
+    static func clamped(_ binding: Binding<Double?>, to range: ClosedRange<Double>) -> Binding<Double?> {
+        Binding<Double?>(
+            get: { binding.wrappedValue },
+            set: { newValue in
+                if let value = newValue {
+                    binding.wrappedValue = min(max(value, range.lowerBound), range.upperBound)
+                } else {
+                    binding.wrappedValue = nil
+                }
+            }
+        )
+    }
+}
+
+extension Binding where Value == Int? {
+    /// Ensures the value is non-negative when set
+    /// - Parameter binding: The source optional Int binding
+    /// - Returns: A binding where negative values are converted to 0
+    static func nonNegative(_ binding: Binding<Int?>) -> Binding<Int?> {
+        Binding<Int?>(
+            get: { binding.wrappedValue },
+            set: { newValue in
+                if let value = newValue {
+                    binding.wrappedValue = max(0, value)
+                } else {
+                    binding.wrappedValue = nil
+                }
+            }
+        )
     }
 }
 

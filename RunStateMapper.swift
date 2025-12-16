@@ -237,7 +237,7 @@ struct RunStateMapper {
                 let runSet = runExercise.sets[setIndex]
                 var updatedSet = sessionSet
                 
-                // Update all logged fields
+                // Update performance fields (reps, weight, time, etc.)
                 updatedSet.loggedReps = runSet.actualReps
                 updatedSet.loggedWeight = runSet.actualWeight
                 updatedSet.loggedTime = runSet.actualTimeSeconds
@@ -245,13 +245,14 @@ struct RunStateMapper {
                 updatedSet.loggedCalories = runSet.actualCalories
                 updatedSet.loggedRounds = runSet.actualRounds
                 
-                // Update metadata fields
+                // Update training metadata (effort, tempo, rest, notes)
                 updatedSet.rpe = runSet.rpe
                 updatedSet.rir = runSet.rir
                 updatedSet.tempo = runSet.tempo
                 updatedSet.restSeconds = runSet.restSeconds
                 updatedSet.notes = runSet.notes
                 
+                // Update completion status
                 updatedSet.isCompleted = runSet.isCompleted
                 
                 return updatedSet
