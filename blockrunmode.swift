@@ -636,10 +636,10 @@ struct ExerciseRunCard: View {
             HStack {
                 Button {
                     let newIndex = exercise.sets.count
-                    let newSet = RunSetState(
+                    let newSet = createNewSet(
                         indexInExercise: newIndex,
-                        displayText: "Set \(newIndex + 1)",
-                        type: exercise.type
+                        exerciseType: exercise.type,
+                        previousSets: exercise.sets
                     )
                     exercise.sets.append(newSet)
                     onSave()
@@ -663,6 +663,109 @@ struct ExerciseRunCard: View {
             .padding(.top, 4)
         }
         .padding()
+    }
+    
+    // MARK: - Helper: Create New Set with Prefilled Values
+    
+    /// Creates a new set, prefilling weight/reps from the most recent set if available.
+    /// Falls back to default values if no previous sets exist.
+    private func createNewSet(
+        indexInExercise: Int,
+        exerciseType: ExerciseType,
+        previousSets: [RunSetState]
+    ) -> RunSetState {
+        // Find the most recent set (last in the array)
+        guard let lastSet = previousSets.last else {
+            // No previous sets - use default values
+            return RunSetState(
+                indexInExercise: indexInExercise,
+                displayText: "Set \(indexInExercise + 1)",
+                type: exerciseType
+            )
+        }
+        
+        // Copy values from the most recent set based on exercise type
+        switch exerciseType {
+        case .strength:
+            return RunSetState(
+                indexInExercise: indexInExercise,
+                displayText: buildDisplayText(
+                    reps: lastSet.actualReps,
+                    weight: lastSet.actualWeight
+                ),
+                type: exerciseType,
+                plannedReps: lastSet.plannedReps,
+                plannedWeight: lastSet.plannedWeight,
+                actualReps: lastSet.actualReps,
+                actualWeight: lastSet.actualWeight
+            )
+            
+        case .conditioning:
+            return RunSetState(
+                indexInExercise: indexInExercise,
+                displayText: buildConditioningDisplayText(
+                    time: lastSet.actualTimeSeconds,
+                    distance: lastSet.actualDistanceMeters,
+                    calories: lastSet.actualCalories,
+                    rounds: lastSet.actualRounds
+                ),
+                type: exerciseType,
+                plannedTimeSeconds: lastSet.plannedTimeSeconds,
+                plannedDistanceMeters: lastSet.plannedDistanceMeters,
+                plannedCalories: lastSet.plannedCalories,
+                plannedRounds: lastSet.plannedRounds,
+                actualTimeSeconds: lastSet.actualTimeSeconds,
+                actualDistanceMeters: lastSet.actualDistanceMeters,
+                actualCalories: lastSet.actualCalories,
+                actualRounds: lastSet.actualRounds
+            )
+            
+        default:
+            // For other types, just use default
+            return RunSetState(
+                indexInExercise: indexInExercise,
+                displayText: "Set \(indexInExercise + 1)",
+                type: exerciseType
+            )
+        }
+    }
+    
+    /// Builds display text for strength sets
+    private func buildDisplayText(reps: Int?, weight: Double?) -> String {
+        let repsText = reps.map { "Reps: \($0)" } ?? ""
+        let weightText = weight.map { "Weight: \($0)" } ?? ""
+        let parts = [repsText, weightText].filter { !$0.isEmpty }
+        return parts.isEmpty ? "Strength set" : parts.joined(separator: " • ")
+    }
+    
+    /// Builds display text for conditioning sets
+    private func buildConditioningDisplayText(
+        time: Double?,
+        distance: Double?,
+        calories: Double?,
+        rounds: Int?
+    ) -> String {
+        var parts: [String] = []
+        
+        if let dur = time.map({ Int($0) }) {
+            if dur % 60 == 0 {
+                let mins = dur / 60
+                parts.append("\(mins) min")
+            } else {
+                parts.append("\(dur) sec")
+            }
+        }
+        if let dist = distance {
+            parts.append("\(Int(dist)) m")
+        }
+        if let cal = calories {
+            parts.append("\(Int(cal)) cal")
+        }
+        if let rnds = rounds {
+            parts.append("\(rnds) rounds")
+        }
+        
+        return parts.isEmpty ? "Conditioning" : parts.joined(separator: " • ")
     }
 }
 
