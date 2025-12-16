@@ -551,6 +551,8 @@ struct DayTabBar: View {
 struct DayRunView: View {
     @Binding var day: RunDayState
     let onSave: () -> Void
+    
+    @State private var showExerciseTypeSheet = false
 
     var body: some View {
         ScrollView {
@@ -560,21 +562,7 @@ struct DayRunView: View {
                 }
 
                 Button {
-                    let newExerciseIndex = day.exercises.count + 1
-                    let newExercise = RunExerciseState(
-                        name: "New Exercise \(newExerciseIndex)",
-                        type: .strength,
-                        notes: "",
-                        sets: [
-                            RunSetState(
-                                indexInExercise: 0,
-                                displayText: "Set 1",
-                                type: .strength
-                            )
-                        ]
-                    )
-                    day.exercises.append(newExercise)
-                    onSave()
+                    showExerciseTypeSheet = true
                 } label: {
                     Label("Add Exercise", systemImage: "plus")
                         .font(.subheadline.bold())
@@ -590,12 +578,44 @@ struct DayRunView: View {
             .padding(.horizontal)
             .padding(.vertical)
         }
+        .confirmationDialog("Select Exercise Type", isPresented: $showExerciseTypeSheet) {
+            Button("Strength") {
+                addExercise(type: .strength)
+            }
+            Button("Conditioning") {
+                addExercise(type: .conditioning)
+            }
+            Button("Cancel", role: .cancel) { }
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func addExercise(type: ExerciseType) {
+        let newExerciseIndex = day.exercises.count + 1
+        let newExercise = RunExerciseState(
+            name: "New Exercise \(newExerciseIndex)",
+            type: type,
+            notes: "",
+            sets: [
+                RunSetState(
+                    indexInExercise: 0,
+                    displayText: "Set 1",
+                    type: type
+                )
+            ]
+        )
+        day.exercises.append(newExercise)
+        onSave()
     }
 }
 
 struct ExerciseRunCard: View {
     @Binding var exercise: RunExerciseState
     let onSave: () -> Void
+    
+    @State private var showTypeChangeConfirmation = false
+    @State private var pendingNewType: ExerciseType?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -607,6 +627,34 @@ struct ExerciseRunCard: View {
                 .onChange(of: exercise.name) { _, _ in
                     onSave()
                 }
+
+            // Exercise type picker
+            Picker("Type", selection: Binding(
+                get: { exercise.type },
+                set: { newType in
+                    // Check if there are any completed sets or logged values
+                    let hasProgress = exercise.sets.contains { set in
+                        set.isCompleted ||
+                        set.actualReps != nil ||
+                        set.actualWeight != nil ||
+                        set.actualTimeSeconds != nil ||
+                        set.actualDistanceMeters != nil ||
+                        set.actualCalories != nil ||
+                        set.actualRounds != nil
+                    }
+                    
+                    if hasProgress && newType != exercise.type {
+                        pendingNewType = newType
+                        showTypeChangeConfirmation = true
+                    } else {
+                        updateExerciseType(to: newType)
+                    }
+                }
+            )) {
+                Text("Strength").tag(ExerciseType.strength)
+                Text("Conditioning").tag(ExerciseType.conditioning)
+            }
+            .pickerStyle(.segmented)
 
             // Existing notes from the template (if any)
             if !exercise.notes.isEmpty {
@@ -663,6 +711,41 @@ struct ExerciseRunCard: View {
             .padding(.top, 4)
         }
         .padding()
+        .alert("Change Exercise Type?", isPresented: $showTypeChangeConfirmation) {
+            Button("Cancel", role: .cancel) {
+                pendingNewType = nil
+            }
+            Button("Change Type") {
+                if let newType = pendingNewType {
+                    updateExerciseType(to: newType)
+                    pendingNewType = nil
+                }
+            }
+        } message: {
+            Text("Changing the exercise type will reset all sets and lose logged values. This cannot be undone.")
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    /// Updates the exercise type and regenerates sets with the new type
+    private func updateExerciseType(to newType: ExerciseType) {
+        // Store the current set count
+        let currentSetCount = exercise.sets.count
+        
+        // Update the exercise type
+        exercise.type = newType
+        
+        // Regenerate all sets with the new type
+        exercise.sets = (0..<currentSetCount).map { index in
+            RunSetState(
+                indexInExercise: index,
+                displayText: "Set \(index + 1)",
+                type: newType
+            )
+        }
+        
+        onSave()
     }
     
     // MARK: - Helper: Create New Set with Prefilled Values
@@ -1021,7 +1104,7 @@ struct RunDayState: Identifiable, Codable{
 struct RunExerciseState: Identifiable, Codable {
     let id = UUID()
     var name: String
-    let type: ExerciseType
+    var type: ExerciseType
     var notes: String
     var sets: [RunSetState]
 }
