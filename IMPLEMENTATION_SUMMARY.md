@@ -221,6 +221,10 @@ Potential improvements for future work:
 - Conversion time: negligible (<1ms)
 - Repository saves use atomic writes (same as before)
 
+## Recent Updates
+
+- Added strongly-styled week and block completion modals (closes #49)
+
 ## Conclusion
 
 This implementation successfully unifies workout run-mode persistence around the `SessionsRepository`, eliminating the dual persistence system and establishing a single source of truth for all workout data. The changes are minimal, focused, and preserve all existing functionality while improving data consistency and maintainability.
