@@ -126,6 +126,11 @@ struct RunStateMapper {
             actualDistanceMeters: sessionSet.loggedDistance,
             actualCalories: sessionSet.loggedCalories,
             actualRounds: sessionSet.loggedRounds,
+            rpe: sessionSet.rpe,
+            rir: sessionSet.rir,
+            tempo: sessionSet.tempo,
+            restSeconds: sessionSet.restSeconds,
+            notes: sessionSet.notes,
             isCompleted: sessionSet.isCompleted
         )
     }
@@ -239,6 +244,14 @@ struct RunStateMapper {
                 updatedSet.loggedDistance = runSet.actualDistanceMeters
                 updatedSet.loggedCalories = runSet.actualCalories
                 updatedSet.loggedRounds = runSet.actualRounds
+                
+                // Update metadata fields
+                updatedSet.rpe = runSet.rpe
+                updatedSet.rir = runSet.rir
+                updatedSet.tempo = runSet.tempo
+                updatedSet.restSeconds = runSet.restSeconds
+                updatedSet.notes = runSet.notes
+                
                 updatedSet.isCompleted = runSet.isCompleted
                 
                 return updatedSet

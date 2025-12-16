@@ -732,6 +732,9 @@ struct SetRunRow: View {
                 conditioningControls
             }
 
+            // Metadata controls (optional fields)
+            metadataControls
+
             // Complete / Undo
             HStack {
                 Spacer()
@@ -793,6 +796,21 @@ struct SetRunRow: View {
             onSave()
         }
         .onChange(of: runSet.actualRounds) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.rpe) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.rir) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.tempo) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.restSeconds) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.notes) { _, _ in
             onSave()
         }
         .onChange(of: runSet.isCompleted) { _, _ in
@@ -886,6 +904,85 @@ struct SetRunRow: View {
             )
         }
     }
+
+    // MARK: - Metadata UI (RPE, RIR, Tempo, Rest, Notes)
+
+    private var metadataControls: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Divider()
+                .padding(.vertical, 4)
+
+            // RPE (Rating of Perceived Exertion) - 0 to 10 scale
+            if runSet.type == .strength {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("RPE (Rating of Perceived Exertion)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    HStack {
+                        TextField("0-10", value: $runSet.rpe, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 80)
+                        Text("/ 10")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                // RIR (Reps in Reserve)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("RIR (Reps in Reserve)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    TextField("e.g., 2", value: $runSet.rir, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 80)
+                }
+
+                // Tempo
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Tempo (e.g., 3-1-1-0)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    TextField("Tempo", text: Binding(
+                        get: { runSet.tempo ?? "" },
+                        set: { runSet.tempo = $0.isEmpty ? nil : $0 }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                }
+            }
+
+            // Rest Seconds (for all types)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Rest (seconds)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                HStack {
+                    TextField("e.g., 60", value: $runSet.restSeconds, format: .number)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 80)
+                    Text("sec")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            // Notes (for all types)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Set Notes")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                TextField("Add notes (form, cues, etc.)", text: Binding(
+                    get: { runSet.notes ?? "" },
+                    set: { runSet.notes = $0.isEmpty ? nil : $0 }
+                ), axis: .vertical)
+                .lineLimit(1...3)
+                .textFieldStyle(.roundedBorder)
+            }
+        }
+    }
 }
 
 // MARK: - Run State Models (No changes here)
@@ -945,6 +1042,13 @@ struct RunSetState: Identifiable, Codable {
     var actualCalories: Double?
     var actualRounds: Int?
 
+    // Metadata fields (effort, tempo, rest, notes)
+    var rpe: Double?
+    var rir: Double?
+    var tempo: String?
+    var restSeconds: Int?
+    var notes: String?
+
     var isCompleted: Bool = false
 
     init(
@@ -963,6 +1067,11 @@ struct RunSetState: Identifiable, Codable {
         actualDistanceMeters: Double? = nil,
         actualCalories: Double? = nil,
         actualRounds: Int? = nil,
+        rpe: Double? = nil,
+        rir: Double? = nil,
+        tempo: String? = nil,
+        restSeconds: Int? = nil,
+        notes: String? = nil,
         isCompleted: Bool = false
     ) {
         self.indexInExercise = indexInExercise
@@ -980,6 +1089,11 @@ struct RunSetState: Identifiable, Codable {
         self.actualDistanceMeters = actualDistanceMeters
         self.actualCalories = actualCalories
         self.actualRounds = actualRounds
+        self.rpe = rpe
+        self.rir = rir
+        self.tempo = tempo
+        self.restSeconds = restSeconds
+        self.notes = notes
         self.isCompleted = isCompleted
     }
 }
