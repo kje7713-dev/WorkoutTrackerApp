@@ -46,7 +46,7 @@ public struct SetControlView: View {
             HStack(spacing: 4) {
                 Button {
                     if let currentValue = value {
-                        value = max(min, currentValue - step)
+                        value = Swift.max(min, currentValue - step)
                     } else {
                         value = min
                     }
