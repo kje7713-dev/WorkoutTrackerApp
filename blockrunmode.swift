@@ -995,6 +995,15 @@ struct SetRunRow: View {
             } else if runSet.type == .conditioning {
                 conditioningControls
             }
+            
+            // Per-set notes field
+            TextField("Notes (RPE, cues, etc.)", text: Binding(
+                get: { runSet.notes ?? "" },
+                set: { runSet.notes = $0.isEmpty ? nil : $0 }
+            ), axis: .vertical)
+                .lineLimit(1...3)
+                .font(.footnote)
+                .textFieldStyle(.roundedBorder)
 
             // Complete / Undo
             HStack {
@@ -1059,6 +1068,21 @@ struct SetRunRow: View {
         .onChange(of: runSet.actualRounds) { _, _ in
             onSave()
         }
+        .onChange(of: runSet.rpe) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.rir) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.tempo) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.restSeconds) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.notes) { _, _ in
+            onSave()
+        }
         .onChange(of: runSet.isCompleted) { _, _ in
             print("🔵 Set isCompleted changed - triggering save")
             onSave()
@@ -1088,6 +1112,46 @@ struct SetRunRow: View {
                 value: $runSet.actualWeight,
                 step: 5.0,
                 formatter: Self.weightFormatter,
+                min: 0.0
+            )
+            
+            // RPE Control
+            SetControlView(
+                label: "RPE (1-10)",
+                unit: "",
+                value: $runSet.rpe,
+                step: 0.5,
+                formatter: Self.weightFormatter,
+                min: 0.0,
+                max: 10.0
+            )
+            
+            // RIR Control
+            SetControlView(
+                label: "RIR (0-5)",
+                unit: "",
+                value: $runSet.rir,
+                step: 0.5,
+                formatter: Self.weightFormatter,
+                min: 0.0,
+                max: 5.0
+            )
+            
+            // Tempo field
+            TextField("Tempo (e.g., 3010)", text: Binding(
+                get: { runSet.tempo ?? "" },
+                set: { runSet.tempo = $0.isEmpty ? nil : $0 }
+            ))
+            .font(.caption)
+            .textFieldStyle(.roundedBorder)
+            
+            // Rest seconds
+            SetControlView(
+                label: "REST",
+                unit: "sec",
+                value: $runSet.restSeconds.toDouble(),
+                step: 15.0,
+                formatter: Self.integerFormatter,
                 min: 0.0
             )
         }
@@ -1127,6 +1191,15 @@ struct SetRunRow: View {
                     .foregroundColor(.secondary)
             }
 
+            // Distance Control
+            SetControlView(
+                label: "DISTANCE",
+                unit: "m",
+                value: $runSet.actualDistanceMeters,
+                step: 50.0,
+                formatter: Self.integerFormatter,
+                min: 0.0
+            )
 
             // Calories Control
             SetControlView(
@@ -1145,6 +1218,16 @@ struct SetRunRow: View {
                 // FIX: Used the correct call to the extension method
                 value: $runSet.actualRounds.toDouble(),
                 step: 1.0,
+                formatter: Self.integerFormatter,
+                min: 0.0
+            )
+            
+            // Rest seconds
+            SetControlView(
+                label: "REST",
+                unit: "sec",
+                value: $runSet.restSeconds.toDouble(),
+                step: 15.0,
                 formatter: Self.integerFormatter,
                 min: 0.0
             )
@@ -1209,6 +1292,13 @@ struct RunSetState: Identifiable, Codable {
     var actualCalories: Double?
     var actualRounds: Int?
 
+    // Effort / metadata fields
+    var rpe: Double?
+    var rir: Double?
+    var tempo: String?
+    var restSeconds: Int?
+    var notes: String?
+
     var isCompleted: Bool = false
 
     init(
@@ -1227,6 +1317,11 @@ struct RunSetState: Identifiable, Codable {
         actualDistanceMeters: Double? = nil,
         actualCalories: Double? = nil,
         actualRounds: Int? = nil,
+        rpe: Double? = nil,
+        rir: Double? = nil,
+        tempo: String? = nil,
+        restSeconds: Int? = nil,
+        notes: String? = nil,
         isCompleted: Bool = false
     ) {
         self.indexInExercise = indexInExercise
@@ -1244,6 +1339,11 @@ struct RunSetState: Identifiable, Codable {
         self.actualDistanceMeters = actualDistanceMeters
         self.actualCalories = actualCalories
         self.actualRounds = actualRounds
+        self.rpe = rpe
+        self.rir = rir
+        self.tempo = tempo
+        self.restSeconds = restSeconds
+        self.notes = notes
         self.isCompleted = isCompleted
     }
 }

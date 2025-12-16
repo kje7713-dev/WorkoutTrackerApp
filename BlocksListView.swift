@@ -121,6 +121,28 @@ struct BlocksListView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
+                        
+                        // Block metadata
+                        HStack(spacing: 12) {
+                            // Number of weeks
+                            Label("\(block.numberOfWeeks) weeks", systemImage: "calendar")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            // Goal
+                            if let goal = block.goal {
+                                Label(goal.rawValue.capitalized, systemImage: "target")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            // Source
+                            if block.source == .ai {
+                                Label("AI", systemImage: "sparkles")
+                                    .font(.caption)
+                                    .foregroundColor(.purple)
+                            }
+                        }
 
                         // Explicit action row: RUN / EDIT / NEXT BLOCK
                         HStack(spacing: 8) {
