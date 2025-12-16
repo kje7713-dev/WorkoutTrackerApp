@@ -150,6 +150,7 @@ struct BlocksListView: View {
                             NavigationLink {
                                 BlockRunModeView(block: block)
                                     .environmentObject(sessionsRepository)
+                                    .environmentObject(blocksRepository)
                             } label: { 
                                 Text("RUN")
                                     .font(.subheadline).bold()

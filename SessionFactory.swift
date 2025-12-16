@@ -85,6 +85,15 @@ public struct SessionFactory {
     }
 
     // MARK: - Helpers: ExerciseTemplate → [SessionSet]
+    
+    /// Public method to generate session sets from a template for a specific week
+    /// This is useful when adding new exercises during a workout
+    public func makeSessionSetsFromTemplate(
+        _ template: ExerciseTemplate,
+        weekIndex: Int
+    ) -> [SessionSet] {
+        return makeSessionSets(from: template, weekIndex: weekIndex)
+    }
 
     private func makeSessionSets(
         from template: ExerciseTemplate,

@@ -65,7 +65,8 @@ struct BlockRunModeView: View {
                             week: $weeks[weekIndex],
                             allDays: block.days,
                             currentDayIndex: $currentDayIndex,
-                            onSave: saveWeeks
+                            onSave: saveWeeks,
+                            block: block
                         )
                         .tag(weekIndex)
                     }
@@ -556,6 +557,7 @@ struct WeekRunView: View {
     let allDays: [DayTemplate]
     @Binding var currentDayIndex: Int
     let onSave: () -> Void
+    let block: Block
 
     var body: some View {
         VStack(spacing: 0) {
@@ -568,7 +570,13 @@ struct WeekRunView: View {
     @ViewBuilder
     private var content: some View {
         if week.days.indices.contains(currentDayIndex) {
-            DayRunView(day: $week.days[currentDayIndex], onSave: onSave)
+            DayRunView(
+                day: $week.days[currentDayIndex],
+                onSave: onSave,
+                block: block,
+                weekIndex: week.index,
+                dayIndex: currentDayIndex
+            )
         } else {
             Text("No days configured for this week.")
                 .padding()
@@ -628,8 +636,15 @@ struct DayTabBar: View {
 struct DayRunView: View {
     @Binding var day: RunDayState
     let onSave: () -> Void
+    let block: Block
+    let weekIndex: Int
+    let dayIndex: Int
+    
+    @EnvironmentObject var blocksRepository: BlocksRepository
+    @EnvironmentObject var sessionsRepository: SessionsRepository
     
     @State private var showExerciseTypeSheet = false
+    @State private var persistToFutureWeeks = false
 
     var body: some View {
         ScrollView {
@@ -655,23 +670,27 @@ struct DayRunView: View {
             .padding(.horizontal)
             .padding(.vertical)
         }
-        .confirmationDialog("Select Exercise Type", isPresented: $showExerciseTypeSheet) {
-            Button("Strength") {
-                addExercise(type: .strength)
-            }
-            Button("Conditioning") {
-                addExercise(type: .conditioning)
-            }
-            Button("Cancel", role: .cancel) { }
+        .sheet(isPresented: $showExerciseTypeSheet) {
+            AddExerciseSheet(
+                persistToFutureWeeks: $persistToFutureWeeks,
+                canPersist: weekIndex < (block.numberOfWeeks - 1),
+                onAddExercise: { type in
+                    addExercise(type: type)
+                    showExerciseTypeSheet = false
+                }
+            )
         }
     }
     
     // MARK: - Helper Functions
     
     private func addExercise(type: ExerciseType) {
-        let newExerciseIndex = day.exercises.count + 1
+        // Use current count for naming consistency
+        let exerciseNumber = day.exercises.count + 1
+        let exerciseName = "New Exercise \(exerciseNumber)"
+        
         let newExercise = RunExerciseState(
-            name: "New Exercise \(newExerciseIndex)",
+            name: exerciseName,
             type: type,
             notes: "",
             sets: [
@@ -683,7 +702,112 @@ struct DayRunView: View {
             ]
         )
         day.exercises.append(newExercise)
+        
+        // If user chose to persist, add to block template and future sessions
+        if persistToFutureWeeks {
+            addExerciseToBlockTemplate(type: type, name: exerciseName)
+        }
+        
         onSave()
+        
+        // Reset the toggle for next time
+        persistToFutureWeeks = false
+    }
+    
+    private func addExerciseToBlockTemplate(type: ExerciseType, name: String) {
+        // Get the current block
+        var updatedBlock = block
+        
+        // Ensure dayIndex is valid
+        guard dayIndex < updatedBlock.days.count else {
+            print("⚠️ Invalid dayIndex: \(dayIndex) for block with \(updatedBlock.days.count) days")
+            return
+        }
+        
+        // Create a new exercise template
+        let newTemplate = ExerciseTemplate(
+            customName: name,
+            type: type,
+            progressionRule: ProgressionRule(type: .custom)
+        )
+        
+        // Add to the day template
+        updatedBlock.days[dayIndex].exercises.append(newTemplate)
+        
+        // Update the block in repository
+        blocksRepository.update(updatedBlock)
+        
+        // Regenerate sessions for future weeks
+        regenerateSessionsForFutureWeeks(newTemplate: newTemplate)
+    }
+    
+    private func regenerateSessionsForFutureWeeks(newTemplate: ExerciseTemplate) {
+        let factory = SessionFactory()
+        
+        // Validate dayIndex before proceeding
+        guard dayIndex < block.days.count else {
+            print("⚠️ Invalid dayIndex: \(dayIndex) for block with \(block.days.count) days in regenerateSessionsForFutureWeeks")
+            return
+        }
+        
+        // Get all existing sessions for this block
+        var allSessions = sessionsRepository.sessions(forBlockId: block.id)
+        
+        // For each future week (starting from next week), add the new exercise
+        // Note: weekIndex in RunWeekState is 0-based, but WorkoutSession.weekIndex is 1-based
+        let currentWeekNumber = weekIndex + 1 // Convert to 1-based
+        let dayTemplateId = block.days[dayIndex].id
+        
+        for futureWeekNumber in (currentWeekNumber + 1)...block.numberOfWeeks {
+            // Find the session for this week and day
+            if let sessionIndex = allSessions.firstIndex(where: {
+                $0.blockId == block.id &&
+                $0.weekIndex == futureWeekNumber &&
+                $0.dayTemplateId == dayTemplateId
+            }) {
+                // Create a new SessionExercise from the template
+                let expectedSets = factory.makeSessionSetsFromTemplate(newTemplate, weekIndex: futureWeekNumber)
+                // Create independent copies for logged sets (SessionSet is a value type struct)
+                // This ensures modifications to logged sets don't affect expected sets
+                let loggedSets = expectedSets.map { SessionSet(
+                    id: UUID(),
+                    index: $0.index,
+                    expectedReps: $0.expectedReps,
+                    expectedWeight: $0.expectedWeight,
+                    expectedTime: $0.expectedTime,
+                    expectedDistance: $0.expectedDistance,
+                    expectedCalories: $0.expectedCalories,
+                    expectedRounds: $0.expectedRounds,
+                    loggedReps: $0.loggedReps,
+                    loggedWeight: $0.loggedWeight,
+                    loggedTime: $0.loggedTime,
+                    loggedDistance: $0.loggedDistance,
+                    loggedCalories: $0.loggedCalories,
+                    loggedRounds: $0.loggedRounds,
+                    rpe: $0.rpe,
+                    rir: $0.rir,
+                    tempo: $0.tempo,
+                    restSeconds: $0.restSeconds,
+                    notes: $0.notes,
+                    isCompleted: $0.isCompleted
+                ) }
+                
+                let newSessionExercise = SessionExercise(
+                    id: UUID(),
+                    exerciseTemplateId: newTemplate.id,
+                    exerciseDefinitionId: newTemplate.exerciseDefinitionId,
+                    customName: newTemplate.customName,
+                    expectedSets: expectedSets,
+                    loggedSets: loggedSets
+                )
+                
+                // Add to the session's exercises
+                allSessions[sessionIndex].exercises.append(newSessionExercise)
+            }
+        }
+        
+        // Save all updated sessions
+        sessionsRepository.replaceSessions(forBlockId: block.id, with: allSessions)
     }
 }
 
@@ -1348,5 +1472,71 @@ struct RunSetState: Identifiable, Codable {
     }
 }
 
+
+// MARK: - Add Exercise Sheet
+
+struct AddExerciseSheet: View {
+    @Binding var persistToFutureWeeks: Bool
+    let canPersist: Bool
+    let onAddExercise: (ExerciseType) -> Void
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Text("Select Exercise Type")
+                    .font(.headline)
+                    .padding(.top)
+                
+                VStack(spacing: 12) {
+                    Button {
+                        onAddExercise(.strength)
+                    } label: {
+                        Text("Strength")
+                            .font(.body)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    
+                    Button {
+                        onAddExercise(.conditioning)
+                    } label: {
+                        Text("Conditioning")
+                            .font(.body)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.accentColor)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                }
+                .padding(.horizontal)
+                
+                if canPersist {
+                    Divider()
+                        .padding(.vertical)
+                    
+                    Toggle("Add to this day in all future weeks", isOn: $persistToFutureWeeks)
+                        .padding(.horizontal)
+                        .font(.subheadline)
+                }
+                
+                Spacer()
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+}
 
 // MARK: - BINDING EXTENSIONS (Imported from SetControls.swift)
