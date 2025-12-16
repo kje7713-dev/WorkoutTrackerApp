@@ -14,12 +14,6 @@ struct SavageByDesignApp: App {
     @StateObject private var sessionsRepository = SessionsRepository()
     @StateObject private var exerciseLibraryRepository = ExerciseLibraryRepository()
 
-    init() {
-        // Seed exercise library with default exercises on first launch
-        let tempRepo = ExerciseLibraryRepository()
-        tempRepo.loadDefaultSeedIfEmpty()
-    }
-
     var body: some Scene {
         WindowGroup {
             NavigationStack {

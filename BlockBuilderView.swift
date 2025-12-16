@@ -780,7 +780,7 @@ struct ExerciseNamePicker: View {
                         // Option to enter custom exercise
                         Button(action: {
                             isCustomEntry = true
-                            exerciseName = ""
+                            // Preserve the current exercise name for editing
                         }) {
                             Label("Custom Exercise", systemImage: "pencil")
                         }
@@ -808,9 +808,7 @@ struct ExerciseNamePicker: View {
                 if !availableExercises.isEmpty {
                     Button(action: {
                         isCustomEntry.toggle()
-                        if !isCustomEntry && !availableExercises.contains(where: { $0.name == exerciseName }) {
-                            exerciseName = ""
-                        }
+                        // Preserve the exercise name when toggling modes
                     }) {
                         Image(systemName: isCustomEntry ? "list.bullet" : "pencil")
                             .font(.footnote)
