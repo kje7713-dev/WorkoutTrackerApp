@@ -44,6 +44,11 @@ struct BlockRunModeView: View {
     @State private var saveError: Error? = nil
     @State private var showSaveError: Bool = false
     @State private var backgroundSaveError: Error? = nil
+    
+    // Completion modal state
+    @State private var showWeekCompletionModal: Bool = false
+    @State private var showBlockCompletionModal: Bool = false
+    @State private var recentlyCompletedWeekIndex: Int? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -146,6 +151,37 @@ struct BlockRunModeView: View {
                 backgroundSaveError = error
             }
         }
+        .overlay(
+            Group {
+                if showWeekCompletionModal {
+                    WeekCompletionModal(
+                        title: "Week completed",
+                        message: "Excellence is not an act but a habit.",
+                        isBlockCompletion: false,
+                        onDismiss: {
+                            showWeekCompletionModal = false
+                            recentlyCompletedWeekIndex = nil
+                        }
+                    )
+                    .transition(.opacity)
+                }
+                
+                if showBlockCompletionModal {
+                    WeekCompletionModal(
+                        title: "Block completed",
+                        message: "Fuck yeah! Block built.",
+                        isBlockCompletion: true,
+                        onDismiss: {
+                            showBlockCompletionModal = false
+                            recentlyCompletedWeekIndex = nil
+                        }
+                    )
+                    .transition(.opacity)
+                }
+            }
+        )
+        .animation(.easeInOut(duration: 0.3), value: showWeekCompletionModal)
+        .animation(.easeInOut(duration: 0.3), value: showBlockCompletionModal)
     }
 
     private var topBar: some View {
@@ -217,8 +253,9 @@ struct BlockRunModeView: View {
         print("🔵 Instance saveWeeks() called - saving to SessionsRepository")
         validateAndLogWeeksData()
         
-        // Get original sessions from repository
+        // Get original sessions from repository and convert to weeks for comparison
         let originalSessions = sessionsRepository.sessions(forBlockId: block.id)
+        let previousWeeks = RunStateMapper.sessionsToRunWeeks(originalSessions, block: block)
         
         // Convert run state back to sessions
         let updatedSessions = RunStateMapper.runWeeksToSessions(
@@ -230,6 +267,13 @@ struct BlockRunModeView: View {
         // Replace sessions in repository
         sessionsRepository.replaceSessions(forBlockId: block.id, with: updatedSessions)
         print("✅ Saved \(updatedSessions.count) sessions to repository")
+        
+        // Check for completion transitions after successful save
+        checkForCompletionTransition(
+            previousWeeks: previousWeeks,
+            currentWeeks: weeks,
+            block: block
+        )
     }
     
     /// Closes the session with robust save confirmation.
@@ -324,6 +368,49 @@ struct BlockRunModeView: View {
                 }
             }
             print("   - Week \(weekIdx): \(weekCompletedSets)/\(weekTotalSets) sets completed")
+        }
+    }
+    
+    /// Checks for completion transitions and shows appropriate modals
+    /// - Parameters:
+    ///   - previousWeeks: Week state before the change
+    ///   - currentWeeks: Week state after the change
+    ///   - block: The current training block
+    private func checkForCompletionTransition(
+        previousWeeks: [RunWeekState],
+        currentWeeks: [RunWeekState],
+        block: Block
+    ) {
+        // Find the first week that transitioned from incomplete to complete
+        for (index, currentWeek) in currentWeeks.enumerated() {
+            guard index < previousWeeks.count else { continue }
+            
+            let previousWeek = previousWeeks[index]
+            let wasCompleted = previousWeek.isCompleted
+            let isNowCompleted = currentWeek.isCompleted
+            
+            // Detect transition from incomplete to complete
+            if !wasCompleted && isNowCompleted {
+                print("🎉 Week \(index) just completed!")
+                recentlyCompletedWeekIndex = index
+                
+                // Check if all weeks are now completed (block completion)
+                let allWeeksCompleted = currentWeeks.allSatisfy { $0.isCompleted }
+                let notAllPreviouslyCompleted = !previousWeeks.allSatisfy { $0.isCompleted }
+                
+                if allWeeksCompleted && notAllPreviouslyCompleted {
+                    print("🎉🎉 BLOCK COMPLETED! All weeks are done!")
+                    // Block completion takes precedence
+                    showBlockCompletionModal = true
+                    showWeekCompletionModal = false
+                } else {
+                    print("🎉 Week completed (block not yet complete)")
+                    showWeekCompletionModal = true
+                }
+                
+                // Only show modal for the first completed week found in this save
+                return
+            }
         }
     }
 
