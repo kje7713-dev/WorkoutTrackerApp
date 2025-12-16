@@ -224,3 +224,22 @@ Potential improvements for future work:
 ## Conclusion
 
 This implementation successfully unifies workout run-mode persistence around the `SessionsRepository`, eliminating the dual persistence system and establishing a single source of truth for all workout data. The changes are minimal, focused, and preserve all existing functionality while improving data consistency and maintainability.
+
+---
+
+## Week Completion Modal (Issue #49)
+
+Added a celebratory modal that appears when a user completes all sets in a week.
+
+**Changes:**
+- New `WeekCompletionModal.swift` - Strongly styled modal view with gradient header and bold typography
+- Updated `blockrunmode.swift` - Added week completion detection logic and modal presentation
+- New `BlockRunModeCompletionTests.swift` - Test cases for completion detection logic
+
+**Behavior:**
+- Modal appears only once when a week transitions from incomplete to complete
+- Message: "Excellence is not an act but a habit."
+- Can be dismissed with "OK" button
+- Modal does not re-appear on subsequent app launches if week is already complete
+
+**Reference:** Closes #49

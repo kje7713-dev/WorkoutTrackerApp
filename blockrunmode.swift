@@ -44,6 +44,10 @@ struct BlockRunModeView: View {
     @State private var saveError: Error? = nil
     @State private var showSaveError: Bool = false
     @State private var backgroundSaveError: Error? = nil
+    
+    // Week completion modal state
+    @State private var showWeekCompletionModal: Bool = false
+    @State private var recentlyCompletedWeekIndex: Int? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -75,9 +79,17 @@ struct BlockRunModeView: View {
                             exercise.sets.map(\.isCompleted)
                         }
                     }
-                }) { _, _ in
+                }) { oldValue, newValue in
                     print("🔵 Set completion changed - auto-saving")
+                    
+                    // Capture previous state for week completion detection
+                    let previousWeeks = weeks
+                    
+                    // Perform the save
                     saveWeeks()
+                    
+                    // Check for week completion after save
+                    checkForWeekCompletion(previousWeeks: previousWeeks, currentWeeks: weeks)
                 }
                 .alert("You can skip â but champions donât.", isPresented: $showSkipAlert) {
                     Button("Stay on Track", role: .cancel) {
@@ -144,6 +156,14 @@ struct BlockRunModeView: View {
             // since the view is already disappearing
             if let error = saveError {
                 backgroundSaveError = error
+            }
+        }
+        .overlay {
+            if showWeekCompletionModal, let weekIndex = recentlyCompletedWeekIndex {
+                WeekCompletionModal(weekNumber: weekIndex + 1) {
+                    showWeekCompletionModal = false
+                    recentlyCompletedWeekIndex = nil
+                }
             }
         }
     }
@@ -324,6 +344,35 @@ struct BlockRunModeView: View {
                 }
             }
             print("   - Week \(weekIdx): \(weekCompletedSets)/\(weekTotalSets) sets completed")
+        }
+    }
+    
+    // MARK: - Week Completion Detection
+    
+    /// Checks for week completion transitions (false -> true) and shows modal if detected.
+    /// Called after set completion changes to detect when a week becomes fully completed.
+    ///
+    /// - Parameters:
+    ///   - previousWeeks: The week states before the change
+    ///   - currentWeeks: The week states after the change
+    private func checkForWeekCompletion(previousWeeks: [RunWeekState], currentWeeks: [RunWeekState]) {
+        guard previousWeeks.count == currentWeeks.count else {
+            // Week count changed, skip detection
+            return
+        }
+        
+        // Check each week for completion transition
+        for (index, currentWeek) in currentWeeks.enumerated() {
+            let previousWeek = previousWeeks[index]
+            
+            // Detect transition from incomplete to complete
+            if !previousWeek.isCompleted && currentWeek.isCompleted {
+                print("✅ Week \(index + 1) just completed!")
+                recentlyCompletedWeekIndex = index
+                showWeekCompletionModal = true
+                // Only show modal for the first detected completion in this batch
+                return
+            }
         }
     }
 
