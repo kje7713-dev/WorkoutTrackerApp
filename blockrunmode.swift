@@ -613,6 +613,9 @@ struct DayRunView: View {
 struct ExerciseRunCard: View {
     @Binding var exercise: RunExerciseState
     let onSave: () -> Void
+    
+    @State private var showTypeChangeConfirmation = false
+    @State private var pendingNewType: ExerciseType?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -629,7 +632,19 @@ struct ExerciseRunCard: View {
             Picker("Type", selection: Binding(
                 get: { exercise.type },
                 set: { newType in
-                    updateExerciseType(to: newType)
+                    // Check if there are any completed sets or logged values
+                    let hasProgress = exercise.sets.contains { $0.isCompleted } ||
+                                     exercise.sets.contains { set in
+                                         set.actualReps != nil || set.actualWeight != nil ||
+                                         set.actualTimeSeconds != nil || set.actualCalories != nil
+                                     }
+                    
+                    if hasProgress && newType != exercise.type {
+                        pendingNewType = newType
+                        showTypeChangeConfirmation = true
+                    } else {
+                        updateExerciseType(to: newType)
+                    }
                 }
             )) {
                 Text("Strength").tag(ExerciseType.strength)
@@ -692,6 +707,19 @@ struct ExerciseRunCard: View {
             .padding(.top, 4)
         }
         .padding()
+        .alert("Change Exercise Type?", isPresented: $showTypeChangeConfirmation) {
+            Button("Cancel", role: .cancel) {
+                pendingNewType = nil
+            }
+            Button("Change Type") {
+                if let newType = pendingNewType {
+                    updateExerciseType(to: newType)
+                    pendingNewType = nil
+                }
+            }
+        } message: {
+            Text("Changing the exercise type will reset all sets and lose logged values. This cannot be undone.")
+        }
     }
     
     // MARK: - Helper Functions

@@ -256,7 +256,9 @@ struct RunStateMapper {
                 updatedExercise.loggedSets = updatedLoggedSets
                 updatedExercises.append(updatedExercise)
             } else {
-                // Add new exercise
+                // Add new exercise (added during workout, not from template)
+                // Note: expectedSets is empty because these exercises weren't planned
+                // in the original template. This is correct and maintains data integrity.
                 let newExercise = SessionExercise(
                     customName: runExercise.name,
                     expectedSets: [],
