@@ -15,6 +15,7 @@ public struct SetControlView: View {
     let step: Double
     let formatter: NumberFormatter
     let min: Double
+    let max: Double?
 
     public init(
         label: String,
@@ -22,7 +23,8 @@ public struct SetControlView: View {
         value: Binding<Double?>,
         step: Double,
         formatter: NumberFormatter,
-        min: Double
+        min: Double,
+        max: Double? = nil
     ) {
         self.label = label
         self.unit = unit
@@ -30,6 +32,7 @@ public struct SetControlView: View {
         self.step = step
         self.formatter = formatter
         self.min = min
+        self.max = max
     }
 
     public var body: some View {
@@ -58,7 +61,8 @@ public struct SetControlView: View {
 
                 Button {
                     if let currentValue = value {
-                        value = currentValue + step
+                        let newValue = currentValue + step
+                        value = max.map { Swift.min(newValue, $0) } ?? newValue
                     } else {
                         value = min + step
                     }

@@ -126,6 +126,11 @@ struct RunStateMapper {
             actualDistanceMeters: sessionSet.loggedDistance,
             actualCalories: sessionSet.loggedCalories,
             actualRounds: sessionSet.loggedRounds,
+            rpe: sessionSet.rpe,
+            rir: sessionSet.rir,
+            tempo: sessionSet.tempo,
+            restSeconds: sessionSet.restSeconds,
+            notes: sessionSet.notes,
             isCompleted: sessionSet.isCompleted
         )
     }
@@ -235,6 +240,11 @@ struct RunStateMapper {
                         updatedSet.loggedDistance = runSet.actualDistanceMeters
                         updatedSet.loggedCalories = runSet.actualCalories
                         updatedSet.loggedRounds = runSet.actualRounds
+                        updatedSet.rpe = runSet.rpe
+                        updatedSet.rir = runSet.rir
+                        updatedSet.tempo = runSet.tempo
+                        updatedSet.restSeconds = runSet.restSeconds
+                        updatedSet.notes = runSet.notes
                         updatedSet.isCompleted = runSet.isCompleted
                         updatedLoggedSets.append(updatedSet)
                     } else {
@@ -247,6 +257,11 @@ struct RunStateMapper {
                             loggedDistance: runSet.actualDistanceMeters,
                             loggedCalories: runSet.actualCalories,
                             loggedRounds: runSet.actualRounds,
+                            rpe: runSet.rpe,
+                            rir: runSet.rir,
+                            tempo: runSet.tempo,
+                            restSeconds: runSet.restSeconds,
+                            notes: runSet.notes,
                             isCompleted: runSet.isCompleted
                         )
                         updatedLoggedSets.append(newSet)
@@ -274,6 +289,11 @@ struct RunStateMapper {
                             loggedDistance: runSet.actualDistanceMeters,
                             loggedCalories: runSet.actualCalories,
                             loggedRounds: runSet.actualRounds,
+                            rpe: runSet.rpe,
+                            rir: runSet.rir,
+                            tempo: runSet.tempo,
+                            restSeconds: runSet.restSeconds,
+                            notes: runSet.notes,
                             isCompleted: runSet.isCompleted
                         )
                     }

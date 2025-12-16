@@ -25,11 +25,20 @@ struct EditableExercise: Identifiable, Equatable {
     var strengthSetsCount: Int = 3
     var strengthReps: Int = 5
     var strengthWeight: Double? = nil
+    var strengthPercentageOfMax: Double? = nil
+    var strengthRPE: Double? = nil
+    var strengthRIR: Double? = nil
+    var strengthTempo: String = ""
+    var strengthRestSeconds: Int? = nil
 
     // Conditioning fields
     var conditioningDurationSeconds: Int? = nil
+    var conditioningDistanceMeters: Double? = nil
     var conditioningRounds: Int? = nil
     var conditioningCalories: Double? = nil
+    var conditioningTargetPace: String = ""
+    var conditioningEffortDescriptor: String = ""
+    var conditioningRestSeconds: Int? = nil
 
     var notes: String = ""
 }
@@ -356,11 +365,11 @@ struct BlockBuilderView: View {
                         index: 0,
                         reps: editableExercise.strengthReps,
                         weight: editableExercise.strengthWeight,
-                        percentageOfMax: nil,
-                        rpe: nil,
-                        rir: nil,
-                        tempo: nil,
-                        restSeconds: nil,
+                        percentageOfMax: editableExercise.strengthPercentageOfMax,
+                        rpe: editableExercise.strengthRPE,
+                        rir: editableExercise.strengthRIR,
+                        tempo: editableExercise.strengthTempo.isEmpty ? nil : editableExercise.strengthTempo,
+                        restSeconds: editableExercise.strengthRestSeconds,
                         notes: editableExercise.notes
                     )
                     let count = max(editableExercise.strengthSetsCount, 1)
@@ -374,12 +383,12 @@ struct BlockBuilderView: View {
                     let baseSet = ConditioningSetTemplate(
                         index: 0,
                         durationSeconds: editableExercise.conditioningDurationSeconds,
-                        distanceMeters: nil,
+                        distanceMeters: editableExercise.conditioningDistanceMeters,
                         calories: editableExercise.conditioningCalories,
                         rounds: editableExercise.conditioningRounds,
-                        targetPace: nil,
-                        effortDescriptor: nil,
-                        restSeconds: nil,
+                        targetPace: editableExercise.conditioningTargetPace.isEmpty ? nil : editableExercise.conditioningTargetPace,
+                        effortDescriptor: editableExercise.conditioningEffortDescriptor.isEmpty ? nil : editableExercise.conditioningEffortDescriptor,
+                        restSeconds: editableExercise.conditioningRestSeconds,
                         notes: editableExercise.notes
                     )
                     conditioningSets = [baseSet]
@@ -536,6 +545,11 @@ struct BlockBuilderView: View {
                     e.strengthSetsCount = sets.count
                     e.strengthReps = first.reps ?? e.strengthReps
                     e.strengthWeight = first.weight
+                    e.strengthPercentageOfMax = first.percentageOfMax
+                    e.strengthRPE = first.rpe
+                    e.strengthRIR = first.rir
+                    e.strengthTempo = first.tempo ?? ""
+                    e.strengthRestSeconds = first.restSeconds
                 }
 
                 // Conditioning mapping
@@ -543,8 +557,12 @@ struct BlockBuilderView: View {
                    let sets = exercise.conditioningSets,
                    let first = sets.first {
                     e.conditioningDurationSeconds = first.durationSeconds
+                    e.conditioningDistanceMeters = first.distanceMeters
                     e.conditioningCalories = first.calories
                     e.conditioningRounds = first.rounds
+                    e.conditioningTargetPace = first.targetPace ?? ""
+                    e.conditioningEffortDescriptor = first.effortDescriptor ?? ""
+                    e.conditioningRestSeconds = first.restSeconds
                 }
 
                 return e
@@ -703,6 +721,20 @@ struct ExerciseEditorRow: View {
 
             TextField("Weight (optional)", value: $exercise.strengthWeight, format: .number)
                 .keyboardType(.decimalPad)
+            
+            TextField("% of Max (0-100, optional)", value: $exercise.strengthPercentageOfMax, format: .number)
+                .keyboardType(.decimalPad)
+            
+            TextField("RPE (1-10, optional)", value: $exercise.strengthRPE, format: .number)
+                .keyboardType(.decimalPad)
+            
+            TextField("RIR (0-5, optional)", value: $exercise.strengthRIR, format: .number)
+                .keyboardType(.decimalPad)
+            
+            TextField("Tempo (e.g., 3010, optional)", text: $exercise.strengthTempo)
+            
+            TextField("Rest seconds (optional)", value: $exercise.strengthRestSeconds, format: .number)
+                .keyboardType(.numberPad)
         }
     }
 
@@ -715,6 +747,13 @@ struct ExerciseEditorRow: View {
                 text: durationMinutesBinding
             )
             .keyboardType(.numberPad)
+            
+            TextField(
+                "Distance (meters, optional)",
+                value: $exercise.conditioningDistanceMeters,
+                format: .number
+            )
+            .keyboardType(.decimalPad)
 
             TextField(
                 "Calories (optional)",
@@ -729,6 +768,13 @@ struct ExerciseEditorRow: View {
                 format: .number
             )
             .keyboardType(.numberPad)
+            
+            TextField("Target pace (e.g., 2:00/500m, optional)", text: $exercise.conditioningTargetPace)
+            
+            TextField("Effort (e.g., easy, moderate, hard, optional)", text: $exercise.conditioningEffortDescriptor)
+            
+            TextField("Rest seconds (optional)", value: $exercise.conditioningRestSeconds, format: .number)
+                .keyboardType(.numberPad)
 
             Text("Use notes for details like EMOM / AMRAP / pacing.")
                 .font(.footnote)
