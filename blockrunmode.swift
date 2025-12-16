@@ -685,9 +685,12 @@ struct DayRunView: View {
     // MARK: - Helper Functions
     
     private func addExercise(type: ExerciseType) {
-        let newExerciseIndex = day.exercises.count + 1
+        // Use current count for naming consistency
+        let exerciseNumber = day.exercises.count + 1
+        let exerciseName = "New Exercise \(exerciseNumber)"
+        
         let newExercise = RunExerciseState(
-            name: "New Exercise \(newExerciseIndex)",
+            name: exerciseName,
             type: type,
             notes: "",
             sets: [
@@ -702,7 +705,7 @@ struct DayRunView: View {
         
         // If user chose to persist, add to block template and future sessions
         if persistToFutureWeeks {
-            addExerciseToBlockTemplate(type: type, name: "New Exercise \(newExerciseIndex)")
+            addExerciseToBlockTemplate(type: type, name: exerciseName)
         }
         
         onSave()
@@ -716,7 +719,10 @@ struct DayRunView: View {
         var updatedBlock = block
         
         // Ensure dayIndex is valid
-        guard dayIndex < updatedBlock.days.count else { return }
+        guard dayIndex < updatedBlock.days.count else {
+            print("⚠️ Invalid dayIndex: \(dayIndex) for block with \(updatedBlock.days.count) days")
+            return
+        }
         
         // Create a new exercise template
         let newTemplate = ExerciseTemplate(
@@ -754,7 +760,8 @@ struct DayRunView: View {
             }) {
                 // Create a new SessionExercise from the template
                 let expectedSets = factory.makeSessionSetsFromTemplate(newTemplate, weekIndex: futureWeekNumber)
-                let loggedSets = expectedSets
+                // Create a copy to avoid shared reference
+                let loggedSets = expectedSets.map { $0 }
                 
                 let newSessionExercise = SessionExercise(
                     id: UUID(),
