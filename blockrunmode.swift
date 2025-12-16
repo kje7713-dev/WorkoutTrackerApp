@@ -633,11 +633,15 @@ struct ExerciseRunCard: View {
                 get: { exercise.type },
                 set: { newType in
                     // Check if there are any completed sets or logged values
-                    let hasProgress = exercise.sets.contains { $0.isCompleted } ||
-                                     exercise.sets.contains { set in
-                                         set.actualReps != nil || set.actualWeight != nil ||
-                                         set.actualTimeSeconds != nil || set.actualCalories != nil
-                                     }
+                    let hasProgress = exercise.sets.contains { set in
+                        set.isCompleted ||
+                        set.actualReps != nil ||
+                        set.actualWeight != nil ||
+                        set.actualTimeSeconds != nil ||
+                        set.actualDistanceMeters != nil ||
+                        set.actualCalories != nil ||
+                        set.actualRounds != nil
+                    }
                     
                     if hasProgress && newType != exercise.type {
                         pendingNewType = newType
