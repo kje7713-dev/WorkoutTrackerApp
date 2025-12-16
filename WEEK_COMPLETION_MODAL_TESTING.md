@@ -13,14 +13,14 @@ The app now shows celebration modals when:
 ## Modal Specifications
 
 ### Week Completion Modal
-- **Title**: "Week completed"
-- **Message**: "Excellence is not an act but a habit."
+- **Title**: "WEEK COMPLETE"
+- **Message**: "Solid work — keep grinding."
 - **Styling**: Dark blue gradient header, rounded card with shadow
 - **Dismiss**: "OK" button
 
 ### Block Completion Modal
-- **Title**: "Block completed"  
-- **Message**: "Fuck yeah! Block built."
+- **Title**: "BLOCK COMPLETE"  
+- **Message**: "Fuck yeah — block built."
 - **Styling**: Bright blue/purple gradient header (more vibrant than week modal)
 - **Dismiss**: "OK" button
 - **Priority**: Shows instead of week modal when completing the final week

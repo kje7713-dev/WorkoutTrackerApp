@@ -122,8 +122,8 @@ struct WeekCompletionModal_Previews: PreviewProvider {
         Group {
             // Week completion preview
             WeekCompletionModal(
-                title: "Week completed",
-                message: "Excellence is not an act but a habit.",
+                title: "WEEK COMPLETE",
+                message: "Solid work — keep grinding.",
                 isBlockCompletion: false,
                 onDismiss: {}
             )
@@ -131,8 +131,8 @@ struct WeekCompletionModal_Previews: PreviewProvider {
             
             // Block completion preview
             WeekCompletionModal(
-                title: "Block completed",
-                message: "Fuck yeah! Block built.",
+                title: "BLOCK COMPLETE",
+                message: "Fuck yeah — block built.",
                 isBlockCompletion: true,
                 onDismiss: {}
             )
