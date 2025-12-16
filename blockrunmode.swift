@@ -767,30 +767,9 @@ struct DayRunView: View {
             }) {
                 // Create a new SessionExercise from the template
                 let expectedSets = factory.makeSessionSetsFromTemplate(newTemplate, weekIndex: futureWeekNumber)
-                // Create independent copies for logged sets (SessionSet is a value type struct)
-                // This ensures modifications to logged sets don't affect expected sets
-                let loggedSets = expectedSets.map { SessionSet(
-                    id: UUID(),
-                    index: $0.index,
-                    expectedReps: $0.expectedReps,
-                    expectedWeight: $0.expectedWeight,
-                    expectedTime: $0.expectedTime,
-                    expectedDistance: $0.expectedDistance,
-                    expectedCalories: $0.expectedCalories,
-                    expectedRounds: $0.expectedRounds,
-                    loggedReps: $0.loggedReps,
-                    loggedWeight: $0.loggedWeight,
-                    loggedTime: $0.loggedTime,
-                    loggedDistance: $0.loggedDistance,
-                    loggedCalories: $0.loggedCalories,
-                    loggedRounds: $0.loggedRounds,
-                    rpe: $0.rpe,
-                    rir: $0.rir,
-                    tempo: $0.tempo,
-                    restSeconds: $0.restSeconds,
-                    notes: $0.notes,
-                    isCompleted: $0.isCompleted
-                ) }
+                // SessionSet is a value type (struct), so this assignment creates independent copies
+                // matching the pattern used in SessionFactory.makeSessionExercises
+                let loggedSets = expectedSets
                 
                 let newSessionExercise = SessionExercise(
                     id: UUID(),
