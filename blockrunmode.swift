@@ -84,7 +84,7 @@ struct BlockRunModeView: View {
                     print("🔵 Set completion changed - auto-saving")
                     saveWeeks()
                 }
-                .alert("You can skip â but champions donât.", isPresented: $showSkipAlert) {
+                .alert("You can skip • but champions don't.", isPresented: $showSkipAlert) {
                     Button("Stay on Track", role: .cancel) {
                         pendingWeekIndex = nil
                     }
@@ -153,27 +153,17 @@ struct BlockRunModeView: View {
         }
         .overlay(
             Group {
-                if showWeekCompletionModal {
+                if showWeekCompletionModal || showBlockCompletionModal {
                     WeekCompletionModal(
-                        title: "Week completed",
-                        message: "Excellence is not an act but a habit.",
-                        isBlockCompletion: false,
+                        title: showBlockCompletionModal ? "BLOCK COMPLETE" : "WEEK COMPLETE",
+                        message: showBlockCompletionModal ? "Fuck yeah — block built." : "Solid work — keep grinding.",
+                        isBlockCompletion: showBlockCompletionModal,
                         onDismiss: {
-                            showWeekCompletionModal = false
-                            recentlyCompletedWeekIndex = nil
-                        }
-                    )
-                    .transition(.opacity)
-                }
-                
-                if showBlockCompletionModal {
-                    WeekCompletionModal(
-                        title: "Block completed",
-                        message: "Fuck yeah! Block built.",
-                        isBlockCompletion: true,
-                        onDismiss: {
-                            showBlockCompletionModal = false
-                            recentlyCompletedWeekIndex = nil
+                            DispatchQueue.main.async {
+                                showBlockCompletionModal = false
+                                showWeekCompletionModal = false
+                                recentlyCompletedWeekIndex = nil
+                            }
                         }
                     )
                     .transition(.opacity)
@@ -209,7 +199,7 @@ struct BlockRunModeView: View {
                 return block.days[currentDayIndex].shortCode ?? ""
             }()
 
-            Text("Week \(currentWeekIndex + 1) â¢ \(short.uppercased())")
+            Text("Week \(currentWeekIndex + 1) • \(short.uppercased())")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .kerning(0.5)
@@ -458,7 +448,7 @@ struct BlockRunModeView: View {
 
                             let combined = [repsText, weightText]
                                 .filter { !$0.isEmpty }
-                                .joined(separator: " â¢ ")
+                                .joined(separator: " • ")
 
                             let plannedReps = set.reps
                             let plannedWeight = set.weight
@@ -497,7 +487,7 @@ struct BlockRunModeView: View {
                                 parts.append("\(rounds) rounds")
                             }
 
-                            let combined = parts.isEmpty ? "Conditioning" : parts.joined(separator: " â¢ ")
+                            let combined = parts.isEmpty ? "Conditioning" : parts.joined(separator: " • ")
 
                             let plannedTime = set.durationSeconds.map(Double.init)
                             let plannedDistance = set.distanceMeters
