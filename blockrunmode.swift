@@ -672,11 +672,11 @@ struct DayRunView: View {
         }
         .sheet(isPresented: $showExerciseTypeSheet) {
             AddExerciseSheet(
-                isPresented: $showExerciseTypeSheet,
                 persistToFutureWeeks: $persistToFutureWeeks,
                 canPersist: weekIndex < (block.numberOfWeeks - 1),
                 onAddExercise: { type in
                     addExercise(type: type)
+                    showExerciseTypeSheet = false
                 }
             )
         }
@@ -757,6 +757,7 @@ struct DayRunView: View {
                 let loggedSets = expectedSets
                 
                 let newSessionExercise = SessionExercise(
+                    id: UUID(),
                     exerciseTemplateId: newTemplate.id,
                     exerciseDefinitionId: newTemplate.exerciseDefinitionId,
                     customName: newTemplate.customName,
@@ -1339,10 +1340,11 @@ struct RunSetState: Identifiable, Codable {
 // MARK: - Add Exercise Sheet
 
 struct AddExerciseSheet: View {
-    @Binding var isPresented: Bool
     @Binding var persistToFutureWeeks: Bool
     let canPersist: Bool
     let onAddExercise: (ExerciseType) -> Void
+    
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         NavigationView {
@@ -1354,7 +1356,6 @@ struct AddExerciseSheet: View {
                 VStack(spacing: 12) {
                     Button {
                         onAddExercise(.strength)
-                        isPresented = false
                     } label: {
                         Text("Strength")
                             .font(.body)
@@ -1367,7 +1368,6 @@ struct AddExerciseSheet: View {
                     
                     Button {
                         onAddExercise(.conditioning)
-                        isPresented = false
                     } label: {
                         Text("Conditioning")
                             .font(.body)
@@ -1391,9 +1391,13 @@ struct AddExerciseSheet: View {
                 
                 Spacer()
             }
-            .navigationBarItems(trailing: Button("Cancel") {
-                isPresented = false
-            })
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
         }
         .presentationDetents([.medium])
     }
