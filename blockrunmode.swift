@@ -804,19 +804,13 @@ struct SetRunRow: View {
             print("🔵 Set isCompleted changed - triggering save")
             onSave()
         }
-        .onChange(of: runSet.rpe) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.rir) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.tempo) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.restSeconds) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.notes) { _, _ in
+        .onChange(of: [
+            runSet.rpe.map(String.init) ?? "",
+            runSet.rir.map(String.init) ?? "",
+            runSet.tempo ?? "",
+            runSet.restSeconds.map(String.init) ?? "",
+            runSet.notes ?? ""
+        ]) { _, _ in
             onSave()
         }
     }
@@ -935,7 +929,17 @@ struct SetRunRow: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         HStack(spacing: 8) {
-                            TextField("RPE", value: $runSet.rpe, format: .number)
+                            TextField("RPE", value: Binding(
+                                get: { runSet.rpe },
+                                set: { newValue in
+                                    // Clamp RPE to 1-10 range
+                                    if let value = newValue {
+                                        runSet.rpe = min(max(value, 1.0), 10.0)
+                                    } else {
+                                        runSet.rpe = nil
+                                    }
+                                }
+                            ), format: .number)
                                 .textFieldStyle(.roundedBorder)
                                 .keyboardType(.decimalPad)
                                 .frame(width: 80)
@@ -951,7 +955,17 @@ struct SetRunRow: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         HStack(spacing: 8) {
-                            TextField("RIR", value: $runSet.rir, format: .number)
+                            TextField("RIR", value: Binding(
+                                get: { runSet.rir },
+                                set: { newValue in
+                                    // Ensure RIR is non-negative
+                                    if let value = newValue {
+                                        runSet.rir = max(value, 0.0)
+                                    } else {
+                                        runSet.rir = nil
+                                    }
+                                }
+                            ), format: .number)
                                 .textFieldStyle(.roundedBorder)
                                 .keyboardType(.decimalPad)
                                 .frame(width: 80)
