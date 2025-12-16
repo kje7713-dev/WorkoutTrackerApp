@@ -257,8 +257,11 @@ struct RunStateMapper {
                 updatedExercises.append(updatedExercise)
             } else {
                 // Add new exercise (added during workout, not from template)
-                // Note: expectedSets is empty because these exercises weren't planned
-                // in the original template. This is correct and maintains data integrity.
+                // Note: expectedSets is empty because these exercises weren't planned in the
+                // original template. expectedSets represents the original workout plan structure,
+                // while loggedSets contains the actual workout data including dynamically added
+                // exercises and sets. This maintains data integrity and proper separation of
+                // planned vs. actual tracking.
                 let newExercise = SessionExercise(
                     customName: runExercise.name,
                     expectedSets: [],
