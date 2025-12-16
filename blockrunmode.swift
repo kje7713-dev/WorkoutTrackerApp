@@ -671,6 +671,8 @@ struct ExerciseRunCard: View {
 struct SetRunRow: View {
     @Binding var runSet: RunSetState
     let onSave: () -> Void
+    
+    @State private var showMetadata: Bool = false
 
     // Strength helpers (keeping these for clarity, though not directly used in the new UI)
     private var repsValue: Int {
@@ -731,6 +733,9 @@ struct SetRunRow: View {
             } else if runSet.type == .conditioning {
                 conditioningControls
             }
+
+            // Additional metadata fields (collapsible)
+            metadataSection
 
             // Complete / Undo
             HStack {
@@ -797,6 +802,21 @@ struct SetRunRow: View {
         }
         .onChange(of: runSet.isCompleted) { _, _ in
             print("🔵 Set isCompleted changed - triggering save")
+            onSave()
+        }
+        .onChange(of: runSet.rpe) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.rir) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.tempo) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.restSeconds) { _, _ in
+            onSave()
+        }
+        .onChange(of: runSet.notes) { _, _ in
             onSave()
         }
     }
@@ -886,6 +906,108 @@ struct SetRunRow: View {
             )
         }
     }
+
+    // MARK: - Metadata Section UI
+
+    private var metadataSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Toggle button
+            Button(action: {
+                showMetadata.toggle()
+            }) {
+                HStack {
+                    Text("Additional Details")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Image(systemName: showMetadata ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            if showMetadata {
+                VStack(alignment: .leading, spacing: 12) {
+                    // RPE (Rating of Perceived Exertion)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("RPE (1-10)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        HStack(spacing: 8) {
+                            TextField("RPE", value: $runSet.rpe, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .keyboardType(.decimalPad)
+                                .frame(width: 80)
+                            Text("Rating of Perceived Exertion")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    // RIR (Reps In Reserve)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("RIR (0-5+)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        HStack(spacing: 8) {
+                            TextField("RIR", value: $runSet.rir, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .keyboardType(.decimalPad)
+                                .frame(width: 80)
+                            Text("Reps In Reserve")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    // Tempo
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Tempo (e.g., 3-0-1-0)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        TextField("Tempo", text: Binding(
+                            get: { runSet.tempo ?? "" },
+                            set: { runSet.tempo = $0.isEmpty ? nil : $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                        .disableAutocorrection(true)
+                    }
+
+                    // Rest Seconds
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Rest (seconds)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        HStack(spacing: 8) {
+                            TextField("Rest", value: $runSet.restSeconds, format: .number)
+                                .textFieldStyle(.roundedBorder)
+                                .keyboardType(.numberPad)
+                                .frame(width: 80)
+                            Text("seconds")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    // Notes
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Notes")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        TextField("Set notes", text: Binding(
+                            get: { runSet.notes ?? "" },
+                            set: { runSet.notes = $0.isEmpty ? nil : $0 }
+                        ), axis: .vertical)
+                        .lineLimit(1...3)
+                        .textFieldStyle(.roundedBorder)
+                    }
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding(.vertical, 8)
+    }
 }
 
 // MARK: - Run State Models (No changes here)
@@ -945,6 +1067,13 @@ struct RunSetState: Identifiable, Codable {
     var actualCalories: Double?
     var actualRounds: Int?
 
+    // Effort and metadata fields
+    var rpe: Double?        // Rating of Perceived Exertion (1-10)
+    var rir: Double?        // Reps In Reserve (0-5+)
+    var tempo: String?      // Tempo notation (e.g., "3-0-1-0")
+    var restSeconds: Int?   // Rest period between sets
+    var notes: String?      // Set-specific notes
+
     var isCompleted: Bool = false
 
     init(
@@ -963,6 +1092,11 @@ struct RunSetState: Identifiable, Codable {
         actualDistanceMeters: Double? = nil,
         actualCalories: Double? = nil,
         actualRounds: Int? = nil,
+        rpe: Double? = nil,
+        rir: Double? = nil,
+        tempo: String? = nil,
+        restSeconds: Int? = nil,
+        notes: String? = nil,
         isCompleted: Bool = false
     ) {
         self.indexInExercise = indexInExercise
@@ -980,6 +1114,11 @@ struct RunSetState: Identifiable, Codable {
         self.actualDistanceMeters = actualDistanceMeters
         self.actualCalories = actualCalories
         self.actualRounds = actualRounds
+        self.rpe = rpe
+        self.rir = rir
+        self.tempo = tempo
+        self.restSeconds = restSeconds
+        self.notes = notes
         self.isCompleted = isCompleted
     }
 }
