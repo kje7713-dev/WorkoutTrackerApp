@@ -642,6 +642,7 @@ struct ExerciseEditorRow: View {
 
             // Exercise name picker with dropdown support
             ExerciseNamePicker(exerciseName: $exercise.name, exerciseType: exercise.type)
+                .id(exercise.type) // Force refresh when type changes
 
             Picker("Type", selection: $exercise.type) {
                 Text("Strength").tag(ExerciseType.strength)
