@@ -219,47 +219,96 @@ struct RunStateMapper {
     ) -> WorkoutSession {
         var updatedSession = session
         
-        // Update exercises with logged values
-        updatedSession.exercises = session.exercises.enumerated().map { (exerciseIndex, sessionExercise) in
-            guard exerciseIndex < runDay.exercises.count else {
-                return sessionExercise
-            }
-            
-            let runExercise = runDay.exercises[exerciseIndex]
-            var updatedExercise = sessionExercise
-            
-            // Update logged sets with values from run state
-            updatedExercise.loggedSets = sessionExercise.loggedSets.enumerated().map { (setIndex, sessionSet) in
-                guard setIndex < runExercise.sets.count else {
-                    return sessionSet
+        // Build list of updated/new exercises
+        var updatedExercises: [SessionExercise] = []
+        
+        for (exerciseIndex, runExercise) in runDay.exercises.enumerated() {
+            if exerciseIndex < session.exercises.count {
+                // Update existing exercise
+                let sessionExercise = session.exercises[exerciseIndex]
+                var updatedExercise = sessionExercise
+                
+                // Update logged sets with values from run state
+                var updatedLoggedSets: [SessionSet] = []
+                for (setIndex, runSet) in runExercise.sets.enumerated() {
+                    if setIndex < sessionExercise.loggedSets.count {
+                        // Update existing set
+                        var updatedSet = sessionExercise.loggedSets[setIndex]
+                        
+                        // Update performance fields (reps, weight, time, etc.)
+                        updatedSet.loggedReps = runSet.actualReps
+                        updatedSet.loggedWeight = runSet.actualWeight
+                        updatedSet.loggedTime = runSet.actualTimeSeconds
+                        updatedSet.loggedDistance = runSet.actualDistanceMeters
+                        updatedSet.loggedCalories = runSet.actualCalories
+                        updatedSet.loggedRounds = runSet.actualRounds
+                        
+                        // Update training metadata (effort, tempo, rest, notes)
+                        updatedSet.rpe = runSet.rpe
+                        updatedSet.rir = runSet.rir
+                        updatedSet.tempo = runSet.tempo
+                        updatedSet.restSeconds = runSet.restSeconds
+                        updatedSet.notes = runSet.notes
+                        
+                        // Update completion status
+                        updatedSet.isCompleted = runSet.isCompleted
+                        updatedLoggedSets.append(updatedSet)
+                    } else {
+                        // Add new set
+                        let newSet = SessionSet(
+                            index: setIndex,
+                            loggedReps: runSet.actualReps,
+                            loggedWeight: runSet.actualWeight,
+                            loggedTime: runSet.actualTimeSeconds,
+                            loggedDistance: runSet.actualDistanceMeters,
+                            loggedCalories: runSet.actualCalories,
+                            loggedRounds: runSet.actualRounds,
+                            rpe: runSet.rpe,
+                            rir: runSet.rir,
+                            tempo: runSet.tempo,
+                            restSeconds: runSet.restSeconds,
+                            notes: runSet.notes,
+                            isCompleted: runSet.isCompleted
+                        )
+                        updatedLoggedSets.append(newSet)
+                    }
                 }
                 
-                let runSet = runExercise.sets[setIndex]
-                var updatedSet = sessionSet
-                
-                // Update performance fields (reps, weight, time, etc.)
-                updatedSet.loggedReps = runSet.actualReps
-                updatedSet.loggedWeight = runSet.actualWeight
-                updatedSet.loggedTime = runSet.actualTimeSeconds
-                updatedSet.loggedDistance = runSet.actualDistanceMeters
-                updatedSet.loggedCalories = runSet.actualCalories
-                updatedSet.loggedRounds = runSet.actualRounds
-                
-                // Update training metadata (effort, tempo, rest, notes)
-                updatedSet.rpe = runSet.rpe
-                updatedSet.rir = runSet.rir
-                updatedSet.tempo = runSet.tempo
-                updatedSet.restSeconds = runSet.restSeconds
-                updatedSet.notes = runSet.notes
-                
-                // Update completion status
-                updatedSet.isCompleted = runSet.isCompleted
-                
-                return updatedSet
+                updatedExercise.loggedSets = updatedLoggedSets
+                updatedExercises.append(updatedExercise)
+            } else {
+                // Add new exercise (added during workout, not from template)
+                // Note: expectedSets is empty because these exercises weren't planned in the
+                // original template. expectedSets represents the original workout plan structure,
+                // while loggedSets contains the actual workout data including dynamically added
+                // exercises and sets. This maintains data integrity and proper separation of
+                // planned vs. actual tracking.
+                let newExercise = SessionExercise(
+                    customName: runExercise.name,
+                    expectedSets: [],
+                    loggedSets: runExercise.sets.map { runSet in
+                        SessionSet(
+                            index: runSet.indexInExercise,
+                            loggedReps: runSet.actualReps,
+                            loggedWeight: runSet.actualWeight,
+                            loggedTime: runSet.actualTimeSeconds,
+                            loggedDistance: runSet.actualDistanceMeters,
+                            loggedCalories: runSet.actualCalories,
+                            loggedRounds: runSet.actualRounds,
+                            rpe: runSet.rpe,
+                            rir: runSet.rir,
+                            tempo: runSet.tempo,
+                            restSeconds: runSet.restSeconds,
+                            notes: runSet.notes,
+                            isCompleted: runSet.isCompleted
+                        )
+                    }
+                )
+                updatedExercises.append(newExercise)
             }
-            
-            return updatedExercise
         }
+        
+        updatedSession.exercises = updatedExercises
         
         // Update session status based on completion
         updatedSession.status = calculateSessionStatus(for: updatedSession)

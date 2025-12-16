@@ -551,6 +551,8 @@ struct DayTabBar: View {
 struct DayRunView: View {
     @Binding var day: RunDayState
     let onSave: () -> Void
+    
+    @State private var showExerciseTypeSheet = false
 
     var body: some View {
         ScrollView {
@@ -560,21 +562,7 @@ struct DayRunView: View {
                 }
 
                 Button {
-                    let newExerciseIndex = day.exercises.count + 1
-                    let newExercise = RunExerciseState(
-                        name: "New Exercise \(newExerciseIndex)",
-                        type: .strength,
-                        notes: "",
-                        sets: [
-                            RunSetState(
-                                indexInExercise: 0,
-                                displayText: "Set 1",
-                                type: .strength
-                            )
-                        ]
-                    )
-                    day.exercises.append(newExercise)
-                    onSave()
+                    showExerciseTypeSheet = true
                 } label: {
                     Label("Add Exercise", systemImage: "plus")
                         .font(.subheadline.bold())
@@ -590,12 +578,44 @@ struct DayRunView: View {
             .padding(.horizontal)
             .padding(.vertical)
         }
+        .confirmationDialog("Select Exercise Type", isPresented: $showExerciseTypeSheet) {
+            Button("Strength") {
+                addExercise(type: .strength)
+            }
+            Button("Conditioning") {
+                addExercise(type: .conditioning)
+            }
+            Button("Cancel", role: .cancel) { }
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func addExercise(type: ExerciseType) {
+        let newExerciseIndex = day.exercises.count + 1
+        let newExercise = RunExerciseState(
+            name: "New Exercise \(newExerciseIndex)",
+            type: type,
+            notes: "",
+            sets: [
+                RunSetState(
+                    indexInExercise: 0,
+                    displayText: "Set 1",
+                    type: type
+                )
+            ]
+        )
+        day.exercises.append(newExercise)
+        onSave()
     }
 }
 
 struct ExerciseRunCard: View {
     @Binding var exercise: RunExerciseState
     let onSave: () -> Void
+    
+    @State private var showTypeChangeConfirmation = false
+    @State private var pendingNewType: ExerciseType?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -607,6 +627,34 @@ struct ExerciseRunCard: View {
                 .onChange(of: exercise.name) { _, _ in
                     onSave()
                 }
+
+            // Exercise type picker
+            Picker("Type", selection: Binding(
+                get: { exercise.type },
+                set: { newType in
+                    // Check if there are any completed sets or logged values
+                    let hasProgress = exercise.sets.contains { set in
+                        set.isCompleted ||
+                        set.actualReps != nil ||
+                        set.actualWeight != nil ||
+                        set.actualTimeSeconds != nil ||
+                        set.actualDistanceMeters != nil ||
+                        set.actualCalories != nil ||
+                        set.actualRounds != nil
+                    }
+                    
+                    if hasProgress && newType != exercise.type {
+                        pendingNewType = newType
+                        showTypeChangeConfirmation = true
+                    } else {
+                        updateExerciseType(to: newType)
+                    }
+                }
+            )) {
+                Text("Strength").tag(ExerciseType.strength)
+                Text("Conditioning").tag(ExerciseType.conditioning)
+            }
+            .pickerStyle(.segmented)
 
             // Existing notes from the template (if any)
             if !exercise.notes.isEmpty {
@@ -636,10 +684,10 @@ struct ExerciseRunCard: View {
             HStack {
                 Button {
                     let newIndex = exercise.sets.count
-                    let newSet = RunSetState(
+                    let newSet = createNewSet(
                         indexInExercise: newIndex,
-                        displayText: "Set \(newIndex + 1)",
-                        type: exercise.type
+                        exerciseType: exercise.type,
+                        previousSets: exercise.sets
                     )
                     exercise.sets.append(newSet)
                     onSave()
@@ -663,6 +711,145 @@ struct ExerciseRunCard: View {
             .padding(.top, 4)
         }
         .padding()
+        .alert("Change Exercise Type?", isPresented: $showTypeChangeConfirmation) {
+            Button("Cancel", role: .cancel) {
+                pendingNewType = nil
+            }
+            Button("Change Type") {
+                if let newType = pendingNewType {
+                    updateExerciseType(to: newType)
+                    pendingNewType = nil
+                }
+            }
+        } message: {
+            Text("Changing the exercise type will reset all sets and lose logged values. This cannot be undone.")
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    /// Updates the exercise type and regenerates sets with the new type
+    private func updateExerciseType(to newType: ExerciseType) {
+        // Store the current set count
+        let currentSetCount = exercise.sets.count
+        
+        // Update the exercise type
+        exercise.type = newType
+        
+        // Regenerate all sets with the new type
+        exercise.sets = (0..<currentSetCount).map { index in
+            RunSetState(
+                indexInExercise: index,
+                displayText: "Set \(index + 1)",
+                type: newType
+            )
+        }
+        
+        onSave()
+    }
+    
+    // MARK: - Helper: Create New Set with Prefilled Values
+    
+    /// Creates a new set, prefilling weight/reps from the most recent set if available.
+    /// Falls back to default values if no previous sets exist.
+    private func createNewSet(
+        indexInExercise: Int,
+        exerciseType: ExerciseType,
+        previousSets: [RunSetState]
+    ) -> RunSetState {
+        // Find the most recent set (last in the array)
+        guard let lastSet = previousSets.last else {
+            // No previous sets - use default values
+            return RunSetState(
+                indexInExercise: indexInExercise,
+                displayText: "Set \(indexInExercise + 1)",
+                type: exerciseType
+            )
+        }
+        
+        // Copy values from the most recent set based on exercise type
+        switch exerciseType {
+        case .strength:
+            return RunSetState(
+                indexInExercise: indexInExercise,
+                displayText: buildDisplayText(
+                    reps: lastSet.actualReps,
+                    weight: lastSet.actualWeight
+                ),
+                type: exerciseType,
+                plannedReps: lastSet.plannedReps,
+                plannedWeight: lastSet.plannedWeight,
+                actualReps: lastSet.actualReps,
+                actualWeight: lastSet.actualWeight
+            )
+            
+        case .conditioning:
+            return RunSetState(
+                indexInExercise: indexInExercise,
+                displayText: buildConditioningDisplayText(
+                    time: lastSet.actualTimeSeconds,
+                    distance: lastSet.actualDistanceMeters,
+                    calories: lastSet.actualCalories,
+                    rounds: lastSet.actualRounds
+                ),
+                type: exerciseType,
+                plannedTimeSeconds: lastSet.plannedTimeSeconds,
+                plannedDistanceMeters: lastSet.plannedDistanceMeters,
+                plannedCalories: lastSet.plannedCalories,
+                plannedRounds: lastSet.plannedRounds,
+                actualTimeSeconds: lastSet.actualTimeSeconds,
+                actualDistanceMeters: lastSet.actualDistanceMeters,
+                actualCalories: lastSet.actualCalories,
+                actualRounds: lastSet.actualRounds
+            )
+            
+        case .mixed, .other:
+            // For mixed and other types, use default values
+            // Mixed types should be handled by the UI allowing users to specify values manually
+            return RunSetState(
+                indexInExercise: indexInExercise,
+                displayText: "Set \(indexInExercise + 1)",
+                type: exerciseType
+            )
+        }
+    }
+    
+    /// Builds display text for strength sets
+    private func buildDisplayText(reps: Int?, weight: Double?) -> String {
+        let repsText = reps.map { "Reps: \($0)" } ?? ""
+        let weightText = weight.map { "Weight: \($0)" } ?? ""
+        let parts = [repsText, weightText].filter { !$0.isEmpty }
+        return parts.isEmpty ? "Strength set" : parts.joined(separator: " • ")
+    }
+    
+    /// Builds display text for conditioning sets
+    private func buildConditioningDisplayText(
+        time: Double?,
+        distance: Double?,
+        calories: Double?,
+        rounds: Int?
+    ) -> String {
+        var parts: [String] = []
+        
+        if let dur = time.map({ Int($0) }) {
+            if dur % 60 == 0 {
+                let mins = dur / 60
+                parts.append("\(mins) min")
+            } else {
+                parts.append("\(dur) sec")
+            }
+        }
+        if let dist = distance {
+            parts.append("\(Int(dist)) m")
+        }
+        if let cal = calories {
+            parts.append("\(Int(cal)) cal")
+        }
+        if let rnds = rounds {
+            parts.append("\(rnds) rounds")
+        }
+        
+        return parts.isEmpty ? "Conditioning" : parts.joined(separator: " • ")
     }
 }
 
@@ -999,6 +1186,9 @@ extension Binding where Value == Double? {
     ///   - binding: The source optional Double binding
     ///   - range: The valid range for values
     /// - Returns: A clamped binding where values outside the range are constrained
+    /// - Note: Values outside the range are silently constrained to the nearest boundary.
+    ///         For example, entering 11 when max is 10 will result in 10.
+    ///         No user feedback is provided about the clamping action.
     static func clamped(_ binding: Binding<Double?>, to range: ClosedRange<Double>) -> Binding<Double?> {
         Binding<Double?>(
             get: { binding.wrappedValue },
@@ -1017,6 +1207,8 @@ extension Binding where Value == Int? {
     /// Ensures the value is non-negative when set
     /// - Parameter binding: The source optional Int binding
     /// - Returns: A binding where negative values are converted to 0
+    /// - Note: Negative values are silently converted to 0 without user feedback.
+    ///         The numberPad keyboard type helps prevent negative input on iOS.
     static func nonNegative(_ binding: Binding<Int?>) -> Binding<Int?> {
         Binding<Int?>(
             get: { binding.wrappedValue },
@@ -1060,7 +1252,7 @@ struct RunDayState: Identifiable, Codable{
 struct RunExerciseState: Identifiable, Codable {
     let id = UUID()
     var name: String
-    let type: ExerciseType
+    var type: ExerciseType
     var notes: String
     var sets: [RunSetState]
 }
