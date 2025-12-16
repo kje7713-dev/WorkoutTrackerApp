@@ -744,24 +744,53 @@ struct DayRunView: View {
     private func regenerateSessionsForFutureWeeks(newTemplate: ExerciseTemplate) {
         let factory = SessionFactory()
         
+        // Validate dayIndex before proceeding
+        guard dayIndex < block.days.count else {
+            print("⚠️ Invalid dayIndex: \(dayIndex) for block with \(block.days.count) days in regenerateSessionsForFutureWeeks")
+            return
+        }
+        
         // Get all existing sessions for this block
         var allSessions = sessionsRepository.sessions(forBlockId: block.id)
         
         // For each future week (starting from next week), add the new exercise
         // Note: weekIndex in RunWeekState is 0-based, but WorkoutSession.weekIndex is 1-based
         let currentWeekNumber = weekIndex + 1 // Convert to 1-based
+        let dayTemplateId = block.days[dayIndex].id
         
         for futureWeekNumber in (currentWeekNumber + 1)...block.numberOfWeeks {
             // Find the session for this week and day
             if let sessionIndex = allSessions.firstIndex(where: {
                 $0.blockId == block.id &&
                 $0.weekIndex == futureWeekNumber &&
-                $0.dayTemplateId == block.days[dayIndex].id
+                $0.dayTemplateId == dayTemplateId
             }) {
                 // Create a new SessionExercise from the template
                 let expectedSets = factory.makeSessionSetsFromTemplate(newTemplate, weekIndex: futureWeekNumber)
-                // Create a copy to avoid shared reference
-                let loggedSets = expectedSets.map { $0 }
+                // Create independent copies for logged sets (SessionSet is a value type struct)
+                // This ensures modifications to logged sets don't affect expected sets
+                let loggedSets = expectedSets.map { SessionSet(
+                    id: UUID(),
+                    index: $0.index,
+                    expectedReps: $0.expectedReps,
+                    expectedWeight: $0.expectedWeight,
+                    expectedTime: $0.expectedTime,
+                    expectedDistance: $0.expectedDistance,
+                    expectedCalories: $0.expectedCalories,
+                    expectedRounds: $0.expectedRounds,
+                    loggedReps: $0.loggedReps,
+                    loggedWeight: $0.loggedWeight,
+                    loggedTime: $0.loggedTime,
+                    loggedDistance: $0.loggedDistance,
+                    loggedCalories: $0.loggedCalories,
+                    loggedRounds: $0.loggedRounds,
+                    rpe: $0.rpe,
+                    rir: $0.rir,
+                    tempo: $0.tempo,
+                    restSeconds: $0.restSeconds,
+                    notes: $0.notes,
+                    isCompleted: $0.isCompleted
+                ) }
                 
                 let newSessionExercise = SessionExercise(
                     id: UUID(),
