@@ -999,6 +999,9 @@ extension Binding where Value == Double? {
     ///   - binding: The source optional Double binding
     ///   - range: The valid range for values
     /// - Returns: A clamped binding where values outside the range are constrained
+    /// - Note: Values outside the range are silently constrained to the nearest boundary.
+    ///         For example, entering 11 when max is 10 will result in 10.
+    ///         No user feedback is provided about the clamping action.
     static func clamped(_ binding: Binding<Double?>, to range: ClosedRange<Double>) -> Binding<Double?> {
         Binding<Double?>(
             get: { binding.wrappedValue },
@@ -1017,6 +1020,8 @@ extension Binding where Value == Int? {
     /// Ensures the value is non-negative when set
     /// - Parameter binding: The source optional Int binding
     /// - Returns: A binding where negative values are converted to 0
+    /// - Note: Negative values are silently converted to 0 without user feedback.
+    ///         The numberPad keyboard type helps prevent negative input on iOS.
     static func nonNegative(_ binding: Binding<Int?>) -> Binding<Int?> {
         Binding<Int?>(
             get: { binding.wrappedValue },

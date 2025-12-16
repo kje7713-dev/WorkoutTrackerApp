@@ -147,15 +147,15 @@ This ensures conditioning exercises don't show irrelevant strength-specific fiel
 
 ## Known Limitations
 
-1. **No Validation**: RPE should be 0-10 but not enforced
-2. **No Formatting**: Tempo format not validated (user can enter anything)
+1. **Silent Validation**: RPE is clamped to 0-10 and RIR to 0-20, but no user feedback is provided when values are adjusted
+2. **No Formatting**: Tempo format not validated (user can enter any string)
 3. **No Field History**: Can't see previous set's metadata while editing current set
 4. **UI Space**: Metadata section takes vertical space (consider collapsible in future)
 
 ## Future Enhancements
 
-1. Add validation for RPE (0-10 range)
-2. Add tempo format hints/validation
+1. Add user feedback for input validation (visual cues when RPE/RIR values are clamped)
+2. Add tempo format hints/validation (e.g., pattern matching for "X-X-X-X")
 3. Make metadata section collapsible/expandable
 4. Add "Copy from previous set" button
 5. Add quick-fill buttons for common RPE/RIR values
