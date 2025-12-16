@@ -720,8 +720,9 @@ struct ExerciseRunCard: View {
                 actualRounds: lastSet.actualRounds
             )
             
-        default:
-            // For other types, just use default
+        case .mixed, .other:
+            // For mixed and other types, use default values
+            // Mixed types should be handled by the UI allowing users to specify values manually
             return RunSetState(
                 indexInExercise: indexInExercise,
                 displayText: "Set \(indexInExercise + 1)",

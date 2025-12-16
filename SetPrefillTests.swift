@@ -35,7 +35,10 @@ struct SetPrefillTests {
         
         // Act: Create a new set using the same logic as ExerciseRunCard
         let previousSets = exercise.sets
-        let lastSet = previousSets.last!
+        guard let lastSet = previousSets.last else {
+            print("  ❌ Test setup error: No previous sets found")
+            return false
+        }
         let newSet = RunSetState(
             indexInExercise: 1,
             displayText: "Set 2",
@@ -86,7 +89,10 @@ struct SetPrefillTests {
         
         // Act: Create a new set using the same logic as ExerciseRunCard
         let previousSets = exercise.sets
-        let lastSet = previousSets.last!
+        guard let lastSet = previousSets.last else {
+            print("  ❌ Test setup error: No previous sets found")
+            return false
+        }
         let newSet = RunSetState(
             indexInExercise: 1,
             displayText: "Set 2",
@@ -188,7 +194,10 @@ struct SetPrefillTests {
         
         // Act: Create a third set that should copy from the second set (245 lbs)
         let previousSets = exercise.sets
-        let lastSet = previousSets.last!
+        guard let lastSet = previousSets.last else {
+            print("  ❌ Test setup error: No previous sets found")
+            return false
+        }
         let newSet = RunSetState(
             indexInExercise: 2,
             displayText: "Set 3",
