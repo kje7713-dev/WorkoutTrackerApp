@@ -18,6 +18,11 @@ struct BlockGeneratorView: View {
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var sessionsRepository: SessionsRepository
     
+    // MARK: - Constants
+    
+    private let documentationURL = "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/BLOCK_JSON_IMPORT_README.md"
+    private let confirmationDisplayDuration: TimeInterval = 2.0
+    
     // MARK: - State
     
     @State private var showingFileImporter: Bool = false
@@ -142,7 +147,7 @@ struct BlockGeneratorView: View {
             }
             
             // Link to full documentation
-            if let docURL = URL(string: "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/BLOCK_JSON_IMPORT_README.md") {
+            if let docURL = URL(string: documentationURL) {
                 Link(destination: docURL) {
                     HStack {
                         Image(systemName: "book.fill")
@@ -442,12 +447,12 @@ struct BlockGeneratorView: View {
         // Show confirmation feedback
         showCopyConfirmation = true
         
-        // Hide confirmation after 2 seconds
+        // Hide confirmation after configured duration
         let task = DispatchWorkItem {
             showCopyConfirmation = false
         }
         hideConfirmationTask = task
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: task)
+        DispatchQueue.main.asyncAfter(deadline: .now() + confirmationDisplayDuration, execute: task)
     }
     
     private func saveBlock(_ block: Block) {
