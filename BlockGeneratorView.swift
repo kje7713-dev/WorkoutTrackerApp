@@ -352,7 +352,9 @@ struct BlockGeneratorView: View {
         
         IMPORTANT - JSON Format Specification:
         - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
-        - Most fields are REQUIRED unless marked as optional
+        - All BLOCK-LEVEL fields are REQUIRED (Title, Goal, TargetAthlete, DurationMinutes, etc.)
+        - Exercise fields vary: name is required, others marked [OPTIONAL] are truly optional
+        - You must provide EITHER "Exercises" (single-day) OR "Days" (multi-day), not both
         - Save output as a .json file: [BlockName]_[Weeks]W_[Days]D.json
         - Example: UpperLower_4W_4D.json or Strength_8W_3D.json
         

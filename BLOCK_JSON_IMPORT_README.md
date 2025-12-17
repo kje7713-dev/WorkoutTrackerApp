@@ -95,7 +95,7 @@ This is the simplest format for a single-day strength training block:
 | `EstimatedTotalTimeMinutes` | integer | ✅ Required | Total session time including warm-up/finisher | `60` |
 | `Progression` | string | ✅ Required | Week-to-week progression strategy | "Add 5 lbs per week, deload week 4" |
 
-**\*Note:** Use either `Exercises` (for single-day blocks) OR `Days` (for multi-day blocks), not both.
+**\*Note:** Use either `Exercises` (for single-day blocks) OR `Days` (for multi-day blocks), not both. If both are provided, `Days` takes priority and `Exercises` is ignored.
 
 ### Day-Level Fields (for Multi-Day Blocks)
 
@@ -142,7 +142,7 @@ For advanced blocks with detailed set-by-set programming:
 | `progressionDeltaWeight` | number | ⚪ Optional | Weight to add per week (lbs/kg) | `5.0`, `2.5`, `10.0` |
 | `progressionDeltaSets` | integer | ⚪ Optional | Sets to add per week | `1` |
 
-**\*Note:** Use either `setsReps` (simple) OR `sets` array (advanced).
+**\*Note:** Use either `setsReps` (simple) OR `sets` array (advanced). If both are provided, `sets` array takes priority and `setsReps` is ignored.
 
 ### Set Object (for Advanced Format)
 

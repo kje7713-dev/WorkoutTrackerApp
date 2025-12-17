@@ -489,12 +489,19 @@ public struct BlockGenerator {
         // Determine if this is a multi-day block or single-day
         let dayTemplates: [DayTemplate]
         
-        if let days = imported.Days, !days.isEmpty {
+        // Validate that either Days or Exercises is provided (not both, not neither)
+        let hasDays = imported.Days != nil && !imported.Days!.isEmpty
+        let hasExercises = imported.Exercises != nil && !imported.Exercises!.isEmpty
+        
+        if hasDays && hasExercises {
+            // Both provided - use Days and ignore Exercises (prioritize multi-day format)
+            dayTemplates = imported.Days!.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
+        } else if hasDays {
             // Multi-day block
-            dayTemplates = days.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
-        } else if let exercises = imported.Exercises, !exercises.isEmpty {
+            dayTemplates = imported.Days!.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
+        } else if hasExercises {
             // Single-day block (legacy format)
-            let convertedExercises = exercises.map { convertExercise($0) }
+            let convertedExercises = imported.Exercises!.map { convertExercise($0) }
             
             // Build notes section
             var blockNotes = ""
@@ -519,8 +526,14 @@ public struct BlockGenerator {
             )
             dayTemplates = [dayTemplate]
         } else {
-            // No exercises provided
-            dayTemplates = []
+            // Neither provided - create empty day with note
+            let dayTemplate = DayTemplate(
+                name: "Empty Block",
+                shortCode: "E1",
+                notes: "No exercises provided. Please add exercises to this block.",
+                exercises: []
+            )
+            dayTemplates = [dayTemplate]
         }
         
         // Parse goal
@@ -569,11 +582,7 @@ public struct BlockGenerator {
         let exerciseCategory = parseExerciseCategory(from: imported.category)
         
         // Parse set group ID if provided
-        let setGroupId: SetGroupID? = if let groupIdString = imported.setGroupId {
-            UUID(uuidString: groupIdString)
-        } else {
-            nil
-        }
+        let setGroupId: SetGroupID? = imported.setGroupId.flatMap { UUID(uuidString: $0) }
         
         // Create strength sets
         var strengthSets: [StrengthSetTemplate]?
