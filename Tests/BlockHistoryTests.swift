@@ -49,8 +49,15 @@ final class BlockHistoryTests: XCTestCase {
     
     func testUnarchiveBlock() {
         // Given: An archived block
-        var archivedBlock = testBlock!
-        archivedBlock.isArchived = true
+        let archivedBlock = Block(
+            name: "Test Block",
+            description: "Test description",
+            numberOfWeeks: 4,
+            goal: .strength,
+            days: [],
+            source: .user,
+            isArchived: true
+        )
         repository = BlocksRepository(blocks: [archivedBlock])
         
         XCTAssertTrue(archivedBlock.isArchived)
@@ -70,20 +77,29 @@ final class BlockHistoryTests: XCTestCase {
         // Given: Mix of archived and active blocks
         let activeBlock1 = Block(
             name: "Active 1",
+            description: nil,
             numberOfWeeks: 4,
+            goal: nil,
             days: [],
+            source: .user,
             isArchived: false
         )
         let activeBlock2 = Block(
             name: "Active 2",
+            description: nil,
             numberOfWeeks: 4,
+            goal: nil,
             days: [],
+            source: .user,
             isArchived: false
         )
         let archivedBlock = Block(
             name: "Archived",
+            description: nil,
             numberOfWeeks: 4,
+            goal: nil,
             days: [],
+            source: .user,
             isArchived: true
         )
         
@@ -104,20 +120,29 @@ final class BlockHistoryTests: XCTestCase {
         // Given: Mix of archived and active blocks
         let activeBlock = Block(
             name: "Active",
+            description: nil,
             numberOfWeeks: 4,
+            goal: nil,
             days: [],
+            source: .user,
             isArchived: false
         )
         let archivedBlock1 = Block(
             name: "Archived 1",
+            description: nil,
             numberOfWeeks: 4,
+            goal: nil,
             days: [],
+            source: .user,
             isArchived: true
         )
         let archivedBlock2 = Block(
             name: "Archived 2",
+            description: nil,
             numberOfWeeks: 4,
+            goal: nil,
             days: [],
+            source: .user,
             isArchived: true
         )
         
@@ -138,8 +163,11 @@ final class BlockHistoryTests: XCTestCase {
         // Given: Only archived blocks
         let archivedBlock = Block(
             name: "Archived",
+            description: nil,
             numberOfWeeks: 4,
+            goal: nil,
             days: [],
+            source: .user,
             isArchived: true
         )
         
@@ -156,8 +184,11 @@ final class BlockHistoryTests: XCTestCase {
         // Given: Only active blocks
         let activeBlock = Block(
             name: "Active",
+            description: nil,
             numberOfWeeks: 4,
+            goal: nil,
             days: [],
+            source: .user,
             isArchived: false
         )
         

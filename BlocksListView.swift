@@ -124,6 +124,8 @@ struct BlocksListView: View {
         ScrollView {
             VStack(spacing: 16) {
                 // Only show active (non-archived) blocks
+                // Note: Filter is called on each view update, but this is acceptable
+                // for the expected number of blocks (<100) and simpler than caching
                 ForEach(blocksRepository.activeBlocks()) { block in 
                     VStack(alignment: .leading, spacing: 8) {
                         // Title / description (unchanged behavior)
