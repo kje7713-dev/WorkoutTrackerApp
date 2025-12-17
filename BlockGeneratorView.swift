@@ -144,7 +144,7 @@ struct BlockGeneratorView: View {
                   "Progression": "Progression strategy"
                 }
                 """)
-                .font(.system(size: 11, family: .monospaced))
+                .font(.system(size: 11, design: .monospaced))
                 .foregroundColor(theme.mutedText)
                 .padding(12)
                 .background(Color(UIColor.systemBackground))
