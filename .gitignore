@@ -43,3 +43,7 @@ ci_logs/
 
 # Auth keys
 AuthKey*.p8
+
+# Test files
+test_*.json
+test_*.swift
