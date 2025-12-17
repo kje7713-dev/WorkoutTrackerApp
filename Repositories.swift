@@ -183,6 +183,11 @@ public final class SessionsRepository: ObservableObject {
         }
         saveToDisk() // 🚨 ADDED
     }
+    
+    // Convenience method for adding new sessions (forwards to save)
+    public func add(_ session: WorkoutSession) {
+        save(session)
+    }
 
     // Remove all sessions for a given block (e.g., if block structure changes)
     public func deleteSessions(forBlockId blockId: BlockID) {
