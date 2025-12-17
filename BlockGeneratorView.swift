@@ -415,7 +415,12 @@ struct BlockGeneratorView: View {
         isGenerating = true
         
         // Build prompt
-        let timeMinutes = Int(availableTimeMinutes) ?? 45
+        // Validate and clamp time to positive values
+        var timeMinutes = Int(availableTimeMinutes) ?? 45
+        if timeMinutes <= 0 {
+            timeMinutes = 45
+        }
+        
         let inputs = PromptTemplates.PromptInputs(
             availableTimeMinutes: timeMinutes,
             athleteLevel: athleteLevel,

@@ -243,13 +243,17 @@ public struct BlockGenerator {
                 let valueStr = trimmed.hasPrefix("Duration (minutes):") 
                     ? extractValue(from: trimmed, after: "Duration (minutes):")
                     : extractValue(from: trimmed, after: "Duration:")
-                durationMinutes = Int(valueStr.filter { $0.isNumber }) ?? 0
+                // Extract first number only to avoid concatenating multiple numbers
+                durationMinutes = extractFirstNumber(from: valueStr)
                 inExercises = false
             } else if trimmed.hasPrefix("Difficulty (1-5):") || trimmed.hasPrefix("Difficulty:") {
                 let valueStr = trimmed.hasPrefix("Difficulty (1-5):")
                     ? extractValue(from: trimmed, after: "Difficulty (1-5):")
                     : extractValue(from: trimmed, after: "Difficulty:")
-                difficulty = Int(valueStr.filter { $0.isNumber }) ?? 3
+                // Extract first number only
+                difficulty = extractFirstNumber(from: valueStr)
+                if difficulty < 1 { difficulty = 1 }
+                if difficulty > 5 { difficulty = 5 }
                 inExercises = false
             } else if trimmed.hasPrefix("Equipment:") {
                 equipment = extractValue(from: trimmed, after: "Equipment:")
@@ -269,7 +273,8 @@ public struct BlockGenerator {
                 let valueStr = trimmed.hasPrefix("Estimated Total Time (minutes):")
                     ? extractValue(from: trimmed, after: "Estimated Total Time (minutes):")
                     : extractValue(from: trimmed, after: "Estimated Total Time:")
-                estimatedTotalTimeMinutes = Int(valueStr.filter { $0.isNumber }) ?? 0
+                // Extract first number only
+                estimatedTotalTimeMinutes = extractFirstNumber(from: valueStr)
                 inExercises = false
             } else if trimmed.hasPrefix("Progression:") {
                 progression = extractValue(from: trimmed, after: "Progression:")
@@ -280,8 +285,8 @@ public struct BlockGenerator {
                 if parts.count >= 3 {
                     let name = parts[0]
                     let setsReps = parts[1]
-                    let restStr = parts[2].filter { $0.isNumber }
-                    let rest = Int(restStr) ?? 60
+                    // Extract first number only for rest seconds
+                    let rest = extractFirstNumber(from: parts[2])
                     let intensityCue = parts.count >= 4 ? parts[3] : ""
                     
                     exercises.append(ImportedExercise(
@@ -324,14 +329,28 @@ public struct BlockGenerator {
         return value
     }
     
+    /// Extract the first number from a string (avoids concatenating multiple numbers)
+    private static func extractFirstNumber(from text: String) -> Int {
+        // Use regex to find the first number in the string
+        let pattern = "\\d+"
+        if let regex = try? NSRegularExpression(pattern: pattern),
+           let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let range = Range(match.range, in: text) {
+            return Int(text[range]) ?? 0
+        }
+        return 0
+    }
+    
     // MARK: - Converter: ImportedBlock -> Block
     
     /// Convert ImportedBlock DTO to app's Block model
     public static func convertToBlock(_ imported: ImportedBlock, numberOfWeeks: Int = 1) -> Block {
         // Create a single day template from the imported block
         let exercises = imported.Exercises.map { importedEx -> ExerciseTemplate in
-            // Parse sets/reps string (e.g., "3x8", "4x10")
-            let components = importedEx.setsReps.split(separator: "x")
+            // Parse sets/reps string (e.g., "3x8", "4x10", "3X8")
+            // Handle both lowercase 'x' and uppercase 'X'
+            let normalizedSetsReps = importedEx.setsReps.lowercased()
+            let components = normalizedSetsReps.split(separator: "x")
             let setsCount = components.first.flatMap { Int($0) } ?? 3
             let reps = components.count > 1 ? Int(components[1]) : nil
             

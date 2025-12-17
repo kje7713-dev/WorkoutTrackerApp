@@ -146,6 +146,10 @@ public class ChatGPTClient {
         }
         
         // Create data task
+        // NOTE: For true incremental streaming, this should use URLSessionDataDelegate
+        // to handle data chunks as they arrive. The current implementation receives
+        // the complete response at once, which works but doesn't provide real-time updates.
+        // This is acceptable for the MVP/scaffold but should be enhanced for production.
         let session = URLSession.shared
         var accumulatedText = ""
         
