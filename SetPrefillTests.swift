@@ -240,7 +240,7 @@ struct SetPrefillTests {
             ("Multiple Sets Prefill Chain", testMultipleSetsPrefillChain)
         ]
         
-        for (name, test) in tests {
+        for (_, test) in tests {
             totalCount += 1
             let passed = test()
             if passed {

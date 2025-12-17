@@ -19,9 +19,13 @@ struct TestRunner {
         var allTestsPassed = true
         
         // Run BlockGenerator tests
+        #if DEBUG && canImport(XCTest)
         if !BlockGeneratorTests.runAll() {
             allTestsPassed = false
         }
+        #else
+        print("⚠️ BlockGeneratorTests not available in non-debug builds")
+        #endif
         
         print("\n========================================")
         if allTestsPassed {

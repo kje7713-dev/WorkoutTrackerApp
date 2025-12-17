@@ -25,6 +25,7 @@ public struct SBDTheme {
 
     public let success: Color
     public let mutedText: Color
+    public let accent: Color
 
     public init(
         primaryTextLight: Color,
@@ -36,7 +37,8 @@ public struct SBDTheme {
         cardBorderLight: Color,
         cardBorderDark: Color,
         success: Color,
-        mutedText: Color
+        mutedText: Color,
+        accent: Color
     ) {
         self.primaryTextLight = primaryTextLight
         self.primaryTextDark = primaryTextDark
@@ -48,6 +50,7 @@ public struct SBDTheme {
         self.cardBorderDark = cardBorderDark
         self.success = success
         self.mutedText = mutedText
+        self.accent = accent
     }
 }
 
@@ -63,7 +66,8 @@ public extension SBDTheme {
         cardBorderLight: Color(red: 0.90, green: 0.90, blue: 0.92),        // light gray
         cardBorderDark: Color(red: 0.17, green: 0.17, blue: 0.18),         // dark border
         success: Color(red: 0.19, green: 0.82, blue: 0.34),                // system green feel
-        mutedText: Color(red: 0.56, green: 0.56, blue: 0.58)               // neutral gray
+        mutedText: Color(red: 0.56, green: 0.56, blue: 0.58),              // neutral gray
+        accent: Color.blue                                                 // accent color for CTAs
     )
 }
 

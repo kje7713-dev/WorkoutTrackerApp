@@ -250,7 +250,7 @@ struct BlockGeneratorView: View {
         let factory = SessionFactory()
         let sessions = factory.makeSessions(for: block)
         for session in sessions {
-            sessionsRepository.add(session)
+            sessionsRepository.save(session)
         }
         
         dismiss()
