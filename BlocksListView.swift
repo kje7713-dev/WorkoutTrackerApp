@@ -219,15 +219,15 @@ struct BlocksListView: View {
         }
     }
 
-    // MARK: - AI Generator Button
+    // MARK: - Import JSON Button
     
     private var aiGeneratorButton: some View {
         Button {
             showingAIGenerator = true
         } label: {
             HStack {
-                Image(systemName: "wand.and.stars")
-                Text("AI BLOCK GENERATOR")
+                Image(systemName: "doc.badge.plus")
+                Text("IMPORT FROM JSON")
                     .font(.headline).bold()
             }
             .frame(maxWidth: .infinity)
