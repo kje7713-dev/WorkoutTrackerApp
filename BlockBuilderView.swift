@@ -96,6 +96,16 @@ struct BlockBuilderView: View {
     // Confirmation for overwriting sessions
     @State private var showSessionOverwriteConfirmation: Bool = false
     @State private var pendingSave: (() -> Void)? = nil
+    
+    // AI Generation state
+    @State private var showAIPromptSheet: Bool = false
+    @State private var aiPrompt: String = ""
+    @State private var aiSelectedModel: String = "gpt-3.5-turbo"
+    @State private var isGenerating: Bool = false
+    @State private var generatedText: String = ""
+    @State private var showAIPreview: Bool = false
+    @State private var aiError: String?
+    private let chatGPTClient = ChatGPTClient()
 
     // MARK: - Init with mode
 
@@ -129,6 +139,7 @@ struct BlockBuilderView: View {
 
             Form {
                 blockInfoSection
+                aiGenerationSection
                 progressionSection
                 daysSection
             }
@@ -215,6 +226,31 @@ struct BlockBuilderView: View {
         }
     }
 
+    private var aiGenerationSection: some View {
+        Section("AI Generation") {
+            Button {
+                showAIPromptSheet = true
+            } label: {
+                Label("Generate with ChatGPT", systemImage: "sparkles")
+            }
+            .disabled(isGenerating)
+            
+            if isGenerating {
+                HStack {
+                    ProgressView()
+                    Text("Generating...")
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .sheet(isPresented: $showAIPromptSheet) {
+            aiPromptSheet
+        }
+        .sheet(isPresented: $showAIPreview) {
+            aiPreviewSheet
+        }
+    }
+    
     private var daysSection: some View {
         Section("Days in Block") {
             // Horizontal day selector
@@ -270,6 +306,253 @@ struct BlockBuilderView: View {
                     Label("Delete Day", systemImage: "trash")
                 }
             }
+        }
+    }
+
+    // MARK: - AI Prompt Sheet
+    
+    private var aiPromptSheet: some View {
+        NavigationStack {
+            ZStack {
+                backgroundColor.ignoresSafeArea()
+                
+                Form {
+                    Section("Your Request") {
+                        TextEditor(text: $aiPrompt)
+                            .frame(minHeight: 150)
+                        
+                        Text("Example: Create a 4-week hypertrophy block with 4 days per week focusing on push/pull/legs split")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Section("Model") {
+                        Picker("Model", selection: $aiSelectedModel) {
+                            Text("GPT-3.5 Turbo").tag("gpt-3.5-turbo")
+                            Text("GPT-4").tag("gpt-4")
+                            Text("GPT-4 Turbo").tag("gpt-4-turbo-preview")
+                        }
+                    }
+                    
+                    Section {
+                        Button("Generate") {
+                            generateWithAI()
+                        }
+                        .disabled(aiPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
+            }
+            .navigationTitle("AI Block Generation")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        showAIPromptSheet = false
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - AI Preview Sheet
+    
+    private var aiPreviewSheet: some View {
+        NavigationStack {
+            ZStack {
+                backgroundColor.ignoresSafeArea()
+                
+                VStack {
+                    if isGenerating {
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                            Text("Generating workout block...")
+                                .font(.headline)
+                            Text("Streaming response from ChatGPT")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                    }
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 12) {
+                            if let error = aiError {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Label("Error", systemImage: "exclamationmark.triangle")
+                                        .font(.headline)
+                                        .foregroundColor(.red)
+                                    Text(error)
+                                        .font(.body)
+                                        .foregroundColor(.red)
+                                }
+                                .padding()
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(8)
+                            }
+                            
+                            if !generatedText.isEmpty {
+                                Text(generatedText)
+                                    .font(.system(.body, design: .monospaced))
+                                    .textSelection(.enabled)
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            }
+            .navigationTitle("Generated Block")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        chatGPTClient.cancel()
+                        showAIPreview = false
+                        isGenerating = false
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    if !isGenerating && !generatedText.isEmpty && aiError == nil {
+                        Menu {
+                            Button("Accept & Use") {
+                                acceptGeneratedBlock()
+                            }
+                            Button("Regenerate") {
+                                regenerateBlock()
+                            }
+                        } label: {
+                            Text("Actions")
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - AI Generation Methods
+    
+    private func generateWithAI() {
+        guard let apiKey = KeychainHelper.shared.loadOpenAIAPIKey(), !apiKey.isEmpty else {
+            aiError = "No API key found. Please configure your OpenAI API key in settings."
+            showAIPromptSheet = false
+            return
+        }
+        
+        isGenerating = true
+        generatedText = ""
+        aiError = nil
+        showAIPromptSheet = false
+        showAIPreview = true
+        
+        let messages = [
+            ChatMessage(role: "system", content: ChatGPTPrompts.systemPrompt),
+            ChatMessage(role: "user", content: aiPrompt)
+        ]
+        
+        chatGPTClient.streamCompletion(
+            messages: messages,
+            model: aiSelectedModel,
+            apiKey: apiKey,
+            temperature: 0.7,
+            maxTokens: 3000,
+            onChunk: { chunk in
+                DispatchQueue.main.async {
+                    self.generatedText += chunk
+                }
+            },
+            onComplete: { result in
+                DispatchQueue.main.async {
+                    self.isGenerating = false
+                    
+                    switch result {
+                    case .success(let fullText):
+                        self.generatedText = fullText
+                    case .failure(let error):
+                        self.aiError = error.localizedDescription
+                    }
+                }
+            }
+        )
+    }
+    
+    private func regenerateBlock() {
+        generateWithAI()
+    }
+    
+    private func acceptGeneratedBlock() {
+        let parser = ChatGPTBlockParser()
+        
+        do {
+            let parsedBlock = try parser.parseBlock(from: generatedText)
+            
+            // Update the form with parsed data
+            blockName = parsedBlock.name
+            blockDescription = parsedBlock.description ?? ""
+            numberOfWeeks = parsedBlock.numberOfWeeks
+            
+            // Convert days to editable format
+            days = parsedBlock.days.enumerated().map { (idx, dayTemplate) in
+                var editableDay = EditableDay(index: idx)
+                editableDay.name = dayTemplate.name
+                editableDay.shortCode = dayTemplate.shortCode ?? "D\(idx + 1)"
+                
+                editableDay.exercises = dayTemplate.exercises.map { exercise in
+                    var e = EditableExercise()
+                    e.name = exercise.customName ?? ""
+                    e.type = exercise.type
+                    e.notes = exercise.notes ?? ""
+                    
+                    // Strength mapping
+                    if exercise.type == .strength,
+                       let sets = exercise.strengthSets,
+                       let first = sets.first {
+                        e.strengthSetsCount = sets.count
+                        e.strengthReps = first.reps ?? e.strengthReps
+                        e.strengthWeight = first.weight
+                        e.strengthPercentageOfMax = first.percentageOfMax
+                        e.strengthRPE = first.rpe
+                        e.strengthRIR = first.rir
+                        e.strengthTempo = first.tempo ?? ""
+                        e.strengthRestSeconds = first.restSeconds
+                    }
+                    
+                    // Conditioning mapping
+                    if exercise.type == .conditioning,
+                       let sets = exercise.conditioningSets,
+                       let first = sets.first {
+                        e.conditioningDurationSeconds = first.durationSeconds
+                        e.conditioningDistanceMeters = first.distanceMeters
+                        e.conditioningCalories = first.calories
+                        e.conditioningRounds = first.rounds
+                        e.conditioningTargetPace = first.targetPace ?? ""
+                        e.conditioningEffortDescriptor = first.effortDescriptor ?? ""
+                        e.conditioningRestSeconds = first.restSeconds
+                    }
+                    
+                    return e
+                }
+                
+                return editableDay
+            }
+            
+            // Extract progression from first exercise
+            if let firstExercise = parsedBlock.days.first?.exercises.first {
+                let rule = firstExercise.progressionRule
+                progressionType = rule.type
+                deltaWeightText = rule.deltaWeight.map { String($0) } ?? ""
+                deltaSetsText = rule.deltaSets.map { String($0) } ?? ""
+            }
+            
+            // Close the preview
+            showAIPreview = false
+            
+            // Show success message
+            validationMessage = "AI block loaded successfully! Review and save when ready."
+            showValidationAlert = true
+            
+        } catch {
+            aiError = "Failed to parse generated block: \(error.localizedDescription)"
         }
     }
 
