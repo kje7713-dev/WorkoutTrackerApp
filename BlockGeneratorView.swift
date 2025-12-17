@@ -111,8 +111,8 @@ struct BlockGeneratorView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
-                // Fixed: replaced theme.accent (non-existent) with theme-aware background color
-                .background(colorScheme == .dark ? theme.cardBackgroundDark : theme.cardBackgroundLight)
+                // Fixed: replaced theme.accent (non-existent) with Color.blue for good contrast
+                .background(Color.blue)
                 .cornerRadius(12)
             }
             
