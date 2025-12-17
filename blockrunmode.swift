@@ -642,6 +642,7 @@ struct DayRunView: View {
     
     @EnvironmentObject var blocksRepository: BlocksRepository
     @EnvironmentObject var sessionsRepository: SessionsRepository
+    @EnvironmentObject var exerciseLibrary: ExerciseLibraryRepository
     
     @State private var showExerciseTypeSheet = false
     @State private var persistToFutureWeeks = false
@@ -674,8 +675,8 @@ struct DayRunView: View {
             AddExerciseSheet(
                 persistToFutureWeeks: $persistToFutureWeeks,
                 canPersist: weekIndex < (block.numberOfWeeks - 1),
-                onAddExercise: { type in
-                    addExercise(type: type)
+                onAddExercise: { type, name in
+                    addExercise(type: type, name: name)
                     showExerciseTypeSheet = false
                 }
             )
@@ -684,13 +685,9 @@ struct DayRunView: View {
     
     // MARK: - Helper Functions
     
-    private func addExercise(type: ExerciseType) {
-        // Use current count for naming consistency
-        let exerciseNumber = day.exercises.count + 1
-        let exerciseName = "New Exercise \(exerciseNumber)"
-        
+    private func addExercise(type: ExerciseType, name: String) {
         let newExercise = RunExerciseState(
-            name: exerciseName,
+            name: name,
             type: type,
             notes: "",
             sets: [
@@ -705,7 +702,7 @@ struct DayRunView: View {
         
         // If user chose to persist, add to block template and future sessions
         if persistToFutureWeeks {
-            addExerciseToBlockTemplate(type: type, name: exerciseName)
+            addExerciseToBlockTemplate(type: type, name: name)
         }
         
         onSave()
@@ -1478,52 +1475,134 @@ struct RunSetState: Identifiable, Codable {
 struct AddExerciseSheet: View {
     @Binding var persistToFutureWeeks: Bool
     let canPersist: Bool
-    let onAddExercise: (ExerciseType) -> Void
+    let onAddExercise: (ExerciseType, String) -> Void
     
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var exerciseLibrary: ExerciseLibraryRepository
+    
+    @State private var selectedType: ExerciseType = .strength
+    @State private var exerciseName: String = ""
+    @State private var isCustomEntry: Bool = false
+    
+    private var availableExercises: [ExerciseDefinition] {
+        exerciseLibrary.all().filter { $0.type == selectedType }
+    }
     
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Text("Select Exercise Type")
+                Text("Add Exercise")
                     .font(.headline)
                     .padding(.top)
                 
-                VStack(spacing: 12) {
-                    Button {
-                        onAddExercise(.strength)
-                    } label: {
-                        Text("Strength")
-                            .font(.body)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.accentColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    
-                    Button {
-                        onAddExercise(.conditioning)
-                    } label: {
-                        Text("Conditioning")
-                            .font(.body)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.accentColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
+                // Type selector
+                Picker("Type", selection: $selectedType) {
+                    Text("Strength").tag(ExerciseType.strength)
+                    Text("Conditioning").tag(ExerciseType.conditioning)
                 }
+                .pickerStyle(.segmented)
                 .padding(.horizontal)
+                .onChange(of: selectedType) { _, _ in
+                    // Reset exercise name when type changes
+                    exerciseName = ""
+                }
+                
+                // Exercise name picker
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Exercise")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal)
+                    
+                    HStack {
+                        if isCustomEntry || availableExercises.isEmpty {
+                            // Free-form text entry
+                            TextField("Exercise name", text: $exerciseName)
+                                .textFieldStyle(.roundedBorder)
+                        } else {
+                            // Dropdown picker
+                            Menu {
+                                // Standard exercises from library
+                                ForEach(availableExercises) { exercise in
+                                    Button(action: {
+                                        exerciseName = exercise.name
+                                    }) {
+                                        Text(exercise.name)
+                                    }
+                                }
+                                
+                                Divider()
+                                
+                                // Option to enter custom exercise
+                                Button(action: {
+                                    isCustomEntry = true
+                                }) {
+                                    Label("Custom Exercise", systemImage: "pencil")
+                                }
+                            } label: {
+                                HStack {
+                                    Text(exerciseName.isEmpty ? "Select exercise" : exerciseName)
+                                        .foregroundColor(exerciseName.isEmpty ? .secondary : .primary)
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(.secondary)
+                                        .font(.footnote)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 8)
+                                .background(Color(UIColor.systemBackground))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color(UIColor.separator), lineWidth: 1)
+                                )
+                            }
+                        }
+                        
+                        // Toggle between custom and dropdown
+                        if !availableExercises.isEmpty {
+                            Button(action: {
+                                isCustomEntry.toggle()
+                            }) {
+                                Image(systemName: isCustomEntry ? "list.bullet" : "pencil")
+                                    .font(.footnote)
+                                    .foregroundColor(.blue)
+                                    .padding(8)
+                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .cornerRadius(6)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
                 
                 if canPersist {
                     Divider()
-                        .padding(.vertical)
+                        .padding(.vertical, 8)
                     
                     Toggle("Add to this day in all future weeks", isOn: $persistToFutureWeeks)
                         .padding(.horizontal)
                         .font(.subheadline)
                 }
+                
+                // Add button
+                Button {
+                    let finalName = exerciseName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !finalName.isEmpty {
+                        onAddExercise(selectedType, finalName)
+                        dismiss()
+                    }
+                } label: {
+                    Text("Add Exercise")
+                        .font(.body)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(exerciseName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .disabled(exerciseName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .padding(.horizontal)
                 
                 Spacer()
             }
@@ -1535,7 +1614,7 @@ struct AddExerciseSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
     }
 }
 

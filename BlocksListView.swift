@@ -8,6 +8,7 @@ struct BlocksListView: View {
     // Same repository the builder uses
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var sessionsRepository: SessionsRepository
+    @EnvironmentObject private var exerciseLibraryRepository: ExerciseLibraryRepository
     @Environment(\.sbdTheme) private var theme
 
     // Which builder mode is active (if any)?
@@ -60,16 +61,19 @@ struct BlocksListView: View {
                     BlockBuilderView(mode: .new)
                         .environmentObject(blocksRepository)
                         .environmentObject(sessionsRepository)
+                        .environmentObject(exerciseLibraryRepository)
 
                 case .edit(let block):
                     BlockBuilderView(mode: .edit(block))
                         .environmentObject(blocksRepository)
                         .environmentObject(sessionsRepository)
+                        .environmentObject(exerciseLibraryRepository)
 
                 case .clone(let block):
                     BlockBuilderView(mode: .clone(block))
                         .environmentObject(blocksRepository)
                         .environmentObject(sessionsRepository)
+                        .environmentObject(exerciseLibraryRepository)
                 }
             }
         }
@@ -151,6 +155,7 @@ struct BlocksListView: View {
                                 BlockRunModeView(block: block)
                                     .environmentObject(sessionsRepository)
                                     .environmentObject(blocksRepository)
+                                    .environmentObject(exerciseLibraryRepository)
                             } label: { 
                                 Text("RUN")
                                     .font(.subheadline).bold()
