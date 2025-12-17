@@ -13,6 +13,9 @@ struct BlocksListView: View {
 
     // Which builder mode is active (if any)?
     @State private var builderContext: BuilderContext?
+    
+    // AI block generator
+    @State private var showingAIGenerator: Bool = false
 
     private enum BuilderContext: Identifiable {
         case new
@@ -47,6 +50,8 @@ struct BlocksListView: View {
 
                 Spacer()
 
+                aiGeneratorButton
+                
                 newBlockButton
             }
             .padding(.horizontal)
@@ -54,6 +59,11 @@ struct BlocksListView: View {
         }
         .navigationTitle("Blocks")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showingAIGenerator) {
+            BlockGeneratorView()
+                .environmentObject(blocksRepository)
+                .environmentObject(sessionsRepository)
+        }
         .sheet(item: $builderContext) { context in
             NavigationStack {
                 switch context {
@@ -207,6 +217,26 @@ struct BlocksListView: View {
             }
             .padding(.top, 8)
         }
+    }
+
+    // MARK: - Import JSON Button
+    
+    private var aiGeneratorButton: some View {
+        Button {
+            showingAIGenerator = true
+        } label: {
+            HStack {
+                Image(systemName: "doc.badge.plus")
+                Text("IMPORT FROM JSON")
+                    .font(.headline).bold()
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(24)
+        }
+        .padding(.bottom, 8)
     }
 
     // MARK: - New Block Button
