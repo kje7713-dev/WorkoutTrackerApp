@@ -18,11 +18,18 @@ struct BlockGeneratorView: View {
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var sessionsRepository: SessionsRepository
     
+    // MARK: - Constants
+    
+    private let documentationURL = "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/BLOCK_JSON_IMPORT_README.md"
+    private let confirmationDisplayDuration: TimeInterval = 2.0
+    
     // MARK: - State
     
     @State private var showingFileImporter: Bool = false
     @State private var importedBlock: Block?
     @State private var errorMessage: String?
+    @State private var showCopyConfirmation: Bool = false
+    @State private var hideConfirmationTask: DispatchWorkItem?
     
     // MARK: - Body
     
@@ -72,6 +79,30 @@ struct BlockGeneratorView: View {
             ) { result in
                 handleFileImport(result: result)
             }
+            .overlay(
+                Group {
+                    if showCopyConfirmation {
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.white)
+                                Text("Copied to clipboard!")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Color.green)
+                            .cornerRadius(10)
+                            .shadow(radius: 10)
+                            .padding(.bottom, 50)
+                        }
+                        .transition(.move(edge: .bottom))
+                        .animation(.spring(), value: showCopyConfirmation)
+                    }
+                }
+            )
         }
     }
     
@@ -115,45 +146,117 @@ struct BlockGeneratorView: View {
                 .cornerRadius(12)
             }
             
-            // JSON Format Example
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Expected JSON Format")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(primaryTextColor)
-                
-                Text("""
-                {
-                  "Title": "Block Name",
-                  "Goal": "Training objective",
-                  "TargetAthlete": "Experience level",
-                  "DurationMinutes": 45,
-                  "Difficulty": 3,
-                  "Equipment": "Available equipment",
-                  "WarmUp": "Warm-up description",
-                  "Exercises": [
-                    {
-                      "name": "Exercise name",
-                      "setsReps": "3x8",
-                      "restSeconds": 180,
-                      "intensityCue": "RPE 7"
+            // Link to full documentation
+            if let docURL = URL(string: documentationURL) {
+                Link(destination: docURL) {
+                    HStack {
+                        Image(systemName: "book.fill")
+                        Text("View Complete Documentation & Examples")
+                            .font(.system(size: 14, weight: .medium))
                     }
-                  ],
-                  "Finisher": "Finisher description",
-                  "Notes": "Additional notes",
-                  "EstimatedTotalTimeMinutes": 45,
-                  "Progression": "Progression strategy"
+                    .foregroundColor(theme.accent)
                 }
-                """)
-                .font(.system(size: 11, design: .monospaced))
-                .foregroundColor(theme.mutedText)
-                .padding(12)
-                .background(Color(UIColor.systemBackground))
-                .cornerRadius(8)
             }
+            
+            Divider()
+            
+            // AI Prompt Template Section
+            aiPromptTemplateSection
+            
+            Divider()
+            
+            // JSON Format Example
+            jsonFormatExampleSection
         }
         .padding()
         .background(cardBackgroundColor)
         .cornerRadius(12)
+    }
+    
+    // MARK: - AI Prompt Template Section
+    
+    private var aiPromptTemplateSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("AI Prompt Template")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(primaryTextColor)
+                
+                Spacer()
+                
+                Button {
+                    copyToClipboard(aiPromptTemplate)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "doc.on.doc")
+                        Text("Copy")
+                    }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.blue)
+                    .cornerRadius(6)
+                }
+            }
+            
+            Text("Copy this template and paste it into ChatGPT, Claude, or any AI assistant. Then add your specific workout requirements at the bottom.")
+                .font(.system(size: 12))
+                .foregroundColor(theme.mutedText)
+            
+            ScrollView(.horizontal, showsIndicators: true) {
+                Text(aiPromptTemplate)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(theme.mutedText)
+                    .padding(12)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(8)
+            }
+            .frame(maxHeight: 150)
+        }
+    }
+    
+    // MARK: - JSON Format Example Section
+    
+    private var jsonFormatExampleSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("JSON Format Example")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(primaryTextColor)
+                
+                Spacer()
+                
+                Button {
+                    copyToClipboard(jsonFormatExample)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "doc.on.doc")
+                        Text("Copy")
+                    }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.blue)
+                    .cornerRadius(6)
+                }
+            }
+            
+            Text("This is the expected format. All fields are required. Save as .json file.")
+                .font(.system(size: 12))
+                .foregroundColor(theme.mutedText)
+            
+            ScrollView(.horizontal, showsIndicators: true) {
+                Text(jsonFormatExample)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(theme.mutedText)
+                    .padding(12)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(8)
+            }
+            .frame(maxHeight: 200)
+        }
     }
     
     private func blockPreviewSection(block: Block) -> some View {
@@ -241,7 +344,116 @@ struct BlockGeneratorView: View {
         .cornerRadius(12)
     }
     
+    // MARK: - Template Strings
+    
+    private var aiPromptTemplate: String {
+        """
+        I need you to generate a workout block in JSON format for the Savage By Design workout tracker app.
+        
+        IMPORTANT - JSON Format Specification:
+        - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
+        - ALL fields listed below are REQUIRED (no optional fields)
+        - Save output as a .json file with descriptive name: [BlockName]_[Weeks]W.json
+        - Example filename: UpperLower_4W.json or Strength_Intermediate.json
+        
+        Required JSON Structure:
+        {
+          "Title": "Block name (under 50 characters)",
+          "Goal": "Primary training objective (strength/hypertrophy/power/conditioning/mixed)",
+          "TargetAthlete": "Experience level (Beginner/Intermediate/Advanced)",
+          "DurationMinutes": <number: estimated workout duration>,
+          "Difficulty": <number: 1-5 scale>,
+          "Equipment": "Comma-separated equipment list",
+          "WarmUp": "Detailed warm-up instructions",
+          "Exercises": [
+            {
+              "name": "Exercise name (be specific: 'Barbell Back Squat' not 'Squat')",
+              "setsReps": "SxR format like 3x8, 4x10, 5x5",
+              "restSeconds": <number: rest in seconds>,
+              "intensityCue": "Coaching cue (RPE 7, RIR 2, 75% 1RM, Tempo 3-0-1-0, etc.)"
+            }
+          ],
+          "Finisher": "Cooldown or finisher instructions",
+          "Notes": "Important context, form cues, safety notes, progression details",
+          "EstimatedTotalTimeMinutes": <number: total session time>,
+          "Progression": "Week-to-week progression strategy (e.g., 'Add 5 lbs per week, deload week 4')"
+        }
+        
+        MY REQUIREMENTS:
+        [Describe your training goals, experience level, available equipment, time constraints, and specific exercises you want]
+        
+        Example requirements:
+        - Create a 4-week upper/lower split for intermediate lifter
+        - Goal: Build overall strength
+        - 60 minutes per session
+        - Equipment: Full commercial gym
+        - Include RPE-based intensity
+        - Progression: Add 5-10 lbs per week, deload week 4
+        """
+    }
+    
+    private var jsonFormatExample: String {
+        """
+        {
+          "Title": "Full Body Strength",
+          "Goal": "Build foundational strength",
+          "TargetAthlete": "Intermediate",
+          "DurationMinutes": 45,
+          "Difficulty": 3,
+          "Equipment": "Barbell, Dumbbells, Rack, Bench",
+          "WarmUp": "5 min dynamic stretching, mobility work",
+          "Exercises": [
+            {
+              "name": "Barbell Back Squat",
+              "setsReps": "3x8",
+              "restSeconds": 180,
+              "intensityCue": "RPE 7"
+            },
+            {
+              "name": "Barbell Bench Press",
+              "setsReps": "3x8",
+              "restSeconds": 120,
+              "intensityCue": "RPE 7"
+            },
+            {
+              "name": "Barbell Row",
+              "setsReps": "3x8",
+              "restSeconds": 120,
+              "intensityCue": "RPE 7"
+            },
+            {
+              "name": "Overhead Press",
+              "setsReps": "3x10",
+              "restSeconds": 90,
+              "intensityCue": "RPE 7.5"
+            }
+          ],
+          "Finisher": "10 min cooldown stretch, foam rolling",
+          "Notes": "Focus on form over weight. Increase load gradually. Week 4 is deload at 80% intensity.",
+          "EstimatedTotalTimeMinutes": 45,
+          "Progression": "Add 5 lbs per week on main lifts, deload week 4"
+        }
+        """
+    }
+    
     // MARK: - Actions
+    
+    private func copyToClipboard(_ text: String) {
+        UIPasteboard.general.string = text
+        
+        // Cancel any existing hide task
+        hideConfirmationTask?.cancel()
+        
+        // Show confirmation feedback
+        showCopyConfirmation = true
+        
+        // Hide confirmation after configured duration
+        let task = DispatchWorkItem {
+            showCopyConfirmation = false
+        }
+        hideConfirmationTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + confirmationDisplayDuration, execute: task)
+    }
     
     private func saveBlock(_ block: Block) {
         blocksRepository.add(block)
