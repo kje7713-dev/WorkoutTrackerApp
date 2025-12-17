@@ -489,19 +489,13 @@ public struct BlockGenerator {
         // Determine if this is a multi-day block or single-day
         let dayTemplates: [DayTemplate]
         
-        // Validate that either Days or Exercises is provided (not both, not neither)
-        let hasDays = imported.Days != nil && !imported.Days!.isEmpty
-        let hasExercises = imported.Exercises != nil && !imported.Exercises!.isEmpty
-        
-        if hasDays && hasExercises {
-            // Both provided - use Days and ignore Exercises (prioritize multi-day format)
-            dayTemplates = imported.Days!.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
-        } else if hasDays {
-            // Multi-day block
-            dayTemplates = imported.Days!.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
-        } else if hasExercises {
+        // Prioritize Days over Exercises if both are provided
+        if let days = imported.Days, !days.isEmpty {
+            // Multi-day block (also handles case where both Days and Exercises are provided)
+            dayTemplates = days.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
+        } else if let exercises = imported.Exercises, !exercises.isEmpty {
             // Single-day block (legacy format)
-            let convertedExercises = imported.Exercises!.map { convertExercise($0) }
+            let convertedExercises = exercises.map { convertExercise($0) }
             
             // Build notes section
             var blockNotes = ""
