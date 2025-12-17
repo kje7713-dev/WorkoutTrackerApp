@@ -91,10 +91,20 @@ struct HomeView: View {
                         // will wire up later
                     }
 
-                    // History (future)
-                    SBDPrimaryButton("History (Future)") {
-                        // will wire up later
+                    // Block History -> BlockHistoryListView
+                    NavigationLink {
+                        BlockHistoryListView()
+                    } label: {
+                        Text("BLOCK HISTORY")
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .foregroundColor(foregroundButtonColor)
+                            .background(backgroundButtonColor)
+                            .cornerRadius(20)
+                            .textCase(.uppercase)
                     }
+                    .buttonStyle(PlainButtonStyle())
                 }
 
                 Spacer(minLength: 0)
