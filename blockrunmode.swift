@@ -1552,7 +1552,8 @@ struct AddExerciseSheet: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-                .onChange(of: selectedType) { _ in
+                // Fixed: Updated to non-deprecated onChange syntax for iOS 17+ compatibility
+                .onChange(of: selectedType) {
                     // Reset exercise name when type changes
                     exerciseName = ""
                 }
