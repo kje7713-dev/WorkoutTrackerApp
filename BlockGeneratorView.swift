@@ -352,86 +352,207 @@ struct BlockGeneratorView: View {
         
         IMPORTANT - JSON Format Specification:
         - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
-        - ALL fields listed below are REQUIRED (no optional fields)
-        - Save output as a .json file with descriptive name: [BlockName]_[Weeks]W.json
-        - Example filename: UpperLower_4W.json or Strength_Intermediate.json
+        - Most fields are REQUIRED unless marked as optional
+        - Save output as a .json file: [BlockName]_[Weeks]W_[Days]D.json
+        - Example: UpperLower_4W_4D.json or Strength_8W_3D.json
         
-        Required JSON Structure:
+        COMPLETE JSON Structure (ALL FIELDS AVAILABLE):
         {
           "Title": "Block name (under 50 characters)",
-          "Goal": "Primary training objective (strength/hypertrophy/power/conditioning/mixed)",
+          "Goal": "Primary training objective (strength/hypertrophy/power/conditioning/mixed/peaking/deload/rehab)",
           "TargetAthlete": "Experience level (Beginner/Intermediate/Advanced)",
-          "DurationMinutes": <number: estimated workout duration>,
+          "NumberOfWeeks": <number: total weeks in block> [OPTIONAL, defaults to 1],
+          "DurationMinutes": <number: estimated workout duration per session>,
           "Difficulty": <number: 1-5 scale>,
           "Equipment": "Comma-separated equipment list",
           "WarmUp": "Detailed warm-up instructions",
+          "Finisher": "Cooldown or finisher instructions",
+          "Notes": "Important context, form cues, safety notes",
+          "EstimatedTotalTimeMinutes": <number: total session time including warm-up/finisher>,
+          "Progression": "Week-to-week progression strategy (e.g., 'Add 5 lbs per week, deload week 4')",
+          
+          // OPTION A: Single-Day Block (use "Exercises")
           "Exercises": [
             {
-              "name": "Exercise name (be specific: 'Barbell Back Squat' not 'Squat')",
-              "setsReps": "SxR format like 3x8, 4x10, 5x5",
-              "restSeconds": <number: rest in seconds>,
-              "intensityCue": "Coaching cue (RPE 7, RIR 2, 75% 1RM, Tempo 3-0-1-0, etc.)"
+              "name": "Exercise name",
+              "type": "strength|conditioning|mixed|other" [OPTIONAL, defaults to "strength"],
+              "category": "squat|hinge|pressHorizontal|pressVertical|pullHorizontal|pullVertical|carry|core|olympic|conditioning|mobility|mixed|other" [OPTIONAL],
+              
+              // SIMPLE FORMAT (for quick blocks):
+              "setsReps": "3x8" [OPTIONAL if using "sets" array],
+              "restSeconds": 120 [OPTIONAL],
+              "intensityCue": "RPE 7" [OPTIONAL],
+              
+              // ADVANCED FORMAT (for detailed programming):
+              "sets": [ [OPTIONAL - replaces "setsReps"]
+                {
+                  "reps": 8,
+                  "weight": 135.0 [OPTIONAL - pounds or kg],
+                  "percentageOfMax": 0.75 [OPTIONAL - 0.0 to 1.0, e.g., 0.75 = 75%],
+                  "rpe": 7.5 [OPTIONAL - 1.0 to 10.0],
+                  "rir": 2.5 [OPTIONAL - reps in reserve],
+                  "tempo": "3-0-1-0" [OPTIONAL - eccentric-pause-concentric-pause],
+                  "restSeconds": 180 [OPTIONAL],
+                  "notes": "Focus on depth" [OPTIONAL]
+                }
+              ],
+              
+              // CONDITIONING PARAMETERS (for type: "conditioning"):
+              "conditioningType": "monostructural|mixedModal|emom|amrap|intervals|forTime|forDistance|forCalories|roundsForTime|other" [OPTIONAL],
+              "conditioningSets": [ [OPTIONAL - for conditioning exercises]
+                {
+                  "durationSeconds": 300 [OPTIONAL],
+                  "distanceMeters": 1000.0 [OPTIONAL],
+                  "calories": 20.0 [OPTIONAL],
+                  "rounds": 5 [OPTIONAL],
+                  "targetPace": "2:00/500m" [OPTIONAL],
+                  "effortDescriptor": "moderate" [OPTIONAL],
+                  "restSeconds": 60 [OPTIONAL],
+                  "notes": "Maintain steady pace" [OPTIONAL]
+                }
+              ],
+              
+              // SUPERSET/CIRCUIT GROUPING:
+              "setGroupId": "UUID-string" [OPTIONAL - same ID for exercises in a superset/circuit],
+              "setGroupKind": "superset|circuit|giantSet|emom|amrap" [OPTIONAL],
+              
+              // PROGRESSION:
+              "progressionType": "weight|volume|custom" [OPTIONAL, defaults to "weight"],
+              "progressionDeltaWeight": 5.0 [OPTIONAL - lbs to add per week],
+              "progressionDeltaSets": 1 [OPTIONAL - sets to add per week],
+              
+              "notes": "Exercise-specific notes" [OPTIONAL]
             }
           ],
-          "Finisher": "Cooldown or finisher instructions",
-          "Notes": "Important context, form cues, safety notes, progression details",
-          "EstimatedTotalTimeMinutes": <number: total session time>,
-          "Progression": "Week-to-week progression strategy (e.g., 'Add 5 lbs per week, deload week 4')"
+          
+          // OPTION B: Multi-Day Block (use "Days" instead of "Exercises")
+          "Days": [ [OPTIONAL - use this OR "Exercises", not both]
+            {
+              "name": "Day 1: Upper Body",
+              "shortCode": "U1" [OPTIONAL],
+              "goal": "strength|hypertrophy|power|conditioning|mixed" [OPTIONAL],
+              "notes": "Focus on compound movements" [OPTIONAL],
+              "exercises": [
+                // Same exercise structure as above
+              ]
+            },
+            {
+              "name": "Day 2: Lower Body",
+              "shortCode": "L1" [OPTIONAL],
+              "goal": "strength",
+              "exercises": [...]
+            }
+          ]
         }
+        
+        USAGE GUIDELINES:
+        1. For SIMPLE blocks: Use "Exercises" with "setsReps" format
+        2. For ADVANCED blocks: Use "Days" with detailed "sets" arrays
+        3. For MULTI-WEEK blocks: Set "NumberOfWeeks" (e.g., 4, 8, 12)
+        4. For CONDITIONING: Set type="conditioning" and use "conditioningSets"
+        5. For SUPERSETS: Give exercises same "setGroupId" UUID
+        6. Specify WEIGHT when known (helps with progression tracking)
         
         MY REQUIREMENTS:
         [Describe your training goals, experience level, available equipment, time constraints, and specific exercises you want]
-        
-        Example requirements:
-        - Create a 4-week upper/lower split for intermediate lifter
-        - Goal: Build overall strength
-        - 60 minutes per session
-        - Equipment: Full commercial gym
-        - Include RPE-based intensity
-        - Progression: Add 5-10 lbs per week, deload week 4
         """
     }
     
     private var jsonFormatExample: String {
         """
+        // EXAMPLE 1: Simple Single-Day Block
         {
           "Title": "Full Body Strength",
           "Goal": "Build foundational strength",
           "TargetAthlete": "Intermediate",
+          "NumberOfWeeks": 4,
           "DurationMinutes": 45,
           "Difficulty": 3,
-          "Equipment": "Barbell, Dumbbells, Rack, Bench",
-          "WarmUp": "5 min dynamic stretching, mobility work",
+          "Equipment": "Barbell, Dumbbells, Rack",
+          "WarmUp": "5 min dynamic stretching",
           "Exercises": [
             {
               "name": "Barbell Back Squat",
+              "type": "strength",
+              "category": "squat",
               "setsReps": "3x8",
               "restSeconds": 180,
-              "intensityCue": "RPE 7"
+              "intensityCue": "RPE 7",
+              "progressionDeltaWeight": 5.0
             },
             {
               "name": "Barbell Bench Press",
-              "setsReps": "3x8",
-              "restSeconds": 120,
-              "intensityCue": "RPE 7"
-            },
-            {
-              "name": "Barbell Row",
-              "setsReps": "3x8",
-              "restSeconds": 120,
-              "intensityCue": "RPE 7"
-            },
-            {
-              "name": "Overhead Press",
-              "setsReps": "3x10",
-              "restSeconds": 90,
-              "intensityCue": "RPE 7.5"
+              "type": "strength",
+              "category": "pressHorizontal",
+              "sets": [
+                {"reps": 8, "weight": 135, "rpe": 7, "restSeconds": 120},
+                {"reps": 8, "weight": 135, "rpe": 7.5, "restSeconds": 120},
+                {"reps": 8, "weight": 135, "rpe": 8, "restSeconds": 120}
+              ],
+              "progressionDeltaWeight": 5.0
             }
           ],
-          "Finisher": "10 min cooldown stretch, foam rolling",
-          "Notes": "Focus on form over weight. Increase load gradually. Week 4 is deload at 80% intensity.",
+          "Finisher": "10 min cooldown stretch",
+          "Notes": "Focus on form. Deload week 4.",
           "EstimatedTotalTimeMinutes": 45,
-          "Progression": "Add 5 lbs per week on main lifts, deload week 4"
+          "Progression": "Add 5 lbs per week, deload week 4"
+        }
+        
+        // EXAMPLE 2: Multi-Day Block with Conditioning
+        {
+          "Title": "Upper/Lower Split",
+          "Goal": "Build strength and work capacity",
+          "TargetAthlete": "Advanced",
+          "NumberOfWeeks": 8,
+          "DurationMinutes": 60,
+          "Difficulty": 4,
+          "Equipment": "Full gym, rowing machine",
+          "WarmUp": "10 min general warm-up",
+          "Days": [
+            {
+              "name": "Day 1: Upper",
+              "shortCode": "U1",
+              "goal": "strength",
+              "exercises": [
+                {
+                  "name": "Bench Press",
+                  "type": "strength",
+                  "category": "pressHorizontal",
+                  "sets": [
+                    {"reps": 5, "weight": 185, "percentageOfMax": 0.80, "rpe": 8, "restSeconds": 240}
+                  ],
+                  "progressionDeltaWeight": 5.0
+                },
+                {
+                  "name": "Rowing Intervals",
+                  "type": "conditioning",
+                  "conditioningType": "intervals",
+                  "conditioningSets": [
+                    {"durationSeconds": 120, "distanceMeters": 500, "targetPace": "1:50/500m", "restSeconds": 60}
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Day 2: Lower",
+              "shortCode": "L1",
+              "goal": "strength",
+              "exercises": [
+                {
+                  "name": "Back Squat",
+                  "type": "strength",
+                  "category": "squat",
+                  "sets": [
+                    {"reps": 5, "weight": 225, "rpe": 8, "tempo": "3-0-1-0", "restSeconds": 300}
+                  ]
+                }
+              ]
+            }
+          ],
+          "Finisher": "Mobility work",
+          "Notes": "Progressive overload each week",
+          "EstimatedTotalTimeMinutes": 60,
+          "Progression": "Linear progression, add 5-10 lbs weekly"
         }
         """
     }
