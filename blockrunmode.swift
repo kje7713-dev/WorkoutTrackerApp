@@ -739,7 +739,9 @@ struct DayRunView: View {
         blocksRepository.update(updatedBlock)
         print("   - Block updated in repository")
         
-        // Re-read the committed block from repository to ensure we have the latest state
+        // Re-read the committed block from repository to ensure we use the repository's version
+        // This is defensive programming: the view's 'block' binding may not reflect the update
+        // immediately, so we explicitly fetch the persisted state for regeneration
         guard let committedBlock = blocksRepository.getBlock(id: updatedBlock.id) else {
             print("❌ Failed to read back committed block from repository")
             return

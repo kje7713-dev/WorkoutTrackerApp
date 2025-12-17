@@ -486,7 +486,8 @@ struct ExercisePersistenceTests {
             ("Duplicate Prevention", testDuplicateExercisesNotAdded)
         ]
         
-        for (_, test) in tests {
+        for (testName, test) in tests {
+            print("Running: \(testName)")
             if test() {
                 passed += 1
             } else {
