@@ -43,3 +43,6 @@ ci_logs/
 
 # Auth keys
 AuthKey*.p8
+
+# Temporary files
+*.tmp
