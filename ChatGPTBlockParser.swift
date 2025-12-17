@@ -170,16 +170,20 @@ public class ChatGPTBlockParser {
                 currentExercise?.conditioningType = ConditioningType(rawValue: condTypeStr)
             } else if line.contains("Sets:") && line.contains("Reps:") {
                 // Parse "Sets: X x Reps: Y" or "Sets: X Reps: Y"
-                let setsMatch = line.range(of: "Sets:\\s*(\\d+)", options: .regularExpression)
-                let repsMatch = line.range(of: "Reps:\\s*(\\d+)", options: .regularExpression)
-                
-                if let setsRange = setsMatch {
-                    let setsStr = String(line[setsRange]).replacingOccurrences(of: "Sets:", with: "").trimmingCharacters(in: .whitespaces)
-                    currentExercise?.sets = Int(setsStr)
+                // Extract just the numbers after Sets: and Reps:
+                if let setsRange = line.range(of: "Sets:") {
+                    let afterSets = String(line[setsRange.upperBound...])
+                    let setsNumber = afterSets.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+                    if let sets = Int(setsNumber), sets > 0 {
+                        currentExercise?.sets = sets
+                    }
                 }
-                if let repsRange = repsMatch {
-                    let repsStr = String(line[repsRange]).replacingOccurrences(of: "Reps:", with: "").trimmingCharacters(in: .whitespaces)
-                    currentExercise?.reps = Int(repsStr)
+                if let repsRange = line.range(of: "Reps:") {
+                    let afterReps = String(line[repsRange.upperBound...])
+                    let repsNumber = afterReps.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+                    if let reps = Int(repsNumber), reps > 0 {
+                        currentExercise?.reps = reps
+                    }
                 }
             } else if line.hasPrefix("Weight:") {
                 let weightStr = line.replacingOccurrences(of: "Weight:", with: "").trimmingCharacters(in: .whitespaces)
@@ -369,25 +373,21 @@ private class ParsedExercise {
             return ProgressionRule(type: .weight, deltaWeight: nil, deltaSets: nil)
         }
         
-        // Parse "+5 lbs" or "+2.5" for weight
-        if prog.contains("lbs") || prog.contains("kg") || prog.contains("lb") {
-            let numStr = prog.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-            if let delta = Double(numStr) {
-                return ProgressionRule(type: .weight, deltaWeight: delta, deltaSets: nil)
-            }
-        }
+        // Extract numeric value first (handles +5, 5, +2.5, etc.)
+        let allowedChars = CharacterSet.decimalDigits.union(CharacterSet(charactersIn: "."))
+        let numericString = prog.components(separatedBy: allowedChars.inverted)
+            .filter { !$0.isEmpty }
+            .joined()
         
         // Parse "+1 set" or "+2 sets" for volume
         if prog.lowercased().contains("set") {
-            let numStr = prog.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-            if let delta = Int(numStr) {
+            if let delta = Int(numericString) {
                 return ProgressionRule(type: .volume, deltaWeight: nil, deltaSets: delta)
             }
         }
         
-        // Try to extract just a number (assume weight)
-        let numStr = prog.components(separatedBy: CharacterSet.decimalDigits.union(CharacterSet(charactersIn: ".")).inverted).joined()
-        if let delta = Double(numStr) {
+        // Parse "+5 lbs" or "+2.5" for weight
+        if let delta = Double(numericString), delta > 0 {
             return ProgressionRule(type: .weight, deltaWeight: delta, deltaSets: nil)
         }
         

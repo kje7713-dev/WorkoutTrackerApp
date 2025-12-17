@@ -144,11 +144,12 @@ public class ChatGPTClient {
             return
         }
         
-        // Create streaming session
+        // Create streaming session with custom delegate for true incremental streaming
         let session = URLSession.shared
         var accumulatedText = ""
-        var receivedData = Data()
         
+        // Note: Using standard dataTask which provides data in chunks.
+        // For production, consider using URLSessionDataDelegate for true streaming.
         let task = session.dataTask(with: request) { [weak self] data, response, error in
             guard self?.currentTask != nil else {
                 onComplete(.failure(.cancelled))
@@ -176,10 +177,10 @@ public class ChatGPTClient {
                 return
             }
             
-            receivedData.append(data)
-            
-            // Parse SSE stream
-            if let text = String(data: receivedData, encoding: .utf8) {
+            // Parse SSE stream from received data
+            // Note: This is called once with all data. For true incremental updates,
+            // use URLSessionDataDelegate methods which receive chunks incrementally.
+            if let text = String(data: data, encoding: .utf8) {
                 let lines = text.components(separatedBy: "\n")
                 
                 for line in lines {

@@ -93,6 +93,10 @@ struct BlockBuilderView: View {
     @State private var showValidationAlert: Bool = false
     @State private var validationMessage: String = ""
     
+    // Success notification
+    @State private var showSuccessAlert: Bool = false
+    @State private var successMessage: String = ""
+    
     // Confirmation for overwriting sessions
     @State private var showSessionOverwriteConfirmation: Bool = false
     @State private var pendingSave: (() -> Void)? = nil
@@ -163,6 +167,11 @@ struct BlockBuilderView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(validationMessage)
+        }
+        .alert("Success", isPresented: $showSuccessAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(successMessage)
         }
         .alert("Overwrite Existing Sessions?", isPresented: $showSessionOverwriteConfirmation) {
             Button("Cancel", role: .cancel) {
@@ -548,8 +557,8 @@ struct BlockBuilderView: View {
             showAIPreview = false
             
             // Show success message
-            validationMessage = "AI block loaded successfully! Review and save when ready."
-            showValidationAlert = true
+            successMessage = "AI block loaded successfully! Review and save when ready."
+            showSuccessAlert = true
             
         } catch {
             aiError = "Failed to parse generated block: \(error.localizedDescription)"
