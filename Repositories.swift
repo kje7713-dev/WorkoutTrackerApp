@@ -63,6 +63,11 @@ public final class BlocksRepository: ObservableObject {
         blocks = newBlocks
         saveToDisk()
     }
+    
+    /// Get a block by ID (synchronous read)
+    public func getBlock(id: BlockID) -> Block? {
+        blocks.first(where: { $0.id == id })
+    }
 
     // MARK: - Persistence
 

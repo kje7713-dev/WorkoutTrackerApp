@@ -721,6 +721,9 @@ struct DayRunView: View {
             return
         }
         
+        print("🔵 addExerciseToBlockTemplate: Adding '\(name)' (\(type)) to day \(dayIndex)")
+        print("   - Block '\(updatedBlock.name)' has \(updatedBlock.days[dayIndex].exercises.count) exercises before append")
+        
         // Create a new exercise template
         let newTemplate = ExerciseTemplate(
             customName: name,
@@ -730,38 +733,72 @@ struct DayRunView: View {
         
         // Add to the day template
         updatedBlock.days[dayIndex].exercises.append(newTemplate)
+        print("   - Day now has \(updatedBlock.days[dayIndex].exercises.count) exercises after append")
         
-        // Update the block in repository
+        // Update the block in repository (synchronous operation)
         blocksRepository.update(updatedBlock)
+        print("   - Block updated in repository")
         
-        // Regenerate sessions for future weeks
-        regenerateSessionsForFutureWeeks(newTemplate: newTemplate)
+        // Re-read the committed block from repository to ensure we use the repository's version
+        // This is defensive programming: the view's 'block' binding may not reflect the update
+        // immediately, so we explicitly fetch the persisted state for regeneration
+        guard let committedBlock = blocksRepository.getBlock(id: updatedBlock.id) else {
+            print("❌ Failed to read back committed block from repository")
+            return
+        }
+        print("   - Committed block read back: \(committedBlock.days[dayIndex].exercises.count) exercises in day \(dayIndex)")
+        
+        // Regenerate sessions for future weeks using the committed block
+        regenerateSessionsForFutureWeeks(newTemplate: newTemplate, fromBlock: committedBlock, currentWeekIndex: weekIndex)
     }
     
-    private func regenerateSessionsForFutureWeeks(newTemplate: ExerciseTemplate) {
+    private func regenerateSessionsForFutureWeeks(
+        newTemplate: ExerciseTemplate,
+        fromBlock: Block,
+        currentWeekIndex: Int
+    ) {
         let factory = SessionFactory()
         
         // Validate dayIndex before proceeding
-        guard dayIndex < block.days.count else {
-            print("⚠️ Invalid dayIndex: \(dayIndex) for block with \(block.days.count) days in regenerateSessionsForFutureWeeks")
+        guard dayIndex < fromBlock.days.count else {
+            print("⚠️ Invalid dayIndex: \(dayIndex) for block with \(fromBlock.days.count) days in regenerateSessionsForFutureWeeks")
             return
         }
         
+        print("🔵 regenerateSessionsForFutureWeeks: Processing future weeks")
+        print("   - Current week index: \(currentWeekIndex) (0-based)")
+        print("   - Block has \(fromBlock.numberOfWeeks) weeks")
+        print("   - Template: '\(newTemplate.customName ?? "unnamed")' (\(newTemplate.type))")
+        
         // Get all existing sessions for this block
-        var allSessions = sessionsRepository.sessions(forBlockId: block.id)
+        var allSessions = sessionsRepository.sessions(forBlockId: fromBlock.id)
+        print("   - Fetched \(allSessions.count) sessions from repository")
         
         // For each future week (starting from next week), add the new exercise
         // Note: weekIndex in RunWeekState is 0-based, but WorkoutSession.weekIndex is 1-based
-        let currentWeekNumber = weekIndex + 1 // Convert to 1-based
-        let dayTemplateId = block.days[dayIndex].id
+        let currentWeekNumber = currentWeekIndex + 1 // Convert to 1-based
+        let dayTemplateId = fromBlock.days[dayIndex].id
         
-        for futureWeekNumber in (currentWeekNumber + 1)...block.numberOfWeeks {
+        var updatedWeekCount = 0
+        
+        for futureWeekNumber in (currentWeekNumber + 1)...fromBlock.numberOfWeeks {
             // Find the session for this week and day
             if let sessionIndex = allSessions.firstIndex(where: {
-                $0.blockId == block.id &&
+                $0.blockId == fromBlock.id &&
                 $0.weekIndex == futureWeekNumber &&
                 $0.dayTemplateId == dayTemplateId
             }) {
+                // Check if exercise already exists to avoid duplicates
+                let exerciseAlreadyExists = allSessions[sessionIndex].exercises.contains { exercise in
+                    exercise.customName == newTemplate.customName &&
+                    exercise.exerciseTemplateId == newTemplate.id
+                }
+                
+                if exerciseAlreadyExists {
+                    print("   - Week \(futureWeekNumber): Exercise already exists, skipping")
+                    continue
+                }
+                
                 // Create a new SessionExercise from the template
                 let expectedSets = factory.makeSessionSetsFromTemplate(newTemplate, weekIndex: futureWeekNumber)
                 // Create independent copies for logged sets (SessionSet is a value type struct)
@@ -800,11 +837,16 @@ struct DayRunView: View {
                 
                 // Add to the session's exercises
                 allSessions[sessionIndex].exercises.append(newSessionExercise)
+                updatedWeekCount += 1
+                print("   - Week \(futureWeekNumber): Added exercise with \(expectedSets.count) sets")
+            } else {
+                print("   - Week \(futureWeekNumber): Session not found for day template \(dayTemplateId)")
             }
         }
         
         // Save all updated sessions
-        sessionsRepository.replaceSessions(forBlockId: block.id, with: allSessions)
+        sessionsRepository.replaceSessions(forBlockId: fromBlock.id, with: allSessions)
+        print("✅ regenerateSessionsForFutureWeeks: Updated \(updatedWeekCount) future week sessions")
     }
 }
 
