@@ -11,6 +11,8 @@ struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.sbdTheme) private var theme
     
+    @State private var showChatGPTSettings = false
+    
     private var buildBranchLabel: String {
         let branch = getBuildBranch()
         // If branch already starts with "copilot/", don't add it again
@@ -116,6 +118,20 @@ struct HomeView: View {
                 .padding(.bottom, 8)
             }
             .padding(.horizontal, 20)
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showChatGPTSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+            }
+        }
+        .sheet(isPresented: $showChatGPTSettings) {
+            NavigationStack {
+                ChatGPTSettingsView()
+            }
         }
     }
 
