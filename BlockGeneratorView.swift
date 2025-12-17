@@ -24,6 +24,7 @@ struct BlockGeneratorView: View {
     @State private var importedBlock: Block?
     @State private var errorMessage: String?
     @State private var showCopyConfirmation: Bool = false
+    @State private var hideConfirmationTask: DispatchWorkItem?
     
     // MARK: - Body
     
@@ -141,13 +142,15 @@ struct BlockGeneratorView: View {
             }
             
             // Link to full documentation
-            Link(destination: URL(string: "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/BLOCK_JSON_IMPORT_README.md")!) {
-                HStack {
-                    Image(systemName: "book.fill")
-                    Text("View Complete Documentation & Examples")
-                        .font(.system(size: 14, weight: .medium))
+            if let docURL = URL(string: "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/BLOCK_JSON_IMPORT_README.md") {
+                Link(destination: docURL) {
+                    HStack {
+                        Image(systemName: "book.fill")
+                        Text("View Complete Documentation & Examples")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .foregroundColor(theme.accent)
                 }
-                .foregroundColor(theme.accent)
             }
             
             Divider()
@@ -433,13 +436,18 @@ struct BlockGeneratorView: View {
     private func copyToClipboard(_ text: String) {
         UIPasteboard.general.string = text
         
+        // Cancel any existing hide task
+        hideConfirmationTask?.cancel()
+        
         // Show confirmation feedback
         showCopyConfirmation = true
         
         // Hide confirmation after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        let task = DispatchWorkItem {
             showCopyConfirmation = false
         }
+        hideConfirmationTask = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2, execute: task)
     }
     
     private func saveBlock(_ block: Block) {
