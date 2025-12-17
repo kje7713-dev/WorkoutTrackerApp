@@ -68,6 +68,34 @@ public final class BlocksRepository: ObservableObject {
     public func getBlock(id: BlockID) -> Block? {
         blocks.first(where: { $0.id == id })
     }
+    
+    /// Archive a block
+    public func archive(_ block: Block) {
+        guard let index = blocks.firstIndex(where: { $0.id == block.id }) else { return }
+        var updatedBlock = blocks[index]
+        updatedBlock.isArchived = true
+        blocks[index] = updatedBlock
+        saveToDisk()
+    }
+    
+    /// Unarchive a block
+    public func unarchive(_ block: Block) {
+        guard let index = blocks.firstIndex(where: { $0.id == block.id }) else { return }
+        var updatedBlock = blocks[index]
+        updatedBlock.isArchived = false
+        blocks[index] = updatedBlock
+        saveToDisk()
+    }
+    
+    /// Get active (non-archived) blocks
+    public func activeBlocks() -> [Block] {
+        blocks.filter { !$0.isArchived }
+    }
+    
+    /// Get archived blocks
+    public func archivedBlocks() -> [Block] {
+        blocks.filter { $0.isArchived }
+    }
 
     // MARK: - Persistence
 

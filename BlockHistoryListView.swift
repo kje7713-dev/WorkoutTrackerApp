@@ -1,11 +1,10 @@
 import SwiftUI
 
-/// Blocks screen – choose a block to run, or create a new one.
-/// Phase 7: hooked to BlocksRepository (no ProgramStore, no extra layers).
+/// Block history screen – review archived blocks.
+/// Replicated from BlocksListView but shows archived blocks with REVIEW instead of RUN.
 
-struct BlocksListView: View {
+struct BlockHistoryListView: View {
 
-    // Same repository the builder uses
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var sessionsRepository: SessionsRepository
     @EnvironmentObject private var exerciseLibraryRepository: ExerciseLibraryRepository
@@ -13,19 +12,13 @@ struct BlocksListView: View {
 
     // Which builder mode is active (if any)?
     @State private var builderContext: BuilderContext?
-    
-    // AI block generator
-    @State private var showingAIGenerator: Bool = false
 
     private enum BuilderContext: Identifiable {
-        case new
         case edit(Block)
         case clone(Block)
 
         var id: String {
             switch self {
-            case .new:
-                return "new"
             case .edit(let block):
                 return "edit-\(block.id)"
             case .clone(let block):
@@ -42,37 +35,22 @@ struct BlocksListView: View {
 
                 header
 
-                if blocksRepository.activeBlocks().isEmpty {
+                if blocksRepository.archivedBlocks().isEmpty {
                     emptyState
                 } else {
                     blocksList
                 }
 
                 Spacer()
-
-                aiGeneratorButton
-                
-                newBlockButton
             }
             .padding(.horizontal)
             .padding(.top, 32)
         }
-        .navigationTitle("Blocks")
+        .navigationTitle("Block History")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showingAIGenerator) {
-            BlockGeneratorView()
-                .environmentObject(blocksRepository)
-                .environmentObject(sessionsRepository)
-        }
         .sheet(item: $builderContext) { context in
             NavigationStack {
                 switch context {
-                case .new:
-                    BlockBuilderView(mode: .new)
-                        .environmentObject(blocksRepository)
-                        .environmentObject(sessionsRepository)
-                        .environmentObject(exerciseLibraryRepository)
-
                 case .edit(let block):
                     BlockBuilderView(mode: .edit(block))
                         .environmentObject(blocksRepository)
@@ -93,10 +71,10 @@ struct BlocksListView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Blocks")
+            Text("Block History")
                 .font(.largeTitle).bold()
 
-            Text("Choose a block to run.")
+            Text("Review your archived blocks.")
                 .font(.body)
                 .foregroundColor(.secondary)
         }
@@ -107,10 +85,10 @@ struct BlocksListView: View {
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("No blocks yet")
+            Text("No archived blocks")
                 .font(.title2).bold()
 
-            Text("Create a block in the builder, then come back here to run it.")
+            Text("Completed or NLA blocks you archive will appear here.")
                 .font(.body)
                 .foregroundColor(.secondary)
         }
@@ -118,15 +96,14 @@ struct BlocksListView: View {
         .padding(.top, 16)
     }
 
-    // MARK: - List of Blocks
+    // MARK: - List of Archived Blocks
 
     private var blocksList: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Only show active (non-archived) blocks
-                ForEach(blocksRepository.activeBlocks()) { block in 
+                ForEach(blocksRepository.archivedBlocks()) { block in 
                     VStack(alignment: .leading, spacing: 8) {
-                        // Title / description (unchanged behavior)
+                        // Title / description
                         Text(block.name)
                             .font(.headline).bold()
 
@@ -158,16 +135,16 @@ struct BlocksListView: View {
                             }
                         }
 
-                        // Explicit action row: RUN / EDIT / NEXT BLOCK
+                        // Explicit action row: REVIEW / EDIT / NEXT BLOCK
                         HStack(spacing: 8) {
-                            // RUN – navigate directly to BlockRunModeView
+                            // REVIEW – navigate to BlockRunModeView (read-only review)
                             NavigationLink {
                                 BlockRunModeView(block: block)
                                     .environmentObject(sessionsRepository)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(exerciseLibraryRepository)
                             } label: { 
-                                Text("RUN")
+                                Text("REVIEW")
                                     .font(.subheadline).bold()
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
@@ -198,16 +175,16 @@ struct BlocksListView: View {
                             .buttonStyle(.bordered)
                         }
 
-                        // ARCHIVE button to move to history
+                        // UNARCHIVE button to restore to active list
                         Button {
-                            blocksRepository.archive(block)
+                            blocksRepository.unarchive(block)
                         } label: {
-                            Text("ARCHIVE")
+                            Text("UNARCHIVE")
                                 .font(.footnote)
                         }
                         .padding(.top, 4)
                         
-                        // Optional: explicit DELETE button (same behavior as old contextMenu delete)
+                        // Optional: DELETE button
                         Button(role: .destructive) {
                             blocksRepository.delete(block)
                         } label: {
@@ -227,41 +204,4 @@ struct BlocksListView: View {
             .padding(.top, 8)
         }
     }
-
-    // MARK: - Import JSON Button
-    
-    private var aiGeneratorButton: some View {
-        Button {
-            showingAIGenerator = true
-        } label: {
-            HStack {
-                Image(systemName: "doc.badge.plus")
-                Text("IMPORT FROM JSON")
-                    .font(.headline).bold()
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(24)
-        }
-        .padding(.bottom, 8)
-    }
-
-    // MARK: - New Block Button
-
-    private var newBlockButton: some View {
-        Button {
-            builderContext = .new
-        } label: {
-            Text("NEW BLOCK")
-                .font(.headline).bold()
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(Color.black)
-                .foregroundColor(.white)
-                .cornerRadius(24)
-        }
-        .padding(.bottom, 24)
-    }
-} // <--- This closes the BlocksListView struct (CRITICAL CLOSURE)
+}
