@@ -1488,6 +1488,14 @@ struct AddExerciseSheet: View {
         exerciseLibrary.all().filter { $0.type == selectedType }
     }
     
+    private var trimmedExerciseName: String {
+        exerciseName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    private var isExerciseNameEmpty: Bool {
+        trimmedExerciseName.isEmpty
+    }
+    
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -1502,7 +1510,7 @@ struct AddExerciseSheet: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-                .onChange(of: selectedType) { _, _ in
+                .onChange(of: selectedType) { _ in
                     // Reset exercise name when type changes
                     exerciseName = ""
                 }
@@ -1587,9 +1595,8 @@ struct AddExerciseSheet: View {
                 
                 // Add button
                 Button {
-                    let finalName = exerciseName.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !finalName.isEmpty {
-                        onAddExercise(selectedType, finalName)
+                    if !isExerciseNameEmpty {
+                        onAddExercise(selectedType, trimmedExerciseName)
                         dismiss()
                     }
                 } label: {
@@ -1597,11 +1604,11 @@ struct AddExerciseSheet: View {
                         .font(.body)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(exerciseName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : Color.accentColor)
+                        .background(isExerciseNameEmpty ? Color.gray : Color.accentColor)
                         .foregroundColor(.white)
                         .cornerRadius(10)
                 }
-                .disabled(exerciseName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(isExerciseNameEmpty)
                 .padding(.horizontal)
                 
                 Spacer()
