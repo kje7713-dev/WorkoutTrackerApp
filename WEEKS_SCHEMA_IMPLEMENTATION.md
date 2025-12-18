@@ -240,7 +240,7 @@ ManualWeeksTest.runAll()
 ```
 
 This will:
-1. Load `Tests/test_weeks_block.json`
+1. Load `Tests/sample_weeks_block.json`
 2. Parse the JSON with BlockGenerator
 3. Convert to Block model
 4. Generate sessions with SessionFactory
@@ -342,7 +342,7 @@ Potential improvements:
 - `Repositories.swift` - Persistence layer
 - `Tests/WeekSpecificBlockTests.swift` - Automated tests
 - `Tests/ManualWeeksTest.swift` - Manual testing suite
-- `Tests/test_weeks_block.json` - Sample week-specific JSON
+- `Tests/sample_weeks_block.json` - Sample week-specific JSON
 
 ## Support
 
@@ -350,4 +350,4 @@ For issues or questions about the Weeks schema implementation:
 1. Check logs for parsing/generation details
 2. Review test files for working examples
 3. Consult this documentation
-4. Check test_weeks_block.json for JSON schema reference
+4. Check sample_weeks_block.json for JSON schema reference

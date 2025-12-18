@@ -14,8 +14,9 @@ struct ManualWeeksTest {
     static func testWeeksJSONParsing() -> Bool {
         print("\n=== Testing Weeks Schema Parsing ===\n")
         
-        // Load the test JSON file
-        let testFilePath = "/home/runner/work/WorkoutTrackerApp/WorkoutTrackerApp/Tests/sample_weeks_block.json"
+        // Load the test JSON file - try to locate it relative to current directory
+        let currentDir = FileManager.default.currentDirectoryPath
+        let testFilePath = "\(currentDir)/Tests/sample_weeks_block.json"
         
         guard FileManager.default.fileExists(atPath: testFilePath) else {
             print("❌ Test file not found at: \(testFilePath)")
