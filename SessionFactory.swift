@@ -136,7 +136,7 @@ public struct SessionFactory {
         // Week 1 = baseline (0 progression), Week 2 = 1x progression, Week 3 = 2x, etc.
         let progressionMultiplier = isDeloadWeek ? 0 : max(0, weekIndex - 1)
 
-        if let strengthSets = template.strengthSets {
+        if let strengthSets = template.strengthSets, !strengthSets.isEmpty {
             // Determine base number of sets and additional sets from progression
             let additionalSets = calculateAdditionalSets(
                 rule: template.progressionRule,
@@ -215,7 +215,7 @@ public struct SessionFactory {
             }
         }
 
-        if let conditioningSets = template.conditioningSets {
+        if let conditioningSets = template.conditioningSets, !conditioningSets.isEmpty {
             // Conditioning exercises typically don't use weight progression,
             // but we could apply volume progression (additional sets/rounds)
             let additionalSets = calculateAdditionalSets(
