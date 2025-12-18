@@ -18,17 +18,16 @@ struct TestRunner {
         
         var allTestsPassed = true
         
-        // Run BlockGenerator tests (only in DEBUG builds)
+        // Run tests (only in DEBUG builds to avoid compilation issues in Release)
         #if DEBUG
         if !BlockGeneratorTests.runAll() {
             allTestsPassed = false
         }
-        #endif
         
-        // Run Progression tests
         if !ProgressionTests.runAllTests() {
             allTestsPassed = false
         }
+        #endif
         
         print("\n========================================")
         if allTestsPassed {
