@@ -23,12 +23,12 @@ struct TestRunner {
         if !BlockGeneratorTests.runAll() {
             allTestsPassed = false
         }
-        #endif
         
         // Run Progression tests
         if !ProgressionTests.runAllTests() {
             allTestsPassed = false
         }
+        #endif
         
         print("\n========================================")
         if allTestsPassed {
