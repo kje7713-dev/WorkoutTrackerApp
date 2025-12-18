@@ -94,51 +94,135 @@ public struct SessionFactory {
     ) -> [SessionSet] {
         return makeSessionSets(from: template, weekIndex: weekIndex)
     }
+    
+    // MARK: - Helper: Progression Calculations
+    
+    /// Calculate the number of additional sets to add for volume progression
+    private func calculateAdditionalSets(
+        rule: ProgressionRule,
+        multiplier: Int
+    ) -> Int {
+        if rule.type == .volume, let deltaSets = rule.deltaSets {
+            return deltaSets * multiplier
+        }
+        return 0
+    }
+    
+    /// Calculate progressed weight based on progression rule
+    private func calculateProgressedWeight(
+        baseWeight: Double?,
+        rule: ProgressionRule,
+        multiplier: Int
+    ) -> Double? {
+        guard rule.type == .weight,
+              let base = baseWeight,
+              let delta = rule.deltaWeight else {
+            return baseWeight
+        }
+        return base + (delta * Double(multiplier))
+    }
 
     private func makeSessionSets(
         from template: ExerciseTemplate,
         weekIndex: Int
     ) -> [SessionSet] {
         var result: [SessionSet] = []
+        
+        // Apply progression logic based on weekIndex and progressionRule
+        // Determine if this is a deload week
+        let isDeloadWeek = template.progressionRule.deloadWeekIndexes?.contains(weekIndex) ?? false
+        
+        // Calculate progression multiplier based on weekIndex
+        // Week 1 = baseline (0 progression), Week 2 = 1x progression, Week 3 = 2x, etc.
+        let progressionMultiplier = isDeloadWeek ? 0 : max(0, weekIndex - 1)
 
-        // NOTE:
-        // We are intentionally *not* applying complex progression logic here yet.
-        // For Phase 8 v1, we:
-        //  - Reflect the template’s planned sets directly into expected* fields.
-        //  - Copy those values into logged* fields.
-        //  - Leave advanced week-based adjustments to ProgressionEngine in a later pass.
-
-        if let strengthSets = template.strengthSets {
+        if let strengthSets = template.strengthSets, !strengthSets.isEmpty {
+            // Determine base number of sets and additional sets from progression
+            let additionalSets = calculateAdditionalSets(
+                rule: template.progressionRule,
+                multiplier: progressionMultiplier
+            )
+            
+            // Create base sets from template
             for strength in strengthSets {
+                // Apply weight progression if applicable
+                let progressedWeight = calculateProgressedWeight(
+                    baseWeight: strength.weight,
+                    rule: template.progressionRule,
+                    multiplier: progressionMultiplier
+                )
+                
                 let set = SessionSet(
                     id: UUID(),
                     index: strength.index,
                     expectedReps: strength.reps,
-                    expectedWeight: strength.weight,
+                    expectedWeight: progressedWeight,
                     expectedTime: nil,
                     expectedDistance: nil,
                     expectedCalories: nil,
-                    expectedRounds: nil, // Note: Rounds field is for conditioning
+                    expectedRounds: nil,
                     loggedReps: strength.reps,
-                    loggedWeight: strength.weight,
+                    loggedWeight: progressedWeight,
                     loggedTime: nil,
                     loggedDistance: nil,
                     loggedCalories: nil,
-                    loggedRounds: nil, // Note: Rounds field is for conditioning
-                    // 🚨 FIX: Ensure RPE/RIR/Tempo/RestSeconds are mapped from the template
+                    loggedRounds: nil,
                     rpe: strength.rpe,
                     rir: strength.rir,
                     tempo: strength.tempo,
                     restSeconds: strength.restSeconds,
                     notes: strength.notes,
                     isCompleted: false
-                    
                 )
                 result.append(set)
             }
+            
+            // Add additional sets for volume progression
+            if additionalSets > 0, let lastSet = strengthSets.last {
+                // Apply weight progression to additional sets as well
+                let progressedWeight = calculateProgressedWeight(
+                    baseWeight: lastSet.weight,
+                    rule: template.progressionRule,
+                    multiplier: progressionMultiplier
+                )
+                
+                for i in 0..<additionalSets {
+                    let newIndex = strengthSets.count + i
+                    let set = SessionSet(
+                        id: UUID(),
+                        index: newIndex,
+                        expectedReps: lastSet.reps,
+                        expectedWeight: progressedWeight,
+                        expectedTime: nil,
+                        expectedDistance: nil,
+                        expectedCalories: nil,
+                        expectedRounds: nil,
+                        loggedReps: lastSet.reps,
+                        loggedWeight: progressedWeight,
+                        loggedTime: nil,
+                        loggedDistance: nil,
+                        loggedCalories: nil,
+                        loggedRounds: nil,
+                        rpe: lastSet.rpe,
+                        rir: lastSet.rir,
+                        tempo: lastSet.tempo,
+                        restSeconds: lastSet.restSeconds,
+                        notes: lastSet.notes,
+                        isCompleted: false
+                    )
+                    result.append(set)
+                }
+            }
         }
 
-        if let conditioningSets = template.conditioningSets {
+        if let conditioningSets = template.conditioningSets, !conditioningSets.isEmpty {
+            // Conditioning exercises typically don't use weight progression,
+            // but we could apply volume progression (additional sets/rounds)
+            let additionalSets = calculateAdditionalSets(
+                rule: template.progressionRule,
+                multiplier: progressionMultiplier
+            )
+            
             for conditioning in conditioningSets {
                 let set = SessionSet(
                     id: UUID(),
@@ -155,21 +239,46 @@ public struct SessionFactory {
                     loggedDistance: conditioning.distanceMeters,
                     loggedCalories: conditioning.calories,
                     loggedRounds: conditioning.rounds,
-                    // 🚨 FIX: Ensure RPE/RIR/Tempo/RestSeconds are mapped from the template (if they exist on the template model)
                     rpe: nil,
                     rir: nil,
                     tempo: nil,
-                    restSeconds: conditioning.restSeconds, // Rest is the most common shared field
+                    restSeconds: conditioning.restSeconds,
                     notes: conditioning.notes,
                     isCompleted: false
                 )
                 result.append(set)
             }
+            
+            // Add additional sets for volume progression
+            if additionalSets > 0, let lastSet = conditioningSets.last {
+                for i in 0..<additionalSets {
+                    let newIndex = conditioningSets.count + i
+                    let set = SessionSet(
+                        id: UUID(),
+                        index: newIndex,
+                        expectedReps: nil,
+                        expectedWeight: nil,
+                        expectedTime: lastSet.durationSeconds.map { Double($0) },
+                        expectedDistance: lastSet.distanceMeters,
+                        expectedCalories: lastSet.calories,
+                        expectedRounds: lastSet.rounds,
+                        loggedReps: nil,
+                        loggedWeight: nil,
+                        loggedTime: lastSet.durationSeconds.map { Double($0) },
+                        loggedDistance: lastSet.distanceMeters,
+                        loggedCalories: lastSet.calories,
+                        loggedRounds: lastSet.rounds,
+                        rpe: nil,
+                        rir: nil,
+                        tempo: nil,
+                        restSeconds: lastSet.restSeconds,
+                        notes: lastSet.notes,
+                        isCompleted: false
+                    )
+                    result.append(set)
+                }
+            }
         }
-
-        // If you later make use of genericSets on ExerciseTemplate,
-        // you can add a third branch here that maps those into SessionSets
-        // using the same expected*/logged* pattern.
 
         return result
     }

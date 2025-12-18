@@ -25,6 +25,11 @@ struct TestRunner {
         }
         #endif
         
+        // Run Progression tests
+        if !ProgressionTests.runAllTests() {
+            allTestsPassed = false
+        }
+        
         print("\n========================================")
         if allTestsPassed {
             print("✅ ALL TESTS PASSED")
