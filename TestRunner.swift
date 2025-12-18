@@ -27,6 +27,11 @@ struct TestRunner {
         if !ProgressionTests.runAllTests() {
             allTestsPassed = false
         }
+        
+        // Run Week-Specific Block tests
+        if !WeekSpecificBlockTests.runAll() {
+            allTestsPassed = false
+        }
         #endif
         
         print("\n========================================")
