@@ -113,7 +113,7 @@ public final class BlocksRepository: ObservableObject {
             return decoded
         } catch {
             // Non-fatal: log and fall back to in-memory seed.
-            print("⚠️ BlocksRepository.loadFromDisk failed: \(error)")
+            AppLogger.error(error, context: "BlocksRepository.loadFromDisk failed", subsystem: .persistence)
             return nil
         }
     }
@@ -140,13 +140,11 @@ public final class BlocksRepository: ObservableObject {
             // Write atomically to avoid partially written files
             try data.write(to: url, options: .atomic)
 
-            #if DEBUG
-            print("✅ BlocksRepository: saved \(blocks.count) blocks to \(url.path)")
-            #endif
+            AppLogger.debug("Saved \(blocks.count) blocks to \(url.path)", subsystem: .persistence, category: "BlocksRepository")
 
         } catch {
             // Log the error
-            print("⚠️ BlocksRepository.saveToDisk failed: \(error)")
+            AppLogger.error(error, context: "BlocksRepository.saveToDisk failed", subsystem: .persistence)
 
             // Try to restore backup if available
             if FileManager.default.fileExists(atPath: backupURL.path) {
@@ -156,9 +154,9 @@ public final class BlocksRepository: ObservableObject {
                         try FileManager.default.removeItem(at: url)
                     }
                     try FileManager.default.copyItem(at: backupURL, to: url)
-                    print("ℹ️ BlocksRepository: restored backup to \(url.path)")
+                    AppLogger.info("Restored backup to \(url.path)", subsystem: .persistence, category: "BlocksRepository")
                 } catch {
-                    print("⚠️ BlocksRepository: failed to restore backup: \(error)")
+                    AppLogger.error(error, context: "BlocksRepository: failed to restore backup", subsystem: .persistence)
                 }
             }
         }
@@ -250,7 +248,7 @@ public final class SessionsRepository: ObservableObject {
             let decoded = try JSONDecoder().decode([WorkoutSession].self, from: data)
             return decoded
         } catch {
-            print("⚠️ SessionsRepository.loadFromDisk failed: \(error)")
+            AppLogger.error(error, context: "SessionsRepository.loadFromDisk failed", subsystem: .persistence)
             return nil
         }
     }
@@ -282,31 +280,31 @@ public final class SessionsRepository: ObservableObject {
                 do {
                     try FileManager.default.removeItem(at: backupURL)
                 } catch {
-                    print("⚠️ WARNING: Failed to cleanup backup file: \(error)")
+                    AppLogger.warning("Failed to cleanup backup file: \(error.localizedDescription)", subsystem: .persistence, category: "SessionsRepository")
                 }
             }
         } catch let encodingError as EncodingError {
-            print("⚠️ SessionsRepository.saveToDisk encoding failed: \(encodingError)")
+            AppLogger.error(encodingError, context: "SessionsRepository.saveToDisk encoding failed", subsystem: .persistence)
             // Attempt to restore from backup if available
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                print("🔄 Attempting to restore sessions from backup...")
+                AppLogger.info("Attempting to restore sessions from backup", subsystem: .persistence, category: "SessionsRepository")
                 do {
                     try FileManager.default.copyItem(at: backupURL, to: url)
-                    print("✅ Successfully restored sessions from backup")
+                    AppLogger.info("Successfully restored sessions from backup", subsystem: .persistence, category: "SessionsRepository")
                 } catch {
-                    print("❌ Failed to restore sessions from backup: \(error)")
+                    AppLogger.error(error, context: "Failed to restore sessions from backup", subsystem: .persistence)
                 }
             }
         } catch {
-            print("⚠️ SessionsRepository.saveToDisk failed: \(error)")
+            AppLogger.error(error, context: "SessionsRepository.saveToDisk failed", subsystem: .persistence)
             // Attempt to restore from backup if available
             if FileManager.default.fileExists(atPath: backupURL.path) {
-                print("🔄 Attempting to restore sessions from backup...")
+                AppLogger.info("Attempting to restore sessions from backup", subsystem: .persistence, category: "SessionsRepository")
                 do {
                     try FileManager.default.copyItem(at: backupURL, to: url)
-                    print("✅ Successfully restored sessions from backup")
+                    AppLogger.info("Successfully restored sessions from backup", subsystem: .persistence, category: "SessionsRepository")
                 } catch {
-                    print("❌ Failed to restore sessions from backup: \(error)")
+                    AppLogger.error(error, context: "Failed to restore sessions from backup", subsystem: .persistence)
                 }
             }
         }
