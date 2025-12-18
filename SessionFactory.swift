@@ -94,6 +94,33 @@ public struct SessionFactory {
     ) -> [SessionSet] {
         return makeSessionSets(from: template, weekIndex: weekIndex)
     }
+    
+    // MARK: - Helper: Progression Calculations
+    
+    /// Calculate the number of additional sets to add for volume progression
+    private func calculateAdditionalSets(
+        rule: ProgressionRule,
+        multiplier: Int
+    ) -> Int {
+        if rule.type == .volume, let deltaSets = rule.deltaSets {
+            return deltaSets * multiplier
+        }
+        return 0
+    }
+    
+    /// Calculate progressed weight based on progression rule
+    private func calculateProgressedWeight(
+        baseWeight: Double?,
+        rule: ProgressionRule,
+        multiplier: Int
+    ) -> Double? {
+        guard rule.type == .weight,
+              let base = baseWeight,
+              let delta = rule.deltaWeight else {
+            return baseWeight
+        }
+        return base + (delta * Double(multiplier))
+    }
 
     private func makeSessionSets(
         from template: ExerciseTemplate,
@@ -111,24 +138,19 @@ public struct SessionFactory {
 
         if let strengthSets = template.strengthSets {
             // Determine base number of sets and additional sets from progression
-            let additionalSets: Int
-            if template.progressionRule.type == .volume, let deltaSets = template.progressionRule.deltaSets {
-                additionalSets = deltaSets * progressionMultiplier
-            } else {
-                additionalSets = 0
-            }
+            let additionalSets = calculateAdditionalSets(
+                rule: template.progressionRule,
+                multiplier: progressionMultiplier
+            )
             
             // Create base sets from template
             for strength in strengthSets {
                 // Apply weight progression if applicable
-                let progressedWeight: Double?
-                if template.progressionRule.type == .weight,
-                   let baseWeight = strength.weight,
-                   let deltaWeight = template.progressionRule.deltaWeight {
-                    progressedWeight = baseWeight + (deltaWeight * Double(progressionMultiplier))
-                } else {
-                    progressedWeight = strength.weight
-                }
+                let progressedWeight = calculateProgressedWeight(
+                    baseWeight: strength.weight,
+                    rule: template.progressionRule,
+                    multiplier: progressionMultiplier
+                )
                 
                 let set = SessionSet(
                     id: UUID(),
@@ -158,14 +180,11 @@ public struct SessionFactory {
             // Add additional sets for volume progression
             if additionalSets > 0, let lastSet = strengthSets.last {
                 // Apply weight progression to additional sets as well
-                let progressedWeight: Double?
-                if template.progressionRule.type == .weight,
-                   let baseWeight = lastSet.weight,
-                   let deltaWeight = template.progressionRule.deltaWeight {
-                    progressedWeight = baseWeight + (deltaWeight * Double(progressionMultiplier))
-                } else {
-                    progressedWeight = lastSet.weight
-                }
+                let progressedWeight = calculateProgressedWeight(
+                    baseWeight: lastSet.weight,
+                    rule: template.progressionRule,
+                    multiplier: progressionMultiplier
+                )
                 
                 for i in 0..<additionalSets {
                     let newIndex = strengthSets.count + i
@@ -199,12 +218,10 @@ public struct SessionFactory {
         if let conditioningSets = template.conditioningSets {
             // Conditioning exercises typically don't use weight progression,
             // but we could apply volume progression (additional sets/rounds)
-            let additionalSets: Int
-            if template.progressionRule.type == .volume, let deltaSets = template.progressionRule.deltaSets {
-                additionalSets = deltaSets * progressionMultiplier
-            } else {
-                additionalSets = 0
-            }
+            let additionalSets = calculateAdditionalSets(
+                rule: template.progressionRule,
+                multiplier: progressionMultiplier
+            )
             
             for conditioning in conditioningSets {
                 let set = SessionSet(
