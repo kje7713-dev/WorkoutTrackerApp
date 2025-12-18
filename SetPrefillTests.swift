@@ -18,7 +18,7 @@ struct SetPrefillTests {
         print("🧪 Testing: Strength set prefill from previous set")
         
         // Setup: Create an exercise with one existing set
-        var exercise = RunExerciseState(
+        let exercise = RunExerciseState(
             name: "Bench Press",
             type: .strength,
             notes: "",
@@ -70,7 +70,7 @@ struct SetPrefillTests {
         print("🧪 Testing: Conditioning set prefill from previous set")
         
         // Setup: Create an exercise with one existing conditioning set
-        var exercise = RunExerciseState(
+        let exercise = RunExerciseState(
             name: "Row",
             type: .conditioning,
             notes: "",
@@ -131,7 +131,7 @@ struct SetPrefillTests {
         print("🧪 Testing: First set uses default values (no previous set)")
         
         // Setup: Create an exercise with no existing sets
-        var exercise = RunExerciseState(
+        let exercise = RunExerciseState(
             name: "Squat",
             type: .strength,
             notes: "",
@@ -170,7 +170,7 @@ struct SetPrefillTests {
         print("🧪 Testing: Multiple sets prefill chain (each copies from previous)")
         
         // Setup: Create an exercise with two sets
-        var exercise = RunExerciseState(
+        let exercise = RunExerciseState(
             name: "Deadlift",
             type: .strength,
             notes: "",
