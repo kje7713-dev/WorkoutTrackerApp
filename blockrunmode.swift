@@ -1609,7 +1609,7 @@ struct AddExerciseSheet: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-                .onChange(of: selectedType) { oldValue, newValue in
+                .onChange(of: selectedType) { _, _ in
                     // Reset exercise name when type changes
                     exerciseName = ""
                 }
