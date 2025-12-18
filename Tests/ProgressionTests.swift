@@ -90,7 +90,7 @@ struct ProgressionTests {
     // MARK: - Test: Volume Progression
     
     /// Test that additional sets are added for volume progression
-    static func testVolumeProgressionAddssets() -> Bool {
+    static func testVolumeProgressionAddsSets() -> Bool {
         print("🧪 Testing: Volume progression adds sets across weeks")
         
         // Create a 3-week block with volume progression
@@ -340,7 +340,8 @@ struct ProgressionTests {
     // MARK: - Run All Tests
     
     /// Run all progression tests and report results
-    static func runAllTests() {
+    /// Returns true if all tests passed, false otherwise
+    static func runAllTests() -> Bool {
         print("\n" + String(repeating: "=", count: 60))
         print("Running Progression Tests")
         print(String(repeating: "=", count: 60) + "\n")
@@ -350,7 +351,7 @@ struct ProgressionTests {
         
         let tests: [(name: String, test: () -> Bool)] = [
             ("Weight Progression Across Weeks", testWeightProgressionAcrossWeeks),
-            ("Volume Progression Adds Sets", testVolumeProgressionAddssets),
+            ("Volume Progression Adds Sets", testVolumeProgressionAddsSets),
             ("Deload Week No Progression", testDeloadWeekNoProgression),
             ("Week 1 Uses Baseline Values", testWeek1UsesBaselineValues),
             ("Conditioning Volume Progression", testConditioningVolumeProgression)
@@ -367,11 +368,14 @@ struct ProgressionTests {
         
         print(String(repeating: "=", count: 60))
         print("Test Results: \(passedCount)/\(totalCount) passed")
-        if passedCount == totalCount {
+        let allPassed = passedCount == totalCount
+        if allPassed {
             print("✅ All tests passed!")
         } else {
             print("❌ Some tests failed")
         }
         print(String(repeating: "=", count: 60) + "\n")
+        
+        return allPassed
     }
 }
