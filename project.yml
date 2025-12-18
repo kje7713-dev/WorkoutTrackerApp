@@ -54,11 +54,13 @@ targets:
       - path: .
         includes:
           - "*.swift"
-          - "Tests/**/*.swift"          # ✅ ADDED: include test files for DEBUG builds
           - "Assets.xcassets"
           - "LaunchScreen.storyboard"   # ✅ ADDED: ensures launch screen is bundled
           - "PrivacyInfo.xcprivacy"     # ✅ ADDED: iOS 17+ privacy manifest
         excludes:
+          - "Tests/**"                   # Exclude all test files from main target
+          - "*Test*.swift"               # Exclude test files at root level
+          - "TestRunner.swift"           # Exclude test runner
           - "fastlane/**"
           - "ci_logs/**"
           - "vendor/**"
