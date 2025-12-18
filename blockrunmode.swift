@@ -862,14 +862,6 @@ struct ExerciseRunCard: View {
         VStack(alignment: .leading, spacing: 12) {
             // Header with exercise name and expand/collapse button
             HStack(spacing: 8) {
-                TextField("Exercise name", text: $exercise.name)
-                    .font(.headline)
-                    .textFieldStyle(.roundedBorder)
-                    .disableAutocorrection(true)
-                    .onChange(of: exercise.name) { _, _ in
-                        onSave()
-                    }
-                
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         isExpanded.toggle()
@@ -880,6 +872,14 @@ struct ExerciseRunCard: View {
                         .foregroundColor(.accentColor)
                 }
                 .accessibilityLabel(isExpanded ? "Collapse exercise details" : "Expand exercise details")
+                
+                TextField("Exercise name", text: $exercise.name)
+                    .font(.headline)
+                    .textFieldStyle(.roundedBorder)
+                    .disableAutocorrection(true)
+                    .onChange(of: exercise.name) { _, _ in
+                        onSave()
+                    }
             }
             
             // Show progress summary when collapsed
