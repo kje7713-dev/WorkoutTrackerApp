@@ -46,7 +46,9 @@ public struct SessionFactory {
                 if weekArrayIndex < weekTemplates.count {
                     dayTemplates = weekTemplates[weekArrayIndex]
                 } else {
-                    // If week index exceeds weekTemplates array, fall back to last week's templates
+                    // Fallback: If numberOfWeeks exceeds weekTemplates.count, repeat the last week's template
+                    // This handles cases where a block specifies 12 weeks but only provides 4 weeks of templates
+                    // (e.g., a 4-week cycle repeated 3 times)
                     dayTemplates = weekTemplates.last ?? block.days
                 }
             } else {

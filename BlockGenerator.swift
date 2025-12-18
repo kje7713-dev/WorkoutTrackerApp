@@ -500,7 +500,17 @@ public struct BlockGenerator {
                 weekDays.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
             }
             // Use first week as default days for backward compatibility
-            dayTemplates = weekTemplates?.first ?? []
+            // If first week is empty, fall back to creating an empty placeholder
+            if let firstWeek = weekTemplates?.first, !firstWeek.isEmpty {
+                dayTemplates = firstWeek
+            } else {
+                // Safeguard: Create a placeholder day if week templates are malformed
+                dayTemplates = [DayTemplate(
+                    name: "Day 1",
+                    notes: "Week-specific templates provided but first week is empty. Check JSON format.",
+                    exercises: []
+                )]
+            }
         } else if let days = imported.Days, !days.isEmpty {
             // Multi-day block (same days all weeks)
             dayTemplates = days.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
