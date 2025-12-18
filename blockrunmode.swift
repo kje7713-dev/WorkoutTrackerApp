@@ -875,7 +875,7 @@ struct ExerciseRunCard: View {
                         isExpanded.toggle()
                     }
                 } label: {
-                    Image(systemName: isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle.fill")
+                    Image(systemName: isExpanded ? "chevron.down.circle.fill" : "chevron.up.circle.fill")
                         .font(.title2)
                         .foregroundColor(.accentColor)
                 }
