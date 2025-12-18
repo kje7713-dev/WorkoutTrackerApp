@@ -1,0 +1,46 @@
+Track your workouts with precision using structured block periodization.
+
+Killin' It is the ultimate workout tracking app for athletes, coaches, and fitness enthusiasts who follow structured training programs. Built for strength training and conditioning workouts, this app helps you plan, execute, and track your fitness journey.
+
+KEY FEATURES:
+
+• Training Block Management
+Create multi-week training blocks with progressive overload built in. Design your program once and let the app handle the progression.
+
+• Comprehensive Exercise Library
+Access a wide range of exercises organized by category (squat, hinge, press, pull, conditioning, and more). Add your own custom exercises anytime.
+
+• Real-Time Workout Tracking
+Log your workouts as you go with an intuitive interface. Track sets, reps, weight for strength training, and time, distance, or calories for conditioning.
+
+• Advanced Training Structures
+Support for supersets, circuits, and complex training methodologies. Build workouts that match your programming style.
+
+• Block History
+Review your completed workouts and track your progress over time. See how you've improved week over week.
+
+• AI-Assisted Programming
+Get started quickly with AI-generated training blocks based on your goals and experience level.
+
+• Progressive Overload
+Automatically apply weekly progression to your training with customizable rules for weight, volume, or custom parameters.
+
+PERFECT FOR:
+
+• Athletes following structured training programs
+• Coaches managing their own workouts
+• CrossFit athletes and Olympic weightlifters
+• Powerlifters and strength athletes
+• Anyone serious about tracking their fitness progress
+
+FEATURES COMING SOON:
+
+• Workout analytics and performance charts
+• Exercise demonstration videos
+• Apple Watch companion app
+• HealthKit integration
+• Workout sharing with coaches and training partners
+
+Whether you're training for competition or personal fitness, Killin' It gives you the tools to plan, track, and conquer your training goals.
+
+Download now and start tracking your journey!

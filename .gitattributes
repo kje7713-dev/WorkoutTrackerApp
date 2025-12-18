@@ -1,0 +1,42 @@
+# Git attributes for WorkoutTrackerApp
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Swift source files
+*.swift text diff=swift
+
+# Xcode files
+*.pbxproj text merge=union
+*.storyboard text
+*.xib text
+*.xcconfig text
+
+# JSON files
+*.json text
+
+# Markdown
+*.md text
+
+# Scripts
+*.sh text eol=lf
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.ipa binary
+
+# Certificates
+*.p12 binary
+*.p8 binary
+*.cer binary
+*.mobileprovision binary

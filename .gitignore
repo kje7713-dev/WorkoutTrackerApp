@@ -47,3 +47,6 @@ AuthKey*.p8
 # Test files
 test_*.json
 test_*.swift
+
+# Development documentation (kept in repo but excluded from builds)
+# docs/
