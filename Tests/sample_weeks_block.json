@@ -1,0 +1,140 @@
+{
+  "Title": "Powerlifting DUP 4W 4D Test Block",
+  "Goal": "strength",
+  "TargetAthlete": "Intermediate Powerlifter",
+  "NumberOfWeeks": 4,
+  "DurationMinutes": 90,
+  "Difficulty": 4,
+  "Equipment": "Barbell, Rack, Bench",
+  "WarmUp": "5 min dynamic stretching + bar work",
+  "Weeks": [
+    [
+      {
+        "name": "Week 1 - Day 1 - Heavy Squat",
+        "shortCode": "W1D1",
+        "exercises": [
+          {
+            "name": "Back Squat",
+            "type": "strength",
+            "category": "squat",
+            "setsReps": "5x5",
+            "intensityCue": "85% 1RM"
+          },
+          {
+            "name": "Romanian Deadlift",
+            "type": "strength",
+            "category": "hinge",
+            "setsReps": "3x8"
+          }
+        ]
+      },
+      {
+        "name": "Week 1 - Day 2 - Heavy Bench",
+        "shortCode": "W1D2",
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "type": "strength",
+            "category": "pressHorizontal",
+            "setsReps": "5x5",
+            "intensityCue": "85% 1RM"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "name": "Week 2 - Day 1 - Volume Squat",
+        "shortCode": "W2D1",
+        "exercises": [
+          {
+            "name": "Front Squat",
+            "type": "strength",
+            "category": "squat",
+            "setsReps": "4x8",
+            "intensityCue": "70% 1RM"
+          },
+          {
+            "name": "Good Morning",
+            "type": "strength",
+            "category": "hinge",
+            "setsReps": "3x10"
+          }
+        ]
+      },
+      {
+        "name": "Week 2 - Day 2 - Volume Bench",
+        "shortCode": "W2D2",
+        "exercises": [
+          {
+            "name": "Incline Bench Press",
+            "type": "strength",
+            "category": "pressHorizontal",
+            "setsReps": "4x8",
+            "intensityCue": "70% 1RM"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "name": "Week 3 - Day 1 - Power Squat",
+        "shortCode": "W3D1",
+        "exercises": [
+          {
+            "name": "Box Squat",
+            "type": "strength",
+            "category": "squat",
+            "setsReps": "6x3",
+            "intensityCue": "75% 1RM - explosive"
+          }
+        ]
+      },
+      {
+        "name": "Week 3 - Day 2 - Power Bench",
+        "shortCode": "W3D2",
+        "exercises": [
+          {
+            "name": "Speed Bench Press",
+            "type": "strength",
+            "category": "pressHorizontal",
+            "setsReps": "8x3",
+            "intensityCue": "60% 1RM - fast"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "name": "Week 4 - Day 1 - Deload Squat",
+        "shortCode": "W4D1",
+        "exercises": [
+          {
+            "name": "Back Squat",
+            "type": "strength",
+            "category": "squat",
+            "setsReps": "3x5",
+            "intensityCue": "60% 1RM"
+          }
+        ]
+      },
+      {
+        "name": "Week 4 - Day 2 - Deload Bench",
+        "shortCode": "W4D2",
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "type": "strength",
+            "category": "pressHorizontal",
+            "setsReps": "3x5",
+            "intensityCue": "60% 1RM"
+          }
+        ]
+      }
+    ]
+  ],
+  "Finisher": "Core work: 3x20 ab wheel",
+  "Notes": "DUP (Daily Undulating Periodization) block with 4 distinct training weeks",
+  "EstimatedTotalTimeMinutes": 90,
+  "Progression": "Week-specific exercises and intensities"
+}

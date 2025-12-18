@@ -36,6 +36,13 @@ public struct SessionFactory {
 
         var sessions: [WorkoutSession] = []
 
+        // Log which mode we're using
+        if let weekTemplates = block.weekTemplates, !weekTemplates.isEmpty {
+            AppLogger.info("🏋️ Generating sessions in week-specific mode: \(weekTemplates.count) week templates for \(block.numberOfWeeks) weeks", subsystem: .session, category: "SessionFactory")
+        } else {
+            AppLogger.info("🏋️ Generating sessions in standard mode: replicating \(block.days.count) days for \(block.numberOfWeeks) weeks", subsystem: .session, category: "SessionFactory")
+        }
+
         for weekIndex in 1...block.numberOfWeeks {
             // Determine which day templates to use for this week
             let dayTemplates: [DayTemplate]
@@ -45,11 +52,13 @@ public struct SessionFactory {
                 let weekArrayIndex = weekIndex - 1
                 if weekArrayIndex < weekTemplates.count {
                     dayTemplates = weekTemplates[weekArrayIndex]
+                    AppLogger.debug("  Week \(weekIndex): using week-specific templates (\(dayTemplates.count) days)", subsystem: .session, category: "SessionFactory")
                 } else {
                     // Fallback: If numberOfWeeks exceeds weekTemplates.count, repeat the last week's template
                     // This handles cases where a block specifies 12 weeks but only provides 4 weeks of templates
                     // (e.g., a 4-week cycle repeated 3 times)
                     dayTemplates = weekTemplates.last ?? block.days
+                    AppLogger.debug("  Week \(weekIndex): repeating last week template (\(dayTemplates.count) days)", subsystem: .session, category: "SessionFactory")
                 }
             } else {
                 // Standard mode: replicate block.days for all weeks
@@ -77,6 +86,7 @@ public struct SessionFactory {
             }
         }
 
+        AppLogger.info("✅ Generated \(sessions.count) total sessions for block '\(block.name)'", subsystem: .session, category: "SessionFactory")
         return sessions
     }
 
