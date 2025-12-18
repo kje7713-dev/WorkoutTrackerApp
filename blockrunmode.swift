@@ -856,99 +856,135 @@ struct ExerciseRunCard: View {
     
     @State private var showTypeChangeConfirmation = false
     @State private var pendingNewType: ExerciseType?
+    @State private var isExpanded = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Editable exercise name
-            TextField("Exercise name", text: $exercise.name)
-                .font(.headline)
-                .textFieldStyle(.roundedBorder)
-                .disableAutocorrection(true)
-                .onChange(of: exercise.name) { _, _ in
-                    onSave()
-                }
-
-            // Exercise type picker
-            Picker("Type", selection: Binding(
-                get: { exercise.type },
-                set: { newType in
-                    // Check if there are any completed sets or logged values
-                    let hasProgress = exercise.sets.contains { set in
-                        set.isCompleted ||
-                        set.actualReps != nil ||
-                        set.actualWeight != nil ||
-                        set.actualTimeSeconds != nil ||
-                        set.actualDistanceMeters != nil ||
-                        set.actualCalories != nil ||
-                        set.actualRounds != nil
+            // Header with exercise name and expand/collapse button
+            HStack(spacing: 8) {
+                TextField("Exercise name", text: $exercise.name)
+                    .font(.headline)
+                    .textFieldStyle(.roundedBorder)
+                    .disableAutocorrection(true)
+                    .onChange(of: exercise.name) { _, _ in
+                        onSave()
                     }
-                    
-                    if hasProgress && newType != exercise.type {
-                        pendingNewType = newType
-                        showTypeChangeConfirmation = true
-                    } else {
-                        updateExerciseType(to: newType)
-                    }
-                }
-            )) {
-                Text("Strength").tag(ExerciseType.strength)
-                Text("Conditioning").tag(ExerciseType.conditioning)
-            }
-            .pickerStyle(.segmented)
-
-            // Existing notes from the template (if any)
-            if !exercise.notes.isEmpty {
-                Text(exercise.notes)
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-            }
-
-            // Editable notes during the session
-            TextField("Add notes (RPE, cues, etc.)",
-                      text: $exercise.notes,
-                      axis: .vertical)
-                .lineLimit(1...3)
-                .font(.footnote)
-                .textFieldStyle(.roundedBorder)
-                .onChange(of: exercise.notes) { _, _ in
-                    onSave()
-                }
-
-            // Sets
-            ForEach($exercise.sets) { $set in
-                SetRunRow(runSet: $set, onSave: onSave)
-
-            }
-
-            // Add/remove set controls
-            HStack {
+                
                 Button {
-                    let newIndex = exercise.sets.count
-                    let newSet = createNewSet(
-                        indexInExercise: newIndex,
-                        exerciseType: exercise.type,
-                        previousSets: exercise.sets
-                    )
-                    exercise.sets.append(newSet)
-                    onSave()
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isExpanded.toggle()
+                    }
                 } label: {
-                    Label("Add Set", systemImage: "plus")
-                        .font(.caption.bold())
+                    Image(systemName: isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.accentColor)
+                }
+                .accessibilityLabel(isExpanded ? "Collapse exercise details" : "Expand exercise details")
+            }
+            
+            // Show progress summary when collapsed
+            if !isExpanded {
+                let completedSets = exercise.sets.filter(\.isCompleted).count
+                let totalSets = exercise.sets.count
+                
+                HStack {
+                    Text("\(completedSets)/\(totalSets) sets completed")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    if completedSets == totalSets && totalSets > 0 {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                    }
+                }
+            }
+            
+            // Show details only when expanded
+            if isExpanded {
+                // Exercise type picker
+                Picker("Type", selection: Binding(
+                    get: { exercise.type },
+                    set: { newType in
+                        // Check if there are any completed sets or logged values
+                        let hasProgress = exercise.sets.contains { set in
+                            set.isCompleted ||
+                            set.actualReps != nil ||
+                            set.actualWeight != nil ||
+                            set.actualTimeSeconds != nil ||
+                            set.actualDistanceMeters != nil ||
+                            set.actualCalories != nil ||
+                            set.actualRounds != nil
+                        }
+                        
+                        if hasProgress && newType != exercise.type {
+                            pendingNewType = newType
+                            showTypeChangeConfirmation = true
+                        } else {
+                            updateExerciseType(to: newType)
+                        }
+                    }
+                )) {
+                    Text("Strength").tag(ExerciseType.strength)
+                    Text("Conditioning").tag(ExerciseType.conditioning)
+                }
+                .pickerStyle(.segmented)
+
+                // Existing notes from the template (if any)
+                if !exercise.notes.isEmpty {
+                    Text(exercise.notes)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
                 }
 
-                Spacer()
+                // Editable notes during the session
+                TextField("Add notes (RPE, cues, etc.)",
+                          text: $exercise.notes,
+                          axis: .vertical)
+                    .lineLimit(1...3)
+                    .font(.footnote)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: exercise.notes) { _, _ in
+                        onSave()
+                    }
 
-                if exercise.sets.count > 1 {
+                // Sets
+                ForEach($exercise.sets) { $set in
+                    SetRunRow(runSet: $set, onSave: onSave)
+
+                }
+
+                // Add/remove set controls
+                HStack {
                     Button {
-                        _ = exercise.sets.popLast()
+                        let newIndex = exercise.sets.count
+                        let newSet = createNewSet(
+                            indexInExercise: newIndex,
+                            exerciseType: exercise.type,
+                            previousSets: exercise.sets
+                        )
+                        exercise.sets.append(newSet)
                         onSave()
                     } label: {
-                        Label("Remove Set", systemImage: "minus")
-                            .font(.caption)
+                        Label("Add Set", systemImage: "plus")
+                            .font(.caption.bold())
+                    }
+
+                    Spacer()
+
+                    if exercise.sets.count > 1 {
+                        Button {
+                            _ = exercise.sets.popLast()
+                            onSave()
+                        } label: {
+                            Label("Remove Set", systemImage: "minus")
+                                .font(.caption)
+                        }
                     }
                 }
+                .padding(.top, 4)
             }
-            .padding(.top, 4)
         }
         .padding()
         .alert("Change Exercise Type?", isPresented: $showTypeChangeConfirmation) {
