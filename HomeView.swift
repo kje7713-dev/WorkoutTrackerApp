@@ -86,11 +86,6 @@ struct HomeView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
 
-                    // Today (future)
-                    SBDPrimaryButton("Today (Future)") {
-                        // will wire up later
-                    }
-
                     // Block History -> BlockHistoryListView
                     NavigationLink {
                         BlockHistoryListView()
