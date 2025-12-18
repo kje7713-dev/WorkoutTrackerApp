@@ -50,8 +50,11 @@ jobs:
       # --- Generate Xcode project from project.yml (XcodeGen) ---
       - name: Install XcodeGen
         shell: bash
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
         run: |
-          brew update
+          # Skip brew update to avoid network connectivity issues in CI
+          # Install xcodegen directly - Homebrew will use cached formula
           brew install xcodegen
 
       - name: Generate Xcode project
