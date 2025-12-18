@@ -32,6 +32,11 @@ struct TestRunner {
         if !WeekSpecificBlockTests.runAll() {
             allTestsPassed = false
         }
+        
+        // Run Manual Weeks Test with logging
+        if !ManualWeeksTest.runAll() {
+            allTestsPassed = false
+        }
         #endif
         
         print("\n========================================")

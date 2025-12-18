@@ -496,15 +496,24 @@ public struct BlockGenerator {
         // Priority: Weeks > Days > Exercises
         if let weeks = imported.Weeks, !weeks.isEmpty {
             // Week-specific block format (NEW)
+            AppLogger.info("📅 Parsing week-specific block: \(weeks.count) weeks detected", subsystem: .general, category: "BlockGenerator")
+            
             weekTemplates = weeks.map { weekDays in
                 weekDays.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
             }
+            
+            // Log day count per week for verification
+            for (weekIndex, weekDays) in weekTemplates!.enumerated() {
+                AppLogger.debug("  Week \(weekIndex + 1): \(weekDays.count) days", subsystem: .general, category: "BlockGenerator")
+            }
+            
             // Use first week as default days for backward compatibility
             // If first week is empty, fall back to creating an empty placeholder
             if let firstWeek = weekTemplates?.first, !firstWeek.isEmpty {
                 dayTemplates = firstWeek
             } else {
                 // Safeguard: Create a placeholder day if week templates are malformed
+                AppLogger.warning("⚠️ Week-specific templates provided but first week is empty", subsystem: .general, category: "BlockGenerator")
                 dayTemplates = [DayTemplate(
                     name: "Day 1",
                     notes: "Week-specific templates provided but first week is empty. Check JSON format.",
@@ -513,10 +522,12 @@ public struct BlockGenerator {
             }
         } else if let days = imported.Days, !days.isEmpty {
             // Multi-day block (same days all weeks)
+            AppLogger.info("📅 Parsing multi-day block (same days all weeks): \(days.count) days", subsystem: .general, category: "BlockGenerator")
             dayTemplates = days.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
             weekTemplates = nil
         } else if let exercises = imported.Exercises, !exercises.isEmpty {
             // Single-day block (legacy format)
+            AppLogger.info("📅 Parsing single-day block (legacy format): \(exercises.count) exercises", subsystem: .general, category: "BlockGenerator")
             let convertedExercises = exercises.map { convertExercise($0) }
             
             // Build notes section
