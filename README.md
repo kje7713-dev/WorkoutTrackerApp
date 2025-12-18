@@ -152,11 +152,29 @@ Three main repositories handle data:
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and ensure they pass
-5. Submit a pull request
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+- How to submit issues and pull requests
+- Code style guidelines
+- Development workflow
+- Testing requirements
+
+Also review our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Documentation
+
+- **[README](README.md)** - This file, project overview
+- **[CHANGELOG](CHANGELOG.md)** - Version history and release notes
+- **[CONTRIBUTING](CONTRIBUTING.md)** - Contribution guidelines
+- **[SECURITY](SECURITY.md)** - Security policy and reporting
+- **[CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)** - Community guidelines
+- **[LICENSE](LICENSE)** - MIT License
+
+### Additional Docs
+
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - How to deploy to TestFlight and App Store
+- **[Testing Guide](docs/TESTING.md)** - Testing practices and guidelines
+- **[Privacy Policy Template](docs/PRIVACY_POLICY_TEMPLATE.md)** - Privacy policy template
+- **[Implementation Docs](docs/implementation/)** - Historical feature documentation
 
 ## Code Style
 
@@ -165,6 +183,7 @@ Three main repositories handle data:
 - Maintain MVVM architecture
 - Add documentation for complex logic
 - Use type-safe models with Codable
+- Run SwiftLint before committing
 
 ## Deployment
 
@@ -174,17 +193,25 @@ Automatic deployment to TestFlight occurs via:
 - **GitHub Actions**: Manual workflow dispatch
 - **Codemagic**: Automated on branch triggers
 
+See the [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
+
 ### App Store
 
-Manual submission through App Store Connect after TestFlight validation.
+Manual submission through App Store Connect after TestFlight validation. See deployment guide for checklist.
 
 ## Support
 
-For issues or questions, please open a GitHub issue.
+- **Issues**: [GitHub Issues](https://github.com/kje7713-dev/WorkoutTrackerApp/issues)
+- **Security**: See [Security Policy](SECURITY.md)
+- **Discussions**: [GitHub Discussions](https://github.com/kje7713-dev/WorkoutTrackerApp/discussions)
 
 ## License
 
-[Specify your license here]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Privacy
+
+All workout data is stored locally on your device. We don't collect, transmit, or have access to your data. See our [Privacy Policy Template](docs/PRIVACY_POLICY_TEMPLATE.md) for details.
 
 ## Acknowledgments
 
