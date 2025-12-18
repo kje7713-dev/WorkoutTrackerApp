@@ -20,7 +20,8 @@ public struct ImportedBlock: Codable {
     public var Equipment: String
     public var WarmUp: String
     public var Exercises: [ImportedExercise]?  // For single-day (legacy)
-    public var Days: [ImportedDay]?            // For multi-day blocks
+    public var Days: [ImportedDay]?            // For multi-day blocks (same days all weeks)
+    public var Weeks: [[ImportedDay]]?         // For week-specific variations (NEW)
     public var Finisher: String
     public var Notes: String
     public var EstimatedTotalTimeMinutes: Int
@@ -37,6 +38,7 @@ public struct ImportedBlock: Codable {
         WarmUp: String,
         Exercises: [ImportedExercise]? = nil,
         Days: [ImportedDay]? = nil,
+        Weeks: [[ImportedDay]]? = nil,
         Finisher: String,
         Notes: String,
         EstimatedTotalTimeMinutes: Int,
@@ -52,6 +54,7 @@ public struct ImportedBlock: Codable {
         self.WarmUp = WarmUp
         self.Exercises = Exercises
         self.Days = Days
+        self.Weeks = Weeks
         self.Finisher = Finisher
         self.Notes = Notes
         self.EstimatedTotalTimeMinutes = EstimatedTotalTimeMinutes
@@ -486,13 +489,32 @@ public struct BlockGenerator {
     public static func convertToBlock(_ imported: ImportedBlock, numberOfWeeks: Int = 1) -> Block {
         let weeksCount = imported.NumberOfWeeks ?? numberOfWeeks
         
-        // Determine if this is a multi-day block or single-day
-        let dayTemplates: [DayTemplate]
+        // Determine which format is being used: week-specific, multi-day, or single-day
+        var dayTemplates: [DayTemplate]
+        var weekTemplates: [[DayTemplate]]?
         
-        // Prioritize Days over Exercises if both are provided
-        if let days = imported.Days, !days.isEmpty {
-            // Multi-day block (also handles case where both Days and Exercises are provided)
+        // Priority: Weeks > Days > Exercises
+        if let weeks = imported.Weeks, !weeks.isEmpty {
+            // Week-specific block format (NEW)
+            weekTemplates = weeks.map { weekDays in
+                weekDays.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
+            }
+            // Use first week as default days for backward compatibility
+            // If first week is empty, fall back to creating an empty placeholder
+            if let firstWeek = weekTemplates?.first, !firstWeek.isEmpty {
+                dayTemplates = firstWeek
+            } else {
+                // Safeguard: Create a placeholder day if week templates are malformed
+                dayTemplates = [DayTemplate(
+                    name: "Day 1",
+                    notes: "Week-specific templates provided but first week is empty. Check JSON format.",
+                    exercises: []
+                )]
+            }
+        } else if let days = imported.Days, !days.isEmpty {
+            // Multi-day block (same days all weeks)
             dayTemplates = days.map { convertDay($0, blockWarmUp: imported.WarmUp, blockFinisher: imported.Finisher) }
+            weekTemplates = nil
         } else if let exercises = imported.Exercises, !exercises.isEmpty {
             // Single-day block (legacy format)
             let convertedExercises = exercises.map { convertExercise($0) }
@@ -519,6 +541,7 @@ public struct BlockGenerator {
                 exercises: convertedExercises
             )
             dayTemplates = [dayTemplate]
+            weekTemplates = nil
         } else {
             // Neither provided - create empty day with note
             let dayTemplate = DayTemplate(
@@ -528,6 +551,7 @@ public struct BlockGenerator {
                 exercises: []
             )
             dayTemplates = [dayTemplate]
+            weekTemplates = nil
         }
         
         // Parse goal
@@ -540,6 +564,7 @@ public struct BlockGenerator {
             numberOfWeeks: weeksCount,
             goal: goal,
             days: dayTemplates,
+            weekTemplates: weekTemplates,
             source: .ai,
             aiMetadata: AIMetadata(
                 prompt: "Generated block",
