@@ -138,6 +138,13 @@ public struct Block: Identifiable, Codable, Equatable {
     public var numberOfWeeks: Int
     public var goal: TrainingGoal?
     public var days: [DayTemplate]
+    
+    /// Optional week-specific day templates for blocks with exercise variations across weeks.
+    /// If provided, this is an array where each element represents a week's day templates.
+    /// weekTemplates[0] = Week 1 days, weekTemplates[1] = Week 2 days, etc.
+    /// When nil or empty, falls back to replicating `days` for all weeks.
+    public var weekTemplates: [[DayTemplate]]?
+    
     public var source: BlockSource
     public var aiMetadata: AIMetadata?
     public var isArchived: Bool
@@ -149,6 +156,7 @@ public struct Block: Identifiable, Codable, Equatable {
         numberOfWeeks: Int,
         goal: TrainingGoal? = nil,
         days: [DayTemplate],
+        weekTemplates: [[DayTemplate]]? = nil,
         source: BlockSource = .user,
         aiMetadata: AIMetadata? = nil,
         isArchived: Bool = false
@@ -159,6 +167,7 @@ public struct Block: Identifiable, Codable, Equatable {
         self.numberOfWeeks = numberOfWeeks
         self.goal = goal
         self.days = days
+        self.weekTemplates = weekTemplates
         self.source = source
         self.aiMetadata = aiMetadata
         self.isArchived = isArchived

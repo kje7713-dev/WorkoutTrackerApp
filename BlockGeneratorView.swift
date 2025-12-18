@@ -354,7 +354,7 @@ struct BlockGeneratorView: View {
         - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
         - All BLOCK-LEVEL fields are REQUIRED (Title, Goal, TargetAthlete, DurationMinutes, etc.)
         - Exercise fields vary: name is required, others marked [OPTIONAL] are truly optional
-        - You must provide EITHER "Exercises" (single-day) OR "Days" (multi-day), not both
+        - You must provide ONE OF: "Exercises" (single-day), "Days" (multi-day), OR "Weeks" (week-specific)
         - Save output as a .json file: [BlockName]_[Weeks]W_[Days]D.json
         - Example: UpperLower_4W_4D.json or Strength_8W_3D.json
         
@@ -428,7 +428,7 @@ struct BlockGeneratorView: View {
           ],
           
           // OPTION B: Multi-Day Block (use "Days" instead of "Exercises")
-          "Days": [ [OPTIONAL - use this OR "Exercises", not both]
+          "Days": [ [OPTIONAL - same days repeated for all weeks]
             {
               "name": "Day 1: Upper Body",
               "shortCode": "U1" [OPTIONAL],
@@ -444,16 +444,64 @@ struct BlockGeneratorView: View {
               "goal": "strength",
               "exercises": [...]
             }
+          ],
+          
+          // OPTION C: Week-Specific Block (NEW - for exercise variations across weeks)
+          "Weeks": [ [OPTIONAL - different days for each week]
+            [
+              // Week 1 days
+              {
+                "name": "Day 1: Heavy Squat",
+                "shortCode": "L1",
+                "goal": "strength",
+                "exercises": [
+                  {"name": "Back Squat", "setsReps": "5x5", "restSeconds": 240, "intensityCue": "RPE 8"}
+                ]
+              },
+              {
+                "name": "Day 2: Heavy Bench",
+                "shortCode": "U1",
+                "exercises": [...]
+              }
+            ],
+            [
+              // Week 2 days (can have different exercises!)
+              {
+                "name": "Day 1: Heavy Squat",
+                "shortCode": "L1",
+                "goal": "strength",
+                "exercises": [
+                  {"name": "Back Squat", "setsReps": "5x3", "restSeconds": 240, "intensityCue": "RPE 9"}
+                ]
+              },
+              {
+                "name": "Day 2: Heavy Bench",
+                "exercises": [...]
+              }
+            ],
+            [
+              // Week 3 days (different exercises possible)
+              {
+                "name": "Day 1: Front Squat Variation",
+                "shortCode": "L1",
+                "goal": "strength",
+                "exercises": [
+                  {"name": "Front Squat", "setsReps": "4x6", "restSeconds": 180, "intensityCue": "RPE 8"}
+                ]
+              }
+            ]
           ]
         }
         
         USAGE GUIDELINES:
         1. For SIMPLE blocks: Use "Exercises" with "setsReps" format
-        2. For ADVANCED blocks: Use "Days" with detailed "sets" arrays
-        3. For MULTI-WEEK blocks: Set "NumberOfWeeks" (e.g., 4, 8, 12)
-        4. For CONDITIONING: Set type="conditioning" and use "conditioningSets"
-        5. For SUPERSETS: Give exercises same "setGroupId" UUID
-        6. Specify WEIGHT when known (helps with progression tracking)
+        2. For MULTI-DAY blocks (same all weeks): Use "Days" with detailed "sets" arrays
+        3. For WEEK-SPECIFIC variations: Use "Weeks" array (NEW - allows different exercises each week!)
+        4. For MULTI-WEEK blocks: Set "NumberOfWeeks" (e.g., 4, 8, 12)
+        5. For CONDITIONING: Set type="conditioning" and use "conditioningSets"
+        6. For SUPERSETS: Give exercises same "setGroupId" UUID
+        7. Specify WEIGHT when known (helps with progression tracking)
+        8. Use "Weeks" format for PERIODIZATION with exercise variations (e.g., deload weeks, exercise rotations)
         
         MY REQUIREMENTS:
         [Describe your training goals, experience level, available equipment, time constraints, and specific exercises you want]

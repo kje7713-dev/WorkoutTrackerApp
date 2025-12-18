@@ -27,13 +27,34 @@ public struct SessionFactory {
 
     /// Generate all WorkoutSessions for a Block across all weeks and day templates.
     /// FR-SESSGEN-1 / FR-SESSGEN-2 / FR-SESSGEN-3.
+    /// 
+    /// Supports two modes:
+    /// 1. Standard mode: Uses `block.days` replicated for all weeks
+    /// 2. Week-specific mode: Uses `block.weekTemplates` for per-week exercise variations
     public func makeSessions(for block: Block) -> [WorkoutSession] {
         guard block.numberOfWeeks > 0 else { return [] }
 
         var sessions: [WorkoutSession] = []
 
         for weekIndex in 1...block.numberOfWeeks {
-            for dayTemplate in block.days {
+            // Determine which day templates to use for this week
+            let dayTemplates: [DayTemplate]
+            
+            if let weekTemplates = block.weekTemplates, !weekTemplates.isEmpty {
+                // Week-specific mode: use templates for this specific week
+                let weekArrayIndex = weekIndex - 1
+                if weekArrayIndex < weekTemplates.count {
+                    dayTemplates = weekTemplates[weekArrayIndex]
+                } else {
+                    // If week index exceeds weekTemplates array, fall back to last week's templates
+                    dayTemplates = weekTemplates.last ?? block.days
+                }
+            } else {
+                // Standard mode: replicate block.days for all weeks
+                dayTemplates = block.days
+            }
+            
+            for dayTemplate in dayTemplates {
                 let exercises = makeSessionExercises(
                     from: dayTemplate,
                     in: block,
