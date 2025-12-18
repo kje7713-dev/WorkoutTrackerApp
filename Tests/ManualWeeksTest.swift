@@ -15,7 +15,7 @@ struct ManualWeeksTest {
         print("\n=== Testing Weeks Schema Parsing ===\n")
         
         // Load the test JSON file
-        let testFilePath = "/home/runner/work/WorkoutTrackerApp/WorkoutTrackerApp/Tests/test_weeks_block.json"
+        let testFilePath = "/home/runner/work/WorkoutTrackerApp/WorkoutTrackerApp/Tests/sample_weeks_block.json"
         
         guard FileManager.default.fileExists(atPath: testFilePath) else {
             print("❌ Test file not found at: \(testFilePath)")
