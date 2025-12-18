@@ -884,21 +884,7 @@ struct ExerciseRunCard: View {
             
             // Show progress summary when collapsed
             if !isExpanded {
-                let completedSets = exercise.sets.filter(\.isCompleted).count
-                let totalSets = exercise.sets.count
-                
-                HStack {
-                    Text("\(completedSets)/\(totalSets) sets completed")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    if completedSets == totalSets && totalSets > 0 {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                    }
-                }
+                ExerciseProgressSummary(exercise: exercise)
             }
             
             // Show details only when expanded
@@ -1126,6 +1112,41 @@ struct ExerciseRunCard: View {
         }
         
         return parts.isEmpty ? "Conditioning" : parts.joined(separator: " • ")
+    }
+}
+
+// MARK: - Helper Views
+
+/// Displays a progress summary for an exercise showing completed/total sets
+struct ExerciseProgressSummary: View {
+    let exercise: RunExerciseState
+    
+    private var completedSets: Int {
+        exercise.sets.filter(\.isCompleted).count
+    }
+    
+    private var totalSets: Int {
+        exercise.sets.count
+    }
+    
+    private var allSetsCompleted: Bool {
+        completedSets == totalSets && totalSets > 0
+    }
+    
+    var body: some View {
+        HStack {
+            Text("\(completedSets)/\(totalSets) sets completed")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            Spacer()
+            
+            if allSetsCompleted {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                    .accessibilityLabel("All sets completed")
+            }
+        }
     }
 }
 
