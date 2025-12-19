@@ -237,8 +237,8 @@ struct BlocksListView: View {
             showingAIGenerator = true
         } label: {
             HStack {
-                Image(systemName: "doc.badge.plus")
-                Text("IMPORT FROM JSON")
+                Image(systemName: "flame.fill")
+                Text("IMPORT AI BLOCK")
                     .font(.headline).bold()
             }
             .frame(maxWidth: .infinity)
