@@ -152,7 +152,7 @@ Three main repositories handle data:
 
 ## Contributing
 
-**Note:** As of version v0.9-open (the final open-source release), this project has transitioned to proprietary development. The open-source contribution phase has concluded.
+**Note:** As of version v0.9-open (the final MIT-licensed release), this project has transitioned to proprietary development. The open-source contribution phase has concluded.
 
 For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) remain applicable to those historical versions.
 
@@ -208,7 +208,7 @@ Manual submission through App Store Connect after TestFlight validation. See dep
 ### Current Version (> v0.9-open)
 This project is now **proprietary software**. All rights reserved. No use, modification, or distribution is permitted without explicit written permission. Commercial use requires a paid license. See the [LICENSE](LICENSE) file for full terms.
 
-**Development of this project continues privately as we transition to production.**
+**Development of this project continues privately as we transition to commercial production.**
 
 ### Historical Versions (≤ v0.9-open)
 Versions tagged **v0.9-open and earlier** remain available under the **MIT License**. You can access the final open-source version by checking out the `v0.9-open` tag:

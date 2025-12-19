@@ -10,24 +10,24 @@ Software released after version v0.9-open.
 LICENSE RESTRICTIONS:
 
 1. NO USE WITHOUT PERMISSION
-   You may not use, copy, modify, merge, publish, distribute, sublicense, 
-   and/or sell copies of the Software without explicit written permission 
+   You may not use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software without explicit written permission
    from the copyright holder.
 
 2. NO DISTRIBUTION
-   Distribution of the Software in any form, whether source code or compiled 
+   Distribution of the Software in any form, whether source code or compiled
    binaries, is strictly prohibited without explicit written permission.
 
 3. NO MODIFICATION
-   Modification or creation of derivative works based on the Software is 
+   Modification or creation of derivative works based on the Software is
    prohibited without explicit written permission.
 
 4. COMMERCIAL USE
-   Any commercial use of the Software requires a separate paid commercial 
+   Any commercial use of the Software requires a separate paid commercial
    license agreement. Contact the copyright holder for licensing terms.
 
 5. REVERSE ENGINEERING
-   Reverse engineering, decompilation, or disassembly of the Software is 
+   Reverse engineering, decompilation, or disassembly of the Software is
    strictly prohibited.
 
 DISCLAIMER:
@@ -41,8 +41,8 @@ OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 HISTORICAL VERSIONS:
 
-Versions of this Software tagged as v0.9-open and earlier remain available 
-under the MIT License. See the git tag v0.9-open for the final open-source 
+Versions of this Software tagged as v0.9-open and earlier remain available
+under the MIT License. See the git tag v0.9-open for the final open-source
 release.
 
 For licensing inquiries, contact: kje7713.dev@gmail.com
