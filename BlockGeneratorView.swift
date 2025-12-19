@@ -30,6 +30,7 @@ struct BlockGeneratorView: View {
     @State private var errorMessage: String?
     @State private var showCopyConfirmation: Bool = false
     @State private var hideConfirmationTask: DispatchWorkItem?
+    @State private var pastedJSON: String = ""
     
     // MARK: - Body
     
@@ -123,27 +124,74 @@ struct BlockGeneratorView: View {
     
     private var importJSONSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Select JSON File")
+            Text("Import JSON")
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(primaryTextColor)
             
-            Text("The JSON file should contain a training block with exercises, sets, reps, and other training parameters.")
+            Text("The JSON should contain a training block with exercises, sets, reps, and other training parameters. You can either paste JSON directly or upload a file.")
                 .font(.system(size: 14))
                 .foregroundColor(theme.mutedText)
             
-            Button {
-                showingFileImporter = true
-            } label: {
-                HStack {
-                    Image(systemName: "doc.badge.plus")
-                    Text("Choose JSON File")
-                        .font(.system(size: 16, weight: .semibold))
+            // Paste JSON Section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Option 1: Paste JSON")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(primaryTextColor)
+                
+                TextEditor(text: $pastedJSON)
+                    .font(.system(size: 12, design: .monospaced))
+                    .frame(minHeight: 150, maxHeight: 200)
+                    .padding(8)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(UIColor.separator), lineWidth: 1)
+                    )
+                
+                Button {
+                    parseJSONFromText()
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.down.doc.fill")
+                        Text("Parse JSON")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : theme.accent)
+                    .cornerRadius(12)
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 50)
-                .background(theme.accent)
-                .cornerRadius(12)
+                .disabled(pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            
+            Text("OR")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(theme.mutedText)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 8)
+            
+            // Upload File Section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Option 2: Upload JSON File")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(primaryTextColor)
+                
+                Button {
+                    showingFileImporter = true
+                } label: {
+                    HStack {
+                        Image(systemName: "doc.badge.plus")
+                        Text("Choose JSON File")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(theme.accent)
+                    .cornerRadius(12)
+                }
             }
             
             // Link to full documentation
@@ -156,6 +204,7 @@ struct BlockGeneratorView: View {
                     }
                     .foregroundColor(theme.accent)
                 }
+                .padding(.top, 8)
             }
             
             Divider()
@@ -608,6 +657,36 @@ struct BlockGeneratorView: View {
     }
     
     // MARK: - Actions
+    
+    private func parseJSONFromText() {
+        // Clear previous state
+        importedBlock = nil
+        errorMessage = nil
+        
+        let trimmedJSON = pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard !trimmedJSON.isEmpty else {
+            errorMessage = "Please paste JSON content"
+            return
+        }
+        
+        guard let data = trimmedJSON.data(using: .utf8) else {
+            errorMessage = "Failed to convert text to data"
+            return
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            let imported = try decoder.decode(ImportedBlock.self, from: data)
+            let block = BlockGenerator.convertToBlock(imported, numberOfWeeks: 1)
+            importedBlock = block
+            errorMessage = nil
+        } catch let decodingError as DecodingError {
+            errorMessage = "Invalid JSON format: \(formatDecodingError(decodingError))"
+        } catch {
+            errorMessage = "Failed to parse JSON: \(error.localizedDescription)"
+        }
+    }
     
     private func copyToClipboard(_ text: String) {
         UIPasteboard.general.string = text
