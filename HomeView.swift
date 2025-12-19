@@ -100,6 +100,21 @@ struct HomeView: View {
                             .textCase(.uppercase)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    
+                    // Data Management
+                    NavigationLink {
+                        DataManagementView()
+                    } label: {
+                        Text("DATA MANAGEMENT")
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .foregroundColor(foregroundButtonColor)
+                            .background(backgroundButtonColor)
+                            .cornerRadius(20)
+                            .textCase(.uppercase)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
 
                 Spacer(minLength: 0)

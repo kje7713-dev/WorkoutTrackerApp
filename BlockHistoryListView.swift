@@ -12,6 +12,10 @@ struct BlockHistoryListView: View {
 
     // Which builder mode is active (if any)?
     @State private var builderContext: BuilderContext?
+    
+    // Pagination state
+    @State private var displayedBlocksCount: Int = 20
+    private let pageSize = 20
 
     private enum BuilderContext: Identifiable {
         case edit(Block)
@@ -101,9 +105,10 @@ struct BlockHistoryListView: View {
     private var blocksList: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Note: Filter is called on each view update, but this is acceptable
-                // for the expected number of blocks (<100) and simpler than caching
-                ForEach(blocksRepository.archivedBlocks()) { block in 
+                let archivedBlocks = blocksRepository.archivedBlocks()
+                let displayedBlocks = Array(archivedBlocks.prefix(displayedBlocksCount))
+                
+                ForEach(displayedBlocks) { block in 
                     VStack(alignment: .leading, spacing: 8) {
                         // Title / description
                         Text(block.name)
@@ -201,6 +206,30 @@ struct BlockHistoryListView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .fill(Color(uiColor: .secondarySystemBackground))
                     )
+                }
+                
+                // Load More button if there are more blocks
+                if displayedBlocksCount < archivedBlocks.count {
+                    Button {
+                        withAnimation {
+                            displayedBlocksCount += pageSize
+                        }
+                    } label: {
+                        HStack {
+                            Text("Load More")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Text("(\(archivedBlocks.count - displayedBlocksCount) remaining)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(12)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 8)
                 }
             }
             .padding(.top, 8)
