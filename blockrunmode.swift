@@ -436,7 +436,23 @@ struct BlockRunModeView: View {
         let weeksCount = max(block.numberOfWeeks, 1)
 
         return (0..<weeksCount).map { weekIndex in
-            let dayStates: [RunDayState] = block.days.map { day in
+            // Determine which day templates to use for this week
+            let dayTemplates: [DayTemplate]
+            
+            if let weekTemplates = block.weekTemplates, !weekTemplates.isEmpty {
+                // Week-specific mode: use templates for this specific week
+                if weekIndex < weekTemplates.count {
+                    dayTemplates = weekTemplates[weekIndex]
+                } else {
+                    // Fallback: If numberOfWeeks exceeds weekTemplates.count, repeat the last week's template
+                    dayTemplates = weekTemplates.last ?? block.days
+                }
+            } else {
+                // Standard mode: replicate block.days for all weeks
+                dayTemplates = block.days
+            }
+            
+            let dayStates: [RunDayState] = dayTemplates.map { day in
                 let exerciseStates: [RunExerciseState] = day.exercises.map { exercise in
                     let sets: [RunSetState]
 
