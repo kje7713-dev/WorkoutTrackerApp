@@ -128,7 +128,7 @@ struct BlockGeneratorView: View {
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(primaryTextColor)
             
-            Text("The JSON should contain a training block with exercises, sets, reps, and other training parameters. You can either paste JSON directly or upload a file.")
+            Text("The JSON should contain a training block with exercises, sets, reps, and other training parameters. You can either paste JSON directly or upload a file. After parsing or uploading, scroll to the bottom to preview the block.")
                 .font(.system(size: 14))
                 .foregroundColor(theme.mutedText)
             
