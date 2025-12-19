@@ -37,7 +37,8 @@ struct RunStateMapper {
             let weekSessions = sessionsByWeek[weekIndex] ?? []
             let dayStates = createRunDayStates(
                 from: weekSessions,
-                block: block
+                block: block,
+                weekIndex: weekIndex
             )
             
             return RunWeekState(
@@ -49,10 +50,28 @@ struct RunStateMapper {
     
     private static func createRunDayStates(
         from sessions: [WorkoutSession],
-        block: Block
+        block: Block,
+        weekIndex: Int  // 1-based week index
     ) -> [RunDayState] {
+        // Determine which day templates to use for this week
+        let dayTemplates: [DayTemplate]
+        
+        if let weekTemplates = block.weekTemplates, !weekTemplates.isEmpty {
+            // Week-specific mode: use templates for this specific week
+            let weekArrayIndex = weekIndex - 1  // Convert to 0-based for array access
+            if weekArrayIndex < weekTemplates.count {
+                dayTemplates = weekTemplates[weekArrayIndex]
+            } else {
+                // Fallback: If numberOfWeeks exceeds weekTemplates.count, use last week's template
+                dayTemplates = weekTemplates.last ?? block.days
+            }
+        } else {
+            // Standard mode: use block.days for all weeks
+            dayTemplates = block.days
+        }
+        
         // Map each day template to its corresponding session
-        return block.days.map { dayTemplate in
+        return dayTemplates.map { dayTemplate in
             // Find the session for this day template
             guard let session = sessions.first(where: { $0.dayTemplateId == dayTemplate.id }) else {
                 // No session found, create empty state
@@ -186,10 +205,27 @@ struct RunStateMapper {
             
             let weekIndex = week.index + 1 // Convert 0-based UI to 1-based storage
             
+            // Determine which day templates to use for this week
+            let dayTemplates: [DayTemplate]
+            
+            if let weekTemplates = block.weekTemplates, !weekTemplates.isEmpty {
+                // Week-specific mode: use templates for this specific week
+                let weekArrayIndex = week.index  // Already 0-based
+                if weekArrayIndex < weekTemplates.count {
+                    dayTemplates = weekTemplates[weekArrayIndex]
+                } else {
+                    // Fallback: If numberOfWeeks exceeds weekTemplates.count, use last week's template
+                    dayTemplates = weekTemplates.last ?? block.days
+                }
+            } else {
+                // Standard mode: use block.days for all weeks
+                dayTemplates = block.days
+            }
+            
             // Process each day in the week
             for (dayIndex, runDay) in week.days.enumerated() {
-                guard dayIndex < block.days.count else { continue }
-                let dayTemplate = block.days[dayIndex]
+                guard dayIndex < dayTemplates.count else { continue }
+                let dayTemplate = dayTemplates[dayIndex]
                 
                 // Find the original session for this week/day
                 guard let originalSession = originalSessions.first(where: {

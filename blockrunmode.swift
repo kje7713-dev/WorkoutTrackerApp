@@ -63,7 +63,6 @@ struct BlockRunModeView: View {
                     ForEach(weeks.indices, id: \.self) { weekIndex in
                         WeekRunView(
                             week: $weeks[weekIndex],
-                            allDays: block.days,
                             currentDayIndex: $currentDayIndex,
                             onSave: saveWeeks,
                             block: block
@@ -184,20 +183,22 @@ struct BlockRunModeView: View {
                 .textCase(.uppercase)
                 .kerning(1.2)
 
-            // Full day name (primary)
+            // Full day name (primary) - get from current week's state
             let fullDay: String = {
-                guard block.days.indices.contains(currentDayIndex) else { return "" }
-                return block.days[currentDayIndex].name
+                guard weeks.indices.contains(currentWeekIndex),
+                      weeks[currentWeekIndex].days.indices.contains(currentDayIndex) else { return "" }
+                return weeks[currentWeekIndex].days[currentDayIndex].name
             }()
 
             Text(fullDay)
                 .font(.headline)
                 .fontWeight(.semibold)
 
-            // Short code + week in secondary role
+            // Short code + week in secondary role - get from current week's state
             let short: String = {
-                guard block.days.indices.contains(currentDayIndex) else { return "" }
-                return block.days[currentDayIndex].shortCode ?? ""
+                guard weeks.indices.contains(currentWeekIndex),
+                      weeks[currentWeekIndex].days.indices.contains(currentDayIndex) else { return "" }
+                return weeks[currentWeekIndex].days[currentDayIndex].shortCode
             }()
 
             Text("Week \(currentWeekIndex + 1) • \(short.uppercased())")
@@ -436,7 +437,23 @@ struct BlockRunModeView: View {
         let weeksCount = max(block.numberOfWeeks, 1)
 
         return (0..<weeksCount).map { weekIndex in
-            let dayStates: [RunDayState] = block.days.map { day in
+            // Determine which day templates to use for this week
+            let dayTemplates: [DayTemplate]
+            
+            if let weekTemplates = block.weekTemplates, !weekTemplates.isEmpty {
+                // Week-specific mode: use templates for this specific week
+                if weekIndex < weekTemplates.count {
+                    dayTemplates = weekTemplates[weekIndex]
+                } else {
+                    // Fallback: If numberOfWeeks exceeds weekTemplates.count, repeat the last week's template
+                    dayTemplates = weekTemplates.last ?? block.days
+                }
+            } else {
+                // Standard mode: replicate block.days for all weeks
+                dayTemplates = block.days
+            }
+            
+            let dayStates: [RunDayState] = dayTemplates.map { day in
                 let exerciseStates: [RunExerciseState] = day.exercises.map { exercise in
                     let sets: [RunSetState]
 
@@ -554,14 +571,13 @@ struct BlockRunModeView: View {
 
 struct WeekRunView: View {
     @Binding var week: RunWeekState
-    let allDays: [DayTemplate]
     @Binding var currentDayIndex: Int
     let onSave: () -> Void
     let block: Block
 
     var body: some View {
         VStack(spacing: 0) {
-            DayTabBar(days: allDays, currentDayIndex: $currentDayIndex)
+            DayTabBar(days: week.days, currentDayIndex: $currentDayIndex)
             Divider()
             content
         }
@@ -587,7 +603,7 @@ struct WeekRunView: View {
 // MARK: - Day Tabs
 
 struct DayTabBar: View {
-    let days: [DayTemplate]
+    let days: [RunDayState]
     @Binding var currentDayIndex: Int
 
     var body: some View {
@@ -602,12 +618,12 @@ struct DayTabBar: View {
         .padding(.vertical, 8)
     }
 
-    private func dayButton(for day: DayTemplate, index: Int) -> some View {
+    private func dayButton(for day: RunDayState, index: Int) -> some View {
         let isSelected = index == currentDayIndex
         let label: String
 
-        if let short = day.shortCode, !short.isEmpty {
-            label = short
+        if !day.shortCode.isEmpty {
+            label = day.shortCode
         } else {
             label = day.name
         }
