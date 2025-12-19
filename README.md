@@ -152,13 +152,9 @@ Three main repositories handle data:
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
-- How to submit issues and pull requests
-- Code style guidelines
-- Development workflow
-- Testing requirements
+**Note:** As of version v0.9-open (the final MIT-licensed release), this project has transitioned to proprietary development. The open-source contribution phase has concluded.
 
-Also review our [Code of Conduct](CODE_OF_CONDUCT.md).
+For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) remain applicable to those historical versions.
 
 ## Documentation
 
@@ -167,7 +163,7 @@ Also review our [Code of Conduct](CODE_OF_CONDUCT.md).
 - **[CONTRIBUTING](CONTRIBUTING.md)** - Contribution guidelines
 - **[SECURITY](SECURITY.md)** - Security policy and reporting
 - **[CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)** - Community guidelines
-- **[LICENSE](LICENSE)** - MIT License
+- **[LICENSE](LICENSE)** - Proprietary License (versions > v0.9-open)
 
 ### Additional Docs
 
@@ -207,7 +203,21 @@ Manual submission through App Store Connect after TestFlight validation. See dep
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**IMPORTANT: Licensing Change Notice**
+
+### Current Version (> v0.9-open)
+This project is now **proprietary software**. All rights reserved. No use, modification, or distribution is permitted without explicit written permission. Commercial use requires a paid license. See the [LICENSE](LICENSE) file for full terms.
+
+**Development of this project continues privately as we transition to commercial production.**
+
+### Historical Versions (≤ v0.9-open)
+Versions tagged **v0.9-open and earlier** remain available under the **MIT License**. You can access the final open-source version by checking out the `v0.9-open` tag:
+
+```bash
+git checkout v0.9-open
+```
+
+Those historical versions retain their original MIT licensing terms and can be used according to those terms.
 
 ## Privacy
 
