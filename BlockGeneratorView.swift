@@ -115,7 +115,7 @@ struct BlockGeneratorView: View {
                 .font(.system(size: 24, weight: .bold))
                 .foregroundColor(primaryTextColor)
             
-            Text("Import a training block from a JSON file. You can generate JSON files using ChatGPT, Claude, or any other AI assistant.")
+            Text("Import a training block from a JSON file. You can generate JSON files using ChatGPT, Claude, or any other AI assistant. See AI prompt assistance below.")
                 .font(.system(size: 14))
                 .foregroundColor(theme.mutedText)
                 .fixedSize(horizontal: false, vertical: true)
@@ -399,6 +399,9 @@ struct BlockGeneratorView: View {
         """
         I need you to generate a workout block in JSON format for the Savage By Design workout tracker app.
         
+        MY REQUIREMENTS:
+        [Describe your training goals, experience level, available equipment, time constraints, and specific exercises you want]
+        
         IMPORTANT - JSON Format Specification:
         - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
         - All BLOCK-LEVEL fields are REQUIRED (Title, Goal, TargetAthlete, DurationMinutes, etc.)
@@ -551,9 +554,6 @@ struct BlockGeneratorView: View {
         6. For SUPERSETS: Give exercises same "setGroupId" UUID
         7. Specify WEIGHT when known (helps with progression tracking)
         8. Use "Weeks" format for PERIODIZATION with exercise variations (e.g., deload weeks, exercise rotations)
-        
-        MY REQUIREMENTS:
-        [Describe your training goals, experience level, available equipment, time constraints, and specific exercises you want]
         """
     }
     
