@@ -314,6 +314,32 @@ final class DataManagementTests: XCTestCase {
         XCTAssertEqual(sessionsRepository.sessions.count, 1)
     }
     
+    func testRetentionPolicyRemovesOldNotStartedSessions() {
+        // Given old not-started session
+        let oldDate = Calendar.current.date(byAdding: .day, value: -400, to: Date())!
+        
+        let notStartedSession = WorkoutSession(
+            blockId: UUID(),
+            weekIndex: 0,
+            dayTemplateId: UUID(),
+            date: oldDate,
+            status: .notStarted,
+            exercises: []
+        )
+        
+        sessionsRepository.add(notStartedSession)
+        
+        // When applying retention policy
+        let policy = DataManagementService.RetentionPolicy(
+            keepSessionsDays: 365,
+            maxArchivedBlocks: 50
+        )
+        dataService.applyRetentionPolicy(policy)
+        
+        // Then old not-started session should be removed
+        XCTAssertEqual(sessionsRepository.sessions.count, 0)
+    }
+    
     func testRetentionPolicyLimitsArchivedBlocks() {
         // Given more archived blocks than limit
         for i in 0..<60 {

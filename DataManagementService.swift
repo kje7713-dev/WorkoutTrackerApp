@@ -86,6 +86,15 @@ public final class DataManagementService {
             let dateString = ISO8601DateFormatter().string(from: date)
             let weekNum = session.weekIndex + 1
             
+            // Get day name from the block's day template
+            let dayName: String
+            if let block = blocksRepository.getBlock(id: session.blockId),
+               let dayTemplate = block.days.first(where: { $0.id == session.dayTemplateId }) {
+                dayName = dayTemplate.name
+            } else {
+                dayName = "Day \(session.dayTemplateId)"
+            }
+            
             for exercise in session.exercises {
                 let exerciseName = getExerciseName(
                     definitionId: exercise.exerciseDefinitionId,
@@ -96,7 +105,7 @@ public final class DataManagementService {
                 let totalReps = exercise.loggedSets.filter { $0.isCompleted }.compactMap { $0.loggedReps }.reduce(0, +)
                 let totalWeight = exercise.loggedSets.filter { $0.isCompleted }.compactMap { $0.loggedWeight }.reduce(0.0, +)
                 
-                csv += "\(dateString),\(blockName),\(weekNum),Day \(session.dayTemplateId),\(exerciseName),\(completedSets),\(totalReps),\(totalWeight)\n"
+                csv += "\(dateString),\(blockName),\(weekNum),\(dayName),\(exerciseName),\(completedSets),\(totalReps),\(totalWeight)\n"
             }
         }
         
@@ -186,7 +195,8 @@ public final class DataManagementService {
         
         let sessionsToKeep = sessionsRepository.sessions.filter { session in
             guard let date = session.date else { return true } // Keep sessions without dates
-            return date > cutoffDate || session.status != .completed
+            // Keep recent sessions OR sessions that are in-progress
+            return date > cutoffDate || session.status == .inProgress
         }
         
         let removedSessionsCount = sessionsRepository.sessions.count - sessionsToKeep.count

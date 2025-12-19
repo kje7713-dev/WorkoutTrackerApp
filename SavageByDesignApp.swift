@@ -57,10 +57,11 @@ struct SavageByDesignApp: App {
         // Check if we need to run cleanup based on last cleanup date
         let lastCleanupKey = "lastDataCleanupDate"
         let userDefaults = UserDefaults.standard
+        let calendar = Calendar(identifier: .gregorian)
         
         let daysSinceLastCleanup: Int
         if let lastCleanup = userDefaults.object(forKey: lastCleanupKey) as? Date {
-            daysSinceLastCleanup = Calendar.current.dateComponents([.day], from: lastCleanup, to: Date()).day ?? 0
+            daysSinceLastCleanup = calendar.dateComponents([.day], from: lastCleanup, to: Date()).day ?? 0
         } else {
             daysSinceLastCleanup = Int.max // Never run before
         }

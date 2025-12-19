@@ -372,7 +372,10 @@ struct DataManagementView: View {
         
         do {
             let data = try service.exportAllDataAsJSON()
-            let fileName = "savage-by-design-export-\(ISO8601DateFormatter().string(from: Date())).json"
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd-HHmmss"
+            let dateString = dateFormatter.string(from: Date())
+            let fileName = "savage-by-design-export-\(dateString).json"
             let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
             try data.write(to: tempURL)
             exportedFileURL = tempURL
@@ -390,7 +393,10 @@ struct DataManagementView: View {
         guard let service = dataService else { return }
         
         let csvString = service.exportWorkoutHistoryAsCSV()
-        let fileName = "savage-by-design-workout-history-\(ISO8601DateFormatter().string(from: Date())).csv"
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd-HHmmss"
+        let dateString = dateFormatter.string(from: Date())
+        let fileName = "savage-by-design-workout-history-\(dateString).csv"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         
         do {
@@ -410,7 +416,10 @@ struct DataManagementView: View {
         guard let service = dataService else { return }
         
         let csvString = service.exportBlocksSummaryAsCSV()
-        let fileName = "savage-by-design-blocks-summary-\(ISO8601DateFormatter().string(from: Date())).csv"
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd-HHmmss"
+        let dateString = dateFormatter.string(from: Date())
+        let fileName = "savage-by-design-blocks-summary-\(dateString).csv"
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         
         do {
