@@ -152,7 +152,7 @@ Three main repositories handle data:
 
 ## Contributing
 
-**Note:** As of version v0.9-open, this project has transitioned to proprietary development. The open-source contribution phase has concluded.
+**Note:** As of version v0.9-open (the final open-source release), this project has transitioned to proprietary development. The open-source contribution phase has concluded.
 
 For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) remain applicable to those historical versions.
 
