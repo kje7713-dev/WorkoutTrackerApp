@@ -659,10 +659,6 @@ struct BlockGeneratorView: View {
     // MARK: - Actions
     
     private func parseJSONFromText() {
-        // Clear previous state
-        importedBlock = nil
-        errorMessage = nil
-        
         let trimmedJSON = pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !trimmedJSON.isEmpty else {
@@ -674,6 +670,14 @@ struct BlockGeneratorView: View {
             errorMessage = "Failed to convert text to data"
             return
         }
+        
+        parseJSONData(data)
+    }
+    
+    private func parseJSONData(_ data: Data) {
+        // Clear previous state
+        importedBlock = nil
+        errorMessage = nil
         
         do {
             let decoder = JSONDecoder()
@@ -719,10 +723,6 @@ struct BlockGeneratorView: View {
     }
     
     private func handleFileImport(result: Result<[URL], Error>) {
-        // Clear previous state
-        importedBlock = nil
-        errorMessage = nil
-        
         switch result {
         case .success(let urls):
             guard let url = urls.first else {
@@ -739,15 +739,9 @@ struct BlockGeneratorView: View {
             
             do {
                 let data = try Data(contentsOf: url)
-                let decoder = JSONDecoder()
-                let imported = try decoder.decode(ImportedBlock.self, from: data)
-                let block = BlockGenerator.convertToBlock(imported, numberOfWeeks: 1)
-                importedBlock = block
-                errorMessage = nil
-            } catch let decodingError as DecodingError {
-                errorMessage = "Invalid JSON format: \(formatDecodingError(decodingError))"
+                parseJSONData(data)
             } catch {
-                errorMessage = "Failed to import file: \(error.localizedDescription)"
+                errorMessage = "Failed to read file: \(error.localizedDescription)"
             }
             
         case .failure(let error):
