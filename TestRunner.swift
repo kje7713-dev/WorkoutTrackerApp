@@ -37,6 +37,11 @@ struct TestRunner {
         if !ManualWeeksTest.runAll() {
             allTestsPassed = false
         }
+        
+        // Run Superset and Yoga Tests
+        if !SupersetAndYogaTests.runAllTests() {
+            allTestsPassed = false
+        }
         #endif
         
         print("\n========================================")
