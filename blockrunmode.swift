@@ -1633,7 +1633,7 @@ struct SetRunRow: View {
     
     // MARK: - Date Formatting Helper
     
-    /// Formats a date as a short date string (e.g., "12/20" or "Dec 20")
+    /// Formats a date as a short date string (e.g., "12/20/24" in US locale)
     private func formatShortDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
