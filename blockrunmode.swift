@@ -940,11 +940,14 @@ struct DayRunView: View {
     
     /// Helper to create bindings for grouped exercises
     /// Directly looks up each exercise in day.exercises by ID
+    /// - Parameter exercises: Array of exercises to create bindings for
+    /// - Returns: Array of bindings for exercises found in day.exercises
+    /// - Note: Uses O(n) lookup per exercise. For typical workout days (3-8 exercises), this has negligible performance impact
     private func bindingsForExercises(_ exercises: [RunExerciseState]) -> [Binding<RunExerciseState>] {
         return exercises.compactMap { exercise in
             // Find the index of this exercise in day.exercises
             guard let index = day.exercises.firstIndex(where: { $0.id == exercise.id }) else {
-                print("⚠️ Warning: Could not find binding for exercise '\(exercise.name)' with id \(exercise.id)")
+                AppLogger.warning("Could not find binding for exercise '\(exercise.name)' with id \(exercise.id)", subsystem: .session, category: "DayRunView")
                 return nil
             }
             return $day.exercises[index]
