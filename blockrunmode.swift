@@ -933,9 +933,15 @@ struct DayRunView: View {
     }
     
     /// Helper to create bindings for grouped exercises
+    /// Uses a dictionary for O(n) lookup instead of O(n²)
     private func binding(for exercises: [RunExerciseState]) -> [Binding<RunExerciseState>] {
-        exercises.compactMap { exercise in
-            guard let index = day.exercises.firstIndex(where: { $0.id == exercise.id }) else {
+        // Create index lookup dictionary for O(1) access
+        let indexMap = Dictionary(uniqueKeysWithValues: 
+            day.exercises.enumerated().map { ($0.element.id, $0.offset) }
+        )
+        
+        return exercises.compactMap { exercise in
+            guard let index = indexMap[exercise.id] else {
                 return nil
             }
             return $day.exercises[index]
@@ -998,7 +1004,7 @@ struct SupersetGroupView: View {
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemGray6).opacity(0.5))
+                .fill(Color(.systemGray6).opacity(colorScheme == .dark ? 0.3 : 0.5))
         )
     }
 }
