@@ -682,6 +682,11 @@ struct DayRunView: View {
                         // Individual exercises
                         ForEach(binding(for: group.exercises)) { $exercise in
                             ExerciseRunCard(exercise: $exercise, onSave: onSave)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color(.systemBackground))
+                                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                )
                         }
                     }
                 }
