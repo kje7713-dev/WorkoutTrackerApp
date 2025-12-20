@@ -92,7 +92,7 @@ struct SubscriptionManagementView: View {
             VStack(spacing: 16) {
                 
                 // Manage subscription link
-                if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                if let url = URL(string: SubscriptionConstants.appleSubscriptionManagementURL) {
                     Link(destination: url) {
                         HStack {
                             Text("Manage Subscription")
@@ -136,7 +136,7 @@ struct SubscriptionManagementView: View {
             
             // Info text
             if subscriptionManager.isInTrial {
-                Text("Your free trial will automatically convert to a \(subscriptionManager.formattedPrice ?? "$6.70")/month subscription unless cancelled.")
+                Text("Your free trial will automatically convert to a \(subscriptionManager.formattedPrice ?? SubscriptionConstants.fallbackPrice)/month subscription unless cancelled.")
                     .font(.system(size: 14, weight: .regular))
                     .foregroundColor(theme.mutedText)
                     .multilineTextAlignment(.center)

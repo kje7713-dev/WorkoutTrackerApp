@@ -137,7 +137,7 @@ struct PaywallView: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(theme.mutedText)
                 } else {
-                    Text("$6.70")
+                    Text(SubscriptionConstants.fallbackPrice)
                         .font(.system(size: 48, weight: .bold))
                     
                     Text("per month")
@@ -146,7 +146,7 @@ struct PaywallView: View {
                 }
                 
                 if subscriptionManager.isEligibleForTrial {
-                    Text("First 15 days free, then \(subscriptionManager.formattedPrice ?? "$6.70")/month")
+                    Text("First \(SubscriptionConstants.trialDurationDays) days free, then \(subscriptionManager.formattedPrice ?? SubscriptionConstants.fallbackPrice)/month")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundColor(theme.mutedText)
                         .multilineTextAlignment(.center)
@@ -214,14 +214,14 @@ struct PaywallView: View {
     
     private var legalSection: some View {
         HStack(spacing: 20) {
-            Link("Privacy Policy", destination: URL(string: "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/docs/PRIVACY_POLICY.md")!)
+            Link("Privacy Policy", destination: URL(string: SubscriptionConstants.privacyPolicyURL)!)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.blue)
             
             Text("•")
                 .foregroundColor(theme.mutedText)
             
-            Link("Terms of Service", destination: URL(string: "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/docs/TERMS_OF_SERVICE.md")!)
+            Link("Terms of Service", destination: URL(string: SubscriptionConstants.termsOfServiceURL)!)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(.blue)
         }

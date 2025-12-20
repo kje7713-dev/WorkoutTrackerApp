@@ -34,8 +34,8 @@ class SubscriptionManager: ObservableObject {
     
     private var updateListenerTask: Task<Void, Never>?
     
-    // Product identifier - matches App Store Connect configuration
-    private let productID = "com.kje7713.WorkoutTrackerApp.pro.monthly"
+    // Product identifier from constants
+    private let productID = SubscriptionConstants.monthlyProductID
     
     // MARK: - Initialization
     
