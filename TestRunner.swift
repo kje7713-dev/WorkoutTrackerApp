@@ -47,6 +47,11 @@ struct TestRunner {
         if !CompletionTimestampTests.runAllTests() {
             allTestsPassed = false
         }
+        
+        // Run Subscription Tests
+        if !SubscriptionTests.runAllTests() {
+            allTestsPassed = false
+        }
         #endif
         
         print("\n========================================")
