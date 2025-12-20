@@ -45,7 +45,7 @@ Replaced the problematic caching logic with a simpler direct lookup approach:
    private func bindingsForExercises(_ exercises: [RunExerciseState]) -> [Binding<RunExerciseState>] {
        return exercises.compactMap { exercise in
            guard let index = day.exercises.firstIndex(where: { $0.id == exercise.id }) else {
-               print("⚠️ Warning: Could not find binding for exercise '\(exercise.name)' with id \(exercise.id)")
+               AppLogger.warning("Could not find binding for exercise '\(exercise.name)' with id \(exercise.id)", subsystem: .session, category: "DayRunView")
                return nil
            }
            return $day.exercises[index]
