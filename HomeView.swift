@@ -10,6 +10,9 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.sbdTheme) private var theme
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
+    
+    @State private var showingSubscriptionManagement = false
     
     private var buildBranchLabel: String {
         let branch = getBuildBranch()
@@ -115,6 +118,31 @@ struct HomeView: View {
                             .textCase(.uppercase)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    
+                    // Subscription Management
+                    Button {
+                        showingSubscriptionManagement = true
+                    } label: {
+                        HStack {
+                            if subscriptionManager.isSubscribed {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                            } else {
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.yellow)
+                            }
+                            
+                            Text(subscriptionManager.isSubscribed ? "PRO ACTIVE" : "GO PRO")
+                                .font(.system(size: 16, weight: .semibold))
+                                .textCase(.uppercase)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .foregroundColor(foregroundButtonColor)
+                        .background(backgroundButtonColor)
+                        .cornerRadius(20)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
 
                 Spacer(minLength: 0)
@@ -136,6 +164,10 @@ struct HomeView: View {
                 .padding(.bottom, 8)
             }
             .padding(.horizontal, 20)
+        }
+        .sheet(isPresented: $showingSubscriptionManagement) {
+            SubscriptionManagementView()
+                .environmentObject(subscriptionManager)
         }
     }
 
