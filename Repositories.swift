@@ -452,6 +452,28 @@ public final class ExerciseLibraryRepository: ObservableObject {
         seed("Wall Ball", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
         seed("Thruster", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
         seed("Kettlebell Swing", type: .conditioning, category: .conditioning, defaultConditioningType: .mixedModal)
+        
+        // Mobility & Yoga
+        seed("Downward Dog", type: .other, category: .mobility, tags: ["yoga", "mobility"])
+        seed("Child's Pose", type: .other, category: .mobility, tags: ["yoga", "recovery"])
+        seed("Cat-Cow Stretch", type: .other, category: .mobility, tags: ["yoga", "warm-up"])
+        seed("Pigeon Pose", type: .other, category: .mobility, tags: ["yoga", "hip mobility"])
+        seed("Cobra Pose", type: .other, category: .mobility, tags: ["yoga", "back"])
+        seed("Warrior I", type: .other, category: .mobility, tags: ["yoga", "strength"])
+        seed("Warrior II", type: .other, category: .mobility, tags: ["yoga", "strength"])
+        seed("Triangle Pose", type: .other, category: .mobility, tags: ["yoga", "balance"])
+        seed("Bridge Pose", type: .other, category: .mobility, tags: ["yoga", "back"])
+        seed("Seated Forward Fold", type: .other, category: .mobility, tags: ["yoga", "hamstrings"])
+        seed("Hip Flexor Stretch", type: .other, category: .mobility, tags: ["stretching", "hip mobility"])
+        seed("Thoracic Spine Rotation", type: .other, category: .mobility, tags: ["mobility", "warm-up"])
+        seed("Shoulder Dislocates", type: .other, category: .mobility, tags: ["mobility", "shoulders"])
+        seed("World's Greatest Stretch", type: .other, category: .mobility, tags: ["mobility", "warm-up"])
+        seed("90/90 Hip Stretch", type: .other, category: .mobility, tags: ["mobility", "hip mobility"])
+        seed("Couch Stretch", type: .other, category: .mobility, tags: ["mobility", "hip flexors"])
+        seed("Frog Stretch", type: .other, category: .mobility, tags: ["mobility", "hip mobility"])
+        seed("Scorpion Stretch", type: .other, category: .mobility, tags: ["mobility", "thoracic"])
+        seed("Band Pull-Apart", type: .other, category: .mobility, tags: ["mobility", "shoulders"])
+        seed("Foam Rolling", type: .other, category: .mobility, tags: ["recovery", "mobility"])
 
         exercises = seeded
     }
