@@ -42,6 +42,11 @@ struct TestRunner {
         if !SupersetAndYogaTests.runAllTests() {
             allTestsPassed = false
         }
+        
+        // Run Completion Timestamp Tests
+        if !CompletionTimestampTests.runAllTests() {
+            allTestsPassed = false
+        }
         #endif
         
         print("\n========================================")
