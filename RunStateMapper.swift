@@ -152,7 +152,8 @@ struct RunStateMapper {
             tempo: sessionSet.tempo,
             restSeconds: sessionSet.restSeconds,
             notes: sessionSet.notes,
-            isCompleted: sessionSet.isCompleted
+            isCompleted: sessionSet.isCompleted,
+            completedAt: sessionSet.completedAt
         )
     }
     
@@ -284,6 +285,7 @@ struct RunStateMapper {
                         updatedSet.restSeconds = runSet.restSeconds
                         updatedSet.notes = runSet.notes
                         updatedSet.isCompleted = runSet.isCompleted
+                        updatedSet.completedAt = runSet.completedAt
                         updatedLoggedSets.append(updatedSet)
                     } else {
                         // Add new set
@@ -300,7 +302,8 @@ struct RunStateMapper {
                             tempo: runSet.tempo,
                             restSeconds: runSet.restSeconds,
                             notes: runSet.notes,
-                            isCompleted: runSet.isCompleted
+                            isCompleted: runSet.isCompleted,
+                            completedAt: runSet.completedAt
                         )
                         updatedLoggedSets.append(newSet)
                     }
@@ -332,7 +335,8 @@ struct RunStateMapper {
                             tempo: runSet.tempo,
                             restSeconds: runSet.restSeconds,
                             notes: runSet.notes,
-                            isCompleted: runSet.isCompleted
+                            isCompleted: runSet.isCompleted,
+                            completedAt: runSet.completedAt
                         )
                     }
                 )
