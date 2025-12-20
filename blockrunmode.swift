@@ -544,7 +544,8 @@ struct BlockRunModeView: View {
                         name: name,
                         type: exercise.type,
                         notes: notes,
-                        sets: sets
+                        sets: sets,
+                        setGroupId: exercise.setGroupId
                     )
                 }
 
@@ -662,12 +663,41 @@ struct DayRunView: View {
     
     @State private var showExerciseTypeSheet = false
     @State private var persistToFutureWeeks = false
+    
+    // Cache for exercise index lookup to avoid recomputing on every binding call
+    @State private var exerciseIndexMap: [UUID: Int] = [:]
+    
+    // Constants for superset group styling
+    private let supersetBackgroundOpacityDark: Double = 0.3
+    private let supersetBackgroundOpacityLight: Double = 0.5
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                ForEach($day.exercises) { $exercise in
-                    ExerciseRunCard(exercise: $exercise, onSave: onSave)
+                // Group exercises by setGroupId
+                let groups = groupExercises(day.exercises)
+                
+                ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
+                    if let groupId = group.groupId {
+                        // Superset/Circuit group
+                        SupersetGroupView(
+                            exercises: binding(for: group.exercises),
+                            groupId: groupId,
+                            onSave: onSave,
+                            backgroundOpacity: supersetBackgroundOpacityDark,
+                            backgroundOpacityLight: supersetBackgroundOpacityLight
+                        )
+                    } else {
+                        // Individual exercises
+                        ForEach(binding(for: group.exercises)) { $exercise in
+                            ExerciseRunCard(exercise: $exercise, onSave: onSave)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color(.systemBackground))
+                                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                )
+                        }
+                    }
                 }
 
                 Button {
@@ -712,7 +742,8 @@ struct DayRunView: View {
                     displayText: "Set 1",
                     type: type
                 )
-            ]
+            ],
+            setGroupId: nil  // New exercises don't belong to a group
         )
         day.exercises.append(newExercise)
         
@@ -863,6 +894,134 @@ struct DayRunView: View {
         // Save all updated sessions
         sessionsRepository.replaceSessions(forBlockId: fromBlock.id, with: allSessions)
         print("✅ regenerateSessionsForFutureWeeks: Updated \(updatedWeekCount) future week sessions")
+    }
+    
+    // MARK: - Exercise Grouping Helpers
+    
+    /// Groups exercises by setGroupId for superset/circuit display
+    private func groupExercises(_ exercises: [RunExerciseState]) -> [ExerciseGroup] {
+        var groups: [ExerciseGroup] = []
+        var currentGroup: [RunExerciseState] = []
+        var currentGroupId: SetGroupID? = nil
+        
+        for exercise in exercises {
+            if let groupId = exercise.setGroupId {
+                // This exercise belongs to a group
+                if groupId == currentGroupId {
+                    // Add to current group
+                    currentGroup.append(exercise)
+                } else {
+                    // New group - save previous group if any
+                    if !currentGroup.isEmpty {
+                        groups.append(ExerciseGroup(groupId: currentGroupId, exercises: currentGroup))
+                        currentGroup = []
+                    }
+                    // Start new group
+                    currentGroupId = groupId
+                    currentGroup.append(exercise)
+                }
+            } else {
+                // This exercise doesn't belong to a group
+                // Save previous group if any
+                if !currentGroup.isEmpty {
+                    groups.append(ExerciseGroup(groupId: currentGroupId, exercises: currentGroup))
+                    currentGroup = []
+                    currentGroupId = nil
+                }
+                // Add as individual exercise
+                groups.append(ExerciseGroup(groupId: nil, exercises: [exercise]))
+            }
+        }
+        
+        // Don't forget the last group
+        if !currentGroup.isEmpty {
+            groups.append(ExerciseGroup(groupId: currentGroupId, exercises: currentGroup))
+        }
+        
+        return groups
+    }
+    
+    /// Helper to create bindings for grouped exercises
+    /// Uses a cached dictionary for O(1) lookup
+    private func binding(for exercises: [RunExerciseState]) -> [Binding<RunExerciseState>] {
+        // Update cache if exercises changed (detected by comparing IDs)
+        let currentIds = day.exercises.map { $0.id }
+        let cachedIds = Array(exerciseIndexMap.keys)
+        
+        if currentIds != cachedIds {
+            exerciseIndexMap = Dictionary(uniqueKeysWithValues: 
+                day.exercises.enumerated().map { ($0.element.id, $0.offset) }
+            )
+        }
+        
+        return exercises.compactMap { exercise in
+            guard let index = exerciseIndexMap[exercise.id] else {
+                return nil
+            }
+            return $day.exercises[index]
+        }
+    }
+    
+    /// Helper structure for grouping exercises
+    private struct ExerciseGroup {
+        let groupId: SetGroupID?
+        let exercises: [RunExerciseState]
+    }
+}
+
+// MARK: - Superset Group View
+
+struct SupersetGroupView: View {
+    let exercises: [Binding<RunExerciseState>]
+    let groupId: SetGroupID
+    let onSave: () -> Void
+    let backgroundOpacity: Double
+    let backgroundOpacityLight: Double
+    
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Group header
+            HStack {
+                Image(systemName: "link.circle.fill")
+                    .foregroundColor(.blue)
+                    .font(.system(size: 16))
+                Text("Superset Group")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+                Spacer()
+                Image(systemName: "arrow.up.arrow.down.circle")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 14))
+                Text("Alternate")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.blue.opacity(0.1))
+            )
+            
+            // Exercises in the group
+            VStack(spacing: 12) {
+                ForEach(exercises) { $exercise in
+                    ExerciseRunCard(exercise: $exercise, onSave: onSave)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(Color.blue.opacity(0.3), lineWidth: 2)
+                        )
+                }
+            }
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemGray6).opacity(colorScheme == .dark ? backgroundOpacity : backgroundOpacityLight))
+        )
     }
 }
 
@@ -1503,6 +1662,7 @@ struct RunExerciseState: Identifiable, Codable {
     var type: ExerciseType
     var notes: String
     var sets: [RunSetState]
+    var setGroupId: SetGroupID?  // For superset/circuit grouping
 }
 
 struct RunSetState: Identifiable, Codable {

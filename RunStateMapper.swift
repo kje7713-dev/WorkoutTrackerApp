@@ -102,9 +102,10 @@ struct RunStateMapper {
         // Get exercise name
         let name = sessionExercise.customName ?? "Exercise"
         
-        // Find the exercise template to determine type
+        // Find the exercise template to determine type and setGroupId
         let exerciseTemplate = dayTemplate.exercises.first { $0.id == sessionExercise.exerciseTemplateId }
         let type = exerciseTemplate?.type ?? .strength
+        let setGroupId = exerciseTemplate?.setGroupId
         
         // Get notes from first set if available (sets don't have individual notes in run state)
         let notes = sessionExercise.loggedSets.first?.notes ?? ""
@@ -118,7 +119,8 @@ struct RunStateMapper {
             name: name,
             type: type,
             notes: notes,
-            sets: sets
+            sets: sets,
+            setGroupId: setGroupId
         )
     }
     

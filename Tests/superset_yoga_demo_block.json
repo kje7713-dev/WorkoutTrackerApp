@@ -1,0 +1,165 @@
+{
+  "Title": "Upper Body Superset Demo",
+  "Description": "Demonstrates superset grouping and yoga/mobility exercises",
+  "NumberOfWeeks": 4,
+  "Goal": "hypertrophy",
+  "Days": [
+    {
+      "name": "Push/Pull Supersets",
+      "shortCode": "PP",
+      "goal": "hypertrophy",
+      "exercises": [
+        {
+          "name": "Bench Press",
+          "type": "strength",
+          "category": "pressHorizontal",
+          "setGroupId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+          "setGroupKind": "superset",
+          "strengthSets": [
+            { "reps": 8, "weight": 135, "restSeconds": 60 },
+            { "reps": 8, "weight": 135, "restSeconds": 60 },
+            { "reps": 8, "weight": 135, "restSeconds": 90 }
+          ],
+          "progression": {
+            "type": "weight",
+            "deltaWeight": 5
+          },
+          "notes": "Pair with barbell row - alternate sets"
+        },
+        {
+          "name": "Barbell Row",
+          "type": "strength",
+          "category": "pullHorizontal",
+          "setGroupId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+          "setGroupKind": "superset",
+          "strengthSets": [
+            { "reps": 8, "weight": 115, "restSeconds": 60 },
+            { "reps": 8, "weight": 115, "restSeconds": 60 },
+            { "reps": 8, "weight": 115, "restSeconds": 90 }
+          ],
+          "progression": {
+            "type": "weight",
+            "deltaWeight": 5
+          },
+          "notes": "Pair with bench press - 90 sec rest after completing both exercises"
+        },
+        {
+          "name": "Overhead Press",
+          "type": "strength",
+          "category": "pressVertical",
+          "setGroupId": "b2c3d4e5-f6g7-8901-bcde-f12345678901",
+          "setGroupKind": "superset",
+          "strengthSets": [
+            { "reps": 10, "weight": 95, "restSeconds": 60 },
+            { "reps": 10, "weight": 95, "restSeconds": 60 },
+            { "reps": 10, "weight": 95, "restSeconds": 90 }
+          ],
+          "progression": {
+            "type": "weight",
+            "deltaWeight": 2.5
+          },
+          "notes": "Pair with pull-ups"
+        },
+        {
+          "name": "Pull-Up",
+          "type": "strength",
+          "category": "pullVertical",
+          "setGroupId": "b2c3d4e5-f6g7-8901-bcde-f12345678901",
+          "setGroupKind": "superset",
+          "strengthSets": [
+            { "reps": 8, "restSeconds": 60 },
+            { "reps": 8, "restSeconds": 60 },
+            { "reps": 8, "restSeconds": 90 }
+          ],
+          "progression": {
+            "type": "volume",
+            "deltaSets": 1
+          },
+          "notes": "Pair with overhead press"
+        }
+      ]
+    },
+    {
+      "name": "Yoga & Mobility",
+      "shortCode": "YM",
+      "goal": "rehab",
+      "exercises": [
+        {
+          "name": "Downward Dog",
+          "type": "other",
+          "category": "mobility",
+          "strengthSets": [
+            { "reps": 1, "restSeconds": 30 }
+          ],
+          "progression": {
+            "type": "custom"
+          },
+          "notes": "Hold for 30-60 seconds, focus on breathing"
+        },
+        {
+          "name": "Pigeon Pose",
+          "type": "other",
+          "category": "mobility",
+          "strengthSets": [
+            { "reps": 1, "restSeconds": 30 },
+            { "reps": 1, "restSeconds": 30 }
+          ],
+          "progression": {
+            "type": "custom"
+          },
+          "notes": "Each side - hold for 45-60 seconds"
+        },
+        {
+          "name": "Cat-Cow Stretch",
+          "type": "other",
+          "category": "mobility",
+          "strengthSets": [
+            { "reps": 10, "restSeconds": 0 }
+          ],
+          "progression": {
+            "type": "custom"
+          },
+          "notes": "Slow and controlled movements"
+        },
+        {
+          "name": "Hip Flexor Stretch",
+          "type": "other",
+          "category": "mobility",
+          "strengthSets": [
+            { "reps": 1, "restSeconds": 30 },
+            { "reps": 1, "restSeconds": 30 }
+          ],
+          "progression": {
+            "type": "custom"
+          },
+          "notes": "Each side - hold for 45 seconds"
+        },
+        {
+          "name": "Thoracic Spine Rotation",
+          "type": "other",
+          "category": "mobility",
+          "strengthSets": [
+            { "reps": 10, "restSeconds": 30 },
+            { "reps": 10, "restSeconds": 30 }
+          ],
+          "progression": {
+            "type": "custom"
+          },
+          "notes": "Each side - slow rotations"
+        },
+        {
+          "name": "Foam Rolling",
+          "type": "other",
+          "category": "mobility",
+          "strengthSets": [
+            { "reps": 1, "restSeconds": 0 }
+          ],
+          "progression": {
+            "type": "custom"
+          },
+          "notes": "5-10 minutes total - focus on tight areas"
+        }
+      ]
+    }
+  ]
+}
