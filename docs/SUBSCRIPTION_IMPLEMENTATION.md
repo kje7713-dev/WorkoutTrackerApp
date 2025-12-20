@@ -1,0 +1,257 @@
+# Subscription Implementation
+
+This document describes the subscription implementation for Savage By Design.
+
+## Overview
+
+The app implements a freemium model with a Pro subscription that unlocks advanced features:
+- 15-day free trial for new users
+- $6.70/month auto-renewing subscription
+- Advanced planning, analysis, and tracking features
+
+## What the Subscription Unlocks
+
+The subscription unlocks **in-app software tools**, not AI or LLM access:
+
+### Pro Features
+1. **AI-Assisted Plan Ingestion** - Import and parse workout plans from JSON
+2. **Automated Review & Modifications** - Smart suggestions for plan optimization
+3. **Intelligent Progress Analysis** - Advanced analytics and tracking
+4. **Advanced Block History** - Comprehensive workout history and insights
+5. **Enhanced Dashboards** - Advanced visualization and reporting
+
+### Free Features
+Basic app functionality remains free:
+- Manual block creation
+- Basic workout tracking
+- Session logging
+- Manual data entry
+
+## Architecture
+
+### Components
+
+1. **SubscriptionManager.swift**
+   - Main subscription state manager
+   - StoreKit 2 integration
+   - Entitlement checking
+   - Transaction listening
+
+2. **PaywallView.swift**
+   - Subscription offer presentation
+   - Feature list
+   - Trial offer display
+   - Purchase flow
+
+3. **SubscriptionManagementView.swift**
+   - Active subscription management
+   - Restore purchases
+   - Link to Apple subscription settings
+
+4. **Configuration.storekit**
+   - StoreKit testing configuration
+   - Product definitions
+   - Trial configuration
+
+### Integration Points
+
+- **SavageByDesignApp.swift** - SubscriptionManager injected as environment object
+- **HomeView.swift** - Subscription management access
+- **BlockGeneratorView.swift** - Feature gating for AI import
+- **BlocksListView.swift** - Visual indicator on locked features
+
+## Feature Gating
+
+Features are gated based on `subscriptionManager.isSubscribed` property:
+
+```swift
+if subscriptionManager.isSubscribed {
+    // Show pro feature
+} else {
+    // Show locked state with upgrade prompt
+}
+```
+
+### Gating Pattern
+
+1. Check subscription status
+2. If not subscribed, show locked UI with:
+   - Lock icon
+   - Feature description
+   - "Start Free Trial" or "Subscribe" button
+3. If subscribed, show full feature
+
+## StoreKit Configuration
+
+### Product ID
+`com.kje7713.WorkoutTrackerApp.pro.monthly`
+
+### Subscription Details
+- Type: Auto-renewable subscription
+- Duration: 1 month (P1M)
+- Price: $6.70/month
+- Trial: 15 days (P15D), free
+- Group: Pro Subscription (21493252)
+
+## Testing
+
+### Sandbox Testing
+
+1. Create sandbox test account in App Store Connect
+2. Sign out of App Store on device
+3. Run app in Xcode
+4. Use StoreKit configuration file for local testing
+5. Purchase subscription with sandbox account
+
+### Test Scenarios
+
+- [ ] New user can start free trial
+- [ ] Trial converts to paid subscription
+- [ ] User can cancel during trial (no charge)
+- [ ] User can cancel after trial (charged for current period)
+- [ ] Subscription renews automatically
+- [ ] Restore purchases works correctly
+- [ ] Expired subscription locks features
+- [ ] Feature gating works correctly
+
+### Running Tests
+
+```swift
+// In TestRunner.swift or similar
+SubscriptionTests.runAllTests()
+```
+
+## Compliance
+
+### Required Elements
+
+All required elements are implemented:
+
+- [x] Restore Purchases button
+- [x] Manage Subscription link (to Apple settings)
+- [x] Auto-renew disclosure text
+- [x] Privacy Policy link
+- [x] Terms of Service link
+- [x] Clear feature descriptions
+- [x] Trial period disclosure
+
+### Language Guidelines
+
+✅ **Use:**
+- "Advanced planning tools"
+- "Intelligent analysis"
+- "AI-assisted import" (importing content from external LLMs)
+
+❌ **Avoid:**
+- "AI access"
+- "LLM subscription"
+- "AI model access"
+
+The subscription unlocks software tools that process externally generated content, not access to AI services.
+
+## App Store Connect Setup
+
+### Steps Required
+
+1. **Create Subscription Group**
+   - Name: "Pro Subscription"
+   - Add monthly subscription
+
+2. **Configure Product**
+   - Product ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+   - Reference Name: "Pro Monthly Subscription"
+   - Price: $6.70/month (Tier 10)
+   - Subscription Duration: 1 month
+
+3. **Add Introductory Offer**
+   - Type: Free trial
+   - Duration: 15 days
+   - Eligibility: First time subscribers only
+
+4. **Add Localization**
+   - Display Name: "Savage By Design Pro"
+   - Description: "Advanced planning and tracking tools"
+
+5. **Submit for Review**
+   - Add App Review notes explaining subscription unlocks in-app tools only
+   - Not selling AI/LLM access
+
+### App Review Notes
+
+```
+This subscription unlocks advanced software features within the app, including:
+- JSON import and parsing tools
+- Automated workout plan review
+- Advanced progress analytics
+- Enhanced history visualization
+
+The subscription does NOT provide:
+- Access to AI models or LLM services
+- Content generation services
+- External API access
+
+Users may import content from external sources (like ChatGPT or Claude) 
+and use our tools to parse, review, and track that content. The subscription 
+unlocks these software tools, not the content generation itself.
+```
+
+## Privacy & Data
+
+### What We Collect
+- Subscription status (from StoreKit)
+- Local feature usage (for entitlement)
+
+### What We DON'T Collect
+- Payment information (handled by Apple)
+- Personal identification
+- Workout data (stored locally only)
+
+### Data Storage
+- All subscription state is local
+- No server-side verification required
+- Apple handles all payment processing
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue: Product not loading**
+- Check product ID matches App Store Connect
+- Verify product is approved and available
+- Check StoreKit configuration file
+
+**Issue: Purchase fails**
+- Check sandbox account is signed in
+- Verify StoreKit configuration is loaded
+- Check for StoreKit errors in logs
+
+**Issue: Restore not working**
+- Ensure user is signed in with correct Apple ID
+- Call `AppStore.sync()` before checking entitlements
+- Verify transaction verification is working
+
+**Issue: Features still locked after purchase**
+- Check `checkEntitlementStatus()` is called after purchase
+- Verify transaction listener is running
+- Check for verification errors
+
+## Future Enhancements
+
+Potential improvements for future versions:
+
+1. **Annual Subscription** - Add yearly option with discount
+2. **Lifetime Purchase** - One-time purchase option
+3. **Family Sharing** - Enable family sharing for subscription
+4. **Server-Side Verification** - Add backend validation
+5. **Promotional Offers** - Add win-back and upgrade offers
+6. **Usage Analytics** - Track feature usage (with consent)
+
+## Support
+
+For issues or questions:
+- GitHub Issues: https://github.com/kje7713-dev/WorkoutTrackerApp/issues
+- Documentation: See docs/ folder
+
+## License
+
+See LICENSE file in repository root.

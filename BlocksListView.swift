@@ -9,6 +9,7 @@ struct BlocksListView: View {
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var sessionsRepository: SessionsRepository
     @EnvironmentObject private var exerciseLibraryRepository: ExerciseLibraryRepository
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @Environment(\.sbdTheme) private var theme
 
     // Which builder mode is active (if any)?
@@ -63,6 +64,7 @@ struct BlocksListView: View {
             BlockGeneratorView()
                 .environmentObject(blocksRepository)
                 .environmentObject(sessionsRepository)
+                .environmentObject(subscriptionManager)
         }
         .sheet(item: $builderContext) { context in
             NavigationStack {
@@ -237,13 +239,17 @@ struct BlocksListView: View {
             showingAIGenerator = true
         } label: {
             HStack {
+                if !subscriptionManager.isSubscribed {
+                    Image(systemName: "lock.fill")
+                        .foregroundColor(.yellow)
+                }
                 Image(systemName: "flame.fill")
                 Text("IMPORT AI BLOCK")
                     .font(.headline).bold()
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(Color.blue)
+            .background(subscriptionManager.isSubscribed ? Color.blue : Color.gray)
             .foregroundColor(.white)
             .cornerRadius(24)
         }

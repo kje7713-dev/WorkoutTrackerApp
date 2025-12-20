@@ -13,6 +13,7 @@ struct SavageByDesignApp: App {
     @StateObject private var blocksRepository = BlocksRepository()
     @StateObject private var sessionsRepository = SessionsRepository()
     @StateObject private var exerciseLibraryRepository = ExerciseLibraryRepository()
+    @StateObject private var subscriptionManager = SubscriptionManager()
     
     // Data management service for background cleanup
     @State private var dataService: DataManagementService?
@@ -25,6 +26,7 @@ struct SavageByDesignApp: App {
             .environmentObject(blocksRepository)
             .environmentObject(sessionsRepository)
             .environmentObject(exerciseLibraryRepository)
+            .environmentObject(subscriptionManager)
             .onAppear {
                 // Load default exercises when app appears
                 exerciseLibraryRepository.loadDefaultSeedIfEmpty()

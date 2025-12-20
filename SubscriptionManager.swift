@@ -1,0 +1,258 @@
+//
+//  SubscriptionManager.swift
+//  Savage By Design
+//
+//  StoreKit 2 subscription manager for advanced feature entitlements
+//
+
+import Foundation
+import StoreKit
+import Combine
+
+/// Manages subscription state and StoreKit 2 operations
+@MainActor
+class SubscriptionManager: ObservableObject {
+    
+    // MARK: - Published Properties
+    
+    /// Whether the user has an active subscription or trial
+    @Published private(set) var isSubscribed: Bool = false
+    
+    /// Whether the user is in a free trial period
+    @Published private(set) var isInTrial: Bool = false
+    
+    /// Whether the user is eligible for a free trial
+    @Published private(set) var isEligibleForTrial: Bool = true
+    
+    /// Current subscription product (if loaded)
+    @Published private(set) var subscriptionProduct: Product?
+    
+    /// Error message for UI display
+    @Published var errorMessage: String?
+    
+    // MARK: - Private Properties
+    
+    private var updateListenerTask: Task<Void, Never>?
+    
+    // Product identifier - matches App Store Connect configuration
+    private let productID = "com.kje7713.WorkoutTrackerApp.pro.monthly"
+    
+    // MARK: - Initialization
+    
+    init() {
+        // Start listening for transaction updates
+        updateListenerTask = listenForTransactionUpdates()
+        
+        // Load products and check entitlement status
+        Task {
+            await loadProducts()
+            await checkEntitlementStatus()
+        }
+    }
+    
+    deinit {
+        updateListenerTask?.cancel()
+    }
+    
+    // MARK: - Product Loading
+    
+    /// Load subscription products from App Store
+    func loadProducts() async {
+        do {
+            let products = try await Product.products(for: [productID])
+            
+            if let product = products.first {
+                subscriptionProduct = product
+                AppLogger.info("Loaded subscription product: \(product.displayName)", subsystem: .system, category: "Subscription")
+            } else {
+                AppLogger.error("Subscription product not found: \(productID)", subsystem: .system, category: "Subscription")
+                errorMessage = "Unable to load subscription information"
+            }
+        } catch {
+            AppLogger.error("Failed to load products: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+            errorMessage = "Failed to load subscription information"
+        }
+    }
+    
+    // MARK: - Purchase Flow
+    
+    /// Purchase subscription with 15-day free trial
+    func purchase() async -> Bool {
+        guard let product = subscriptionProduct else {
+            errorMessage = "Subscription not available"
+            return false
+        }
+        
+        do {
+            let result = try await product.purchase()
+            
+            switch result {
+            case .success(let verification):
+                // Verify the transaction
+                let transaction = try checkVerified(verification)
+                
+                // Update entitlement status
+                await checkEntitlementStatus()
+                
+                // Finish the transaction
+                await transaction.finish()
+                
+                AppLogger.info("Purchase successful", subsystem: .system, category: "Subscription")
+                return true
+                
+            case .userCancelled:
+                AppLogger.info("User cancelled purchase", subsystem: .system, category: "Subscription")
+                return false
+                
+            case .pending:
+                AppLogger.info("Purchase pending", subsystem: .system, category: "Subscription")
+                errorMessage = "Purchase is pending approval"
+                return false
+                
+            @unknown default:
+                AppLogger.error("Unknown purchase result", subsystem: .system, category: "Subscription")
+                return false
+            }
+        } catch {
+            AppLogger.error("Purchase failed: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+            errorMessage = "Purchase failed: \(error.localizedDescription)"
+            return false
+        }
+    }
+    
+    // MARK: - Restore Purchases
+    
+    /// Restore previous purchases
+    func restorePurchases() async {
+        do {
+            try await AppStore.sync()
+            await checkEntitlementStatus()
+            AppLogger.info("Purchases restored", subsystem: .system, category: "Subscription")
+        } catch {
+            AppLogger.error("Failed to restore purchases: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+            errorMessage = "Failed to restore purchases"
+        }
+    }
+    
+    // MARK: - Entitlement Status
+    
+    /// Check current entitlement status
+    func checkEntitlementStatus() async {
+        var hasActiveSubscription = false
+        var isCurrentlyInTrial = false
+        
+        // Check for active subscriptions
+        for await result in Transaction.currentEntitlements {
+            do {
+                let transaction = try checkVerified(result)
+                
+                // Check if this is our subscription product
+                if transaction.productID == productID {
+                    // Check if subscription is active
+                    if let expirationDate = transaction.expirationDate {
+                        if expirationDate > Date() {
+                            hasActiveSubscription = true
+                            
+                            // Check if in trial period
+                            if let offerType = transaction.offerType {
+                                isCurrentlyInTrial = (offerType == .introductory)
+                            }
+                        }
+                    }
+                }
+            } catch {
+                AppLogger.error("Failed to verify transaction: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+            }
+        }
+        
+        isSubscribed = hasActiveSubscription
+        isInTrial = isCurrentlyInTrial
+        
+        // Check trial eligibility
+        await checkTrialEligibility()
+        
+        AppLogger.info("Subscription status - subscribed: \(hasActiveSubscription), trial: \(isCurrentlyInTrial)", subsystem: .system, category: "Subscription")
+    }
+    
+    /// Check if user is eligible for free trial
+    private func checkTrialEligibility() async {
+        guard let product = subscriptionProduct else {
+            isEligibleForTrial = true
+            return
+        }
+        
+        // Check if user has ever subscribed
+        isEligibleForTrial = await product.subscription?.isEligibleForIntroOffer ?? true
+    }
+    
+    // MARK: - Transaction Updates
+    
+    /// Listen for transaction updates
+    private func listenForTransactionUpdates() -> Task<Void, Never> {
+        Task.detached { [weak self] in
+            for await result in Transaction.updates {
+                guard let self = self else { return }
+                
+                do {
+                    let transaction = try self.checkVerified(result)
+                    
+                    // Update entitlement status
+                    await self.checkEntitlementStatus()
+                    
+                    // Finish the transaction
+                    await transaction.finish()
+                } catch {
+                    await MainActor.run {
+                        AppLogger.error("Transaction update failed: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Transaction Verification
+    
+    /// Verify transaction signature
+    private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+        switch result {
+        case .unverified:
+            throw SubscriptionError.failedVerification
+        case .verified(let safe):
+            return safe
+        }
+    }
+    
+    // MARK: - Subscription Info
+    
+    /// Get formatted subscription price
+    var formattedPrice: String? {
+        subscriptionProduct?.displayPrice
+    }
+    
+    /// Get subscription description
+    var subscriptionDescription: String {
+        guard let product = subscriptionProduct else {
+            return "Advanced planning and tracking tools"
+        }
+        return product.description
+    }
+}
+
+// MARK: - Subscription Error
+
+enum SubscriptionError: Error {
+    case failedVerification
+    case productNotFound
+    case purchaseFailed
+    
+    var localizedDescription: String {
+        switch self {
+        case .failedVerification:
+            return "Failed to verify purchase"
+        case .productNotFound:
+            return "Subscription not available"
+        case .purchaseFailed:
+            return "Purchase failed"
+        }
+    }
+}
