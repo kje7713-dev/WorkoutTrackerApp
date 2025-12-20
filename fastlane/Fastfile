@@ -62,7 +62,8 @@ platform :ios do
       UI.message("Setting build number to #{timestamp_build} (timestamp-based)")
 
       increment_build_number(
-        build_number: timestamp_build
+        build_number: timestamp_build,
+        xcodeproj: project
       )
       # ============================================================
 
