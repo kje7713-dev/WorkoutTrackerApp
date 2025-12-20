@@ -663,6 +663,13 @@ struct DayRunView: View {
     
     @State private var showExerciseTypeSheet = false
     @State private var persistToFutureWeeks = false
+    
+    // Cache for exercise index lookup to avoid recomputing on every binding call
+    @State private var exerciseIndexMap: [UUID: Int] = [:]
+    
+    // Constants for superset group styling
+    private let supersetBackgroundOpacityDark: Double = 0.3
+    private let supersetBackgroundOpacityLight: Double = 0.5
 
     var body: some View {
         ScrollView {
@@ -676,7 +683,9 @@ struct DayRunView: View {
                         SupersetGroupView(
                             exercises: binding(for: group.exercises),
                             groupId: groupId,
-                            onSave: onSave
+                            onSave: onSave,
+                            backgroundOpacity: supersetBackgroundOpacityDark,
+                            backgroundOpacityLight: supersetBackgroundOpacityLight
                         )
                     } else {
                         // Individual exercises
@@ -933,15 +942,20 @@ struct DayRunView: View {
     }
     
     /// Helper to create bindings for grouped exercises
-    /// Uses a dictionary for O(n) lookup instead of O(n²)
+    /// Uses a cached dictionary for O(1) lookup
     private func binding(for exercises: [RunExerciseState]) -> [Binding<RunExerciseState>] {
-        // Create index lookup dictionary for O(1) access
-        let indexMap = Dictionary(uniqueKeysWithValues: 
-            day.exercises.enumerated().map { ($0.element.id, $0.offset) }
-        )
+        // Update cache if exercises changed (detected by comparing IDs)
+        let currentIds = day.exercises.map { $0.id }
+        let cachedIds = Array(exerciseIndexMap.keys)
+        
+        if currentIds != cachedIds {
+            exerciseIndexMap = Dictionary(uniqueKeysWithValues: 
+                day.exercises.enumerated().map { ($0.element.id, $0.offset) }
+            )
+        }
         
         return exercises.compactMap { exercise in
-            guard let index = indexMap[exercise.id] else {
+            guard let index = exerciseIndexMap[exercise.id] else {
                 return nil
             }
             return $day.exercises[index]
@@ -961,6 +975,8 @@ struct SupersetGroupView: View {
     let exercises: [Binding<RunExerciseState>]
     let groupId: SetGroupID
     let onSave: () -> Void
+    let backgroundOpacity: Double
+    let backgroundOpacityLight: Double
     
     @Environment(\.colorScheme) private var colorScheme
     
@@ -1004,7 +1020,7 @@ struct SupersetGroupView: View {
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemGray6).opacity(colorScheme == .dark ? 0.3 : 0.5))
+                .fill(Color(.systemGray6).opacity(colorScheme == .dark ? backgroundOpacity : backgroundOpacityLight))
         )
     }
 }
