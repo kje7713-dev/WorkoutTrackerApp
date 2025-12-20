@@ -189,6 +189,91 @@ final class DataManagementTests: XCTestCase {
         XCTAssertTrue(csv.contains("Block Name,Weeks,Days"))
     }
     
+    func testCSVEscapingWorkoutHistory() {
+        // Given session with special characters in names
+        let block = Block(
+            name: "Week 1, Day 3",  // Contains comma
+            numberOfWeeks: 2,
+            days: [DayTemplate(name: "Push Day \"Heavy\"")]  // Contains quotes
+        )
+        blocksRepository.add(block)
+        
+        let exercise = SessionExercise(
+            exerciseDefinitionId: nil,
+            customName: "Barbell \"Push\" Press, 3x5",  // Contains both comma and quotes
+            expectedSets: [],
+            loggedSets: [
+                SessionSet(
+                    index: 0,
+                    loggedReps: 5,
+                    loggedWeight: 100,
+                    isCompleted: true
+                )
+            ]
+        )
+        
+        let session = WorkoutSession(
+            blockId: block.id,
+            weekIndex: 0,
+            dayTemplateId: block.days[0].id,
+            date: Date(),
+            status: .completed,
+            exercises: [exercise]
+        )
+        
+        sessionsRepository.add(session)
+        
+        // When exporting CSV
+        let csv = dataService.exportWorkoutHistoryAsCSV()
+        
+        // Then CSV should properly escape special characters
+        XCTAssertTrue(csv.contains("\"Week 1, Day 3\""), "Block name with comma should be quoted")
+        XCTAssertTrue(csv.contains("\"Push Day \"\"Heavy\"\"\""), "Day name with quotes should have escaped quotes")
+        XCTAssertTrue(csv.contains("\"Barbell \"\"Push\"\" Press, 3x5\""), "Exercise name should escape both comma and quotes")
+        
+        // Verify CSV structure is valid (can be split by commas correctly)
+        let lines = csv.split(separator: "\n")
+        XCTAssertGreaterThan(lines.count, 1, "Should have header and at least one data row")
+    }
+    
+    func testCSVEscapingBlocksSummary() {
+        // Given blocks with special characters in names
+        let block1 = Block(
+            name: "Block A, Phase 1",  // Contains comma
+            numberOfWeeks: 4,
+            days: [DayTemplate(name: "Day 1")]
+        )
+        
+        let block2 = Block(
+            name: "Block \"The Beast\"",  // Contains quotes
+            numberOfWeeks: 6,
+            days: [DayTemplate(name: "Day 1")]
+        )
+        
+        let block3 = Block(
+            name: "Test\nMultiline",  // Contains newline
+            numberOfWeeks: 2,
+            days: [DayTemplate(name: "Day 1")]
+        )
+        
+        blocksRepository.add(block1)
+        blocksRepository.add(block2)
+        blocksRepository.add(block3)
+        
+        // When exporting CSV
+        let csv = dataService.exportBlocksSummaryAsCSV()
+        
+        // Then CSV should properly escape special characters
+        XCTAssertTrue(csv.contains("\"Block A, Phase 1\""), "Block name with comma should be quoted")
+        XCTAssertTrue(csv.contains("\"Block \"\"The Beast\"\"\""), "Block name with quotes should have escaped quotes")
+        XCTAssertTrue(csv.contains("\"Test\nMultiline\""), "Block name with newline should be quoted")
+        
+        // Verify CSV structure
+        let lines = csv.split(separator: "\n", omittingEmptySubsequences: false)
+        // Should have header + 3 blocks, but block3 has embedded newline creating extra line
+        XCTAssertGreaterThanOrEqual(lines.count, 4, "Should have header and data rows")
+    }
+    
     // MARK: - Import Tests
     
     func testImportReplaceStrategy() throws {

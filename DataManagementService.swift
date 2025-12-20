@@ -105,7 +105,7 @@ public final class DataManagementService {
                 let totalReps = exercise.loggedSets.filter { $0.isCompleted }.compactMap { $0.loggedReps }.reduce(0, +)
                 let totalWeight = exercise.loggedSets.filter { $0.isCompleted }.compactMap { $0.loggedWeight }.reduce(0.0, +)
                 
-                csv += "\(dateString),\(blockName),\(weekNum),\(dayName),\(exerciseName),\(completedSets),\(totalReps),\(totalWeight)\n"
+                csv += "\(escapeCSVField(dateString)),\(escapeCSVField(blockName)),\(weekNum),\(escapeCSVField(dayName)),\(escapeCSVField(exerciseName)),\(completedSets),\(totalReps),\(totalWeight)\n"
             }
         }
         
@@ -122,7 +122,7 @@ public final class DataManagementService {
             let source = block.source.rawValue
             let archived = block.isArchived ? "Yes" : "No"
             
-            csv += "\"\(block.name)\",\(block.numberOfWeeks),\(block.days.count),\(totalExercises),\(goal),\(source),\(archived)\n"
+            csv += "\(escapeCSVField(block.name)),\(block.numberOfWeeks),\(block.days.count),\(totalExercises),\(escapeCSVField(goal)),\(escapeCSVField(source)),\(archived)\n"
         }
         
         return csv
@@ -244,6 +244,18 @@ public final class DataManagementService {
     }
     
     // MARK: - Helper Methods
+    
+    /// Escapes a string value for use in CSV format
+    /// - Parameter value: The string to escape
+    /// - Returns: A properly escaped CSV field (quoted if necessary)
+    private func escapeCSVField(_ value: String) -> String {
+        // If the value contains comma, quote, or newline, it must be quoted
+        if value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r") {
+            // Escape quotes by doubling them, then wrap in quotes
+            return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+        }
+        return value
+    }
     
     private func getExerciseName(definitionId: ExerciseDefinitionID?, customName: String?) -> String {
         if let customName = customName, !customName.isEmpty {
