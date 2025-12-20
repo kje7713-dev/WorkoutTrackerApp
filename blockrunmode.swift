@@ -664,9 +664,6 @@ struct DayRunView: View {
     @State private var showExerciseTypeSheet = false
     @State private var persistToFutureWeeks = false
     
-    // Cache for exercise index lookup to avoid recomputing on every binding call
-    @State private var exerciseIndexMap: [UUID: Int] = [:]
-    
     // Constants for superset group styling
     private let supersetBackgroundOpacityDark: Double = 0.3
     private let supersetBackgroundOpacityLight: Double = 0.5
@@ -674,14 +671,14 @@ struct DayRunView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Group exercises by setGroupId
+                // Group exercises by setGroupId and render them
                 let groups = groupExercises(day.exercises)
                 
                 ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
                     if let groupId = group.groupId {
                         // Superset/Circuit group
                         SupersetGroupView(
-                            exercises: binding(for: group.exercises),
+                            exercises: bindingsForExercises(group.exercises),
                             groupId: groupId,
                             onSave: onSave,
                             backgroundOpacity: supersetBackgroundOpacityDark,
@@ -689,7 +686,7 @@ struct DayRunView: View {
                         )
                     } else {
                         // Individual exercises
-                        ForEach(binding(for: group.exercises)) { $exercise in
+                        ForEach(bindingsForExercises(group.exercises)) { $exercise in
                             ExerciseRunCard(exercise: $exercise, onSave: onSave)
                                 .background(
                                     RoundedRectangle(cornerRadius: 12)
@@ -942,20 +939,15 @@ struct DayRunView: View {
     }
     
     /// Helper to create bindings for grouped exercises
-    /// Uses a cached dictionary for O(1) lookup
-    private func binding(for exercises: [RunExerciseState]) -> [Binding<RunExerciseState>] {
-        // Update cache if exercises changed (detected by comparing IDs)
-        let currentIds = day.exercises.map { $0.id }
-        let cachedIds = Array(exerciseIndexMap.keys)
-        
-        if currentIds != cachedIds {
-            exerciseIndexMap = Dictionary(uniqueKeysWithValues: 
-                day.exercises.enumerated().map { ($0.element.id, $0.offset) }
-            )
-        }
-        
+    /// Directly looks up each exercise in day.exercises by ID
+    /// - Parameter exercises: Array of exercises to create bindings for
+    /// - Returns: Array of bindings for exercises found in day.exercises
+    /// - Note: Uses O(n) lookup per exercise. For typical workout days (3-8 exercises), this has negligible performance impact
+    private func bindingsForExercises(_ exercises: [RunExerciseState]) -> [Binding<RunExerciseState>] {
         return exercises.compactMap { exercise in
-            guard let index = exerciseIndexMap[exercise.id] else {
+            // Find the index of this exercise in day.exercises
+            guard let index = day.exercises.firstIndex(where: { $0.id == exercise.id }) else {
+                AppLogger.warning("Could not find binding for exercise '\(exercise.name)' with id \(exercise.id)", subsystem: .session, category: "DayRunView")
                 return nil
             }
             return $day.exercises[index]
