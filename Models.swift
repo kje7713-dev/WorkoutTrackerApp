@@ -510,6 +510,7 @@ public struct SessionSet: Identifiable, Codable, Equatable {
     public var notes: String?       // 🚨 ADDED
 
     public var isCompleted: Bool
+    public var completedAt: Date?
     
     // ... rest of the struct and initializer are now correct after the previous fix.
 
@@ -535,7 +536,8 @@ public struct SessionSet: Identifiable, Codable, Equatable {
         tempo: String? = nil,
         restSeconds: Int? = nil,
         notes: String? = nil,
-        isCompleted: Bool = false
+        isCompleted: Bool = false,
+        completedAt: Date? = nil
     ) {
         self.id = id
         self.index = index
@@ -557,6 +559,7 @@ public struct SessionSet: Identifiable, Codable, Equatable {
         self.restSeconds = restSeconds
         self.notes = notes
         self.isCompleted = isCompleted
+        self.completedAt = completedAt
     }
 }
 

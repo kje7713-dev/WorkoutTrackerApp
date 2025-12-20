@@ -867,7 +867,8 @@ struct DayRunView: View {
                     tempo: $0.tempo,
                     restSeconds: $0.restSeconds,
                     notes: $0.notes,
-                    isCompleted: $0.isCompleted
+                    isCompleted: $0.isCompleted,
+                    completedAt: $0.completedAt
                 ) }
                 
                 let newSessionExercise = SessionExercise(
@@ -1396,14 +1397,23 @@ struct SetRunRow: View {
             HStack {
                 Spacer()
                 if runSet.isCompleted {
+                    // Show completion date if available
+                    if let completedDate = runSet.completedAt {
+                        Text(formatShortDate(completedDate))
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
                     Button("Undo") {
                         runSet.isCompleted = false
+                        runSet.completedAt = nil
                         onSave()
                     }
                     .font(.caption)
                 } else {
                     Button("Complete") {
                         runSet.isCompleted = true
+                        runSet.completedAt = Date()
                         onSave()
                     }
                     .font(.subheadline)
@@ -1620,6 +1630,16 @@ struct SetRunRow: View {
             )
         }
     }
+    
+    // MARK: - Date Formatting Helper
+    
+    /// Formats a date as a short date string (e.g., "12/20/24" in US locale)
+    private func formatShortDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
 }
 
 // MARK: - Run State Models (No changes here)
@@ -1688,6 +1708,7 @@ struct RunSetState: Identifiable, Codable {
     var notes: String?
 
     var isCompleted: Bool = false
+    var completedAt: Date?
 
     init(
         indexInExercise: Int,
@@ -1710,7 +1731,8 @@ struct RunSetState: Identifiable, Codable {
         tempo: String? = nil,
         restSeconds: Int? = nil,
         notes: String? = nil,
-        isCompleted: Bool = false
+        isCompleted: Bool = false,
+        completedAt: Date? = nil
     ) {
         self.indexInExercise = indexInExercise
         self.displayText = displayText
@@ -1733,6 +1755,7 @@ struct RunSetState: Identifiable, Codable {
         self.restSeconds = restSeconds
         self.notes = notes
         self.isCompleted = isCompleted
+        self.completedAt = completedAt
     }
 }
 
