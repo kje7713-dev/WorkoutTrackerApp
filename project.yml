@@ -97,6 +97,7 @@ schemes:
       storeKitConfiguration: Configuration.storekit
     test:
       config: Debug
+      storeKitConfiguration: Configuration.storekit
       gatherCoverageData: false
     profile:
       config: Release
