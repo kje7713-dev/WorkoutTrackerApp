@@ -123,9 +123,25 @@ Build numbers use timestamp format (`YYYYMMDDHHMMSS`) to ensure uniqueness.
 
 ## Testing
 
+### Running Tests
+
 Run tests in Xcode: `⌘U`
 
 Test files are located in the `Tests/` directory and follow the naming pattern `*Tests.swift`.
+
+### Subscription Testing
+
+The app includes in-app subscriptions using StoreKit 2. To test subscription functionality:
+
+1. Generate the Xcode project: `xcodegen generate`
+2. The project is configured to use `Configuration.storekit` for local testing
+3. See the **[StoreKit Testing Guide](docs/STOREKIT_TESTING_GUIDE.md)** for comprehensive setup and troubleshooting
+
+Key points:
+- Use iOS Simulator for quick testing (no sandbox account needed)
+- StoreKit configuration includes a $6.70/month subscription with 15-day free trial
+- Xcode scheme is pre-configured to use the StoreKit configuration file
+- For device testing, you can use Apple's sandbox environment
 
 ## Architecture
 
@@ -168,6 +184,7 @@ For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) a
 ### Additional Docs
 
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - How to deploy to TestFlight and App Store
+- **[StoreKit Testing Guide](docs/STOREKIT_TESTING_GUIDE.md)** - How to test in-app subscriptions
 - **[Testing Guide](docs/TESTING.md)** - Testing practices and guidelines
 - **[Privacy Policy Template](docs/PRIVACY_POLICY_TEMPLATE.md)** - Privacy policy template
 - **[Implementation Docs](docs/implementation/)** - Historical feature documentation
