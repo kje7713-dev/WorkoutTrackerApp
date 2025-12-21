@@ -100,6 +100,15 @@ if subscriptionManager.isSubscribed {
 
 ## Testing
 
+For comprehensive testing instructions, see the **[StoreKit Testing Guide](STOREKIT_TESTING_GUIDE.md)**.
+
+### Quick Start
+
+1. Generate Xcode project: `xcodegen generate`
+2. The scheme is pre-configured to use `Configuration.storekit`
+3. Run the app in simulator (no sandbox account needed)
+4. Test subscription purchase and feature unlocking
+
 ### Sandbox Testing
 
 1. Create sandbox test account in App Store Connect
