@@ -161,7 +161,7 @@ struct PaywallView: View {
                     isPurchasing = false
                     
                     // Dismiss on successful purchase
-                    if success && subscriptionManager.isSubscribed {
+                    if success {
                         dismiss()
                     }
                 }
