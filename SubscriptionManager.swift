@@ -63,13 +63,13 @@ class SubscriptionManager: ObservableObject {
             
             if let product = products.first {
                 subscriptionProduct = product
-                AppLogger.info("Loaded subscription product: \(product.displayName)", subsystem: .system, category: "Subscription")
+                AppLogger.info("Loaded subscription product: \(product.displayName)", subsystem: .general, category: "Subscription")
             } else {
-                AppLogger.error("Subscription product not found: \(productID)", subsystem: .system, category: "Subscription")
+                AppLogger.error("Subscription product not found: \(productID)", subsystem: .general, category: "Subscription")
                 errorMessage = "Unable to load subscription information"
             }
         } catch {
-            AppLogger.error("Failed to load products: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+            AppLogger.error("Failed to load products: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
             errorMessage = "Failed to load subscription information"
         }
     }
@@ -97,24 +97,24 @@ class SubscriptionManager: ObservableObject {
                 // Finish the transaction
                 await transaction.finish()
                 
-                AppLogger.info("Purchase successful", subsystem: .system, category: "Subscription")
+                AppLogger.info("Purchase successful", subsystem: .general, category: "Subscription")
                 return true
                 
             case .userCancelled:
-                AppLogger.info("User cancelled purchase", subsystem: .system, category: "Subscription")
+                AppLogger.info("User cancelled purchase", subsystem: .general, category: "Subscription")
                 return false
                 
             case .pending:
-                AppLogger.info("Purchase pending", subsystem: .system, category: "Subscription")
+                AppLogger.info("Purchase pending", subsystem: .general, category: "Subscription")
                 errorMessage = "Purchase is pending approval"
                 return false
                 
             @unknown default:
-                AppLogger.error("Unknown purchase result", subsystem: .system, category: "Subscription")
+                AppLogger.error("Unknown purchase result", subsystem: .general, category: "Subscription")
                 return false
             }
         } catch {
-            AppLogger.error("Purchase failed: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+            AppLogger.error("Purchase failed: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
             errorMessage = "Purchase failed: \(error.localizedDescription)"
             return false
         }
@@ -127,9 +127,9 @@ class SubscriptionManager: ObservableObject {
         do {
             try await AppStore.sync()
             await checkEntitlementStatus()
-            AppLogger.info("Purchases restored", subsystem: .system, category: "Subscription")
+            AppLogger.info("Purchases restored", subsystem: .general, category: "Subscription")
         } catch {
-            AppLogger.error("Failed to restore purchases: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+            AppLogger.error("Failed to restore purchases: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
             errorMessage = "Failed to restore purchases"
         }
     }
@@ -161,7 +161,7 @@ class SubscriptionManager: ObservableObject {
                     }
                 }
             } catch {
-                AppLogger.error("Failed to verify transaction: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+                AppLogger.error("Failed to verify transaction: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
             }
         }
         
@@ -171,7 +171,7 @@ class SubscriptionManager: ObservableObject {
         // Check trial eligibility
         await checkTrialEligibility()
         
-        AppLogger.info("Subscription status - subscribed: \(hasActiveSubscription), trial: \(isCurrentlyInTrial)", subsystem: .system, category: "Subscription")
+        AppLogger.info("Subscription status - subscribed: \(hasActiveSubscription), trial: \(isCurrentlyInTrial)", subsystem: .general, category: "Subscription")
     }
     
     /// Check if user is eligible for free trial
@@ -203,7 +203,7 @@ class SubscriptionManager: ObservableObject {
                     await transaction.finish()
                 } catch {
                     await MainActor.run {
-                        AppLogger.error("Transaction update failed: \(error.localizedDescription)", subsystem: .system, category: "Subscription")
+                        AppLogger.error("Transaction update failed: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
                     }
                 }
             }
