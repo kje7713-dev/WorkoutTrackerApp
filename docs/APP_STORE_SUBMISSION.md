@@ -46,8 +46,13 @@ SUBSCRIPTION INFORMATION
 
 This app includes an in-app subscription that unlocks advanced software features.
 
-WHAT THE SUBSCRIPTION UNLOCKS:
+WHAT THE SUBSCRIPTION UNLOCKS (Currently Implemented):
 - AI-assisted workout plan import and parsing tools
+- JSON workout import functionality (paste or upload)
+- AI prompt templates for generating structured workouts
+- Block library management for AI-generated content
+
+PLANNED FEATURES (Future Updates):
 - Automated workout plan review and modification features
 - Intelligent progress analysis and tracking
 - Advanced workout history visualization
@@ -61,7 +66,7 @@ WHAT THE SUBSCRIPTION DOES NOT INCLUDE:
 HOW IT WORKS:
 Users can generate workout plans using external tools (ChatGPT, Claude, or any 
 other AI assistant). The subscription unlocks in-app tools to import, parse, 
-review, and analyze these plans. We provide software tools, not AI access.
+and manage these plans. We provide software tools, not AI access.
 
 BASIC FEATURES (FREE):
 - Manual workout block creation
@@ -98,7 +103,12 @@ KEY FEATURES:
 • Block History - Review past training cycles
 
 PRO FEATURES (15-day free trial):
-• AI-Assisted Import - Import workout plans from JSON
+• AI-Assisted Import - Import workout plans from JSON files
+• JSON Paste/Upload - Direct JSON input or file upload
+• AI Prompt Templates - Ready-to-use prompts for AI assistants
+• Block Library - Organize AI-generated training blocks
+
+COMING SOON:
 • Automated Review - Smart plan validation and suggestions
 • Advanced Analytics - Deep dive into your training data
 • Enhanced History - Comprehensive workout insights

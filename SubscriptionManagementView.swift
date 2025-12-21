@@ -78,10 +78,9 @@ struct SubscriptionManagementView: View {
                 
                 VStack(alignment: .leading, spacing: 12) {
                     FeatureCheckRow(text: "AI-assisted plan ingestion")
-                    FeatureCheckRow(text: "Intelligent progress analysis")
-                    FeatureCheckRow(text: "Automated review & modifications")
-                    FeatureCheckRow(text: "Advanced block history")
-                    FeatureCheckRow(text: "Enhanced dashboards")
+                    FeatureCheckRow(text: "JSON workout import")
+                    FeatureCheckRow(text: "AI prompt templates")
+                    FeatureCheckRow(text: "Block library management")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -159,7 +158,7 @@ struct SubscriptionManagementView: View {
                 Text("No Active Subscription")
                     .font(.system(size: 20, weight: .bold))
                 
-                Text("Subscribe to unlock advanced planning and tracking features")
+                Text("Subscribe to unlock AI-powered workout import tools")
                     .font(.system(size: 16, weight: .regular))
                     .foregroundColor(theme.mutedText)
                     .multilineTextAlignment(.center)
@@ -173,10 +172,9 @@ struct SubscriptionManagementView: View {
                 
                 VStack(alignment: .leading, spacing: 12) {
                     FeatureCheckRow(text: "AI-assisted plan ingestion", isLocked: true)
-                    FeatureCheckRow(text: "Intelligent progress analysis", isLocked: true)
-                    FeatureCheckRow(text: "Automated review & modifications", isLocked: true)
-                    FeatureCheckRow(text: "Advanced block history", isLocked: true)
-                    FeatureCheckRow(text: "Enhanced dashboards", isLocked: true)
+                    FeatureCheckRow(text: "JSON workout import", isLocked: true)
+                    FeatureCheckRow(text: "AI prompt templates", isLocked: true)
+                    FeatureCheckRow(text: "Block library management", isLocked: true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
