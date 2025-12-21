@@ -61,9 +61,11 @@ platform :ios do
       timestamp_build = Time.now.strftime("%Y%m%d%H%M%S")
       UI.message("Setting build number to #{timestamp_build} (timestamp-based)")
 
-      increment_build_number(
-        build_number: timestamp_build,
-        xcodeproj: project
+      # Use set_info_plist_value instead of increment_build_number for XcodeGen projects
+      set_info_plist_value(
+        path: "Info.plist",
+        key: "CFBundleVersion",
+        value: timestamp_build
       )
       # ============================================================
 
