@@ -70,7 +70,14 @@ For questions about this privacy policy, please contact:
 ### What the Subscription Unlocks
 
 The subscription unlocks in-app software features including:
-- AI-assisted plan ingestion and parsing
+
+#### Currently Implemented
+- AI-assisted plan ingestion and parsing (import JSON from external AI tools)
+- JSON workout import functionality
+- AI prompt templates for external use
+- Block library management for AI-generated content
+
+#### Planned Features
 - Automated review and modification tools
 - Intelligent progress analysis
 - Advanced dashboards and history views
