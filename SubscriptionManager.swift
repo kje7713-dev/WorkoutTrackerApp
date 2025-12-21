@@ -213,7 +213,7 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Transaction Verification
     
     /// Verify transaction signature
-    private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+    nonisolated private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
         case .unverified:
             throw SubscriptionError.failedVerification
