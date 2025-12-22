@@ -165,6 +165,8 @@ struct BlocksListView: View {
                                     .font(.title3)
                                     .foregroundColor(block.isActive ? .yellow : .gray)
                             }
+                            .accessibilityLabel(block.isActive ? "Remove active block" : "Set as active block")
+                            .accessibilityHint(block.isActive ? "Deactivates this block" : "Makes this your active training block")
                         }
 
                         if let description = block.description, !description.isEmpty {
