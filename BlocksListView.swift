@@ -129,10 +129,43 @@ struct BlocksListView: View {
                 // Note: Filter is called on each view update, but this is acceptable
                 // for the expected number of blocks (<100) and simpler than caching
                 ForEach(blocksRepository.activeBlocks()) { block in 
-                    VStack(alignment: .leading, spacing: 8) {
-                        // Title / description (unchanged behavior)
-                        Text(block.name)
-                            .font(.headline).bold()
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Active block indicator and title
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                // Active badge
+                                if block.isActive {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "star.fill")
+                                            .font(.caption)
+                                            .foregroundColor(.yellow)
+                                        Text("ACTIVE BLOCK")
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.yellow)
+                                    }
+                                }
+                                
+                                // Title
+                                Text(block.name)
+                                    .font(.headline).bold()
+                            }
+                            
+                            Spacer()
+                            
+                            // Set Active toggle
+                            Button {
+                                if block.isActive {
+                                    blocksRepository.clearActiveBlock()
+                                } else {
+                                    blocksRepository.setActive(block)
+                                }
+                            } label: {
+                                Image(systemName: block.isActive ? "star.fill" : "star")
+                                    .font(.title3)
+                                    .foregroundColor(block.isActive ? .yellow : .gray)
+                            }
+                        }
 
                         if let description = block.description, !description.isEmpty {
                             Text(description)
@@ -161,6 +194,13 @@ struct BlocksListView: View {
                                     .foregroundColor(.purple)
                             }
                         }
+                        
+                        // Summary metrics card
+                        let metrics = BlockMetrics.calculate(
+                            for: block,
+                            sessions: sessionsRepository.sessions(forBlockId: block.id)
+                        )
+                        BlockSummaryCard(metrics: metrics)
 
                         // Explicit action row: RUN / EDIT / NEXT BLOCK
                         HStack(spacing: 8) {
@@ -225,6 +265,13 @@ struct BlocksListView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 16)
                             .fill(Color(uiColor: .secondarySystemBackground))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .strokeBorder(
+                                        block.isActive ? Color.yellow : Color.clear,
+                                        lineWidth: 2
+                                    )
+                            )
                     )
                 }
             }

@@ -96,6 +96,34 @@ public final class BlocksRepository: ObservableObject {
     public func archivedBlocks() -> [Block] {
         blocks.filter { $0.isArchived }
     }
+    
+    /// Set a block as active (ensures only one block is active at a time)
+    public func setActive(_ block: Block) {
+        // Deactivate all other blocks
+        for index in blocks.indices {
+            blocks[index].isActive = false
+        }
+        
+        // Activate the specified block
+        if let index = blocks.firstIndex(where: { $0.id == block.id }) {
+            blocks[index].isActive = true
+        }
+        
+        saveToDisk()
+    }
+    
+    /// Get the currently active block (if any)
+    public func activeBlock() -> Block? {
+        blocks.first { $0.isActive }
+    }
+    
+    /// Deactivate all blocks
+    public func clearActiveBlock() {
+        for index in blocks.indices {
+            blocks[index].isActive = false
+        }
+        saveToDisk()
+    }
 
     // MARK: - Persistence
 
