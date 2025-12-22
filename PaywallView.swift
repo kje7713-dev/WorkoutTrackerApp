@@ -17,7 +17,7 @@ struct PaywallView: View {
     @State private var isPurchasing = false
     @State private var showingCodeEntry = false
     @State private var enteredCode = ""
-    @State private var codeErrorMessage: String?
+    @State private var showInvalidCodeError = false
     
     var body: some View {
         NavigationView {
@@ -62,18 +62,22 @@ struct PaywallView: View {
                 
                 Button("Cancel", role: .cancel) {
                     enteredCode = ""
-                    codeErrorMessage = nil
                 }
                 
                 Button("Unlock") {
                     handleCodeEntry()
                 }
+                .disabled(enteredCode.isEmpty)
             } message: {
-                if let error = codeErrorMessage {
-                    Text(error)
-                } else {
-                    Text("Enter your unlock code to access Pro features")
+                Text("Enter your unlock code to access Pro features")
+            }
+            .alert("Invalid Code", isPresented: $showInvalidCodeError) {
+                Button("OK", role: .cancel) {
+                    // Re-show the code entry dialog
+                    showingCodeEntry = true
                 }
+            } message: {
+                Text("The code you entered is invalid. Please try again.")
             }
         }
     }
@@ -282,15 +286,11 @@ struct PaywallView: View {
         if success {
             // Clear state and dismiss
             enteredCode = ""
-            codeErrorMessage = nil
             dismiss()
         } else {
-            // Show error and keep dialog open
-            codeErrorMessage = "Invalid code. Please try again."
-            // Reset to show the alert again with error message
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                showingCodeEntry = true
-            }
+            // Show error alert, which will allow retry
+            enteredCode = ""
+            showInvalidCodeError = true
         }
     }
     
