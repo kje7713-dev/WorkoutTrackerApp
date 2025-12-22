@@ -15,6 +15,9 @@ struct PaywallView: View {
     @Environment(\.sbdTheme) private var theme
     
     @State private var isPurchasing = false
+    @State private var showingCodeEntry = false
+    @State private var enteredCode = ""
+    @State private var codeErrorMessage: String?
     
     var body: some View {
         NavigationView {
@@ -50,6 +53,26 @@ struct PaywallView: View {
                     Button("Close") {
                         dismiss()
                     }
+                }
+            }
+            .alert("Enter Unlock Code", isPresented: $showingCodeEntry) {
+                TextField("Code", text: $enteredCode)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                
+                Button("Cancel", role: .cancel) {
+                    enteredCode = ""
+                    codeErrorMessage = nil
+                }
+                
+                Button("Unlock") {
+                    handleCodeEntry()
+                }
+            } message: {
+                if let error = codeErrorMessage {
+                    Text(error)
+                } else {
+                    Text("Enter your unlock code to access Pro features")
                 }
             }
         }
@@ -215,6 +238,16 @@ struct PaywallView: View {
             }
             .padding(.top, 8)
             
+            // Enter Code button
+            Button {
+                showingCodeEntry = true
+            } label: {
+                Text("Enter Code")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.blue)
+            }
+            .padding(.top, 4)
+            
             // Auto-renew disclosure
             Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.")
                 .font(.system(size: 12, weight: .regular))
@@ -242,6 +275,24 @@ struct PaywallView: View {
     }
     
     // MARK: - Helpers
+    
+    private func handleCodeEntry() {
+        let success = subscriptionManager.unlockWithDevCode(enteredCode)
+        
+        if success {
+            // Clear state and dismiss
+            enteredCode = ""
+            codeErrorMessage = nil
+            dismiss()
+        } else {
+            // Show error and keep dialog open
+            codeErrorMessage = "Invalid code. Please try again."
+            // Reset to show the alert again with error message
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showingCodeEntry = true
+            }
+        }
+    }
     
     private var backgroundColor: Color {
         colorScheme == .dark ? theme.backgroundDark : theme.backgroundLight

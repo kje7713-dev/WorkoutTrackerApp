@@ -15,7 +15,7 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Published Properties
     
-    /// Whether the user has an active subscription or trial
+    /// Whether the user has an active subscription or trial (includes dev unlock)
     @Published private(set) var isSubscribed: Bool = false
     
     /// Whether the user is in a free trial period
@@ -30,6 +30,9 @@ class SubscriptionManager: ObservableObject {
     /// Error message for UI display
     @Published var errorMessage: String?
     
+    /// Whether the user has unlocked pro features with dev code
+    @Published private(set) var isDevUnlocked: Bool = false
+    
     // MARK: - Private Properties
     
     private var updateListenerTask: Task<Void, Never>?
@@ -37,9 +40,20 @@ class SubscriptionManager: ObservableObject {
     // Product identifier from constants
     private let productID = SubscriptionConstants.monthlyProductID
     
+    // UserDefaults key for dev unlock persistence
+    private let devUnlockKey = "com.savagebydesign.devUnlocked"
+    
     // MARK: - Initialization
     
     init() {
+        // Load dev unlock status from UserDefaults
+        isDevUnlocked = UserDefaults.standard.bool(forKey: devUnlockKey)
+        
+        // If dev unlocked, set subscription status immediately
+        if isDevUnlocked {
+            isSubscribed = true
+        }
+        
         // Start listening for transaction updates
         updateListenerTask = listenForTransactionUpdates()
         
@@ -165,13 +179,14 @@ class SubscriptionManager: ObservableObject {
             }
         }
         
-        isSubscribed = hasActiveSubscription
+        // Update subscription status (includes dev unlock)
+        isSubscribed = hasActiveSubscription || isDevUnlocked
         isInTrial = isCurrentlyInTrial
         
         // Check trial eligibility
         await checkTrialEligibility()
         
-        AppLogger.info("Subscription status - subscribed: \(hasActiveSubscription), trial: \(isCurrentlyInTrial)", subsystem: .general, category: "Subscription")
+        AppLogger.info("Subscription status - subscribed: \(hasActiveSubscription), trial: \(isCurrentlyInTrial), devUnlocked: \(isDevUnlocked)", subsystem: .general, category: "Subscription")
     }
     
     /// Check if user is eligible for free trial
@@ -235,6 +250,41 @@ class SubscriptionManager: ObservableObject {
             return "Advanced planning and tracking tools"
         }
         return product.description
+    }
+    
+    // MARK: - Dev Unlock
+    
+    /// Unlock pro features with dev code
+    /// - Parameter code: The unlock code to validate
+    /// - Returns: True if code is valid and unlock was successful
+    func unlockWithDevCode(_ code: String) -> Bool {
+        let validCode = "dev"
+        
+        guard code.lowercased() == validCode else {
+            AppLogger.info("Invalid dev code entered: \(code)", subsystem: .general, category: "Subscription")
+            return false
+        }
+        
+        // Save to UserDefaults
+        UserDefaults.standard.set(true, forKey: devUnlockKey)
+        isDevUnlocked = true
+        isSubscribed = true
+        
+        AppLogger.info("Pro features unlocked with dev code", subsystem: .general, category: "Subscription")
+        return true
+    }
+    
+    /// Remove dev unlock (for testing purposes)
+    func removeDevUnlock() {
+        UserDefaults.standard.set(false, forKey: devUnlockKey)
+        isDevUnlocked = false
+        
+        // Recalculate subscription status
+        Task {
+            await checkEntitlementStatus()
+        }
+        
+        AppLogger.info("Dev unlock removed", subsystem: .general, category: "Subscription")
     }
 }
 
