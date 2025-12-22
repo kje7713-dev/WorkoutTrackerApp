@@ -19,21 +19,10 @@ jobs:
           echo "Current default Xcode:"
           xcode-select -p || echo "No default Xcode set"
 
-      - name: Select Xcode version
+      - name: Use default Xcode version
         run: |
-          XCODE_PATH="/Applications/Xcode_16.4.app/Contents/Developer"
-          
-          if [ -d "$XCODE_PATH" ]; then
-            echo "Setting Xcode to: $XCODE_PATH"
-            sudo xcode-select -s "$XCODE_PATH"
-          else
-            echo "⚠️ Xcode 16.4 not found at $XCODE_PATH"
-            echo "Falling back to default Xcode version"
-            # Reset to default Xcode (typically the latest stable version)
-            sudo xcode-select --reset
-          fi
-          
-          echo ""
+          # Use the default Xcode provided by macos-latest (typically latest stable)
+          echo "Using default Xcode version from macos-latest runner"
           echo "Selected Xcode version:"
           xcode-select -p
           xcodebuild -version
