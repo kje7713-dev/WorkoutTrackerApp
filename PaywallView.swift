@@ -206,13 +206,17 @@ struct PaywallView: View {
                 .frame(height: 56)
                 .foregroundColor(.white)
                 .background(
-                    subscriptionManager.subscriptionProduct == nil
-                        ? Color.gray
-                        : LinearGradient(
-                            gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                    Group {
+                        if subscriptionManager.subscriptionProduct == nil {
+                            Color.gray
+                        } else {
+                            LinearGradient(
+                                gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        }
+                    }
                 )
                 .cornerRadius(28)
                 .shadow(

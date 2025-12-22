@@ -140,13 +140,17 @@ struct HomeView: View {
                         .frame(height: 52)
                         .foregroundColor(.white)
                         .background(
-                            subscriptionManager.isSubscribed
-                                ? theme.success
-                                : LinearGradient(
-                                    gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+                            Group {
+                                if subscriptionManager.isSubscribed {
+                                    theme.success
+                                } else {
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                }
+                            }
                         )
                         .cornerRadius(20)
                         .shadow(
