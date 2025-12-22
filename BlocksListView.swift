@@ -284,23 +284,12 @@ struct BlocksListView: View {
     // MARK: - Import JSON Button
     
     private var aiGeneratorButton: some View {
-        Button {
+        SBDPremiumButton(
+            "IMPORT AI BLOCK",
+            icon: "flame.fill",
+            isLocked: !subscriptionManager.isSubscribed
+        ) {
             showingAIGenerator = true
-        } label: {
-            HStack {
-                if !subscriptionManager.isSubscribed {
-                    Image(systemName: "lock.fill")
-                        .foregroundColor(.yellow)
-                }
-                Image(systemName: "flame.fill")
-                Text("IMPORT AI BLOCK")
-                    .font(.headline).bold()
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(subscriptionManager.isSubscribed ? Color.blue : Color.gray)
-            .foregroundColor(.white)
-            .cornerRadius(24)
         }
         .padding(.bottom, 8)
     }
@@ -308,16 +297,8 @@ struct BlocksListView: View {
     // MARK: - New Block Button
 
     private var newBlockButton: some View {
-        Button {
+        SBDPrimaryButton("NEW BLOCK") {
             builderContext = .new
-        } label: {
-            Text("NEW BLOCK")
-                .font(.headline).bold()
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .background(Color.black)
-                .foregroundColor(.white)
-                .cornerRadius(24)
         }
         .padding(.bottom, 24)
     }

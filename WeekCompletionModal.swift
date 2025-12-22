@@ -15,6 +15,8 @@ struct WeekCompletionModal: View {
     let onDismiss: () -> Void
     let isBlockCompletion: Bool
     
+    @Environment(\.sbdTheme) private var theme
+    
     init(
         title: String,
         message: String,
@@ -92,25 +94,22 @@ struct WeekCompletionModal: View {
     
     private var gradientColors: [Color] {
         if isBlockCompletion {
-            // Brighter gradient for block completion
-            return [
-                Color(red: 0.0, green: 0.5, blue: 1.0),  // Bright blue
-                Color(red: 0.5, green: 0.0, blue: 0.8)   // Purple
-            ]
+            // Brighter gradient for block completion using theme colors
+            return [theme.premiumGradientStart, theme.premiumGradientEnd]
         } else {
             // Standard accent gradient for week completion
             return [
-                Color(red: 0.2, green: 0.3, blue: 0.5),  // Dark blue
-                Color(red: 0.1, green: 0.1, blue: 0.3)   // Dark navy
+                theme.accent.opacity(0.8),
+                theme.accent.opacity(0.5)
             ]
         }
     }
     
     private var accentColor: Color {
         if isBlockCompletion {
-            return Color(red: 0.0, green: 0.5, blue: 1.0)  // Bright blue
+            return theme.premiumGradientStart
         } else {
-            return Color(red: 0.2, green: 0.3, blue: 0.5)  // Dark blue
+            return theme.accent
         }
     }
 }
