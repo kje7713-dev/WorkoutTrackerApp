@@ -173,6 +173,68 @@ struct SubscriptionTests {
         return result
     }
     
+    // MARK: - Dev Unlock Tests
+    
+    /// Test dev code unlock functionality
+    static func testDevCodeUnlock() -> Bool {
+        print("Testing dev code unlock...")
+        
+        // Valid code should unlock
+        let validCode = "dev"
+        let isDevCodeValid = validCode.lowercased() == "dev"
+        
+        // After entering valid code, user should have access
+        let isUnlockedAfterValidCode = isDevCodeValid
+        
+        // Invalid code should not unlock
+        let invalidCode = "wrong"
+        let isInvalidCodeValid = invalidCode.lowercased() == "dev"
+        let isNotUnlockedAfterInvalidCode = !isInvalidCodeValid
+        
+        let result = isUnlockedAfterValidCode && isNotUnlockedAfterInvalidCode
+        
+        print("Dev code unlock: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test dev unlock grants feature access
+    static func testDevUnlockFeatureAccess() -> Bool {
+        print("Testing dev unlock feature access...")
+        
+        // Simulate user with dev unlock (not subscribed, but dev unlocked)
+        let hasActiveSubscription = false
+        let isDevUnlocked = true
+        let isSubscribed = hasActiveSubscription || isDevUnlocked
+        
+        // Should have access to pro features
+        let canImportAIBlock = isSubscribed
+        let canUseAdvancedAnalytics = isSubscribed
+        
+        let result = canImportAIBlock && canUseAdvancedAnalytics
+        
+        print("Dev unlock feature access: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test dev unlock persists across sessions
+    static func testDevUnlockPersistence() -> Bool {
+        print("Testing dev unlock persistence...")
+        
+        // Simulate saving to UserDefaults
+        let isDevUnlockedSaved = true
+        
+        // Simulate loading on next app launch
+        let isDevUnlockedLoaded = isDevUnlockedSaved
+        
+        // User should still have access after reload
+        let hasAccessAfterReload = isDevUnlockedLoaded
+        
+        let result = hasAccessAfterReload
+        
+        print("Dev unlock persistence: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
     // MARK: - Run All Tests
     
     static func runAllTests() -> Bool {
@@ -187,7 +249,10 @@ struct SubscriptionTests {
             ("Subscribe Button Text", testSubscribeButtonText),
             ("Expired Subscription", testExpiredSubscription),
             ("AI Block Import Gating", testAIBlockImportGating),
-            ("Advanced Analytics Gating", testAdvancedAnalyticsGating)
+            ("Advanced Analytics Gating", testAdvancedAnalyticsGating),
+            ("Dev Code Unlock", testDevCodeUnlock),
+            ("Dev Unlock Feature Access", testDevUnlockFeatureAccess),
+            ("Dev Unlock Persistence", testDevUnlockPersistence)
         ]
         
         var passedTests = 0

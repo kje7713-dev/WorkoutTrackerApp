@@ -15,6 +15,9 @@ struct PaywallView: View {
     @Environment(\.sbdTheme) private var theme
     
     @State private var isPurchasing = false
+    @State private var showingCodeEntry = false
+    @State private var enteredCode = ""
+    @State private var showInvalidCodeError = false
     
     var body: some View {
         NavigationView {
@@ -51,6 +54,30 @@ struct PaywallView: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("Enter Unlock Code", isPresented: $showingCodeEntry) {
+                TextField("Code", text: $enteredCode)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                
+                Button("Cancel", role: .cancel) {
+                    enteredCode = ""
+                }
+                
+                Button("Unlock") {
+                    handleCodeEntry()
+                }
+                .disabled(enteredCode.isEmpty)
+            } message: {
+                Text("Enter your unlock code to access Pro features")
+            }
+            .alert("Invalid Code", isPresented: $showInvalidCodeError) {
+                Button("OK", role: .cancel) {
+                    // Re-show the code entry dialog
+                    showingCodeEntry = true
+                }
+            } message: {
+                Text("The code you entered is invalid. Please try again.")
             }
         }
     }
@@ -215,6 +242,16 @@ struct PaywallView: View {
             }
             .padding(.top, 8)
             
+            // Enter Code button
+            Button {
+                showingCodeEntry = true
+            } label: {
+                Text("Enter Code")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.blue)
+            }
+            .padding(.top, 4)
+            
             // Auto-renew disclosure
             Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.")
                 .font(.system(size: 12, weight: .regular))
@@ -242,6 +279,20 @@ struct PaywallView: View {
     }
     
     // MARK: - Helpers
+    
+    private func handleCodeEntry() {
+        let success = subscriptionManager.unlockWithDevCode(enteredCode)
+        
+        if success {
+            // Clear state and dismiss
+            enteredCode = ""
+            dismiss()
+        } else {
+            // Show error alert, which will allow retry
+            enteredCode = ""
+            showInvalidCodeError = true
+        }
+    }
     
     private var backgroundColor: Color {
         colorScheme == .dark ? theme.backgroundDark : theme.backgroundLight
