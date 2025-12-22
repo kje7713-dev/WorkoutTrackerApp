@@ -153,8 +153,15 @@ struct BlockGeneratorView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
                         .foregroundColor(.white)
-                        .background(Color.blue)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                         .cornerRadius(28)
+                        .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .padding(.horizontal, 32)
                 
@@ -310,7 +317,7 @@ struct BlockGeneratorView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.blue)
+                    .background(theme.accent)
                     .cornerRadius(6)
                 }
             }
@@ -353,7 +360,7 @@ struct BlockGeneratorView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.blue)
+                    .background(theme.accent)
                     .cornerRadius(6)
                 }
             }
@@ -430,8 +437,9 @@ struct BlockGeneratorView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
-                    .background(Color.green)
+                    .background(theme.success)
                     .cornerRadius(12)
+                    .shadow(color: theme.success.opacity(0.3), radius: 4, x: 0, y: 2)
                 }
             }
         }
@@ -444,10 +452,10 @@ struct BlockGeneratorView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(.red)
+                    .foregroundColor(theme.error)
                 Text("Error")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.red)
+                    .foregroundColor(theme.error)
             }
             
             Text(message)
@@ -455,7 +463,7 @@ struct BlockGeneratorView: View {
                 .foregroundColor(primaryTextColor)
         }
         .padding()
-        .background(Color.red.opacity(0.1))
+        .background(theme.error.opacity(0.1))
         .cornerRadius(12)
     }
     

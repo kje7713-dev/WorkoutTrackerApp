@@ -88,7 +88,7 @@ struct PaywallView: View {
         VStack(spacing: 16) {
             Image(systemName: "star.fill")
                 .font(.system(size: 60))
-                .foregroundColor(.yellow)
+                .foregroundColor(theme.premiumGold)
             
             Text("Unlock Pro Import Tools")
                 .font(.system(size: 28, weight: .bold))
@@ -205,8 +205,24 @@ struct PaywallView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
                 .foregroundColor(.white)
-                .background(subscriptionManager.subscriptionProduct == nil ? Color.gray : Color.blue)
+                .background(
+                    subscriptionManager.subscriptionProduct == nil
+                        ? Color.gray
+                        : LinearGradient(
+                            gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                )
                 .cornerRadius(28)
+                .shadow(
+                    color: subscriptionManager.subscriptionProduct == nil
+                        ? Color.clear
+                        : theme.premiumGradientStart.opacity(0.3),
+                    radius: 8,
+                    x: 0,
+                    y: 4
+                )
             }
             .disabled(isPurchasing || subscriptionManager.subscriptionProduct == nil)
             
@@ -238,7 +254,7 @@ struct PaywallView: View {
             } label: {
                 Text("Restore Purchases")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.blue)
+                    .foregroundColor(theme.accent)
             }
             .padding(.top, 8)
             
@@ -248,7 +264,7 @@ struct PaywallView: View {
             } label: {
                 Text("Enter Code")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.blue)
+                    .foregroundColor(theme.accent)
             }
             .padding(.top, 4)
             
@@ -267,14 +283,14 @@ struct PaywallView: View {
         HStack(spacing: 20) {
             Link("Privacy Policy", destination: URL(string: SubscriptionConstants.privacyPolicyURL)!)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.blue)
+                .foregroundColor(theme.accent)
             
             Text("•")
                 .foregroundColor(theme.mutedText)
             
             Link("Terms of Service", destination: URL(string: SubscriptionConstants.termsOfServiceURL)!)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.blue)
+                .foregroundColor(theme.accent)
         }
     }
     
@@ -313,7 +329,7 @@ struct FeatureRow: View {
         HStack(alignment: .top, spacing: 16) {
             Image(systemName: icon)
                 .font(.system(size: 24))
-                .foregroundColor(.blue)
+                .foregroundColor(theme.premiumGradientStart)
                 .frame(width: 32)
             
             VStack(alignment: .leading, spacing: 4) {

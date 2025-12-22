@@ -85,7 +85,7 @@ struct HomeView: View {
                             .foregroundColor(foregroundButtonColor)
                             .background(backgroundButtonColor)
                             .cornerRadius(20)
-                            .textCase(.uppercase)
+                            .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(PlainButtonStyle())
 
@@ -100,7 +100,7 @@ struct HomeView: View {
                             .foregroundColor(foregroundButtonColor)
                             .background(backgroundButtonColor)
                             .cornerRadius(20)
-                            .textCase(.uppercase)
+                            .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(PlainButtonStyle())
                     
@@ -115,21 +115,21 @@ struct HomeView: View {
                             .foregroundColor(foregroundButtonColor)
                             .background(backgroundButtonColor)
                             .cornerRadius(20)
-                            .textCase(.uppercase)
+                            .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(PlainButtonStyle())
                     
-                    // Subscription Management
+                    // Subscription Management - Premium button style
                     Button {
                         showingSubscriptionManagement = true
                     } label: {
-                        HStack {
+                        HStack(spacing: 8) {
                             if subscriptionManager.isSubscribed {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
+                                    .foregroundColor(.white)
                             } else {
                                 Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
+                                    .foregroundColor(theme.premiumGold)
                             }
                             
                             Text(subscriptionManager.isSubscribed ? "PRO ACTIVE" : "GO PRO")
@@ -138,9 +138,25 @@ struct HomeView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 52)
-                        .foregroundColor(foregroundButtonColor)
-                        .background(backgroundButtonColor)
+                        .foregroundColor(.white)
+                        .background(
+                            subscriptionManager.isSubscribed
+                                ? theme.success
+                                : LinearGradient(
+                                    gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                        )
                         .cornerRadius(20)
+                        .shadow(
+                            color: subscriptionManager.isSubscribed
+                                ? theme.success.opacity(0.3)
+                                : theme.premiumGradientStart.opacity(0.3),
+                            radius: 8,
+                            x: 0,
+                            y: 4
+                        )
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
@@ -182,10 +198,14 @@ struct HomeView: View {
     }
 
     private var backgroundButtonColor: Color {
-        colorScheme == .dark ? .white : .black
+        colorScheme == .dark ? theme.primaryButtonBackgroundDark : theme.primaryButtonBackgroundLight
     }
 
     private var foregroundButtonColor: Color {
-        colorScheme == .dark ? .black : .white
+        colorScheme == .dark ? theme.primaryButtonForegroundDark : theme.primaryButtonForegroundLight
+    }
+    
+    private var shadowColor: Color {
+        colorScheme == .dark ? Color.clear : Color.black.opacity(0.15)
     }
 }

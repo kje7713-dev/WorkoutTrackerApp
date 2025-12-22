@@ -188,8 +188,15 @@ struct SubscriptionManagementView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
                     .foregroundColor(.white)
-                    .background(Color.blue)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .cornerRadius(28)
+                    .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
             }
             
             // Restore purchases
