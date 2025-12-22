@@ -148,6 +148,7 @@ public struct Block: Identifiable, Codable, Equatable {
     public var source: BlockSource
     public var aiMetadata: AIMetadata?
     public var isArchived: Bool
+    public var isActive: Bool
 
     public init(
         id: BlockID = BlockID(),
@@ -159,7 +160,8 @@ public struct Block: Identifiable, Codable, Equatable {
         weekTemplates: [[DayTemplate]]? = nil,
         source: BlockSource = .user,
         aiMetadata: AIMetadata? = nil,
-        isArchived: Bool = false
+        isArchived: Bool = false,
+        isActive: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -171,6 +173,7 @@ public struct Block: Identifiable, Codable, Equatable {
         self.source = source
         self.aiMetadata = aiMetadata
         self.isArchived = isArchived
+        self.isActive = isActive
     }
 }
 

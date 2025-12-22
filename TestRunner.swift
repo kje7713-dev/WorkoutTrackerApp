@@ -52,6 +52,11 @@ struct TestRunner {
         if !SubscriptionTests.runAllTests() {
             allTestsPassed = false
         }
+        
+        // Run Active Block Tests
+        if !ActiveBlockTests.runAll() {
+            allTestsPassed = false
+        }
         #endif
         
         print("\n========================================")
