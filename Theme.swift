@@ -105,6 +105,7 @@ public extension SBDTheme {
         mutedText: Color(red: 0.56, green: 0.56, blue: 0.58),              // neutral gray
         accent: Color(red: 0.00, green: 0.48, blue: 1.00),                 // iOS system blue
         premiumGold: Color(red: 1.00, green: 0.84, blue: 0.00),            // Gold accent for premium features
+        // Note: premiumGradientStart matches accent for consistency, but kept separate for future flexibility
         premiumGradientStart: Color(red: 0.00, green: 0.48, blue: 1.00),   // Gradient start (blue)
         premiumGradientEnd: Color(red: 0.50, green: 0.00, blue: 0.80),     // Gradient end (purple)
         primaryButtonBackgroundLight: .black,
@@ -303,7 +304,7 @@ public struct SBDPremiumButton: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 52)
-            .foregroundColor(.white)
+            .foregroundColor(.white)  // White provides optimal contrast on gradient backgrounds
             .background(
                 LinearGradient(
                     gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
