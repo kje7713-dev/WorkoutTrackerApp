@@ -139,7 +139,7 @@ The app includes in-app subscriptions using StoreKit 2. To test subscription fun
 
 Key points:
 - Use iOS Simulator for quick testing (no sandbox account needed)
-- StoreKit configuration includes a $6.70/month subscription with 15-day free trial
+- StoreKit configuration includes a monthly subscription with 15-day free trial
 - Xcode scheme is pre-configured to use the StoreKit configuration file
 - For device testing, you can use Apple's sandbox environment
 

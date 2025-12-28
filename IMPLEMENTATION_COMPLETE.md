@@ -131,7 +131,7 @@ The subscription feature has been fully implemented and is ready for sandbox tes
 
 - **Framework**: StoreKit 2
 - **Product ID**: `com.kje7713.WorkoutTrackerApp.pro.monthly`
-- **Price**: $6.70/month
+- **Price**: Configured in App Store Connect
 - **Trial**: 15 days free
 - **Type**: Auto-renewable subscription
 - **Verification**: Client-side using StoreKit's cryptographic verification
@@ -173,7 +173,7 @@ The subscription feature has been fully implemented and is ready for sandbox tes
 ### 1. App Store Connect Setup (Required)
 - [ ] Create subscription group "Pro Subscription"
 - [ ] Add product: `com.kje7713.WorkoutTrackerApp.pro.monthly`
-- [ ] Set price tier to $6.70/month
+- [ ] Set price tier in App Store Connect
 - [ ] Add 15-day free trial introductory offer
 - [ ] Add product localization
 - [ ] Submit subscription for review

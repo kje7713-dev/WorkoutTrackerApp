@@ -99,7 +99,7 @@ open WorkoutTrackerApp.xcodeproj
 3. Tap **"GO PRO"** button on Home screen
 4. **Expected Result**: 
    - Subscription loads successfully
-   - Price shows: **$6.70 per month**
+   - Price shows from StoreKit
    - Button says: **"Start 15-Day Free Trial"**
    - No error messages
 
@@ -117,7 +117,7 @@ After following the steps above, verify:
 - [ ] "GO PRO" button is visible on Home screen
 - [ ] Paywall opens when tapping "GO PRO"
 - [ ] Subscription product loads (no "Unable to load" error)
-- [ ] Price displays correctly ($6.70/month)
+- [ ] Price displays correctly from StoreKit
 - [ ] Free trial badge shows (if eligible)
 - [ ] Subscribe button is enabled (blue, not gray)
 - [ ] Purchase flow can be tested

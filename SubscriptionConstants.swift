@@ -25,12 +25,6 @@ enum SubscriptionConstants {
     /// Trial duration in days
     static let trialDurationDays = 15
     
-    /// Subscription price (for display when StoreKit unavailable)
-    static let fallbackPrice = "$6.70"
-    
-    /// Subscription duration description
-    static let subscriptionDuration = "month"
-    
     // MARK: - Feature Flags
     
     /// Whether to show subscription features

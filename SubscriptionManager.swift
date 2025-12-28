@@ -244,6 +244,27 @@ class SubscriptionManager: ObservableObject {
         subscriptionProduct?.displayPrice
     }
     
+    /// Get subscription period unit (e.g., "month", "year")
+    var subscriptionPeriodUnit: String? {
+        guard let product = subscriptionProduct,
+              let subscription = product.subscription else {
+            return nil
+        }
+        
+        switch subscription.subscriptionPeriod.unit {
+        case .day:
+            return subscription.subscriptionPeriod.value == 1 ? "day" : "days"
+        case .week:
+            return subscription.subscriptionPeriod.value == 1 ? "week" : "weeks"
+        case .month:
+            return subscription.subscriptionPeriod.value == 1 ? "month" : "months"
+        case .year:
+            return subscription.subscriptionPeriod.value == 1 ? "year" : "years"
+        @unknown default:
+            return nil
+        }
+    }
+    
     /// Get subscription description
     var subscriptionDescription: String {
         guard let product = subscriptionProduct else {

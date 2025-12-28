@@ -8,7 +8,7 @@ This document provides guidance for submitting Savage By Design with subscriptio
 
 - [ ] Create subscription in App Store Connect
   - Product ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
-  - Price: $6.70/month (Tier 10)
+  - Price: Configure in App Store Connect pricing tier
   - Free trial: 15 days
   - Auto-renewal: Enabled
 
@@ -126,7 +126,7 @@ HOW IT WORKS:
 
 SUBSCRIPTION DETAILS:
 • First 15 days free
-• $6.70/month after trial
+• Monthly subscription after trial
 • Cancel anytime
 • Payment through Apple
 • Automatically renews unless cancelled
