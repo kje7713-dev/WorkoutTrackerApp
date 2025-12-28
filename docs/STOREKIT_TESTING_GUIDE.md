@@ -33,7 +33,7 @@ This will create `WorkoutTrackerApp.xcodeproj` with the StoreKit configuration f
 The configuration includes:
 - **Product ID**: `com.kje7713.WorkoutTrackerApp.pro.monthly`
 - **Display Name**: "Savage By Design Pro"
-- **Price**: $6.70/month
+- **Price**: Configured in StoreKit test environment
 - **Free Trial**: 15 days
 - **Description**: "Advanced planning and tracking tools"
 
@@ -88,7 +88,7 @@ The configuration includes:
 
 **When StoreKit Configuration is Working:**
 - The subscription product loads successfully
-- You see the price: **$6.70 per month**
+- You see the subscription price from StoreKit
 - You see the trial offer: **"START 15-DAY FREE TRIAL"** badge
 - The **"Start Free Trial"** button is enabled (blue background)
 - No error messages are displayed

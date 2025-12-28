@@ -2,7 +2,7 @@
 
 ## Overview
 
-Successfully implemented a complete subscription system for Savage By Design using StoreKit 2, enabling a freemium business model with a 15-day free trial and $6.70/month auto-renewing subscription.
+Successfully implemented a complete subscription system for Savage By Design using StoreKit 2, enabling a freemium business model with a 15-day free trial and monthly auto-renewing subscription.
 
 ## What Was Implemented
 
@@ -103,7 +103,7 @@ if subscriptionManager.isSubscribed {
 
 **Configuration.storekit**
 - Product ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
-- Price: $6.70/month
+- Price: Configured in App Store Connect
 - Trial: 15 days free
 - Auto-renewable monthly subscription
 - Subscription group: "Pro Subscription"
@@ -309,7 +309,7 @@ if subscriptionManager.isSubscribed {
 ### App Store Connect Setup
 1. Create subscription in App Store Connect
 2. Configure product with ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
-3. Set price tier to $6.70/month
+3. Set price tier in App Store Connect
 4. Add 15-day free trial offer
 5. Submit subscription for review
 

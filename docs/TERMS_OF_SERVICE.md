@@ -42,7 +42,7 @@ The subscription does NOT include:
 
 ### Pricing and Payment
 
-- Monthly subscription: $6.70/month
+- Monthly subscription pricing is set in App Store Connect
 - 15-day free trial for eligible users
 - Payment processed through Apple In-App Purchase
 - Subscription automatically renews unless cancelled

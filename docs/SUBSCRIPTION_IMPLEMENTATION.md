@@ -6,7 +6,7 @@ This document describes the subscription implementation for Savage By Design.
 
 The app implements a freemium model with a Pro subscription that unlocks advanced features:
 - 15-day free trial for new users
-- $6.70/month auto-renewing subscription
+- Monthly auto-renewing subscription (pricing set in App Store Connect)
 - Advanced planning, analysis, and tracking features
 
 ## What the Subscription Unlocks
@@ -94,7 +94,7 @@ if subscriptionManager.isSubscribed {
 ### Subscription Details
 - Type: Auto-renewable subscription
 - Duration: 1 month (P1M)
-- Price: $6.70/month
+- Price: Set in App Store Connect
 - Trial: 15 days (P15D), free
 - Group: Pro Subscription (21493252)
 
@@ -174,7 +174,7 @@ The subscription unlocks software tools that process externally generated conten
 2. **Configure Product**
    - Product ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
    - Reference Name: "Pro Monthly Subscription"
-   - Price: $6.70/month (Tier 10)
+   - Price: Set in App Store Connect pricing tier
    - Subscription Duration: 1 month
 
 3. **Add Introductory Offer**
