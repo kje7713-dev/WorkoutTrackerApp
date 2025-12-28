@@ -488,12 +488,8 @@ struct BlockRunModeView: View {
                             var parts: [String] = []
 
                             if let dur = set.durationSeconds {
-                                if dur % 60 == 0 {
-                                    let mins = dur / 60
-                                    parts.append("\(mins) min")
-                                } else {
-                                    parts.append("\(dur) sec")
-                                }
+                                // Use HH:MM:SS format
+                                parts.append(TimeFormatter.formatTime(dur))
                             }
                             if let dist = set.distanceMeters {
                                 parts.append("\(Int(dist)) m")
@@ -1262,12 +1258,8 @@ struct ExerciseRunCard: View {
         var parts: [String] = []
         
         if let dur = time.map({ Int($0) }) {
-            if dur % 60 == 0 {
-                let mins = dur / 60
-                parts.append("\(mins) min")
-            } else {
-                parts.append("\(dur) sec")
-            }
+            // Use HH:MM:SS format
+            parts.append(TimeFormatter.formatTime(dur))
         }
         if let dist = distance {
             parts.append("\(Int(dist)) m")
@@ -1333,12 +1325,7 @@ struct SetRunRow: View {
         runSet.actualWeight ?? runSet.plannedWeight ?? 0
     }
 
-    // Conditioning helpers (we show minutes for time)
-    private var timeMinutesValue: Int {
-        let seconds = runSet.actualTimeSeconds ?? runSet.plannedTimeSeconds ?? 0
-        return Int(seconds / 60)
-    }
-
+    // Conditioning helpers
     private var caloriesValue: Int {
         Int(runSet.actualCalories ?? runSet.plannedCalories ?? 0)
     }
@@ -1554,39 +1541,16 @@ struct SetRunRow: View {
         }
     }
 
-    // MARK: - Conditioning UI (Modified to use SetControlView where possible)
+    // MARK: - Conditioning UI (Using HH:MM:SS time picker)
 
     private var conditioningControls: some View {
         VStack(alignment: .leading, spacing: 6) {
 
-            // Time (minutes) - Kept original implementation to avoid complex secondary binding
-            HStack(spacing: 6) {
-                Text("Time")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-
-                Button {
-                    let mins = max(0, timeMinutesValue - 1)
-                    runSet.actualTimeSeconds = Double(mins * 60)
-                } label: {
-                    Image(systemName: "minus.circle")
-                }
-
-                Text("\(timeMinutesValue)")
-                    .font(.body.monospacedDigit())
-                    .frame(width: 32)
-
-                Button {
-                    let mins = timeMinutesValue + 1
-                    runSet.actualTimeSeconds = Double(mins * 60)
-                } label: {
-                    Image(systemName: "plus.circle")
-                }
-
-                Text("min")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
+            // Time (HH:MM:SS) - Using new time picker control
+            TimePickerControlDouble(
+                label: "TIME (HH:MM:SS)",
+                totalSeconds: $runSet.actualTimeSeconds
+            )
 
             // Distance Control
             SetControlView(
@@ -1619,14 +1583,10 @@ struct SetRunRow: View {
                 min: 0.0
             )
             
-            // Rest seconds
-            SetControlView(
-                label: "REST",
-                unit: "sec",
-                value: $runSet.restSeconds.toDouble(),
-                step: 15.0,
-                formatter: Self.integerFormatter,
-                min: 0.0
+            // Rest (HH:MM:SS) - Using time picker
+            TimePickerControlDouble(
+                label: "REST (HH:MM:SS)",
+                totalSeconds: $runSet.restSeconds.toDouble()
             )
         }
     }
