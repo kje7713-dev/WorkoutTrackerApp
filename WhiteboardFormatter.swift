@@ -351,16 +351,39 @@ public final class WhiteboardFormatter {
     private static func parseNotesIntoBullets(_ notes: String?) -> [String] {
         guard let notes = notes, !notes.isEmpty else { return [] }
         
-        // Split by common separators
-        let separators = [",", "\n", ";"]
-        var bullets = [notes]
+        // Split by common separators (newlines, commas, semicolons)
+        let separators = CharacterSet(charactersIn: ",\n;")
+        let components = notes.components(separatedBy: separators)
         
-        for separator in separators {
-            bullets = bullets.flatMap { $0.components(separatedBy: separator) }
+        var bullets: [String] = []
+        
+        for component in components {
+            let trimmed = component.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            // Skip empty strings
+            guard !trimmed.isEmpty else { continue }
+            
+            // Check if it looks like a circuit movement (e.g., "10 Burpees", "15 KB Swings")
+            // Pattern: starts with a number or contains common exercise terms
+            let looksLikeMovement = trimmed.range(of: "^\\d+", options: .regularExpression) != nil ||
+                                   trimmed.lowercased().contains("burpee") ||
+                                   trimmed.lowercased().contains("swing") ||
+                                   trimmed.lowercased().contains("jump") ||
+                                   trimmed.lowercased().contains("squat") ||
+                                   trimmed.lowercased().contains("pull") ||
+                                   trimmed.lowercased().contains("push") ||
+                                   trimmed.lowercased().contains("row") ||
+                                   trimmed.lowercased().contains("run") ||
+                                   trimmed.lowercased().contains("cal")
+            
+            if looksLikeMovement {
+                bullets.append(trimmed)
+            } else {
+                // If it doesn't look like a movement, still include it
+                bullets.append(trimmed)
+            }
         }
         
         return bullets
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
     }
 }

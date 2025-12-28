@@ -61,9 +61,6 @@ struct BlockRunModeView: View {
                 Text("This block has no days configured.")
                     .padding()
                 Spacer()
-            } else if showWhiteboard {
-                // Whiteboard view
-                WhiteboardWeekView(unifiedBlock: BlockNormalizer.normalize(block: block))
             } else {
                 TabView(selection: $currentWeekIndex) {
                     ForEach(weeks.indices, id: \.self) { weekIndex in
@@ -131,20 +128,18 @@ struct BlockRunModeView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        showWhiteboard.toggle()
-                    }
+                    showWhiteboard = true
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: showWhiteboard ? "list.bullet.rectangle" : "rectangle.and.text.magnifyingglass")
+                        Image(systemName: "rectangle.and.text.magnifyingglass")
                             .font(.system(size: 17, weight: .semibold))
-                        Text(showWhiteboard ? "Tracking" : "Whiteboard")
+                        Text("Whiteboard")
                             .font(.system(size: 17))
                     }
                     .foregroundColor(.accentColor)
                 }
-                .accessibilityLabel(showWhiteboard ? "Switch to Tracking View" : "Switch to Whiteboard View")
-                .accessibilityHint("Toggle between detailed tracking and clean whiteboard view")
+                .accessibilityLabel("View Whiteboard")
+                .accessibilityHint("Open full-screen whiteboard view for current day")
             }
         }
         .alert("Close Workout Session?", isPresented: $showCloseConfirmation) {
@@ -196,6 +191,13 @@ struct BlockRunModeView: View {
         )
         .animation(.easeInOut(duration: 0.3), value: showWeekCompletionModal)
         .animation(.easeInOut(duration: 0.3), value: showBlockCompletionModal)
+        .fullScreenCover(isPresented: $showWhiteboard) {
+            WhiteboardFullScreenDayView(
+                unifiedBlock: BlockNormalizer.normalize(block: block),
+                weekIndex: currentWeekIndex,
+                dayIndex: currentDayIndex
+            )
+        }
     }
 
     private var topBar: some View {
