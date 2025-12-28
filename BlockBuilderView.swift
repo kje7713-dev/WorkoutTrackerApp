@@ -635,26 +635,6 @@ struct ExerciseEditorRow: View {
 
     @State private var showDeleteConfirm = false
 
-    // Shows MINUTES in the UI, stores SECONDS in conditioningDurationSeconds
-    private var durationMinutesBinding: Binding<String> {
-        Binding<String>(
-            get: {
-                guard let secs = exercise.conditioningDurationSeconds, secs > 0 else {
-                    return ""
-                }
-                return String(secs / 60)
-            },
-            set: { newValue in
-                let trimmed = newValue.trimmingCharacters(in: .whitespaces)
-                guard let minutes = Int(trimmed), minutes > 0 else {
-                    exercise.conditioningDurationSeconds = nil
-                    return
-                }
-                exercise.conditioningDurationSeconds = minutes * 60
-            }
-        )
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
 
@@ -739,15 +719,15 @@ struct ExerciseEditorRow: View {
         }
     }
 
-    // MARK: - Conditioning Editor (minutes-based)
+    // MARK: - Conditioning Editor (HH:MM:SS format)
 
     private var conditioningEditor: some View {
         VStack(alignment: .leading, spacing: 4) {
-            TextField(
-                "Duration (minutes, optional)",
-                text: durationMinutesBinding
+            // Use the new time picker control for HH:MM:SS format
+            TimePickerControl(
+                label: "DURATION (HH:MM:SS)",
+                totalSeconds: $exercise.conditioningDurationSeconds
             )
-            .keyboardType(.numberPad)
             
             TextField(
                 "Distance (meters, optional)",
@@ -774,8 +754,11 @@ struct ExerciseEditorRow: View {
             
             TextField("Effort (e.g., easy, moderate, hard, optional)", text: $exercise.conditioningEffortDescriptor)
             
-            TextField("Rest seconds (optional)", value: $exercise.conditioningRestSeconds, format: .number)
-                .keyboardType(.numberPad)
+            // Use time picker for rest as well
+            TimePickerControl(
+                label: "REST (HH:MM:SS)",
+                totalSeconds: $exercise.conditioningRestSeconds
+            )
 
             Text("Use notes for details like EMOM / AMRAP / pacing.")
                 .font(.footnote)
