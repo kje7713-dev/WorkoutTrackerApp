@@ -49,6 +49,9 @@ struct BlockRunModeView: View {
     @State private var showWeekCompletionModal: Bool = false
     @State private var showBlockCompletionModal: Bool = false
     @State private var recentlyCompletedWeekIndex: Int? = nil
+    
+    // Whiteboard view mode
+    @State private var showWhiteboard: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -58,6 +61,9 @@ struct BlockRunModeView: View {
                 Text("This block has no days configured.")
                     .padding()
                 Spacer()
+            } else if showWhiteboard {
+                // Whiteboard view
+                WhiteboardWeekView(unifiedBlock: BlockNormalizer.normalize(block: block))
             } else {
                 TabView(selection: $currentWeekIndex) {
                     ForEach(weeks.indices, id: \.self) { weekIndex in
@@ -121,6 +127,24 @@ struct BlockRunModeView: View {
                 }
                 .accessibilityLabel("Close Session")
                 .accessibilityHint("Saves all progress and closes the workout session")
+            }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showWhiteboard.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: showWhiteboard ? "list.bullet.rectangle" : "rectangle.and.text.magnifyingglass")
+                            .font(.system(size: 17, weight: .semibold))
+                        Text(showWhiteboard ? "Tracking" : "Whiteboard")
+                            .font(.system(size: 17))
+                    }
+                    .foregroundColor(.accentColor)
+                }
+                .accessibilityLabel(showWhiteboard ? "Switch to Tracking View" : "Switch to Whiteboard View")
+                .accessibilityHint("Toggle between detailed tracking and clean whiteboard view")
             }
         }
         .alert("Close Workout Session?", isPresented: $showCloseConfirmation) {
