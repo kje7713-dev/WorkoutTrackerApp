@@ -784,6 +784,3 @@ public struct BlockGenerator {
         }
     }
 }
-}
-}
-}
