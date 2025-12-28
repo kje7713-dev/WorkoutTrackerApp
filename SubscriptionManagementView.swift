@@ -135,11 +135,13 @@ struct SubscriptionManagementView: View {
             
             // Info text
             if subscriptionManager.isInTrial {
-                Text("Your free trial will automatically convert to a \(subscriptionManager.formattedPrice ?? SubscriptionConstants.fallbackPrice)/month subscription unless cancelled.")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(theme.mutedText)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 8)
+                if let price = subscriptionManager.formattedPrice {
+                    Text("Your free trial will automatically convert to a \(price) subscription unless cancelled.")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(theme.mutedText)
+                        .multilineTextAlignment(.center)
+                        .padding(.top, 8)
+                }
             }
         }
     }

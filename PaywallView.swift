@@ -154,23 +154,12 @@ struct PaywallView: View {
                     Text(price)
                         .font(.system(size: 48, weight: .bold))
                     
-                    Text("per month")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(theme.mutedText)
-                } else {
-                    Text(SubscriptionConstants.fallbackPrice)
-                        .font(.system(size: 48, weight: .bold))
-                    
-                    Text("per month")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(theme.mutedText)
-                }
-                
-                if subscriptionManager.isEligibleForTrial {
-                    Text("First \(SubscriptionConstants.trialDurationDays) days free, then \(subscriptionManager.formattedPrice ?? SubscriptionConstants.fallbackPrice)/month")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(theme.mutedText)
-                        .multilineTextAlignment(.center)
+                    if subscriptionManager.isEligibleForTrial {
+                        Text("First \(SubscriptionConstants.trialDurationDays) days free")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(theme.mutedText)
+                            .multilineTextAlignment(.center)
+                    }
                 }
             }
             .padding(.vertical, 24)
