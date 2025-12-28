@@ -56,7 +56,7 @@ public struct SetControlView: View {
 
                 Text(value.flatMap { formatter.string(from: NSNumber(value: $0)) } ?? "-")
                     .font(.body.monospacedDigit())
-                    .frame(width: 40)
+                    .frame(width: 60)
                     .minimumScaleFactor(0.5)
 
                 Button {
