@@ -300,7 +300,7 @@ public final class WhiteboardFormatter {
     }
     
     /// Format generic conditioning
-    private static func formatGenericConditioning(_ set: UnifiedConditioningSet) -> String {
+    private static func formatGenericConditioning(_ set: UnifiedConditioningSet) -> String? {
         var parts: [String] = []
         
         if let duration = set.durationSeconds {
