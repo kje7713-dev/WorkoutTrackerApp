@@ -155,7 +155,7 @@ struct PaywallView: View {
                         .font(.system(size: 48, weight: .bold))
                     
                     if subscriptionManager.isEligibleForTrial {
-                        Text("First \(SubscriptionConstants.trialDurationDays) days free")
+                        Text("First \(SubscriptionConstants.trialDurationDays) days free, then \(price)")
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(theme.mutedText)
                             .multilineTextAlignment(.center)
