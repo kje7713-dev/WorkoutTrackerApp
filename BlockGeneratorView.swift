@@ -21,7 +21,6 @@ struct BlockGeneratorView: View {
     
     // MARK: - Constants
     
-    private let documentationURL = "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/BLOCK_JSON_IMPORT_README.md"
     private let confirmationDisplayDuration: TimeInterval = 2.0
     
     // MARK: - State
@@ -265,19 +264,6 @@ struct BlockGeneratorView: View {
                     .background(theme.accent)
                     .cornerRadius(12)
                 }
-            }
-            
-            // Link to full documentation
-            if let docURL = URL(string: documentationURL) {
-                Link(destination: docURL) {
-                    HStack {
-                        Image(systemName: "book.fill")
-                        Text("View Complete Documentation & Examples")
-                            .font(.system(size: 14, weight: .medium))
-                    }
-                    .foregroundColor(theme.accent)
-                }
-                .padding(.top, 8)
             }
             
             Divider()
