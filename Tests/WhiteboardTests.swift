@@ -110,6 +110,88 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(unified.weeks[1][0].exercises[0].name, "Front Squat")
     }
     
+    func testNormalizeBlockWithFewerWeekTemplatesThanNumberOfWeeks() {
+        // Given: A 4-week block with only 2 week templates (should cycle)
+        let block = Block(
+            name: "4 Week Block",
+            numberOfWeeks: 4,
+            goal: .strength,
+            days: [],
+            weekTemplates: [
+                [
+                    DayTemplate(
+                        name: "Week 1 Day",
+                        exercises: [
+                            ExerciseTemplate(
+                                customName: "Squat",
+                                type: .strength,
+                                category: .squat,
+                                strengthSets: [
+                                    StrengthSetTemplate(index: 0, reps: 5)
+                                ],
+                                progressionRule: ProgressionRule(type: .weight)
+                            )
+                        ]
+                    )
+                ],
+                [
+                    DayTemplate(
+                        name: "Week 2 Day",
+                        exercises: [
+                            ExerciseTemplate(
+                                customName: "Deadlift",
+                                type: .strength,
+                                category: .hinge,
+                                strengthSets: [
+                                    StrengthSetTemplate(index: 0, reps: 3)
+                                ],
+                                progressionRule: ProgressionRule(type: .weight)
+                            )
+                        ]
+                    )
+                ]
+            ]
+        )
+        
+        // When: Normalizing the block
+        let unified = BlockNormalizer.normalize(block: block)
+        
+        // Then: Should have 4 weeks by cycling through the 2 templates
+        XCTAssertEqual(unified.numberOfWeeks, 4)
+        XCTAssertEqual(unified.weeks.count, 4)
+        // Week 1 and 3 should use first template (cycling)
+        XCTAssertEqual(unified.weeks[0][0].name, "Week 1 Day")
+        XCTAssertEqual(unified.weeks[2][0].name, "Week 1 Day")
+        // Week 2 and 4 should use second template (cycling)
+        XCTAssertEqual(unified.weeks[1][0].name, "Week 2 Day")
+        XCTAssertEqual(unified.weeks[3][0].name, "Week 2 Day")
+    }
+    
+    func testNormalizeBlockWithMoreWeekTemplatesThanNumberOfWeeks() {
+        // Given: A 2-week block with 4 week templates (should truncate)
+        let block = Block(
+            name: "2 Week Block",
+            numberOfWeeks: 2,
+            goal: .strength,
+            days: [],
+            weekTemplates: [
+                [DayTemplate(name: "Week 1", exercises: [])],
+                [DayTemplate(name: "Week 2", exercises: [])],
+                [DayTemplate(name: "Week 3", exercises: [])],
+                [DayTemplate(name: "Week 4", exercises: [])]
+            ]
+        )
+        
+        // When: Normalizing the block
+        let unified = BlockNormalizer.normalize(block: block)
+        
+        // Then: Should only use first 2 weeks
+        XCTAssertEqual(unified.numberOfWeeks, 2)
+        XCTAssertEqual(unified.weeks.count, 2)
+        XCTAssertEqual(unified.weeks[0][0].name, "Week 1")
+        XCTAssertEqual(unified.weeks[1][0].name, "Week 2")
+    }
+    
     func testNormalizeAuthoringBlockWithWeeks() {
         // Given: An authoring block with Weeks
         let authoringBlock = AuthoringBlock(
