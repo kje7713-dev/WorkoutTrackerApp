@@ -8,6 +8,7 @@ struct BlockHistoryListView: View {
     @EnvironmentObject private var blocksRepository: BlocksRepository
     @EnvironmentObject private var sessionsRepository: SessionsRepository
     @EnvironmentObject private var exerciseLibraryRepository: ExerciseLibraryRepository
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @Environment(\.sbdTheme) private var theme
 
     // Which builder mode is active (if any)?
@@ -150,6 +151,7 @@ struct BlockHistoryListView: View {
                                     .environmentObject(sessionsRepository)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(exerciseLibraryRepository)
+                                    .environmentObject(subscriptionManager)
                             } label: { 
                                 Text("REVIEW")
                                     .font(.subheadline).bold()
