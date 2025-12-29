@@ -14,22 +14,39 @@ public final class BlockNormalizer {
     /// Normalize a Block model into UnifiedBlock
     public static func normalize(block: Block) -> UnifiedBlock {
         let weeks: [[UnifiedDay]]
+        let targetWeekCount = max(block.numberOfWeeks, 1)
         
         // Determine which day templates to use per week
         if let weekTemplates = block.weekTemplates, !weekTemplates.isEmpty {
             // Week-specific mode: use templates for each specific week
-            weeks = weekTemplates.map { dayTemplates in
+            let normalizedWeekTemplates = weekTemplates.map { dayTemplates in
                 dayTemplates.map { normalizeDay($0) }
+            }
+            
+            // Handle mismatch between weekTemplates count and numberOfWeeks
+            if normalizedWeekTemplates.count < targetWeekCount {
+                // Pad by cycling through available week templates
+                // Example: If we have 2 templates and need 4 weeks, use [template0, template1, template0, template1]
+                weeks = (0..<targetWeekCount).map { weekIndex in
+                    // Use modulo to cycle through templates: week 0→template0, week 1→template1, week 2→template0, etc.
+                    normalizedWeekTemplates[weekIndex % normalizedWeekTemplates.count]
+                }
+            } else if normalizedWeekTemplates.count > targetWeekCount {
+                // Only use the first numberOfWeeks entries
+                weeks = Array(normalizedWeekTemplates.prefix(targetWeekCount))
+            } else {
+                // Counts match - use as-is
+                weeks = normalizedWeekTemplates
             }
         } else {
             // Standard mode: replicate block.days for all weeks
             let normalizedDays = block.days.map { normalizeDay($0) }
-            weeks = Array(repeating: normalizedDays, count: max(block.numberOfWeeks, 1))
+            weeks = Array(repeating: normalizedDays, count: targetWeekCount)
         }
         
         return UnifiedBlock(
             title: block.name,
-            numberOfWeeks: max(block.numberOfWeeks, 1),
+            numberOfWeeks: targetWeekCount,
             weeks: weeks
         )
     }
