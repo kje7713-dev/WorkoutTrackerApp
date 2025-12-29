@@ -301,6 +301,94 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(item.tertiary, "Rest: 3:00")
     }
     
+    func testFormatStrengthPrescriptionWithWeight() {
+        // Given: A day with strength exercises that have weight
+        let day = UnifiedDay(
+            name: "Strength Day",
+            exercises: [
+                UnifiedExercise(
+                    name: "Back Squat",
+                    type: "strength",
+                    category: "squat",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 5, weight: 225, restSeconds: 180),
+                        UnifiedStrengthSet(reps: 5, weight: 225, restSeconds: 180),
+                        UnifiedStrengthSet(reps: 5, weight: 225, restSeconds: 180),
+                        UnifiedStrengthSet(reps: 5, weight: 225, restSeconds: 180),
+                        UnifiedStrengthSet(reps: 5, weight: 225, restSeconds: 180)
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should include weight in prescription
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Strength")
+        XCTAssertEqual(sections[0].items.count, 1)
+        
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.primary, "Back Squat")
+        XCTAssertEqual(item.secondary, "5 × 5 @ 225 lbs")
+        XCTAssertEqual(item.tertiary, "Rest: 3:00")
+    }
+    
+    func testFormatStrengthPrescriptionWithWeightAndRPE() {
+        // Given: A day with strength exercises that have weight and RPE
+        let day = UnifiedDay(
+            name: "Strength Day",
+            exercises: [
+                UnifiedExercise(
+                    name: "Deadlift",
+                    type: "strength",
+                    category: "hinge",
+                    notes: "@ RPE 8",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 3, weight: 315, restSeconds: 240),
+                        UnifiedStrengthSet(reps: 3, weight: 315, restSeconds: 240),
+                        UnifiedStrengthSet(reps: 3, weight: 315, restSeconds: 240)
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should include both weight and RPE
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.primary, "Deadlift")
+        XCTAssertEqual(item.secondary, "3 × 3 @ 315 lbs @ RPE 8")
+        XCTAssertEqual(item.tertiary, "Rest: 4:00")
+    }
+    
+    func testFormatStrengthPrescriptionWithVaryingWeights() {
+        // Given: Strength exercise with varying weights (pyramid)
+        let day = UnifiedDay(
+            name: "Pyramid Day",
+            exercises: [
+                UnifiedExercise(
+                    name: "Bench Press",
+                    type: "strength",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 5, weight: 135),
+                        UnifiedStrengthSet(reps: 5, weight: 185),
+                        UnifiedStrengthSet(reps: 5, weight: 225)
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should show weights breakdown
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.secondary, "3 × 5 @ 135/185/225 lbs")
+    }
+    
     func testFormatStrengthPrescriptionVaryingReps() {
         // Given: Strength exercise with varying reps
         let day = UnifiedDay(

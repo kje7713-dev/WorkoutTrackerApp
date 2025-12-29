@@ -65,6 +65,7 @@ public final class BlockNormalizer {
         let strengthSets = (exercise.strengthSets ?? []).map { set in
             UnifiedStrengthSet(
                 reps: set.reps,
+                weight: set.weight,
                 restSeconds: set.restSeconds,
                 rpe: set.rpe,
                 notes: set.notes
