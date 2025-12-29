@@ -396,4 +396,99 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(sections[1].title, "Accessory")
         XCTAssertEqual(sections[1].items[0].primary, "Bicep Curls")
     }
+    
+    func testConditioningSetNotesDisplayed() {
+        // Given: Conditioning exercise with set-level notes
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "AMRAP Workout",
+                    type: "conditioning",
+                    notes: "10 Burpees, 15 KB Swings",
+                    conditioningType: "amrap",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 1200,
+                            notes: "Scale as needed, focus on form"
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should include both exercise and set notes
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Conditioning")
+        
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.primary, "AMRAP Workout")
+        XCTAssertEqual(item.secondary, "20 min AMRAP")
+        
+        // Verify both exercise-level notes and set-level notes are in bullets
+        XCTAssertTrue(item.bullets.contains("10 Burpees"))
+        XCTAssertTrue(item.bullets.contains("15 KB Swings"))
+        XCTAssertTrue(item.bullets.contains("Scale as needed, focus on form"))
+    }
+    
+    func testConditioningSetNotesOnly() {
+        // Given: Conditioning exercise with only set-level notes (no exercise notes)
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Row",
+                    type: "conditioning",
+                    conditioningType: "forTime",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            distanceMeters: 2000,
+                            notes: "Target pace: 2:00/500m"
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should display set-level notes
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.primary, "Row")
+        XCTAssertTrue(item.bullets.contains("Target pace: 2:00/500m"))
+    }
+    
+    func testConditioningEMOMWithSetNotes() {
+        // Given: EMOM exercise with set-level notes
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "EMOM Workout",
+                    type: "conditioning",
+                    notes: "5 Pull-ups, 10 Push-ups",
+                    conditioningType: "emom",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 900,
+                            notes: "Rest remaining time each minute"
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should include set notes
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.bullets.contains("5 Pull-ups"))
+        XCTAssertTrue(item.bullets.contains("10 Push-ups"))
+        XCTAssertTrue(item.bullets.contains("Rest remaining time each minute"))
+    }
 }
