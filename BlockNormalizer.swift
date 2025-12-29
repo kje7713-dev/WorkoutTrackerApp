@@ -26,7 +26,9 @@ public final class BlockNormalizer {
             // Handle mismatch between weekTemplates count and numberOfWeeks
             if normalizedWeekTemplates.count < targetWeekCount {
                 // Pad by cycling through available week templates
+                // Example: If we have 2 templates and need 4 weeks, use [template0, template1, template0, template1]
                 weeks = (0..<targetWeekCount).map { weekIndex in
+                    // Use modulo to cycle through templates: week 0→template0, week 1→template1, week 2→template0, etc.
                     normalizedWeekTemplates[weekIndex % normalizedWeekTemplates.count]
                 }
             } else if normalizedWeekTemplates.count > targetWeekCount {
