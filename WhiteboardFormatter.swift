@@ -356,14 +356,13 @@ public final class WhiteboardFormatter {
             bullets.append(contentsOf: parseNotesIntoBullets(exerciseNotes))
         }
         
-        // Add set-level notes
+        // Add set-level notes using the same parsing logic
         if let setNotes = setNotes, !setNotes.isEmpty {
-            // If set notes are not already parsed as bullets, add them directly
-            let setNotesComponents = setNotes.components(separatedBy: CharacterSet(charactersIn: ",\n;"))
-            for component in setNotesComponents {
-                let trimmed = component.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !trimmed.isEmpty && !bullets.contains(trimmed) {
-                    bullets.append(trimmed)
+            let setParsedNotes = parseNotesIntoBullets(setNotes)
+            // Only add notes that aren't duplicates
+            for note in setParsedNotes {
+                if !bullets.contains(note) {
+                    bullets.append(note)
                 }
             }
         }
