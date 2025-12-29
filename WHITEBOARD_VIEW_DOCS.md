@@ -6,10 +6,13 @@ The Whiteboard View is a clean, CrossFit-style workout display that renders trai
 
 ## Features
 
-- **Toggle View**: Switch between detailed tracking and whiteboard view in BlockRunMode
-- **Week Navigation**: Browse through different weeks of a training block
+- **Full-Screen Display**: Pop out to full-screen whiteboard view for current day
+- **Single Day Focus**: Shows only the day you're currently working on in BlockRunMode
+- **Close Button**: X button to dismiss and return to tracking view
+- **Week Navigation**: Browse through different weeks of a training block (in WhiteboardWeekView)
 - **Section Organization**: Exercises are organized into Strength, Accessory, and Conditioning sections
 - **Compact Display**: Monospace font with minimal lines for easy reading
+- **Enhanced Notes Parsing**: AMRAP circuits with movements in notes display as bullets
 - **Multiple Input Formats**: Supports authoring JSON and export JSON schemas
 
 ## Architecture
@@ -120,6 +123,13 @@ Formats vary by `conditioningType`:
 - Week selector (if multiple weeks)
 - Scrollable list of day cards
 
+#### WhiteboardFullScreenDayView (New)
+- Full-screen modal presentation
+- Shows single day from current week
+- Navigation bar with block title and week/day info
+- X button in top-right to dismiss
+- Scrollable whiteboard display for current day only
+
 #### WhiteboardDayCardView
 - Day title and number
 - Goal (if present)
@@ -141,9 +151,8 @@ Formats vary by `conditioningType`:
 
 1. Open a workout session (BlockRunModeView)
 2. Tap "Whiteboard" button in toolbar
-3. View the clean whiteboard display
-4. Use week selector to browse weeks
-5. Tap "Tracking" to return to detailed view
+3. Full-screen whiteboard view opens showing the current day
+4. Tap X button to dismiss and return to tracking view
 
 ### Programmatic Usage
 
@@ -158,7 +167,14 @@ let unifiedBlock = BlockNormalizer.normalize(authoringBlock: authoringBlock)
 // Format a day
 let sections = WhiteboardFormatter.formatDay(unifiedDay)
 
-// Display in UI
+// Display full-screen for specific day
+WhiteboardFullScreenDayView(
+    unifiedBlock: unifiedBlock,
+    weekIndex: 0,
+    dayIndex: 0
+)
+
+// Display multi-week view
 WhiteboardWeekView(unifiedBlock: unifiedBlock)
 ```
 
@@ -219,9 +235,13 @@ Rest: 3:00
 
 ## Notes
 
+- Full-screen modal presentation focuses user on workout details
+- Shows only the current day being worked on in BlockRunMode
 - Monospace font ensures consistent alignment
 - Compact spacing reduces visual clutter
 - Section headers are bold and uppercase
 - Rest times are optional (only shown if present)
-- Bullets are used for conditioning details
-- Toggle preserves workout state (no data loss)
+- Bullets are used for conditioning details and parsed from notes
+- Enhanced notes parsing detects common exercise patterns (burpees, swings, etc.)
+- Modal dismisses cleanly with X button, returning to tracking view
+- No data loss when switching between views

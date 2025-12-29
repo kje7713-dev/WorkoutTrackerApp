@@ -68,6 +68,72 @@ struct WhiteboardWeekView: View {
     }
 }
 
+// MARK: - Full-Screen Whiteboard Day View
+
+struct WhiteboardFullScreenDayView: View {
+    let unifiedBlock: UnifiedBlock
+    let weekIndex: Int
+    let dayIndex: Int
+    @Environment(\.dismiss) private var dismiss
+    
+    private var day: UnifiedDay? {
+        guard weekIndex < unifiedBlock.weeks.count,
+              dayIndex < unifiedBlock.weeks[weekIndex].count else {
+            return nil
+        }
+        return unifiedBlock.weeks[weekIndex][dayIndex]
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                // Background
+                Color(.systemBackground)
+                    .ignoresSafeArea()
+                
+                if let day = day {
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            WhiteboardDayCardView(
+                                day: day,
+                                dayNumber: dayIndex + 1
+                            )
+                        }
+                        .padding()
+                    }
+                } else {
+                    Text("No data for this day")
+                        .foregroundColor(.secondary)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 2) {
+                        Text(unifiedBlock.title)
+                            .font(.headline)
+                            .fontWeight(.bold)
+                        Text("Week \(weekIndex + 1) • Day \(dayIndex + 1)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.primary)
+                    }
+                    .accessibilityLabel("Close whiteboard")
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Week Selector Button
 
 struct WeekSelectorButton: View {
