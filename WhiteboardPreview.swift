@@ -26,11 +26,11 @@ struct WhiteboardPreview: View {
                     category: .squat,
                     notes: "@ RPE 8-9",
                     strengthSets: [
-                        StrengthSetTemplate(index: 0, reps: 5, restSeconds: 180),
-                        StrengthSetTemplate(index: 1, reps: 5, restSeconds: 180),
-                        StrengthSetTemplate(index: 2, reps: 5, restSeconds: 180),
-                        StrengthSetTemplate(index: 3, reps: 5, restSeconds: 180),
-                        StrengthSetTemplate(index: 4, reps: 5, restSeconds: 180)
+                        StrengthSetTemplate(index: 0, reps: 5, weight: 225, restSeconds: 180),
+                        StrengthSetTemplate(index: 1, reps: 5, weight: 225, restSeconds: 180),
+                        StrengthSetTemplate(index: 2, reps: 5, weight: 225, restSeconds: 180),
+                        StrengthSetTemplate(index: 3, reps: 5, weight: 225, restSeconds: 180),
+                        StrengthSetTemplate(index: 4, reps: 5, weight: 225, restSeconds: 180)
                     ],
                     progressionRule: ProgressionRule(type: .weight, deltaWeight: 5.0)
                 ),
@@ -39,9 +39,9 @@ struct WhiteboardPreview: View {
                     type: .strength,
                     category: .hinge,
                     strengthSets: [
-                        StrengthSetTemplate(index: 0, reps: 8, restSeconds: 90),
-                        StrengthSetTemplate(index: 1, reps: 8, restSeconds: 90),
-                        StrengthSetTemplate(index: 2, reps: 8, restSeconds: 90)
+                        StrengthSetTemplate(index: 0, reps: 8, weight: 185, restSeconds: 90),
+                        StrengthSetTemplate(index: 1, reps: 8, weight: 185, restSeconds: 90),
+                        StrengthSetTemplate(index: 2, reps: 8, weight: 185, restSeconds: 90)
                     ],
                     progressionRule: ProgressionRule(type: .weight)
                 ),
@@ -50,9 +50,9 @@ struct WhiteboardPreview: View {
                     type: .strength,
                     category: .other,
                     strengthSets: [
-                        StrengthSetTemplate(index: 0, reps: 12, restSeconds: 60),
-                        StrengthSetTemplate(index: 1, reps: 12, restSeconds: 60),
-                        StrengthSetTemplate(index: 2, reps: 12, restSeconds: 60)
+                        StrengthSetTemplate(index: 0, reps: 12, weight: 90, restSeconds: 60),
+                        StrengthSetTemplate(index: 1, reps: 12, weight: 90, restSeconds: 60),
+                        StrengthSetTemplate(index: 2, reps: 12, weight: 90, restSeconds: 60)
                     ],
                     progressionRule: ProgressionRule(type: .volume)
                 )
@@ -107,10 +107,10 @@ struct WhiteboardPreview: View {
                     category: .squat,
                     notes: "@ RPE 7",
                     strengthSets: [
-                        StrengthSetTemplate(index: 0, reps: 8, restSeconds: 120),
-                        StrengthSetTemplate(index: 1, reps: 8, restSeconds: 120),
-                        StrengthSetTemplate(index: 2, reps: 8, restSeconds: 120),
-                        StrengthSetTemplate(index: 3, reps: 8, restSeconds: 120)
+                        StrengthSetTemplate(index: 0, reps: 8, weight: 185, restSeconds: 120),
+                        StrengthSetTemplate(index: 1, reps: 8, weight: 185, restSeconds: 120),
+                        StrengthSetTemplate(index: 2, reps: 8, weight: 185, restSeconds: 120),
+                        StrengthSetTemplate(index: 3, reps: 8, weight: 185, restSeconds: 120)
                     ],
                     progressionRule: ProgressionRule(type: .weight, deltaWeight: 2.5)
                 ),
@@ -119,9 +119,9 @@ struct WhiteboardPreview: View {
                     type: .strength,
                     category: .other,
                     strengthSets: [
-                        StrengthSetTemplate(index: 0, reps: 10, restSeconds: 75),
-                        StrengthSetTemplate(index: 1, reps: 10, restSeconds: 75),
-                        StrengthSetTemplate(index: 2, reps: 10, restSeconds: 75)
+                        StrengthSetTemplate(index: 0, reps: 10, weight: 40, restSeconds: 75),
+                        StrengthSetTemplate(index: 1, reps: 10, weight: 40, restSeconds: 75),
+                        StrengthSetTemplate(index: 2, reps: 10, weight: 40, restSeconds: 75)
                     ],
                     progressionRule: ProgressionRule(type: .weight)
                 )
