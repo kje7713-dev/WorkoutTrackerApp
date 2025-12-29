@@ -18,6 +18,7 @@ The subscription unlocks **in-app software tools**, not AI or LLM access:
 2. **JSON Workout Import** - Paste or upload JSON workout plans directly into the app
 3. **AI Prompt Templates** - Copy-paste ready prompts for generating structured workout blocks
 4. **Block Library Management** - Save and organize AI-generated training blocks
+5. **Whiteboard View** - Full-screen whiteboard display for workout blocks with week and day navigation
 
 ### Planned Pro Features (Future Implementation)
 - **Automated Review & Modifications** - Smart suggestions for plan optimization
@@ -64,6 +65,8 @@ Basic app functionality remains free:
 - **HomeView.swift** - Subscription management access
 - **BlockGeneratorView.swift** - Feature gating for AI import
 - **BlocksListView.swift** - Visual indicator on locked features
+- **BlockRunModeView.swift** - Whiteboard view access gating
+- **BlockHistoryListView.swift** - Passes subscription manager to BlockRunModeView
 
 ## Feature Gating
 
