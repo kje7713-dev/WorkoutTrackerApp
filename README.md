@@ -2,6 +2,8 @@
 
 An iOS workout tracking application built with SwiftUI for structured training through block periodization.
 
+> **📖 Looking for the User Guide?** If you want to learn how to **use the app effectively**, see the **[User Guide](USER_GUIDE.md)**. This README is for developers.
+
 ## Overview
 
 WorkoutTrackerApp helps athletes, coaches, and fitness enthusiasts create, manage, and track strength training and conditioning workouts through a structured block periodization model.
@@ -174,14 +176,18 @@ For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) a
 
 ## Documentation
 
-- **[README](README.md)** - This file, project overview
+### For Users
+- **[User Guide](USER_GUIDE.md)** - 📖 **Complete guide on how to use the app effectively**
+
+### For Developers
+- **[README](README.md)** - This file, development setup and technical overview
 - **[CHANGELOG](CHANGELOG.md)** - Version history and release notes
 - **[CONTRIBUTING](CONTRIBUTING.md)** - Contribution guidelines
 - **[SECURITY](SECURITY.md)** - Security policy and reporting
 - **[CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)** - Community guidelines
 - **[LICENSE](LICENSE)** - Proprietary License (versions > v0.9-open)
 
-### Additional Docs
+### Additional Developer Docs
 
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - How to deploy to TestFlight and App Store
 - **[StoreKit Testing Guide](docs/STOREKIT_TESTING_GUIDE.md)** - How to test in-app subscriptions
