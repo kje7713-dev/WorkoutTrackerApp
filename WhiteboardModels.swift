@@ -90,17 +90,20 @@ public struct UnifiedExercise: Codable, Equatable {
 /// Unified strength set
 public struct UnifiedStrengthSet: Codable, Equatable {
     public var reps: Int?
+    public var weight: Double?
     public var restSeconds: Int?
     public var rpe: Double?
     public var notes: String?
     
     public init(
         reps: Int? = nil,
+        weight: Double? = nil,
         restSeconds: Int? = nil,
         rpe: Double? = nil,
         notes: String? = nil
     ) {
         self.reps = reps
+        self.weight = weight
         self.restSeconds = restSeconds
         self.rpe = rpe
         self.notes = notes

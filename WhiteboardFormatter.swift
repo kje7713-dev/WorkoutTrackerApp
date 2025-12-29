@@ -122,7 +122,7 @@ public final class WhiteboardFormatter {
         )
     }
     
-    /// Format strength prescription (sets x reps @ intensity)
+    /// Format strength prescription (sets x reps @ weight/intensity)
     private static func formatStrengthPrescription(_ exercise: UnifiedExercise) -> String? {
         let sets = exercise.strengthSets
         
@@ -144,12 +144,35 @@ public final class WhiteboardFormatter {
             prescription = "\(sets.count) sets"
         }
         
-        // Add intensity cue from notes if present
-        if let notes = exercise.notes, notes.contains("RPE") {
-            return "\(prescription) \(notes)"
+        // Add weight if present (check if any sets have weight)
+        let weightValues = sets.compactMap { $0.weight }
+        var result = prescription
+        
+        if !weightValues.isEmpty {
+            // Check if all weights are the same
+            let uniqueWeights = Set(weightValues)
+            if uniqueWeights.count == 1, let weight = weightValues.first {
+                result += " @ \(formatWeight(weight)) lbs"
+            } else if weightValues.count == sets.count {
+                // All sets have weights but they vary - show breakdown
+                let weightsString = weightValues.map { formatWeight($0) }.joined(separator: "/")
+                result += " @ \(weightsString) lbs"
+            }
         }
         
-        return prescription
+        // Add intensity cue from notes if present
+        if let notes = exercise.notes, notes.contains("RPE") {
+            result += " \(notes)"
+        }
+        
+        return result
+    }
+    
+    /// Format weight value (remove .0 if it's a whole number)
+    private static func formatWeight(_ weight: Double) -> String {
+        return weight.truncatingRemainder(dividingBy: 1) == 0 
+            ? String(format: "%.0f", weight)
+            : String(format: "%.1f", weight)
     }
     
     // MARK: - Conditioning Formatting
