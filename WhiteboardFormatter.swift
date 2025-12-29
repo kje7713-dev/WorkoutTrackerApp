@@ -152,18 +152,10 @@ public final class WhiteboardFormatter {
             // Check if all weights are the same
             let uniqueWeights = Set(weightValues)
             if uniqueWeights.count == 1, let weight = weightValues.first {
-                // Format weight (remove .0 if it's a whole number)
-                let weightString = weight.truncatingRemainder(dividingBy: 1) == 0 
-                    ? String(format: "%.0f", weight)
-                    : String(format: "%.1f", weight)
-                result += " @ \(weightString) lbs"
+                result += " @ \(formatWeight(weight)) lbs"
             } else if weightValues.count == sets.count {
-                // All sets have weights but they vary
-                let weightsString = weightValues.map { weight in
-                    weight.truncatingRemainder(dividingBy: 1) == 0 
-                        ? String(format: "%.0f", weight)
-                        : String(format: "%.1f", weight)
-                }.joined(separator: "/")
+                // All sets have weights but they vary - show breakdown
+                let weightsString = weightValues.map { formatWeight($0) }.joined(separator: "/")
                 result += " @ \(weightsString) lbs"
             }
         }
@@ -174,6 +166,13 @@ public final class WhiteboardFormatter {
         }
         
         return result
+    }
+    
+    /// Format weight value (remove .0 if it's a whole number)
+    private static func formatWeight(_ weight: Double) -> String {
+        return weight.truncatingRemainder(dividingBy: 1) == 0 
+            ? String(format: "%.0f", weight)
+            : String(format: "%.1f", weight)
     }
     
     // MARK: - Conditioning Formatting
