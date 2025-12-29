@@ -23,8 +23,9 @@ struct SubscriptionTests {
         let canImportAIBlock = isSubscribed
         let canUseAdvancedAnalytics = isSubscribed
         let canAccessAdvancedHistory = isSubscribed
+        let canAccessWhiteboard = isSubscribed
         
-        let result = !canImportAIBlock && !canUseAdvancedAnalytics && !canAccessAdvancedHistory
+        let result = !canImportAIBlock && !canUseAdvancedAnalytics && !canAccessAdvancedHistory && !canAccessWhiteboard
         
         print("Free user feature gating: \(result ? "PASS" : "FAIL")")
         return result
@@ -41,8 +42,9 @@ struct SubscriptionTests {
         let canImportAIBlock = isSubscribed
         let canUseAdvancedAnalytics = isSubscribed
         let canAccessAdvancedHistory = isSubscribed
+        let canAccessWhiteboard = isSubscribed
         
-        let result = canImportAIBlock && canUseAdvancedAnalytics && canAccessAdvancedHistory
+        let result = canImportAIBlock && canUseAdvancedAnalytics && canAccessAdvancedHistory && canAccessWhiteboard
         
         print("Subscribed user feature access: \(result ? "PASS" : "FAIL")")
         return result

@@ -212,6 +212,7 @@ struct BlocksListView: View {
                                     .environmentObject(sessionsRepository)
                                     .environmentObject(blocksRepository)
                                     .environmentObject(exerciseLibraryRepository)
+                                    .environmentObject(subscriptionManager)
                             } label: { 
                                 Text("RUN")
                                     .font(.subheadline).bold()

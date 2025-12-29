@@ -32,6 +32,7 @@ struct BlockRunModeView: View {
     
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var sessionsRepository: SessionsRepository
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
 
     @State private var weeks: [RunWeekState] = []
     @State private var currentWeekIndex: Int = 0
@@ -52,6 +53,9 @@ struct BlockRunModeView: View {
     
     // Whiteboard view mode
     @State private var showWhiteboard: Bool = false
+    
+    // Paywall state
+    @State private var showingPaywall: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -128,9 +132,17 @@ struct BlockRunModeView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    showWhiteboard = true
+                    if subscriptionManager.isSubscribed {
+                        showWhiteboard = true
+                    } else {
+                        showingPaywall = true
+                    }
                 } label: {
                     HStack(spacing: 4) {
+                        if !subscriptionManager.isSubscribed {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
                         Image(systemName: "rectangle.and.text.magnifyingglass")
                             .font(.system(size: 17, weight: .semibold))
                         Text("Whiteboard")
@@ -138,7 +150,7 @@ struct BlockRunModeView: View {
                     }
                     .foregroundColor(.accentColor)
                 }
-                .accessibilityLabel("View Whiteboard")
+                .accessibilityLabel(subscriptionManager.isSubscribed ? "View Whiteboard" : "View Whiteboard (Pro Feature)")
                 .accessibilityHint("Open full-screen whiteboard view for current day")
             }
         }
@@ -197,6 +209,10 @@ struct BlockRunModeView: View {
                 weekIndex: currentWeekIndex,
                 dayIndex: currentDayIndex
             )
+        }
+        .sheet(isPresented: $showingPaywall) {
+            PaywallView()
+                .environmentObject(subscriptionManager)
         }
     }
 
