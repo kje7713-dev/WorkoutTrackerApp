@@ -169,11 +169,11 @@ public final class WhiteboardFormatter {
         switch condType.lowercased() {
         case "amrap":
             secondary = formatAMRAP(firstSet)
-            bullets = parseNotesIntoBullets(exercise.notes)
+            bullets = combineNotesIntoBullets(exerciseNotes: exercise.notes, setNotes: firstSet.notes)
             
         case "emom":
             secondary = formatEMOM(firstSet)
-            bullets = parseNotesIntoBullets(exercise.notes)
+            bullets = combineNotesIntoBullets(exerciseNotes: exercise.notes, setNotes: firstSet.notes)
             
         case "intervals":
             secondary = formatIntervals(firstSet)
@@ -181,23 +181,23 @@ public final class WhiteboardFormatter {
             
         case "roundsfortime":
             secondary = formatRoundsForTime(firstSet)
-            bullets = parseNotesIntoBullets(exercise.notes)
+            bullets = combineNotesIntoBullets(exerciseNotes: exercise.notes, setNotes: firstSet.notes)
             
         case "fortime":
             secondary = formatForTime(firstSet)
-            bullets = parseNotesIntoBullets(exercise.notes)
+            bullets = combineNotesIntoBullets(exerciseNotes: exercise.notes, setNotes: firstSet.notes)
             
         case "fordistance":
             secondary = formatForDistance(firstSet)
-            bullets = parseNotesIntoBullets(exercise.notes)
+            bullets = combineNotesIntoBullets(exerciseNotes: exercise.notes, setNotes: firstSet.notes)
             
         case "forcalories":
             secondary = formatForCalories(firstSet)
-            bullets = parseNotesIntoBullets(exercise.notes)
+            bullets = combineNotesIntoBullets(exerciseNotes: exercise.notes, setNotes: firstSet.notes)
             
         default:
             secondary = formatGenericConditioning(firstSet)
-            bullets = parseNotesIntoBullets(exercise.notes)
+            bullets = combineNotesIntoBullets(exerciseNotes: exercise.notes, setNotes: firstSet.notes)
         }
         
         let tertiary = formatRest(firstSet.restSeconds)
@@ -345,6 +345,30 @@ public final class WhiteboardFormatter {
         } else {
             return String(format: "%d:%02d", minutes, secs)
         }
+    }
+    
+    /// Combine exercise-level and set-level notes into bullet points
+    private static func combineNotesIntoBullets(exerciseNotes: String?, setNotes: String?) -> [String] {
+        var bullets: [String] = []
+        
+        // Add exercise-level notes first
+        if let exerciseNotes = exerciseNotes, !exerciseNotes.isEmpty {
+            bullets.append(contentsOf: parseNotesIntoBullets(exerciseNotes))
+        }
+        
+        // Add set-level notes
+        if let setNotes = setNotes, !setNotes.isEmpty {
+            // If set notes are not already parsed as bullets, add them directly
+            let setNotesComponents = setNotes.components(separatedBy: CharacterSet(charactersIn: ",\n;"))
+            for component in setNotesComponents {
+                let trimmed = component.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty && !bullets.contains(trimmed) {
+                    bullets.append(trimmed)
+                }
+            }
+        }
+        
+        return bullets
     }
     
     /// Parse notes into bullet points
