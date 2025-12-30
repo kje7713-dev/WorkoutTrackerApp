@@ -333,6 +333,133 @@ public struct AuthoringDay: Codable {
     public var shortCode: String?
     public var goal: String?
     public var exercises: [AuthoringExercise]
+    public var segments: [AuthoringSegment]?  // Added for non-traditional sessions
+}
+
+/// Authoring schema segment
+public struct AuthoringSegment: Codable {
+    public var name: String
+    public var segmentType: String
+    public var domain: String?
+    public var durationMinutes: Int?
+    public var objective: String?
+    public var constraints: [String]?
+    public var coachingCues: [String]?
+    public var positions: [String]?
+    public var techniques: [AuthoringTechnique]?
+    public var drillPlan: AuthoringDrillPlan?
+    public var partnerPlan: AuthoringPartnerPlan?
+    public var roundPlan: AuthoringRoundPlan?
+    public var roles: AuthoringRoles?
+    public var resistance: Int?
+    public var qualityTargets: AuthoringQualityTargets?
+    public var scoring: AuthoringScoring?
+    public var startPosition: String?
+    public var endCondition: String?
+    public var startingState: AuthoringStartingState?
+    public var holdSeconds: Int?
+    public var breathCount: Int?
+    public var flowSequence: [AuthoringFlowStep]?
+    public var intensityScale: String?
+    public var props: [String]?
+    public var breathwork: AuthoringBreathwork?
+    public var media: AuthoringMedia?
+    public var safety: AuthoringSafety?
+    public var notes: String?
+}
+
+public struct AuthoringTechnique: Codable {
+    public var name: String
+    public var variant: String?
+    public var keyDetails: [String]?
+    public var commonErrors: [String]?
+    public var counters: [String]?
+    public var followUps: [String]?
+}
+
+public struct AuthoringDrillPlan: Codable {
+    public var items: [AuthoringDrillItem]?
+}
+
+public struct AuthoringDrillItem: Codable {
+    public var name: String
+    public var workSeconds: Int
+    public var restSeconds: Int
+    public var notes: String?
+}
+
+public struct AuthoringPartnerPlan: Codable {
+    public var rounds: Int?
+    public var roundDurationSeconds: Int?
+    public var restSeconds: Int?
+    public var roles: AuthoringRoles?
+    public var resistance: Int?
+    public var switchEverySeconds: Int?
+    public var qualityTargets: AuthoringQualityTargets?
+}
+
+public struct AuthoringRoundPlan: Codable {
+    public var rounds: Int?
+    public var roundDurationSeconds: Int?
+    public var restSeconds: Int?
+    public var intensityCue: String?
+    public var resetRule: String?
+    public var startingState: AuthoringStartingState?
+    public var winConditions: [String]?
+}
+
+public struct AuthoringRoles: Codable {
+    public var attackerGoal: String?
+    public var defenderGoal: String?
+    public var resistance: Int?
+    public var switchEverySeconds: Int?
+    public var switchEveryReps: Int?
+}
+
+public struct AuthoringQualityTargets: Codable {
+    public var successRateTarget: Double?
+    public var cleanRepsTarget: Int?
+    public var decisionSpeedSeconds: Double?
+    public var controlTimeSeconds: Int?
+    public var breathControl: String?
+}
+
+public struct AuthoringScoring: Codable {
+    public var attackerScoresIf: [String]?
+    public var defenderScoresIf: [String]?
+}
+
+public struct AuthoringStartingState: Codable {
+    public var grips: [String]?
+    public var roles: [String]?
+}
+
+public struct AuthoringFlowStep: Codable {
+    public var poseName: String
+    public var holdSeconds: Int
+    public var transitionCue: String?
+}
+
+public struct AuthoringBreathwork: Codable {
+    public var style: String?
+    public var pattern: String?
+    public var durationSeconds: Int?
+}
+
+public struct AuthoringMedia: Codable {
+    public var videoUrl: String?
+    public var imageUrl: String?
+    public var diagramAssetId: String?
+    public var coachNotesMarkdown: String?
+    public var commonFaults: [String]?
+    public var keyCues: [String]?
+    public var checkpoints: [String]?
+}
+
+public struct AuthoringSafety: Codable {
+    public var contraindications: [String]?
+    public var stopIf: [String]?
+    public var intensityCeiling: String?
 }
 
 /// Authoring schema block (top-level JSON)

@@ -53,10 +53,76 @@ public final class BlockNormalizer {
     
     /// Normalize a DayTemplate into UnifiedDay
     private static func normalizeDay(_ day: DayTemplate) -> UnifiedDay {
+        let exercises = day.exercises.map { normalizeExercise($0) }
+        let segments = day.segments?.map { normalizeSegment($0) } ?? []
+        
         return UnifiedDay(
             name: day.name,
             goal: day.goal?.rawValue,
-            exercises: day.exercises.map { normalizeExercise($0) }
+            exercises: exercises,
+            segments: segments
+        )
+    }
+    
+    /// Normalize a Segment into UnifiedSegment
+    private static func normalizeSegment(_ segment: Segment) -> UnifiedSegment {
+        // Extract drill items if present
+        let drillItems = segment.drillPlan?.items.map { item in
+            UnifiedDrillItem(
+                name: item.name,
+                workSeconds: item.workSeconds,
+                restSeconds: item.restSeconds,
+                notes: item.notes
+            )
+        } ?? []
+        
+        // Extract techniques
+        let techniques = segment.techniques.map { tech in
+            UnifiedTechnique(
+                name: tech.name,
+                variant: tech.variant,
+                keyDetails: tech.keyDetails,
+                commonErrors: tech.commonErrors
+            )
+        }
+        
+        // Extract scoring information
+        var scoringStrings: [String] = []
+        if let scoring = segment.scoring {
+            scoringStrings.append(contentsOf: scoring.attackerScoresIf.map { "Attacker: \($0)" })
+            scoringStrings.append(contentsOf: scoring.defenderScoresIf.map { "Defender: \($0)" })
+        }
+        
+        // Build unified segment
+        return UnifiedSegment(
+            name: segment.name,
+            segmentType: segment.segmentType.rawValue,
+            domain: segment.domain?.rawValue,
+            durationMinutes: segment.durationMinutes,
+            objective: segment.objective,
+            constraints: segment.constraints,
+            coachingCues: segment.coachingCues,
+            positions: segment.positions,
+            techniques: techniques,
+            rounds: segment.roundPlan?.rounds ?? segment.partnerPlan?.rounds,
+            roundDurationSeconds: segment.roundPlan?.roundDurationSeconds ?? segment.partnerPlan?.roundDurationSeconds,
+            restSeconds: segment.roundPlan?.restSeconds ?? segment.partnerPlan?.restSeconds,
+            workSeconds: nil,
+            resistance: segment.resistance ?? segment.partnerPlan?.resistance,
+            attackerGoal: segment.roles?.attackerGoal ?? segment.partnerPlan?.roles?.attackerGoal,
+            defenderGoal: segment.roles?.defenderGoal ?? segment.partnerPlan?.roles?.defenderGoal,
+            successRateTarget: segment.qualityTargets?.successRateTarget ?? segment.partnerPlan?.qualityTargets?.successRateTarget,
+            cleanRepsTarget: segment.qualityTargets?.cleanRepsTarget ?? segment.partnerPlan?.qualityTargets?.cleanRepsTarget,
+            startPosition: segment.startPosition,
+            scoring: scoringStrings,
+            breathworkStyle: segment.breathwork?.style,
+            breathworkPattern: segment.breathwork?.pattern,
+            holdSeconds: segment.holdSeconds,
+            intensityScale: segment.intensityScale?.rawValue,
+            props: segment.props,
+            notes: segment.notes,
+            contraindications: segment.safety?.contraindications ?? [],
+            drillItems: drillItems
         )
     }
     
@@ -140,10 +206,75 @@ public final class BlockNormalizer {
     
     /// Normalize an authoring day
     private static func normalizeAuthoringDay(_ day: AuthoringDay) -> UnifiedDay {
+        let exercises = day.exercises.map { normalizeAuthoringExercise($0) }
+        let segments = day.segments?.map { normalizeAuthoringSegment($0) } ?? []
+        
         return UnifiedDay(
             name: day.name,
             goal: day.goal,
-            exercises: day.exercises.map { normalizeAuthoringExercise($0) }
+            exercises: exercises,
+            segments: segments
+        )
+    }
+    
+    /// Normalize an authoring segment
+    private static func normalizeAuthoringSegment(_ segment: AuthoringSegment) -> UnifiedSegment {
+        // Extract drill items
+        let drillItems = segment.drillPlan?.items?.map { item in
+            UnifiedDrillItem(
+                name: item.name,
+                workSeconds: item.workSeconds,
+                restSeconds: item.restSeconds,
+                notes: item.notes
+            )
+        } ?? []
+        
+        // Extract techniques
+        let techniques = segment.techniques?.map { tech in
+            UnifiedTechnique(
+                name: tech.name,
+                variant: tech.variant,
+                keyDetails: tech.keyDetails ?? [],
+                commonErrors: tech.commonErrors ?? []
+            )
+        } ?? []
+        
+        // Extract scoring
+        var scoringStrings: [String] = []
+        if let scoring = segment.scoring {
+            scoringStrings.append(contentsOf: (scoring.attackerScoresIf ?? []).map { "Attacker: \($0)" })
+            scoringStrings.append(contentsOf: (scoring.defenderScoresIf ?? []).map { "Defender: \($0)" })
+        }
+        
+        return UnifiedSegment(
+            name: segment.name,
+            segmentType: segment.segmentType,
+            domain: segment.domain,
+            durationMinutes: segment.durationMinutes,
+            objective: segment.objective,
+            constraints: segment.constraints ?? [],
+            coachingCues: segment.coachingCues ?? [],
+            positions: segment.positions ?? [],
+            techniques: techniques,
+            rounds: segment.roundPlan?.rounds ?? segment.partnerPlan?.rounds,
+            roundDurationSeconds: segment.roundPlan?.roundDurationSeconds ?? segment.partnerPlan?.roundDurationSeconds,
+            restSeconds: segment.roundPlan?.restSeconds ?? segment.partnerPlan?.restSeconds,
+            workSeconds: nil,
+            resistance: segment.resistance ?? segment.partnerPlan?.resistance ?? segment.roles?.resistance,
+            attackerGoal: segment.roles?.attackerGoal ?? segment.partnerPlan?.roles?.attackerGoal,
+            defenderGoal: segment.roles?.defenderGoal ?? segment.partnerPlan?.roles?.defenderGoal,
+            successRateTarget: segment.qualityTargets?.successRateTarget ?? segment.partnerPlan?.qualityTargets?.successRateTarget,
+            cleanRepsTarget: segment.qualityTargets?.cleanRepsTarget ?? segment.partnerPlan?.qualityTargets?.cleanRepsTarget,
+            startPosition: segment.startPosition,
+            scoring: scoringStrings,
+            breathworkStyle: segment.breathwork?.style,
+            breathworkPattern: segment.breathwork?.pattern,
+            holdSeconds: segment.holdSeconds,
+            intensityScale: segment.intensityScale,
+            props: segment.props ?? [],
+            notes: segment.notes,
+            contraindications: segment.safety?.contraindications ?? [],
+            drillItems: drillItems
         )
     }
     
