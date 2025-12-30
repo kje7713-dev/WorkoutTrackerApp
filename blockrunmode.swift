@@ -586,11 +586,30 @@ struct BlockRunModeView: View {
                         setGroupId: exercise.setGroupId
                     )
                 }
+                
+                // Build segment states if segments are present
+                let segmentStates: [RunSegmentState]? = day.segments?.map { segment in
+                    let drillItemNames = segment.drillPlan?.items.map { $0.name } ?? []
+                    
+                    return RunSegmentState(
+                        segmentId: segment.id,
+                        name: segment.name,
+                        segmentType: segment.segmentType,
+                        durationMinutes: segment.durationMinutes,
+                        objective: segment.objective,
+                        notes: segment.notes,
+                        totalRounds: segment.roundPlan?.rounds ?? segment.partnerPlan?.rounds,
+                        roundDurationSeconds: segment.roundPlan?.roundDurationSeconds ?? segment.partnerPlan?.roundDurationSeconds,
+                        restSeconds: segment.roundPlan?.restSeconds ?? segment.partnerPlan?.restSeconds,
+                        drillItems: drillItemNames
+                    )
+                }
 
                 return RunDayState(
                     name: day.name,
                     shortCode: day.shortCode ?? "",
-                    exercises: exerciseStates
+                    exercises: exerciseStates,
+                    segments: segmentStates
                 )
             }
 
@@ -709,6 +728,18 @@ struct DayRunView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                // Render segments if present
+                if let segments = day.segments, !segments.isEmpty {
+                    ForEach(bindingsForSegments(segments)) { $segment in
+                        SegmentRunCard(segment: $segment, onSave: onSave)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(.systemBackground))
+                                    .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                            )
+                    }
+                }
+                
                 // Group exercises by setGroupId and render them
                 let groups = groupExercises(day.exercises)
                 
@@ -765,6 +796,15 @@ struct DayRunView: View {
     }
     
     // MARK: - Helper Functions
+    
+    private func bindingsForSegments(_ segments: [RunSegmentState]) -> [Binding<RunSegmentState>] {
+        segments.indices.map { index in
+            Binding(
+                get: { day.segments![index] },
+                set: { day.segments![index] = $0; onSave() }
+            )
+        }
+    }
     
     private func addExercise(type: ExerciseType, name: String) {
         let newExercise = RunExerciseState(
@@ -1653,8 +1693,15 @@ struct RunWeekState: Identifiable, Codable {
 
     var isCompleted: Bool {
         for day in days {
+            // Check exercises
             for exercise in day.exercises {
                 if exercise.sets.contains(where: { !$0.isCompleted }) {
+                    return false
+                }
+            }
+            // Check segments
+            if let segments = day.segments {
+                if segments.contains(where: { !$0.isCompleted }) {
                     return false
                 }
             }
@@ -1668,6 +1715,7 @@ struct RunDayState: Identifiable, Codable{
     let name: String
     let shortCode: String
     var exercises: [RunExerciseState]
+    var segments: [RunSegmentState]?  // Added for segment-based days
 }
 
 struct RunExerciseState: Identifiable, Codable {
@@ -1758,6 +1806,65 @@ struct RunSetState: Identifiable, Codable {
         self.notes = notes
         self.isCompleted = isCompleted
         self.completedAt = completedAt
+    }
+}
+
+// MARK: - Segment Run State
+
+struct RunSegmentState: Identifiable, Codable {
+    var id = UUID()
+    let segmentId: SegmentID?
+    let name: String
+    let segmentType: SegmentType
+    let durationMinutes: Int?
+    let objective: String?
+    let notes: String?
+    
+    // Round tracking
+    let totalRounds: Int?
+    let roundDurationSeconds: Int?
+    let restSeconds: Int?
+    var currentRound: Int = 0
+    var completedRounds: Int = 0
+    
+    // Drill tracking
+    let drillItems: [String]  // Simplified drill item names
+    var currentDrillIndex: Int = 0
+    
+    // Quality tracking
+    var successfulReps: Int = 0
+    var totalAttempts: Int = 0
+    var notes_logged: String = ""
+    
+    // Timing
+    var startTime: Date?
+    var endTime: Date?
+    var isCompleted: Bool = false
+    
+    init(
+        segmentId: SegmentID? = nil,
+        name: String,
+        segmentType: SegmentType,
+        durationMinutes: Int? = nil,
+        objective: String? = nil,
+        notes: String? = nil,
+        totalRounds: Int? = nil,
+        roundDurationSeconds: Int? = nil,
+        restSeconds: Int? = nil,
+        drillItems: [String] = [],
+        isCompleted: Bool = false
+    ) {
+        self.segmentId = segmentId
+        self.name = name
+        self.segmentType = segmentType
+        self.durationMinutes = durationMinutes
+        self.objective = objective
+        self.notes = notes
+        self.totalRounds = totalRounds
+        self.roundDurationSeconds = roundDurationSeconds
+        self.restSeconds = restSeconds
+        self.drillItems = drillItems
+        self.isCompleted = isCompleted
     }
 }
 
@@ -1914,6 +2021,266 @@ struct AddExerciseSheet: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Segment Run Card
+
+struct SegmentRunCard: View {
+    @Binding var segment: RunSegmentState
+    let onSave: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header with segment name and type
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(segment.name)
+                        .font(.headline)
+                        .fontWeight(.bold)
+                    
+                    HStack(spacing: 8) {
+                        // Segment type badge
+                        Text(segment.segmentType.rawValue.uppercased())
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(segmentTypeColor())
+                            )
+                            .foregroundColor(.white)
+                        
+                        // Duration if present
+                        if let duration = segment.durationMinutes {
+                            Text("\(duration) min")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                // Completion checkbox
+                Button {
+                    segment.isCompleted.toggle()
+                    if segment.isCompleted {
+                        segment.endTime = Date()
+                        if segment.startTime == nil {
+                            segment.startTime = Date()
+                        }
+                    } else {
+                        segment.endTime = nil
+                    }
+                    onSave()
+                } label: {
+                    Image(systemName: segment.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .font(.title2)
+                        .foregroundColor(segment.isCompleted ? .green : .gray)
+                }
+            }
+            
+            // Objective if present
+            if let objective = segment.objective {
+                Text("Objective: \(objective)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 4)
+            }
+            
+            // Round tracking if present
+            if let totalRounds = segment.totalRounds {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rounds: \(segment.completedRounds) / \(totalRounds)")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    if let roundDuration = segment.roundDurationSeconds {
+                        Text("Round Duration: \(TimeFormatter.formatTime(roundDuration))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // Round controls
+                    HStack(spacing: 12) {
+                        Button {
+                            if segment.completedRounds > 0 {
+                                segment.completedRounds -= 1
+                                onSave()
+                            }
+                        } label: {
+                            Image(systemName: "minus.circle")
+                                .font(.title3)
+                        }
+                        .disabled(segment.completedRounds == 0)
+                        
+                        Button {
+                            if segment.completedRounds < totalRounds {
+                                segment.completedRounds += 1
+                                onSave()
+                            }
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title3)
+                        }
+                        .disabled(segment.completedRounds >= totalRounds)
+                    }
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.systemGray6))
+                )
+            }
+            
+            // Quality tracking
+            if segment.totalAttempts > 0 || segment.successfulReps > 0 {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Quality Tracking")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    HStack(spacing: 16) {
+                        // Successful reps
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Clean Reps")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            HStack(spacing: 8) {
+                                Button {
+                                    if segment.successfulReps > 0 {
+                                        segment.successfulReps -= 1
+                                        onSave()
+                                    }
+                                } label: {
+                                    Image(systemName: "minus.circle")
+                                }
+                                
+                                Text("\(segment.successfulReps)")
+                                    .font(.headline)
+                                    .frame(minWidth: 30)
+                                
+                                Button {
+                                    segment.successfulReps += 1
+                                    onSave()
+                                } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                }
+                            }
+                        }
+                        
+                        // Total attempts
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Total Attempts")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            HStack(spacing: 8) {
+                                Button {
+                                    if segment.totalAttempts > 0 {
+                                        segment.totalAttempts -= 1
+                                        onSave()
+                                    }
+                                } label: {
+                                    Image(systemName: "minus.circle")
+                                }
+                                
+                                Text("\(segment.totalAttempts)")
+                                    .font(.headline)
+                                    .frame(minWidth: 30)
+                                
+                                Button {
+                                    segment.totalAttempts += 1
+                                    onSave()
+                                } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Success rate
+                    if segment.totalAttempts > 0 {
+                        let successRate = Double(segment.successfulReps) / Double(segment.totalAttempts)
+                        Text("Success Rate: \(Int(successRate * 100))%")
+                            .font(.caption)
+                            .foregroundColor(successRate >= 0.7 ? .green : .secondary)
+                    }
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.systemGray6))
+                )
+            }
+            
+            // Drill items if present
+            if !segment.drillItems.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Drills")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    ForEach(Array(segment.drillItems.enumerated()), id: \.offset) { index, drillName in
+                        HStack {
+                            Image(systemName: segment.currentDrillIndex > index ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(segment.currentDrillIndex > index ? .green : .gray)
+                            Text(drillName)
+                                .font(.subheadline)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if segment.currentDrillIndex == index {
+                                segment.currentDrillIndex = index + 1
+                            } else if segment.currentDrillIndex > index {
+                                segment.currentDrillIndex = index
+                            }
+                            onSave()
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color(.systemGray6))
+                )
+            }
+            
+            // Notes if present
+            if let notes = segment.notes, !notes.isEmpty {
+                Text(notes)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.vertical, 4)
+            }
+        }
+        .padding()
+    }
+    
+    private func segmentTypeColor() -> Color {
+        switch segment.segmentType {
+        case .warmup, .mobility:
+            return Color.orange
+        case .technique:
+            return Color.blue
+        case .drill:
+            return Color.purple
+        case .positionalSpar, .rolling:
+            return Color.red
+        case .cooldown, .breathwork:
+            return Color.green
+        case .lecture:
+            return Color.gray
+        case .other:
+            return Color.secondary
+        }
     }
 }
 

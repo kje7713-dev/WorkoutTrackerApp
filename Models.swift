@@ -37,6 +37,7 @@ public enum ProgressionType: String, Codable {
     case weight
     case volume
     case custom
+    case skill  // For quality-based progression
 }
 
 // MARK: - Training Metadata Enums
@@ -102,6 +103,336 @@ public enum SetGroupKind: String, Codable {
     case amrap
 }
 
+// MARK: - Non-Traditional Session Enums
+
+/// Type of class segment for structured sessions (BJJ, yoga, etc.)
+public enum SegmentType: String, Codable {
+    case warmup
+    case mobility
+    case technique
+    case drill
+    case positionalSpar
+    case rolling
+    case cooldown
+    case lecture
+    case breathwork
+    case other
+}
+
+/// Training domain classification
+public enum Domain: String, Codable {
+    case grappling
+    case yoga
+    case strength
+    case conditioning
+    case mobility
+    case other
+}
+
+/// Specific discipline tags
+public enum Discipline: String, Codable {
+    case bjj
+    case nogi
+    case wrestling
+    case judo
+    case yoga
+    case mobility
+    case breathwork
+    case mma
+}
+
+/// Resistance level for partner drills
+public enum ResistanceLevel: String, Codable {
+    case compliant = "0"
+    case light = "25"
+    case moderate = "50"
+    case hard = "75"
+    case live = "100"
+}
+
+/// Intensity scale for yoga and mobility
+public enum IntensityScale: String, Codable {
+    case restorative
+    case easy
+    case moderate
+    case strong
+    case peak
+}
+
+/// Competition ruleset
+public enum Ruleset: String, Codable {
+    case ibjjf = "IBJJF"
+    case adcc = "ADCC"
+    case uww = "UWW"
+    case custom
+}
+
+/// Training attire
+public enum Attire: String, Codable {
+    case gi
+    case nogi
+    case either
+}
+
+/// Class type classification
+public enum ClassType: String, Codable {
+    case fundamentals
+    case advanced
+    case competition
+    case openMat
+    case seminar
+}
+
+// MARK: - Non-Traditional Session Support Structures
+
+/// Technique details for grappling/martial arts
+public struct Technique: Codable, Equatable {
+    public var name: String
+    public var variant: String?
+    public var keyDetails: [String]
+    public var commonErrors: [String]
+    public var counters: [String]
+    public var followUps: [String]
+    
+    public init(
+        name: String,
+        variant: String? = nil,
+        keyDetails: [String] = [],
+        commonErrors: [String] = [],
+        counters: [String] = [],
+        followUps: [String] = []
+    ) {
+        self.name = name
+        self.variant = variant
+        self.keyDetails = keyDetails
+        self.commonErrors = commonErrors
+        self.counters = counters
+        self.followUps = followUps
+    }
+}
+
+/// Round structure for sparring/drills
+public struct RoundPlan: Codable, Equatable {
+    public var rounds: Int
+    public var roundDurationSeconds: Int
+    public var restSeconds: Int
+    public var intensityCue: String?
+    public var resetRule: String?
+    public var startingState: StartingState?
+    public var winConditions: [String]
+    
+    public init(
+        rounds: Int,
+        roundDurationSeconds: Int,
+        restSeconds: Int,
+        intensityCue: String? = nil,
+        resetRule: String? = nil,
+        startingState: StartingState? = nil,
+        winConditions: [String] = []
+    ) {
+        self.rounds = rounds
+        self.roundDurationSeconds = roundDurationSeconds
+        self.restSeconds = restSeconds
+        self.intensityCue = intensityCue
+        self.resetRule = resetRule
+        self.startingState = startingState
+        self.winConditions = winConditions
+    }
+}
+
+/// Starting state for positional work
+public struct StartingState: Codable, Equatable {
+    public var grips: [String]
+    public var roles: [String]
+    
+    public init(grips: [String] = [], roles: [String] = []) {
+        self.grips = grips
+        self.roles = roles
+    }
+}
+
+/// Roles for partner drills
+public struct Roles: Codable, Equatable {
+    public var attackerGoal: String?
+    public var defenderGoal: String?
+    public var resistance: Int  // 0-100
+    public var switchEverySeconds: Int?
+    public var switchEveryReps: Int?
+    
+    public init(
+        attackerGoal: String? = nil,
+        defenderGoal: String? = nil,
+        resistance: Int = 0,
+        switchEverySeconds: Int? = nil,
+        switchEveryReps: Int? = nil
+    ) {
+        self.attackerGoal = attackerGoal
+        self.defenderGoal = defenderGoal
+        self.resistance = resistance
+        self.switchEverySeconds = switchEverySeconds
+        self.switchEveryReps = switchEveryReps
+    }
+}
+
+/// Quality metrics for skill-based training
+public struct QualityTargets: Codable, Equatable {
+    public var successRateTarget: Double?
+    public var cleanRepsTarget: Int?
+    public var decisionSpeedSeconds: Double?
+    public var controlTimeSeconds: Int?
+    public var breathControl: String?
+    
+    public init(
+        successRateTarget: Double? = nil,
+        cleanRepsTarget: Int? = nil,
+        decisionSpeedSeconds: Double? = nil,
+        controlTimeSeconds: Int? = nil,
+        breathControl: String? = nil
+    ) {
+        self.successRateTarget = successRateTarget
+        self.cleanRepsTarget = cleanRepsTarget
+        self.decisionSpeedSeconds = decisionSpeedSeconds
+        self.controlTimeSeconds = controlTimeSeconds
+        self.breathControl = breathControl
+    }
+}
+
+/// Safety information and contraindications
+public struct Safety: Codable, Equatable {
+    public var contraindications: [String]
+    public var stopIf: [String]
+    public var intensityCeiling: String?
+    
+    public init(
+        contraindications: [String] = [],
+        stopIf: [String] = [],
+        intensityCeiling: String? = nil
+    ) {
+        self.contraindications = contraindications
+        self.stopIf = stopIf
+        self.intensityCeiling = intensityCeiling
+    }
+}
+
+/// Breathwork pattern
+public struct BreathworkPlan: Codable, Equatable {
+    public var style: String
+    public var pattern: String
+    public var durationSeconds: Int
+    
+    public init(style: String, pattern: String, durationSeconds: Int) {
+        self.style = style
+        self.pattern = pattern
+        self.durationSeconds = durationSeconds
+    }
+}
+
+/// Media and coaching support
+public struct Media: Codable, Equatable {
+    public var videoUrl: String?
+    public var imageUrl: String?
+    public var diagramAssetId: String?
+    public var coachNotesMarkdown: String?
+    public var commonFaults: [String]
+    public var keyCues: [String]
+    public var checkpoints: [String]
+    
+    public init(
+        videoUrl: String? = nil,
+        imageUrl: String? = nil,
+        diagramAssetId: String? = nil,
+        coachNotesMarkdown: String? = nil,
+        commonFaults: [String] = [],
+        keyCues: [String] = [],
+        checkpoints: [String] = []
+    ) {
+        self.videoUrl = videoUrl
+        self.imageUrl = imageUrl
+        self.diagramAssetId = diagramAssetId
+        self.coachNotesMarkdown = coachNotesMarkdown
+        self.commonFaults = commonFaults
+        self.keyCues = keyCues
+        self.checkpoints = checkpoints
+    }
+}
+
+/// Drill item for warmup sequences
+public struct DrillItem: Codable, Equatable {
+    public var name: String
+    public var workSeconds: Int
+    public var restSeconds: Int
+    public var notes: String?
+    
+    public init(name: String, workSeconds: Int, restSeconds: Int, notes: String? = nil) {
+        self.name = name
+        self.workSeconds = workSeconds
+        self.restSeconds = restSeconds
+        self.notes = notes
+    }
+}
+
+/// Drill plan container
+public struct DrillPlan: Codable, Equatable {
+    public var items: [DrillItem]
+    
+    public init(items: [DrillItem] = []) {
+        self.items = items
+    }
+}
+
+/// Partner drill plan
+public struct PartnerPlan: Codable, Equatable {
+    public var rounds: Int
+    public var roundDurationSeconds: Int
+    public var restSeconds: Int
+    public var roles: Roles?
+    public var resistance: Int  // 0-100
+    public var switchEverySeconds: Int?
+    public var qualityTargets: QualityTargets?
+    
+    public init(
+        rounds: Int,
+        roundDurationSeconds: Int,
+        restSeconds: Int,
+        roles: Roles? = nil,
+        resistance: Int = 0,
+        switchEverySeconds: Int? = nil,
+        qualityTargets: QualityTargets? = nil
+    ) {
+        self.rounds = rounds
+        self.roundDurationSeconds = roundDurationSeconds
+        self.restSeconds = restSeconds
+        self.roles = roles
+        self.resistance = resistance
+        self.switchEverySeconds = switchEverySeconds
+        self.qualityTargets = qualityTargets
+    }
+}
+
+/// Scoring conditions for positional sparring
+public struct Scoring: Codable, Equatable {
+    public var attackerScoresIf: [String]
+    public var defenderScoresIf: [String]
+    
+    public init(attackerScoresIf: [String] = [], defenderScoresIf: [String] = []) {
+        self.attackerScoresIf = attackerScoresIf
+        self.defenderScoresIf = defenderScoresIf
+    }
+}
+
+/// Flow sequence step for yoga
+public struct FlowStep: Codable, Equatable {
+    public var poseName: String
+    public var holdSeconds: Int
+    public var transitionCue: String?
+    
+    public init(poseName: String, holdSeconds: Int, transitionCue: String? = nil) {
+        self.poseName = poseName
+        self.holdSeconds = holdSeconds
+        self.transitionCue = transitionCue
+    }
+}
+
 // MARK: - Exercise Definition (Global Library)
 
 public struct ExerciseDefinition: Identifiable, Codable, Equatable {
@@ -149,6 +480,13 @@ public struct Block: Identifiable, Codable, Equatable {
     public var aiMetadata: AIMetadata?
     public var isArchived: Bool
     public var isActive: Bool
+    
+    // Non-traditional session metadata
+    public var tags: [String]?
+    public var disciplines: [Discipline]?
+    public var ruleset: Ruleset?
+    public var attire: Attire?
+    public var classType: ClassType?
 
     public init(
         id: BlockID = BlockID(),
@@ -161,7 +499,12 @@ public struct Block: Identifiable, Codable, Equatable {
         source: BlockSource = .user,
         aiMetadata: AIMetadata? = nil,
         isArchived: Bool = false,
-        isActive: Bool = false
+        isActive: Bool = false,
+        tags: [String]? = nil,
+        disciplines: [Discipline]? = nil,
+        ruleset: Ruleset? = nil,
+        attire: Attire? = nil,
+        classType: ClassType? = nil
     ) {
         self.id = id
         self.name = name
@@ -174,6 +517,126 @@ public struct Block: Identifiable, Codable, Equatable {
         self.aiMetadata = aiMetadata
         self.isArchived = isArchived
         self.isActive = isActive
+        self.tags = tags
+        self.disciplines = disciplines
+        self.ruleset = ruleset
+        self.attire = attire
+        self.classType = classType
+    }
+}
+
+// MARK: - Segment (Non-Traditional Session Unit)
+
+public typealias SegmentID = UUID
+
+public struct Segment: Identifiable, Codable, Equatable {
+    public var id: SegmentID
+    public var name: String
+    public var segmentType: SegmentType
+    public var domain: Domain?
+    public var durationMinutes: Int?
+    public var objective: String?
+    public var constraints: [String]
+    public var coachingCues: [String]
+    
+    // Position and technique taxonomy
+    public var positions: [String]
+    public var techniques: [Technique]
+    
+    // Round structures
+    public var roundPlan: RoundPlan?
+    public var drillPlan: DrillPlan?
+    public var partnerPlan: PartnerPlan?
+    
+    // Roles and resistance
+    public var roles: Roles?
+    public var resistance: Int?  // 0-100
+    
+    // Quality metrics
+    public var qualityTargets: QualityTargets?
+    
+    // Scoring (for positional sparring)
+    public var scoring: Scoring?
+    public var startPosition: String?
+    public var endCondition: String?
+    public var startingState: StartingState?
+    
+    // Yoga/Mobility specific
+    public var holdSeconds: Int?
+    public var breathCount: Int?
+    public var flowSequence: [FlowStep]
+    public var intensityScale: IntensityScale?
+    public var props: [String]
+    
+    // Breathwork
+    public var breathwork: BreathworkPlan?
+    
+    // Media and safety
+    public var media: Media?
+    public var safety: Safety?
+    
+    public var notes: String?
+    
+    public init(
+        id: SegmentID = SegmentID(),
+        name: String,
+        segmentType: SegmentType,
+        domain: Domain? = nil,
+        durationMinutes: Int? = nil,
+        objective: String? = nil,
+        constraints: [String] = [],
+        coachingCues: [String] = [],
+        positions: [String] = [],
+        techniques: [Technique] = [],
+        roundPlan: RoundPlan? = nil,
+        drillPlan: DrillPlan? = nil,
+        partnerPlan: PartnerPlan? = nil,
+        roles: Roles? = nil,
+        resistance: Int? = nil,
+        qualityTargets: QualityTargets? = nil,
+        scoring: Scoring? = nil,
+        startPosition: String? = nil,
+        endCondition: String? = nil,
+        startingState: StartingState? = nil,
+        holdSeconds: Int? = nil,
+        breathCount: Int? = nil,
+        flowSequence: [FlowStep] = [],
+        intensityScale: IntensityScale? = nil,
+        props: [String] = [],
+        breathwork: BreathworkPlan? = nil,
+        media: Media? = nil,
+        safety: Safety? = nil,
+        notes: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.segmentType = segmentType
+        self.domain = domain
+        self.durationMinutes = durationMinutes
+        self.objective = objective
+        self.constraints = constraints
+        self.coachingCues = coachingCues
+        self.positions = positions
+        self.techniques = techniques
+        self.roundPlan = roundPlan
+        self.drillPlan = drillPlan
+        self.partnerPlan = partnerPlan
+        self.roles = roles
+        self.resistance = resistance
+        self.qualityTargets = qualityTargets
+        self.scoring = scoring
+        self.startPosition = startPosition
+        self.endCondition = endCondition
+        self.startingState = startingState
+        self.holdSeconds = holdSeconds
+        self.breathCount = breathCount
+        self.flowSequence = flowSequence
+        self.intensityScale = intensityScale
+        self.props = props
+        self.breathwork = breathwork
+        self.media = media
+        self.safety = safety
+        self.notes = notes
     }
 }
 
@@ -186,6 +649,11 @@ public struct DayTemplate: Identifiable, Codable, Equatable {
     public var goal: TrainingGoal?
     public var notes: String?
     public var exercises: [ExerciseTemplate]
+    
+    /// Optional segments for non-traditional sessions (BJJ, yoga, etc.)
+    /// When segments are present, they represent the primary structure of the day
+    /// Can coexist with exercises for hybrid sessions
+    public var segments: [Segment]?
 
     public init(
         id: DayTemplateID = DayTemplateID(),
@@ -193,7 +661,8 @@ public struct DayTemplate: Identifiable, Codable, Equatable {
         shortCode: String? = nil,
         goal: TrainingGoal? = nil,
         notes: String? = nil,
-        exercises: [ExerciseTemplate] = []
+        exercises: [ExerciseTemplate] = [],
+        segments: [Segment]? = nil
     ) {
         self.id = id
         self.name = name
@@ -201,6 +670,7 @@ public struct DayTemplate: Identifiable, Codable, Equatable {
         self.goal = goal
         self.notes = notes
         self.exercises = exercises
+        self.segments = segments
     }
 }
 
@@ -408,23 +878,98 @@ public struct ProgressionRule: Codable, Equatable {
     public var deltaSets: Int?
     public var deloadWeekIndexes: [Int]? // e.g. [4] for week 4 deload
     public var customParams: [String: String]?
+    
+    // Skill-based progression parameters
+    public var deltaResistance: Int?  // Change in resistance level (0-100)
+    public var deltaRounds: Int?      // Change in number of rounds
+    public var deltaConstraints: [String]?  // Progressive constraint tightening
 
     public init(
         type: ProgressionType,
         deltaWeight: Double? = nil,
         deltaSets: Int? = nil,
         deloadWeekIndexes: [Int]? = nil,
-        customParams: [String: String]? = nil
+        customParams: [String: String]? = nil,
+        deltaResistance: Int? = nil,
+        deltaRounds: Int? = nil,
+        deltaConstraints: [String]? = nil
     ) {
         self.type = type
         self.deltaWeight = deltaWeight
         self.deltaSets = deltaSets
         self.deloadWeekIndexes = deloadWeekIndexes
         self.customParams = customParams
+        self.deltaResistance = deltaResistance
+        self.deltaRounds = deltaRounds
+        self.deltaConstraints = deltaConstraints
     }
 }
 
 // MARK: - Live Workout Session Models
+
+/// Session segment for live tracking of non-traditional session units
+public struct SessionSegment: Identifiable, Codable, Equatable {
+    public var id: UUID
+    public var segmentId: SegmentID?
+    public var name: String
+    public var segmentType: SegmentType
+    
+    // Logged data
+    public var startTime: Date?
+    public var endTime: Date?
+    public var isCompleted: Bool
+    public var actualDurationMinutes: Int?
+    
+    // Quality metrics logged
+    public var successRate: Double?
+    public var cleanReps: Int?
+    public var decisionSpeed: Double?
+    public var controlTime: Int?
+    
+    // Round/drill tracking
+    public var roundsCompleted: Int?
+    public var drillItemsCompleted: Int?
+    
+    // Notes and feedback
+    public var notes: String?
+    public var coachFeedback: String?
+    
+    public init(
+        id: UUID = UUID(),
+        segmentId: SegmentID? = nil,
+        name: String,
+        segmentType: SegmentType,
+        startTime: Date? = nil,
+        endTime: Date? = nil,
+        isCompleted: Bool = false,
+        actualDurationMinutes: Int? = nil,
+        successRate: Double? = nil,
+        cleanReps: Int? = nil,
+        decisionSpeed: Double? = nil,
+        controlTime: Int? = nil,
+        roundsCompleted: Int? = nil,
+        drillItemsCompleted: Int? = nil,
+        notes: String? = nil,
+        coachFeedback: String? = nil
+    ) {
+        self.id = id
+        self.segmentId = segmentId
+        self.name = name
+        self.segmentType = segmentType
+        self.startTime = startTime
+        self.endTime = endTime
+        self.isCompleted = isCompleted
+        self.actualDurationMinutes = actualDurationMinutes
+        self.successRate = successRate
+        self.cleanReps = cleanReps
+        self.decisionSpeed = decisionSpeed
+        self.controlTime = controlTime
+        self.roundsCompleted = roundsCompleted
+        self.drillItemsCompleted = drillItemsCompleted
+        self.notes = notes
+        self.coachFeedback = coachFeedback
+    }
+}
 
 public struct WorkoutSession: Identifiable, Codable, Equatable {
     public var id: WorkoutSessionID
@@ -434,6 +979,10 @@ public struct WorkoutSession: Identifiable, Codable, Equatable {
     public var date: Date?
     public var status: SessionStatus
     public var exercises: [SessionExercise]
+    
+    /// Optional segments for non-traditional sessions
+    /// When present, represents the segment-based structure of the session
+    public var segments: [SessionSegment]?
 
     public init(
         id: WorkoutSessionID = WorkoutSessionID(),
@@ -442,7 +991,8 @@ public struct WorkoutSession: Identifiable, Codable, Equatable {
         dayTemplateId: DayTemplateID,
         date: Date? = nil,
         status: SessionStatus = .notStarted,
-        exercises: [SessionExercise]
+        exercises: [SessionExercise],
+        segments: [SessionSegment]? = nil
     ) {
         self.id = id
         self.blockId = blockId
@@ -451,6 +1001,7 @@ public struct WorkoutSession: Identifiable, Codable, Equatable {
         self.date = date
         self.status = status
         self.exercises = exercises
+        self.segments = segments
     }
 }
 

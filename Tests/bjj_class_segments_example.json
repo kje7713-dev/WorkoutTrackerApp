@@ -1,0 +1,233 @@
+{
+  "Title": "BJJ_Class_Segments_Example",
+  "Goal": "mixed",
+  "TargetAthlete": "Intermediate",
+  "NumberOfWeeks": 1,
+  "DurationMinutes": 60,
+  "Difficulty": 4,
+  "Equipment": "Grappling mats, training partner(s), timer, wall space (optional)",
+  "WarmUp": "See Day segments (warmup).",
+  "Finisher": "See Day segments (cooldown).",
+  "Notes": "This is a schema extension example: Day includes `segments[]` for non-traditional sessions (BJJ class). Keep `exercises[]` for gym work. Recommendation: allow a Day to contain either `exercises` or `segments` or both.",
+  "EstimatedTotalTimeMinutes": 60,
+  "Progression": "Increase resistance and tighten constraints week-to-week; track success rate and time-to-score.",
+  "Days": [
+    {
+      "name": "Day 1: Inside Tie → Single (BJJ Class)",
+      "shortCode": "BJJ1",
+      "goal": "mixed",
+      "notes": "Class plan using segments. Ties → entry → finish → situational rounds → integration.",
+      "segments": [
+        {
+          "name": "General Warm-up + Grappling Movement",
+          "segmentType": "warmup",
+          "domain": "grappling",
+          "durationMinutes": 8,
+          "objective": "Raise temp, prep hips/neck/shoulders, establish stance and movement quality.",
+          "coachingCues": [
+            "Stance: hips under you, eyes up",
+            "Hands active, elbows in",
+            "Move your feet before you reach"
+          ],
+          "drillPlan": {
+            "items": [
+              { "name": "Stance-in-motion", "workSeconds": 60, "restSeconds": 15, "notes": "Level change, circle, back out." },
+              { "name": "Sprawl to hip-heist", "workSeconds": 60, "restSeconds": 15, "notes": "Hips heavy, head up." },
+              { "name": "Penetration step (no partner)", "workSeconds": 60, "restSeconds": 15, "notes": "Knee over toe, chest tall." },
+              { "name": "Pummeling to inside tie", "workSeconds": 120, "restSeconds": 0, "notes": "Win inside + head position." }
+            ]
+          },
+          "safety": {
+            "contraindications": ["No slamming", "No neck cranks during warm-up"],
+            "stopIf": ["Sharp pain", "Dizziness"]
+          }
+        },
+        {
+          "name": "Technique Progression 1: Inside Tie → Level Change → Entry",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 12,
+          "objective": "Build a clean single-leg entry off inside tie with correct head/hand position.",
+          "positions": ["standing", "inside_tie"],
+          "techniques": [
+            {
+              "name": "Inside tie to single entry",
+              "variant": "inside tie pull + penetration step",
+              "keyDetails": [
+                "Head to the outside with strong posture",
+                "Inside hand controls elbow/bicep line",
+                "Level change from hips, not by bending at waist"
+              ],
+              "commonErrors": [
+                "Reaching with arms first",
+                "Head down on entry",
+                "Knee crashing onto mat"
+              ],
+              "followUps": [
+                "Reshot if sprawled",
+                "Snap to front headlock if they posture hard"
+              ]
+            }
+          ],
+          "partnerPlan": {
+            "rounds": 3,
+            "roundDurationSeconds": 180,
+            "restSeconds": 60,
+            "roles": {
+              "attackerGoal": "Hit clean entry to single without finishing",
+              "defenderGoal": "Give realistic frames and posture, no full resistance"
+            },
+            "resistance": 25,
+            "switchEverySeconds": 90,
+            "qualityTargets": {
+              "cleanRepsTarget": 10,
+              "successRateTarget": 0.8,
+              "decisionSpeedSeconds": 2.5
+            }
+          }
+        },
+        {
+          "name": "Technique Progression 2: Single Finish Options",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 12,
+          "objective": "Finish the single with 2 reliable routes; land in safe top control.",
+          "positions": ["single_leg"],
+          "techniques": [
+            {
+              "name": "Run-the-pipe finish",
+              "keyDetails": ["Turn the corner", "Keep the leg tight to hip", "Finish with control, not speed"],
+              "counters": ["Whizzer", "Crossface sprawl"],
+              "followUps": ["Shelf + switch to high-crotch", "Go-behind if they turn away"]
+            },
+            {
+              "name": "Shelf / crackdown finish",
+              "keyDetails": ["Shoulder pressure into hip", "Head position wins", "Step to angle before finishing"],
+              "commonErrors": ["Trying to lift straight up", "Letting leg drift away from body"]
+            }
+          ],
+          "partnerPlan": {
+            "rounds": 3,
+            "roundDurationSeconds": 240,
+            "restSeconds": 60,
+            "roles": {
+              "attackerGoal": "Finish to top and hold 3 seconds",
+              "defenderGoal": "Add light whizzer/sprawl reactions"
+            },
+            "resistance": 50,
+            "switchEverySeconds": 120,
+            "qualityTargets": {
+              "successRateTarget": 0.7,
+              "controlTimeSeconds": 3
+            }
+          },
+          "safety": {
+            "contraindications": ["No explosive lifts/mat returns"],
+            "stopIf": ["Partner feels knee torque"]
+          }
+        },
+        {
+          "name": "Constraint Drilling: Entry → Finish → Settle",
+          "segmentType": "drill",
+          "domain": "grappling",
+          "durationMinutes": 10,
+          "objective": "Groove the full sequence at pace with a clear end condition.",
+          "constraints": [
+            "Must start from inside tie",
+            "Finish must be run-the-pipe OR shelf",
+            "Must settle top control for 3 seconds before reset"
+          ],
+          "roundPlan": {
+            "rounds": 5,
+            "roundDurationSeconds": 120,
+            "restSeconds": 30,
+            "intensityCue": "moderate"
+          },
+          "roles": {
+            "attackerGoal": "Complete the chain under constraints",
+            "defenderGoal": "Provide structured resistance (sprawl/whizzer only)"
+          },
+          "resistance": 60,
+          "qualityTargets": {
+            "cleanRepsTarget": 8,
+            "successRateTarget": 0.65
+          }
+        },
+        {
+          "name": "Situational Sparring: Tie-up to Score",
+          "segmentType": "positionalSpar",
+          "domain": "grappling",
+          "durationMinutes": 12,
+          "objective": "Force live application of inside tie → single and immediate top control.",
+          "startPosition": "standing_tieup",
+          "startingState": {
+            "grips": ["inside_tie allowed", "collar_tie allowed"],
+            "roles": ["attacker", "defender"]
+          },
+          "roundPlan": {
+            "rounds": 6,
+            "roundDurationSeconds": 120,
+            "restSeconds": 30,
+            "intensityCue": "hard",
+            "resetRule": "Reset on takedown OR after 20s stall"
+          },
+          "scoring": {
+            "attackerScoresIf": [
+              "Clean single finish + 3 seconds top control",
+              "Any takedown that started from inside tie + 3 seconds top control"
+            ],
+            "defenderScoresIf": [
+              "Stuff shot and establish front headlock control for 3 seconds",
+              "Create separation and reset to dominant tie (coach call)"
+            ]
+          },
+          "constraints": [
+            "Attacker must attempt a single within first 15 seconds",
+            "No guard pulling for attacker in this segment"
+          ],
+          "qualityTargets": {
+            "successRateTarget": 0.5,
+            "decisionSpeedSeconds": 6
+          },
+          "safety": {
+            "contraindications": ["No slams", "Control finishes"]
+          }
+        },
+        {
+          "name": "BJJ Integration: Finish → Pass or Stabilize",
+          "segmentType": "positionalSpar",
+          "domain": "grappling",
+          "durationMinutes": 4,
+          "objective": "Convert takedown into points/control habits (IBJJF-style).",
+          "startPosition": "top_after_takedown",
+          "roundPlan": {
+            "rounds": 2,
+            "roundDurationSeconds": 120,
+            "restSeconds": 30,
+            "intensityCue": "moderate-hard",
+            "resetRule": "Reset if bottom fully reguards"
+          },
+          "constraints": [
+            "Top must establish crossface/underhook within 5 seconds",
+            "Bottom may use only frames and hip escape (no leg locks) in this mini-block"
+          ],
+          "qualityTargets": {
+            "controlTimeSeconds": 10
+          }
+        },
+        {
+          "name": "Cooldown + Breath",
+          "segmentType": "cooldown",
+          "domain": "mobility",
+          "durationMinutes": 2,
+          "objective": "Downshift and recover.",
+          "breathwork": {
+            "style": "nasal breathing",
+            "pattern": "4s inhale / 6s exhale",
+            "durationSeconds": 120
+          }
+        }
+      ]
+    }
+  ]
+}

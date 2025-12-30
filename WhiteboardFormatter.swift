@@ -15,6 +15,12 @@ public final class WhiteboardFormatter {
     public static func formatDay(_ day: UnifiedDay) -> [WhiteboardSection] {
         var sections: [WhiteboardSection] = []
         
+        // Format segments first (if present)
+        if !day.segments.isEmpty {
+            let segmentSections = formatSegments(day.segments)
+            sections.append(contentsOf: segmentSections)
+        }
+        
         // Partition exercises
         let (strengthExercises, conditioningExercises) = partitionExercises(day.exercises)
         
@@ -44,6 +50,179 @@ public final class WhiteboardFormatter {
         }
         
         return sections
+    }
+    
+    // MARK: - Segment Formatting
+    
+    /// Format segments into whiteboard sections
+    private static func formatSegments(_ segments: [UnifiedSegment]) -> [WhiteboardSection] {
+        var sections: [WhiteboardSection] = []
+        
+        // Group segments by type
+        let warmupSegments = segments.filter { $0.segmentType == "warmup" || $0.segmentType == "mobility" }
+        let techniqueSegments = segments.filter { $0.segmentType == "technique" }
+        let drillSegments = segments.filter { $0.segmentType == "drill" }
+        let sparringSegments = segments.filter { $0.segmentType == "positionalSpar" || $0.segmentType == "rolling" }
+        let cooldownSegments = segments.filter { $0.segmentType == "cooldown" || $0.segmentType == "breathwork" }
+        let otherSegments = segments.filter { 
+            !["warmup", "mobility", "technique", "drill", "positionalSpar", "rolling", "cooldown", "breathwork"].contains($0.segmentType)
+        }
+        
+        if !warmupSegments.isEmpty {
+            sections.append(WhiteboardSection(
+                title: "Warm-Up / Mobility",
+                items: warmupSegments.map { formatSegment($0) }
+            ))
+        }
+        
+        if !techniqueSegments.isEmpty {
+            sections.append(WhiteboardSection(
+                title: "Technique Development",
+                items: techniqueSegments.map { formatSegment($0) }
+            ))
+        }
+        
+        if !drillSegments.isEmpty {
+            sections.append(WhiteboardSection(
+                title: "Drilling",
+                items: drillSegments.map { formatSegment($0) }
+            ))
+        }
+        
+        if !sparringSegments.isEmpty {
+            sections.append(WhiteboardSection(
+                title: "Live Training",
+                items: sparringSegments.map { formatSegment($0) }
+            ))
+        }
+        
+        if !cooldownSegments.isEmpty {
+            sections.append(WhiteboardSection(
+                title: "Cool Down",
+                items: cooldownSegments.map { formatSegment($0) }
+            ))
+        }
+        
+        if !otherSegments.isEmpty {
+            sections.append(WhiteboardSection(
+                title: "Additional Work",
+                items: otherSegments.map { formatSegment($0) }
+            ))
+        }
+        
+        return sections
+    }
+    
+    /// Format a single segment into a whiteboard item
+    private static func formatSegment(_ segment: UnifiedSegment) -> WhiteboardItem {
+        var bullets: [String] = []
+        
+        // Add objective
+        if let objective = segment.objective {
+            bullets.append("Objective: \(objective)")
+        }
+        
+        // Add positions if present
+        if !segment.positions.isEmpty {
+            bullets.append("Positions: \(segment.positions.joined(separator: ", "))")
+        }
+        
+        // Add techniques
+        for technique in segment.techniques {
+            var techString = "• \(technique.name)"
+            if let variant = technique.variant {
+                techString += " (\(variant))"
+            }
+            bullets.append(techString)
+            if !technique.keyDetails.isEmpty {
+                bullets.append(contentsOf: technique.keyDetails.map { "  - \($0)" })
+            }
+        }
+        
+        // Add drill items
+        for item in segment.drillItems {
+            let timeStr = formatSeconds(item.workSeconds)
+            let restStr = item.restSeconds > 0 ? " / \(formatSeconds(item.restSeconds)) rest" : ""
+            bullets.append("• \(item.name): \(timeStr)\(restStr)")
+        }
+        
+        // Add constraints
+        if !segment.constraints.isEmpty {
+            bullets.append("Constraints:")
+            bullets.append(contentsOf: segment.constraints.map { "  - \($0)" })
+        }
+        
+        // Add coaching cues
+        if !segment.coachingCues.isEmpty {
+            bullets.append("Cues:")
+            bullets.append(contentsOf: segment.coachingCues.map { "  - \($0)" })
+        }
+        
+        // Add quality targets
+        if let successRate = segment.successRateTarget {
+            bullets.append("Target success rate: \(Int(successRate * 100))%")
+        }
+        if let cleanReps = segment.cleanRepsTarget {
+            bullets.append("Target clean reps: \(cleanReps)")
+        }
+        
+        // Add roles for partner work
+        if let attackerGoal = segment.attackerGoal {
+            bullets.append("Attacker: \(attackerGoal)")
+        }
+        if let defenderGoal = segment.defenderGoal {
+            bullets.append("Defender: \(defenderGoal)")
+        }
+        if let resistance = segment.resistance {
+            bullets.append("Resistance: \(resistance)%")
+        }
+        
+        // Add scoring
+        if !segment.scoring.isEmpty {
+            bullets.append("Scoring:")
+            bullets.append(contentsOf: segment.scoring.map { "  - \($0)" })
+        }
+        
+        // Add safety notes
+        if !segment.contraindications.isEmpty {
+            bullets.append("⚠️ Safety:")
+            bullets.append(contentsOf: segment.contraindications.map { "  - \($0)" })
+        }
+        
+        // Build primary line (segment name)
+        let primary = segment.name
+        
+        // Build secondary line (time + rounds)
+        var secondaryParts: [String] = []
+        if let duration = segment.durationMinutes {
+            secondaryParts.append("\(duration) min")
+        }
+        if let rounds = segment.rounds, let roundDuration = segment.roundDurationSeconds {
+            let roundTime = formatSeconds(roundDuration)
+            secondaryParts.append("\(rounds) rounds × \(roundTime)")
+        } else if let rounds = segment.rounds {
+            secondaryParts.append("\(rounds) rounds")
+        }
+        
+        let secondary = secondaryParts.isEmpty ? nil : secondaryParts.joined(separator: " • ")
+        
+        // Build tertiary line (rest period)
+        var tertiary: String? = nil
+        if let rest = segment.restSeconds, rest > 0 {
+            tertiary = "Rest: \(formatSeconds(rest))"
+        }
+        
+        // Add notes to bullets if present
+        if let notes = segment.notes {
+            bullets.append("Notes: \(notes)")
+        }
+        
+        return WhiteboardItem(
+            primary: primary,
+            secondary: secondary,
+            tertiary: tertiary,
+            bullets: bullets
+        )
     }
     
     // MARK: - Partitioning
