@@ -460,12 +460,12 @@ struct BlockGeneratorView: View {
         I need you to generate a workout block in JSON format for the Savage By Design workout tracker app.
         
         MY REQUIREMENTS:
-        [Describe your training goals, experience level, available equipment, time constraints, and specific exercises/activities you want]
+        [Describe your training goals, experience level, available equipment, time constraints, and specific exercises/activities you want.]
         
         IMPORTANT - JSON Format Specification:
         - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
         - All BLOCK-LEVEL fields are REQUIRED (Title, Goal, TargetAthlete, DurationMinutes, etc.)
-        - You can structure Days with EXERCISES (gym work) or SEGMENTS (skill-based sessions) or BOTH
+        - You can structure Days with EXERCISES (sets/reps/weight gym work) or SEGMENTS (technique-focused classes) or BOTH
         - You must provide ONE OF: "Exercises" (single-day), "Days" (multi-day), OR "Weeks" (week-specific)
         - Save output as a .json file: [BlockName]_[Weeks]W_[Days]D.json
         - Example: UpperLower_4W_4D.json or BJJ_Class_1W_1D.json
@@ -577,7 +577,7 @@ struct BlockGeneratorView: View {
               // SKILL/TECHNIQUE WORK - Use segments array:
               "segments": [
                 {
-                  "name": "Segment Name",
+                  "name": "Warm-up & Movement Drills",  // Or "Technique: Guard Basics", "Live Rolling", etc.
                   "segmentType": "warmup|mobility|technique|drill|positionalSpar|rolling|cooldown|lecture|breathwork|other",
                   "domain": "grappling|yoga|strength|conditioning|mobility|other" [OPTIONAL],
                   "durationMinutes": 15 [OPTIONAL],
@@ -747,7 +747,9 @@ struct BlockGeneratorView: View {
               "type": "strength",
               "category": "pressHorizontal",
               "sets": [
-                {"reps": 8, "weight": 135, "rpe": 7, "restSeconds": 120}
+                {"reps": 8, "weight": 135, "rpe": 7, "restSeconds": 120},
+                {"reps": 8, "weight": 135, "rpe": 7.5, "restSeconds": 120},
+                {"reps": 8, "weight": 135, "rpe": 8, "restSeconds": 120}
               ],
               "progressionDeltaWeight": 5.0
             }
