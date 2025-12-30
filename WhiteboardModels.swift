@@ -378,7 +378,7 @@ public struct AuthoringTechnique: Codable {
 }
 
 public struct AuthoringDrillPlan: Codable {
-    public var items: [AuthoringDrillItem]?
+    public var items: [AuthoringDrillItem]
 }
 
 public struct AuthoringDrillItem: Codable {

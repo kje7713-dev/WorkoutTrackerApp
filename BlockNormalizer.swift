@@ -220,7 +220,7 @@ public final class BlockNormalizer {
     /// Normalize an authoring segment
     private static func normalizeAuthoringSegment(_ segment: AuthoringSegment) -> UnifiedSegment {
         // Extract drill items
-        let drillItems = segment.drillPlan?.items?.map { item in
+        let drillItems = segment.drillPlan?.items.map { item in
             UnifiedDrillItem(
                 name: item.name,
                 workSeconds: item.workSeconds,

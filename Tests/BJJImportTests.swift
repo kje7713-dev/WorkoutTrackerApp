@@ -79,11 +79,10 @@ final class BJJImportTests: XCTestCase {
         
         // Verify drill plan in warmup
         XCTAssertNotNil(warmup.drillPlan)
-        XCTAssertNotNil(warmup.drillPlan?.items)
-        XCTAssertEqual(warmup.drillPlan?.items?.count, 4)
+        XCTAssertEqual(warmup.drillPlan?.items.count, 4)
         
         // Verify first drill item
-        let firstDrill = warmup.drillPlan?.items?[0]
+        let firstDrill = warmup.drillPlan?.items[0]
         XCTAssertEqual(firstDrill?.name, "Stance-in-motion")
         XCTAssertEqual(firstDrill?.workSeconds, 60)
         XCTAssertEqual(firstDrill?.restSeconds, 15)
