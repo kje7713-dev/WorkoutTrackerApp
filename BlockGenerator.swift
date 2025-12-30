@@ -64,6 +64,8 @@ public struct ImportedBlock: Codable {
 }
 
 /// Imported Day structure for multi-day blocks
+/// Note: Currently only supports exercises. Segments field in JSON will be parsed but ignored during import.
+/// For full segment support, use the whiteboard authoring feature.
 public struct ImportedDay: Codable {
     public var name: String
     public var shortCode: String?

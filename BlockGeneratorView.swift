@@ -470,6 +470,9 @@ struct BlockGeneratorView: View {
         - Save output as a .json file: [BlockName]_[Weeks]W_[Days]D.json
         - Example: UpperLower_4W_4D.json or BJJ_Class_1W_1D.json
         
+        ⚠️ NOTE: Segment import support is currently limited. Segments in JSON will be parsed but not imported.
+        For full segment support (BJJ, yoga, etc.), use the whiteboard authoring feature after import or focus on exercise-based blocks.
+        
         ═══════════════════════════════════════════════════════════════
         CHOOSING BETWEEN EXERCISES vs SEGMENTS:
         ═══════════════════════════════════════════════════════════════
