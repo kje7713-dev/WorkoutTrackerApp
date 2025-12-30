@@ -249,4 +249,146 @@ final class SegmentTests: XCTestCase {
         XCTAssertEqual(decoded.days[1].exercises.count, 0)
         XCTAssertEqual(decoded.days[1].segments?.count, 1)
     }
+    
+    // MARK: - SessionFactory Segment Conversion Tests
+    
+    func testSessionFactoryConvertsSegmentsToSessionSegments() throws {
+        // Create a block with segment-based day
+        let segment1 = Segment(
+            name: "Warmup Flow",
+            segmentType: .warmup,
+            domain: .grappling,
+            durationMinutes: 10,
+            objective: "Prepare body for training"
+        )
+        
+        let segment2 = Segment(
+            name: "Technique Practice",
+            segmentType: .technique,
+            domain: .grappling,
+            durationMinutes: 20,
+            objective: "Learn single leg takedown"
+        )
+        
+        let day = DayTemplate(
+            name: "BJJ Class Day 1",
+            shortCode: "BJJ1",
+            goal: .mixed,
+            segments: [segment1, segment2]
+        )
+        
+        let block = Block(
+            name: "BJJ Fundamentals",
+            numberOfWeeks: 2,
+            days: [day]
+        )
+        
+        // Generate sessions using SessionFactory
+        let factory = SessionFactory()
+        let sessions = factory.makeSessions(for: block)
+        
+        // Verify sessions were created (2 weeks × 1 day = 2 sessions)
+        XCTAssertEqual(sessions.count, 2)
+        
+        // Verify first session has segments
+        let firstSession = sessions[0]
+        XCTAssertNotNil(firstSession.segments, "Session should have segments")
+        XCTAssertEqual(firstSession.segments?.count, 2, "Session should have 2 segments")
+        
+        // Verify segment details
+        guard let sessionSegments = firstSession.segments else {
+            XCTFail("Session segments should not be nil")
+            return
+        }
+        
+        XCTAssertEqual(sessionSegments[0].name, "Warmup Flow")
+        XCTAssertEqual(sessionSegments[0].segmentType, .warmup)
+        XCTAssertEqual(sessionSegments[0].actualDurationMinutes, 10)
+        XCTAssertEqual(sessionSegments[0].isCompleted, false)
+        XCTAssertNotNil(sessionSegments[0].segmentId, "Session segment should reference original segment ID")
+        
+        XCTAssertEqual(sessionSegments[1].name, "Technique Practice")
+        XCTAssertEqual(sessionSegments[1].segmentType, .technique)
+        XCTAssertEqual(sessionSegments[1].actualDurationMinutes, 20)
+        XCTAssertEqual(sessionSegments[1].isCompleted, false)
+        
+        // Verify second week session also has segments
+        let secondSession = sessions[1]
+        XCTAssertNotNil(secondSession.segments)
+        XCTAssertEqual(secondSession.segments?.count, 2)
+    }
+    
+    func testSessionFactoryHandlesDaysWithoutSegments() throws {
+        // Create a traditional day without segments
+        let exercise = ExerciseTemplate(
+            customName: "Squat",
+            type: .strength,
+            strengthSets: [
+                StrengthSetTemplate(index: 0, reps: 5, weight: 225)
+            ],
+            progressionRule: ProgressionRule(type: .weight, deltaWeight: 5.0)
+        )
+        
+        let day = DayTemplate(
+            name: "Leg Day",
+            exercises: [exercise],
+            segments: nil
+        )
+        
+        let block = Block(
+            name: "Strength Block",
+            numberOfWeeks: 1,
+            days: [day]
+        )
+        
+        // Generate sessions
+        let factory = SessionFactory()
+        let sessions = factory.makeSessions(for: block)
+        
+        // Verify session created without segments
+        XCTAssertEqual(sessions.count, 1)
+        XCTAssertEqual(sessions[0].exercises.count, 1)
+        XCTAssertNil(sessions[0].segments, "Session should not have segments for traditional workout")
+    }
+    
+    func testSessionFactoryHandlesHybridDays() throws {
+        // Create a day with both exercises and segments
+        let exercise = ExerciseTemplate(
+            customName: "Deadlift",
+            type: .strength,
+            strengthSets: [
+                StrengthSetTemplate(index: 0, reps: 3, weight: 315)
+            ],
+            progressionRule: ProgressionRule(type: .weight)
+        )
+        
+        let segment = Segment(
+            name: "Mobility Cooldown",
+            segmentType: .cooldown,
+            domain: .mobility,
+            durationMinutes: 10
+        )
+        
+        let day = DayTemplate(
+            name: "Hybrid Day",
+            exercises: [exercise],
+            segments: [segment]
+        )
+        
+        let block = Block(
+            name: "Hybrid Block",
+            numberOfWeeks: 1,
+            days: [day]
+        )
+        
+        // Generate sessions
+        let factory = SessionFactory()
+        let sessions = factory.makeSessions(for: block)
+        
+        // Verify session has both exercises and segments
+        XCTAssertEqual(sessions.count, 1)
+        XCTAssertEqual(sessions[0].exercises.count, 1, "Session should have exercises")
+        XCTAssertNotNil(sessions[0].segments, "Session should have segments")
+        XCTAssertEqual(sessions[0].segments?.count, 1, "Session should have 1 segment")
+    }
 }
