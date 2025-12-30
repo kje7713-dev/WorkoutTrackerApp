@@ -69,7 +69,7 @@ JSON:
         case .success(let imported):
             print("✅ JSON parsing succeeded")
             print("   Title: \(imported.Title)")
-            print("   Exercises: \(imported.Exercises.count)")
+            print("   Exercises: \(imported.Exercises?.count ?? 0)")
             
             // Validate content
             guard imported.Title == "Full Body Strength" else {
@@ -77,7 +77,7 @@ JSON:
                 return false
             }
             
-            guard imported.Exercises.count == 2 else {
+            guard imported.Exercises?.count == 2 else {
                 print("❌ Exercise count mismatch")
                 return false
             }
@@ -124,7 +124,7 @@ Progression: Increase weight by 2.5%
         case .success(let imported):
             print("✅ HumanReadable parsing succeeded")
             print("   Title: \(imported.Title)")
-            print("   Exercises: \(imported.Exercises.count)")
+            print("   Exercises: \(imported.Exercises?.count ?? 0)")
             
             // Validate content
             guard imported.Title == "Upper Body Power" else {
@@ -132,8 +132,8 @@ Progression: Increase weight by 2.5%
                 return false
             }
             
-            guard imported.Exercises.count == 3 else {
-                print("❌ Exercise count mismatch: \(imported.Exercises.count)")
+            guard imported.Exercises?.count == 3 else {
+                print("❌ Exercise count mismatch: \(imported.Exercises?.count ?? 0)")
                 return false
             }
             
@@ -235,6 +235,92 @@ Progression: Increase weight by 2.5%
         return true
     }
     
+    // MARK: - Test Segment-Only Day Parsing
+    
+    /// Test parsing a day with segments but no exercises field
+    static func testSegmentOnlyDayParsing() -> Bool {
+        let testJSON = """
+        {
+          "Title": "BJJ Fundamentals Class",
+          "Goal": "mixed",
+          "TargetAthlete": "Beginner",
+          "NumberOfWeeks": 1,
+          "DurationMinutes": 60,
+          "Difficulty": 3,
+          "Equipment": "Grappling mats, gi",
+          "WarmUp": "See segments",
+          "Days": [
+            {
+              "name": "Class: Guard Basics",
+              "shortCode": "BJJ1",
+              "goal": "mixed",
+              "notes": "Focus on fundamentals"
+            }
+          ],
+          "Finisher": "Cooldown",
+          "Notes": "Focus on safety",
+          "EstimatedTotalTimeMinutes": 60,
+          "Progression": "Increase resistance"
+        }
+        """
+        
+        guard let data = testJSON.data(using: .utf8) else {
+            print("❌ Failed to convert JSON to data")
+            return false
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            let imported = try decoder.decode(ImportedBlock.self, from: data)
+            
+            print("✅ Segment-only day parsing succeeded")
+            print("   Title: \(imported.Title)")
+            print("   Days: \(imported.Days?.count ?? 0)")
+            
+            guard imported.Title == "BJJ Fundamentals Class" else {
+                print("❌ Title mismatch")
+                return false
+            }
+            
+            guard let days = imported.Days, days.count == 1 else {
+                print("❌ Days count mismatch")
+                return false
+            }
+            
+            let firstDay = days[0]
+            guard firstDay.name == "Class: Guard Basics" else {
+                print("❌ Day name mismatch")
+                return false
+            }
+            
+            // Exercises should be nil or empty since not provided
+            guard firstDay.exercises == nil || firstDay.exercises?.isEmpty == true else {
+                print("❌ Exercises should be nil or empty")
+                return false
+            }
+            
+            // Convert to Block to ensure conversion works
+            let block = BlockGenerator.convertToBlock(imported)
+            
+            guard block.days.count == 1 else {
+                print("❌ Block days count mismatch")
+                return false
+            }
+            
+            let convertedDay = block.days[0]
+            guard convertedDay.exercises.isEmpty else {
+                print("❌ Converted day should have empty exercises array")
+                return false
+            }
+            
+            return true
+            
+        } catch {
+            print("❌ Segment-only day parsing failed: \(error)")
+            return false
+        }
+    }
+    
     // MARK: - Run All Tests
     
     /// Run all BlockGenerator tests
@@ -257,6 +343,12 @@ Progression: Increase weight by 2.5%
         
         print("Test 3: Block Conversion")
         if !testBlockConversion() {
+            allPassed = false
+        }
+        print("")
+        
+        print("Test 4: Segment-Only Day Parsing")
+        if !testSegmentOnlyDayParsing() {
             allPassed = false
         }
         print("")
