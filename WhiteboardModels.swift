@@ -389,9 +389,9 @@ public struct AuthoringDrillItem: Codable {
 }
 
 public struct AuthoringPartnerPlan: Codable {
-    public var rounds: Int?
-    public var roundDurationSeconds: Int?
-    public var restSeconds: Int?
+    public var rounds: Int
+    public var roundDurationSeconds: Int
+    public var restSeconds: Int
     public var roles: AuthoringRoles?
     public var resistance: Int?
     public var switchEverySeconds: Int?
@@ -399,9 +399,9 @@ public struct AuthoringPartnerPlan: Codable {
 }
 
 public struct AuthoringRoundPlan: Codable {
-    public var rounds: Int?
-    public var roundDurationSeconds: Int?
-    public var restSeconds: Int?
+    public var rounds: Int
+    public var roundDurationSeconds: Int
+    public var restSeconds: Int
     public var intensityCue: String?
     public var resetRule: String?
     public var startingState: AuthoringStartingState?
@@ -439,9 +439,9 @@ public struct AuthoringFlowStep: Codable {
 }
 
 public struct AuthoringBreathwork: Codable {
-    public var style: String?
-    public var pattern: String?
-    public var durationSeconds: Int?
+    public var style: String
+    public var pattern: String
+    public var durationSeconds: Int
 }
 
 public struct AuthoringMedia: Codable {
