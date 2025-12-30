@@ -460,17 +460,39 @@ struct BlockGeneratorView: View {
         I need you to generate a workout block in JSON format for the Savage By Design workout tracker app.
         
         MY REQUIREMENTS:
-        [Describe your training goals, experience level, available equipment, time constraints, and specific exercises you want]
+        [Describe your training goals, experience level, available equipment, time constraints, and specific exercises/activities you want.]
         
         IMPORTANT - JSON Format Specification:
         - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
         - All BLOCK-LEVEL fields are REQUIRED (Title, Goal, TargetAthlete, DurationMinutes, etc.)
-        - Exercise fields vary: name is required, others marked [OPTIONAL] are truly optional
+        - You can structure Days with EXERCISES (sets/reps/weight gym work) or SEGMENTS (technique-focused classes) or BOTH
         - You must provide ONE OF: "Exercises" (single-day), "Days" (multi-day), OR "Weeks" (week-specific)
         - Save output as a .json file: [BlockName]_[Weeks]W_[Days]D.json
-        - Example: UpperLower_4W_4D.json or Strength_8W_3D.json
+        - Example: UpperLower_4W_4D.json or BJJ_Class_1W_1D.json
         
+        ═══════════════════════════════════════════════════════════════
+        CHOOSING BETWEEN EXERCISES vs SEGMENTS:
+        ═══════════════════════════════════════════════════════════════
+        
+        Use EXERCISES for:
+        - Traditional gym workouts (sets, reps, weights)
+        - Strength training with progressive overload
+        - Conditioning workouts with time/distance/calories
+        
+        Use SEGMENTS for:
+        - Martial arts classes (BJJ, wrestling, judo, MMA)
+        - Yoga and mobility sessions
+        - Skill-based training with technique instruction
+        - Drills with specific constraints and coaching cues
+        - Sessions structured by phases (warmup, technique, drilling, sparring, cooldown)
+        
+        Use BOTH in same Day when:
+        - Combining strength work with skill training
+        - Gym session followed by technique work
+        
+        ═══════════════════════════════════════════════════════════════
         COMPLETE JSON Structure (ALL FIELDS AVAILABLE):
+        ═══════════════════════════════════════════════════════════════
         {
           "Title": "Block name (under 50 characters)",
           "Goal": "Primary training objective (strength/hypertrophy/power/conditioning/mixed/peaking/deload/rehab)",
@@ -483,7 +505,7 @@ struct BlockGeneratorView: View {
           "Finisher": "Cooldown or finisher instructions",
           "Notes": "Important context, form cues, safety notes",
           "EstimatedTotalTimeMinutes": <number: total session time including warm-up/finisher>,
-          "Progression": "Week-to-week progression strategy (e.g., 'Add 5 lbs per week, deload week 4')",
+          "Progression": "Week-to-week progression strategy",
           
           // OPTION A: Single-Day Block (use "Exercises")
           "Exercises": [
@@ -501,19 +523,19 @@ struct BlockGeneratorView: View {
               "sets": [ [OPTIONAL - replaces "setsReps"]
                 {
                   "reps": 8,
-                  "weight": 135.0 [OPTIONAL - pounds or kg],
-                  "percentageOfMax": 0.75 [OPTIONAL - 0.0 to 1.0, e.g., 0.75 = 75%],
+                  "weight": 135.0 [OPTIONAL],
+                  "percentageOfMax": 0.75 [OPTIONAL - 0.0 to 1.0],
                   "rpe": 7.5 [OPTIONAL - 1.0 to 10.0],
                   "rir": 2.5 [OPTIONAL - reps in reserve],
-                  "tempo": "3-0-1-0" [OPTIONAL - eccentric-pause-concentric-pause],
+                  "tempo": "3-0-1-0" [OPTIONAL],
                   "restSeconds": 180 [OPTIONAL],
                   "notes": "Focus on depth" [OPTIONAL]
                 }
               ],
               
-              // CONDITIONING PARAMETERS (for type: "conditioning"):
+              // CONDITIONING PARAMETERS:
               "conditioningType": "monostructural|mixedModal|emom|amrap|intervals|forTime|forDistance|forCalories|roundsForTime|other" [OPTIONAL],
-              "conditioningSets": [ [OPTIONAL - for conditioning exercises]
+              "conditioningSets": [ [OPTIONAL]
                 {
                   "durationSeconds": 300 [OPTIONAL],
                   "distanceMeters": 1000.0 [OPTIONAL],
@@ -527,102 +549,183 @@ struct BlockGeneratorView: View {
               ],
               
               // SUPERSET/CIRCUIT GROUPING:
-              "setGroupId": "UUID-string" [OPTIONAL - same ID for exercises in a superset/circuit],
+              "setGroupId": "UUID-string" [OPTIONAL],
               "setGroupKind": "superset|circuit|giantSet|emom|amrap" [OPTIONAL],
               
               // PROGRESSION:
-              "progressionType": "weight|volume|custom" [OPTIONAL, defaults to "weight"],
-              "progressionDeltaWeight": 5.0 [OPTIONAL - lbs to add per week],
-              "progressionDeltaSets": 1 [OPTIONAL - sets to add per week],
+              "progressionType": "weight|volume|custom|skill" [OPTIONAL, defaults to "weight"],
+              "progressionDeltaWeight": 5.0 [OPTIONAL],
+              "progressionDeltaSets": 1 [OPTIONAL],
               
               "notes": "Exercise-specific notes" [OPTIONAL]
             }
           ],
           
-          // OPTION B: Multi-Day Block (use "Days" instead of "Exercises")
+          // OPTION B: Multi-Day Block (use "Days")
           "Days": [ [OPTIONAL - same days repeated for all weeks]
             {
               "name": "Day 1: Upper Body",
               "shortCode": "U1" [OPTIONAL],
               "goal": "strength|hypertrophy|power|conditioning|mixed" [OPTIONAL],
               "notes": "Focus on compound movements" [OPTIONAL],
+              
+              // GYM WORK - Use exercises array:
               "exercises": [
                 // Same exercise structure as above
+              ],
+              
+              // SKILL/TECHNIQUE WORK - Use segments array:
+              "segments": [
+                {
+                  "name": "Warm-up & Movement Drills",  // Or "Technique: Guard Basics", "Live Rolling", etc.
+                  "segmentType": "warmup|mobility|technique|drill|positionalSpar|rolling|cooldown|lecture|breathwork|other",
+                  "domain": "grappling|yoga|strength|conditioning|mobility|other" [OPTIONAL],
+                  "durationMinutes": 15 [OPTIONAL],
+                  "objective": "Clear learning objective" [OPTIONAL],
+                  
+                  // POSITIONS & TECHNIQUES (for martial arts):
+                  "positions": ["standing", "guard", "mount", etc.] [OPTIONAL],
+                  "techniques": [ [OPTIONAL]
+                    {
+                      "name": "Technique name",
+                      "variant": "Style variation" [OPTIONAL],
+                      "keyDetails": ["Key point 1", "Key point 2"],
+                      "commonErrors": ["Error 1", "Error 2"],
+                      "counters": ["Counter 1"],
+                      "followUps": ["Follow-up 1"]
+                    }
+                  ],
+                  
+                  // DRILLING STRUCTURE:
+                  "drillPlan": { [OPTIONAL - for warmup drills]
+                    "items": [
+                      {
+                        "name": "Drill name",
+                        "workSeconds": 60,
+                        "restSeconds": 15,
+                        "notes": "Coaching point"
+                      }
+                    ]
+                  },
+                  
+                  // PARTNER WORK:
+                  "partnerPlan": { [OPTIONAL - for technique practice]
+                    "rounds": 3,
+                    "roundDurationSeconds": 180,
+                    "restSeconds": 60,
+                    "roles": {
+                      "attackerGoal": "Complete technique",
+                      "defenderGoal": "Provide resistance",
+                      "resistance": 25 [0-100 scale],
+                      "switchEverySeconds": 90
+                    },
+                    "qualityTargets": {
+                      "cleanRepsTarget": 10,
+                      "successRateTarget": 0.8,
+                      "decisionSpeedSeconds": 2.5
+                    }
+                  },
+                  
+                  // LIVE ROUNDS:
+                  "roundPlan": { [OPTIONAL - for sparring]
+                    "rounds": 5,
+                    "roundDurationSeconds": 300,
+                    "restSeconds": 60,
+                    "intensityCue": "moderate|hard|live",
+                    "resetRule": "Reset on score/submission",
+                    "winConditions": ["Submission", "Points"]
+                  },
+                  
+                  // POSITIONAL SPARRING:
+                  "startPosition": "guard" [OPTIONAL],
+                  "scoring": { [OPTIONAL]
+                    "attackerScoresIf": ["Sweep", "Submission"],
+                    "defenderScoresIf": ["Pass guard", "Escape"]
+                  },
+                  
+                  // YOGA/MOBILITY:
+                  "flowSequence": [ [OPTIONAL]
+                    {
+                      "poseName": "Downward Dog",
+                      "holdSeconds": 30,
+                      "transitionCue": "Flow to plank"
+                    }
+                  ],
+                  "intensityScale": "restorative|easy|moderate|strong|peak" [OPTIONAL],
+                  "holdSeconds": 30 [OPTIONAL],
+                  "breathCount": 5 [OPTIONAL],
+                  "props": ["block", "strap", "bolster"] [OPTIONAL],
+                  
+                  // BREATHWORK:
+                  "breathwork": { [OPTIONAL]
+                    "style": "Box breathing",
+                    "pattern": "4s inhale / 4s hold / 4s exhale / 4s hold",
+                    "durationSeconds": 300
+                  },
+                  
+                  // COACHING & SAFETY:
+                  "constraints": ["Constraint 1", "Constraint 2"] [OPTIONAL],
+                  "coachingCues": ["Cue 1", "Cue 2"] [OPTIONAL],
+                  "safety": { [OPTIONAL]
+                    "contraindications": ["No slamming"],
+                    "stopIf": ["Sharp pain", "Dizziness"],
+                    "intensityCeiling": "75%"
+                  },
+                  "notes": "Additional notes" [OPTIONAL]
+                }
               ]
-            },
-            {
-              "name": "Day 2: Lower Body",
-              "shortCode": "L1" [OPTIONAL],
-              "goal": "strength",
-              "exercises": [...]
             }
           ],
           
-          // OPTION C: Week-Specific Block (NEW - for exercise variations across weeks)
+          // OPTION C: Week-Specific Block (for periodization)
           "Weeks": [ [OPTIONAL - different days for each week]
             [
               // Week 1 days
               {
-                "name": "Day 1: Heavy Squat",
-                "shortCode": "L1",
-                "goal": "strength",
-                "exercises": [
-                  {"name": "Back Squat", "setsReps": "5x5", "restSeconds": 240, "intensityCue": "RPE 8"}
-                ]
-              },
-              {
-                "name": "Day 2: Heavy Bench",
-                "shortCode": "U1",
-                "exercises": [...]
+                "name": "Day 1",
+                "exercises": [...],  // Can use exercises
+                "segments": [...]    // OR segments OR both
               }
             ],
             [
-              // Week 2 days (can have different exercises!)
-              {
-                "name": "Day 1: Heavy Squat",
-                "shortCode": "L1",
-                "goal": "strength",
-                "exercises": [
-                  {"name": "Back Squat", "setsReps": "5x3", "restSeconds": 240, "intensityCue": "RPE 9"}
-                ]
-              },
-              {
-                "name": "Day 2: Heavy Bench",
-                "exercises": [...]
-              }
-            ],
-            [
-              // Week 3 days (different exercises possible)
-              {
-                "name": "Day 1: Front Squat Variation",
-                "shortCode": "L1",
-                "goal": "strength",
-                "exercises": [
-                  {"name": "Front Squat", "setsReps": "4x6", "restSeconds": 180, "intensityCue": "RPE 8"}
-                ]
-              }
+              // Week 2 days (can differ from Week 1)
+              {"name": "Day 1", "exercises": [...]}
             ]
           ]
         }
         
+        ═══════════════════════════════════════════════════════════════
         USAGE GUIDELINES:
-        1. For SIMPLE blocks: Use "Exercises" with "setsReps" format
-        2. For MULTI-DAY blocks (same all weeks): Use "Days" with detailed "sets" arrays
-        3. For WEEK-SPECIFIC variations: Use "Weeks" array (NEW - allows different exercises each week!)
-        4. For MULTI-WEEK blocks: Set "NumberOfWeeks" (e.g., 4, 8, 12)
-        5. For CONDITIONING: Set type="conditioning" and use "conditioningSets"
-        6. For SUPERSETS: Give exercises same "setGroupId" UUID
-        7. Specify WEIGHT when known (helps with progression tracking)
-        8. Use "Weeks" format for PERIODIZATION with exercise variations (e.g., deload weeks, exercise rotations)
+        ═══════════════════════════════════════════════════════════════
+        
+        FOR GYM WORKOUTS (EXERCISES):
+        1. SIMPLE blocks: Use "Exercises" with "setsReps" format
+        2. MULTI-DAY blocks: Use "Days" with detailed "sets" arrays
+        3. WEEK-SPECIFIC: Use "Weeks" array for exercise variations
+        4. CONDITIONING: Set type="conditioning" and use "conditioningSets"
+        5. SUPERSETS: Give exercises same "setGroupId" UUID
+        
+        FOR SKILL SESSIONS (SEGMENTS):
+        1. BJJ/GRAPPLING: Use technique, drill, positionalSpar, rolling segments
+        2. YOGA: Use mobility/warmup segments with flowSequence
+        3. BREATHWORK: Use breathwork segment with pattern details
+        4. STRUCTURED CLASSES: Organize by segment phases (warmup → technique → drilling → live → cooldown)
+        5. QUALITY TRACKING: Use qualityTargets for skill-based progression
+        6. CONSTRAINTS: Add specific rules to focus training (e.g., "Must start from inside tie")
+        
+        HYBRID SESSIONS:
+        - Put strength work in "exercises" array
+        - Put skill/technique work in "segments" array
+        - Both can coexist in the same Day
         """
     }
     
     private var jsonFormatExample: String {
         """
-        // EXAMPLE 1: Simple Single-Day Block
+        // EXAMPLE 1: Gym Workout (Exercise-Based)
         {
           "Title": "Full Body Strength",
-          "Goal": "Build foundational strength",
+          "Goal": "strength",
           "TargetAthlete": "Intermediate",
           "NumberOfWeeks": 4,
           "DurationMinutes": 45,
@@ -651,67 +754,155 @@ struct BlockGeneratorView: View {
               "progressionDeltaWeight": 5.0
             }
           ],
-          "Finisher": "10 min cooldown stretch",
+          "Finisher": "10 min cooldown",
           "Notes": "Focus on form. Deload week 4.",
           "EstimatedTotalTimeMinutes": 45,
           "Progression": "Add 5 lbs per week, deload week 4"
         }
         
-        // EXAMPLE 2: Multi-Day Block with Conditioning
+        // EXAMPLE 2: BJJ Class (Segment-Based)
         {
-          "Title": "Upper/Lower Split",
-          "Goal": "Build strength and work capacity",
-          "TargetAthlete": "Advanced",
-          "NumberOfWeeks": 8,
+          "Title": "BJJ Fundamentals Class",
+          "Goal": "mixed",
+          "TargetAthlete": "Beginner",
+          "NumberOfWeeks": 1,
           "DurationMinutes": 60,
-          "Difficulty": 4,
-          "Equipment": "Full gym, rowing machine",
-          "WarmUp": "10 min general warm-up",
+          "Difficulty": 3,
+          "Equipment": "Grappling mats, gi, training partners",
+          "WarmUp": "See segments",
           "Days": [
             {
-              "name": "Day 1: Upper",
-              "shortCode": "U1",
-              "goal": "strength",
-              "exercises": [
+              "name": "Class: Guard Retention Basics",
+              "shortCode": "BJJ1",
+              "goal": "mixed",
+              "segments": [
                 {
-                  "name": "Bench Press",
-                  "type": "strength",
-                  "category": "pressHorizontal",
-                  "sets": [
-                    {"reps": 5, "weight": 185, "percentageOfMax": 0.80, "rpe": 8, "restSeconds": 240}
-                  ],
-                  "progressionDeltaWeight": 5.0
+                  "name": "Warm-up & Movement Drills",
+                  "segmentType": "warmup",
+                  "domain": "grappling",
+                  "durationMinutes": 10,
+                  "objective": "Prepare body for training",
+                  "drillPlan": {
+                    "items": [
+                      {"name": "Hip escapes", "workSeconds": 60, "restSeconds": 15},
+                      {"name": "Technical standup", "workSeconds": 60, "restSeconds": 15}
+                    ]
+                  }
                 },
                 {
-                  "name": "Rowing Intervals",
-                  "type": "conditioning",
-                  "conditioningType": "intervals",
-                  "conditioningSets": [
-                    {"durationSeconds": 120, "distanceMeters": 500, "targetPace": "1:50/500m", "restSeconds": 60}
-                  ]
-                }
-              ]
-            },
-            {
-              "name": "Day 2: Lower",
-              "shortCode": "L1",
-              "goal": "strength",
-              "exercises": [
+                  "name": "Technique: Closed Guard Basics",
+                  "segmentType": "technique",
+                  "domain": "grappling",
+                  "durationMinutes": 20,
+                  "objective": "Learn closed guard structure and basic sweep",
+                  "positions": ["closed_guard"],
+                  "techniques": [
+                    {
+                      "name": "Closed guard posture break",
+                      "keyDetails": ["Break posture with legs", "Control head", "Create angle"],
+                      "commonErrors": ["Opening guard too early", "Not controlling head"]
+                    }
+                  ],
+                  "partnerPlan": {
+                    "rounds": 4,
+                    "roundDurationSeconds": 180,
+                    "restSeconds": 60,
+                    "roles": {
+                      "attackerGoal": "Break posture and attempt sweep",
+                      "defenderGoal": "Maintain posture with light resistance"
+                    },
+                    "resistance": 30,
+                    "switchEverySeconds": 90,
+                    "qualityTargets": {
+                      "cleanRepsTarget": 8,
+                      "successRateTarget": 0.7
+                    }
+                  }
+                },
                 {
-                  "name": "Back Squat",
-                  "type": "strength",
-                  "category": "squat",
-                  "sets": [
-                    {"reps": 5, "weight": 225, "rpe": 8, "tempo": "3-0-1-0", "restSeconds": 300}
-                  ]
+                  "name": "Positional Sparring",
+                  "segmentType": "positionalSpar",
+                  "domain": "grappling",
+                  "durationMinutes": 15,
+                  "objective": "Apply techniques under pressure",
+                  "startPosition": "closed_guard",
+                  "roundPlan": {
+                    "rounds": 5,
+                    "roundDurationSeconds": 180,
+                    "restSeconds": 30,
+                    "intensityCue": "moderate"
+                  },
+                  "scoring": {
+                    "attackerScoresIf": ["Sweep to top", "Submit"],
+                    "defenderScoresIf": ["Pass guard", "Stand up"]
+                  }
+                },
+                {
+                  "name": "Cooldown",
+                  "segmentType": "cooldown",
+                  "domain": "mobility",
+                  "durationMinutes": 5,
+                  "breathwork": {
+                    "style": "Box breathing",
+                    "pattern": "4s inhale / 4s hold / 4s exhale / 4s hold",
+                    "durationSeconds": 300
+                  }
                 }
               ]
             }
           ],
-          "Finisher": "Mobility work",
-          "Notes": "Progressive overload each week",
+          "Finisher": "See cooldown segment",
+          "Notes": "Focus on fundamentals and safety",
           "EstimatedTotalTimeMinutes": 60,
-          "Progression": "Linear progression, add 5-10 lbs weekly"
+          "Progression": "Increase resistance 10% per week, add constraints"
+        }
+        
+        // EXAMPLE 3: Hybrid Session (Exercises + Segments)
+        {
+          "Title": "Strength + Yoga Recovery",
+          "Goal": "mixed",
+          "TargetAthlete": "Intermediate",
+          "NumberOfWeeks": 1,
+          "DurationMinutes": 60,
+          "Difficulty": 3,
+          "Equipment": "Barbell, yoga mat, blocks",
+          "Days": [
+            {
+              "name": "Upper Body + Mobility",
+              "exercises": [
+                {
+                  "name": "Bench Press",
+                  "setsReps": "3x8",
+                  "restSeconds": 180
+                },
+                {
+                  "name": "Pull-ups",
+                  "setsReps": "3x10",
+                  "restSeconds": 120
+                }
+              ],
+              "segments": [
+                {
+                  "name": "Restorative Yoga Flow",
+                  "segmentType": "mobility",
+                  "domain": "yoga",
+                  "durationMinutes": 20,
+                  "intensityScale": "easy",
+                  "flowSequence": [
+                    {"poseName": "Child's Pose", "holdSeconds": 60},
+                    {"poseName": "Cat-Cow", "holdSeconds": 45},
+                    {"poseName": "Downward Dog", "holdSeconds": 60}
+                  ],
+                  "props": ["block", "strap"]
+                }
+              ]
+            }
+          ],
+          "WarmUp": "5 min general",
+          "Finisher": "See segments",
+          "Notes": "Strength work first, then mobility",
+          "EstimatedTotalTimeMinutes": 60,
+          "Progression": "Add weight to strength, extend holds in yoga"
         }
         """
     }
