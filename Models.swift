@@ -255,21 +255,15 @@ public struct StartingState: Codable, Equatable {
 public struct Roles: Codable, Equatable {
     public var attackerGoal: String?
     public var defenderGoal: String?
-    public var resistance: Int  // 0-100
-    public var switchEverySeconds: Int?
     public var switchEveryReps: Int?
     
     public init(
         attackerGoal: String? = nil,
         defenderGoal: String? = nil,
-        resistance: Int = 0,
-        switchEverySeconds: Int? = nil,
         switchEveryReps: Int? = nil
     ) {
         self.attackerGoal = attackerGoal
         self.defenderGoal = defenderGoal
-        self.resistance = resistance
-        self.switchEverySeconds = switchEverySeconds
         self.switchEveryReps = switchEveryReps
     }
 }
