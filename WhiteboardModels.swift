@@ -31,15 +31,18 @@ public struct UnifiedDay: Codable, Equatable {
     public var name: String
     public var goal: String?
     public var exercises: [UnifiedExercise]
+    public var segments: [UnifiedSegment]  // Added for non-traditional sessions
     
     public init(
         name: String,
         goal: String? = nil,
-        exercises: [UnifiedExercise]
+        exercises: [UnifiedExercise] = [],
+        segments: [UnifiedSegment] = []
     ) {
         self.name = name
         self.goal = goal
         self.exercises = exercises
+        self.segments = segments
     }
 }
 
@@ -134,6 +137,138 @@ public struct UnifiedConditioningSet: Codable, Equatable {
         self.calories = calories
         self.rounds = rounds
         self.effortDescriptor = effortDescriptor
+        self.restSeconds = restSeconds
+        self.notes = notes
+    }
+}
+
+/// Unified segment for non-traditional sessions
+public struct UnifiedSegment: Codable, Equatable {
+    public var name: String
+    public var segmentType: String  // warmup|technique|drill|positionalSpar|rolling|cooldown|lecture|breathwork|other
+    public var domain: String?  // grappling|yoga|strength|conditioning|mobility|other
+    public var durationMinutes: Int?
+    public var objective: String?
+    public var constraints: [String]
+    public var coachingCues: [String]
+    public var positions: [String]
+    public var techniques: [UnifiedTechnique]
+    public var rounds: Int?
+    public var roundDurationSeconds: Int?
+    public var restSeconds: Int?
+    public var workSeconds: Int?
+    public var resistance: Int?  // 0-100
+    public var attackerGoal: String?
+    public var defenderGoal: String?
+    public var successRateTarget: Double?
+    public var cleanRepsTarget: Int?
+    public var startPosition: String?
+    public var scoring: [String]  // Simplified scoring description
+    public var breathworkStyle: String?
+    public var breathworkPattern: String?
+    public var holdSeconds: Int?
+    public var intensityScale: String?
+    public var props: [String]
+    public var notes: String?
+    public var contraindications: [String]
+    public var drillItems: [UnifiedDrillItem]
+    
+    public init(
+        name: String,
+        segmentType: String,
+        domain: String? = nil,
+        durationMinutes: Int? = nil,
+        objective: String? = nil,
+        constraints: [String] = [],
+        coachingCues: [String] = [],
+        positions: [String] = [],
+        techniques: [UnifiedTechnique] = [],
+        rounds: Int? = nil,
+        roundDurationSeconds: Int? = nil,
+        restSeconds: Int? = nil,
+        workSeconds: Int? = nil,
+        resistance: Int? = nil,
+        attackerGoal: String? = nil,
+        defenderGoal: String? = nil,
+        successRateTarget: Double? = nil,
+        cleanRepsTarget: Int? = nil,
+        startPosition: String? = nil,
+        scoring: [String] = [],
+        breathworkStyle: String? = nil,
+        breathworkPattern: String? = nil,
+        holdSeconds: Int? = nil,
+        intensityScale: String? = nil,
+        props: [String] = [],
+        notes: String? = nil,
+        contraindications: [String] = [],
+        drillItems: [UnifiedDrillItem] = []
+    ) {
+        self.name = name
+        self.segmentType = segmentType
+        self.domain = domain
+        self.durationMinutes = durationMinutes
+        self.objective = objective
+        self.constraints = constraints
+        self.coachingCues = coachingCues
+        self.positions = positions
+        self.techniques = techniques
+        self.rounds = rounds
+        self.roundDurationSeconds = roundDurationSeconds
+        self.restSeconds = restSeconds
+        self.workSeconds = workSeconds
+        self.resistance = resistance
+        self.attackerGoal = attackerGoal
+        self.defenderGoal = defenderGoal
+        self.successRateTarget = successRateTarget
+        self.cleanRepsTarget = cleanRepsTarget
+        self.startPosition = startPosition
+        self.scoring = scoring
+        self.breathworkStyle = breathworkStyle
+        self.breathworkPattern = breathworkPattern
+        self.holdSeconds = holdSeconds
+        self.intensityScale = intensityScale
+        self.props = props
+        self.notes = notes
+        self.contraindications = contraindications
+        self.drillItems = drillItems
+    }
+}
+
+/// Unified technique representation
+public struct UnifiedTechnique: Codable, Equatable {
+    public var name: String
+    public var variant: String?
+    public var keyDetails: [String]
+    public var commonErrors: [String]
+    
+    public init(
+        name: String,
+        variant: String? = nil,
+        keyDetails: [String] = [],
+        commonErrors: [String] = []
+    ) {
+        self.name = name
+        self.variant = variant
+        self.keyDetails = keyDetails
+        self.commonErrors = commonErrors
+    }
+}
+
+/// Unified drill item for warmup sequences
+public struct UnifiedDrillItem: Codable, Equatable {
+    public var name: String
+    public var workSeconds: Int
+    public var restSeconds: Int
+    public var notes: String?
+    
+    public init(
+        name: String,
+        workSeconds: Int,
+        restSeconds: Int,
+        notes: String? = nil
+    ) {
+        self.name = name
+        self.workSeconds = workSeconds
         self.restSeconds = restSeconds
         self.notes = notes
     }
