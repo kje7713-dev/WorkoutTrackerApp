@@ -64,19 +64,21 @@ public struct ImportedBlock: Codable {
 }
 
 /// Imported Day structure for multi-day blocks
+/// Note: Currently only supports exercises. Segments field in JSON will be parsed but ignored during import.
+/// For full segment support, use the whiteboard authoring feature.
 public struct ImportedDay: Codable {
     public var name: String
     public var shortCode: String?
     public var goal: String?
     public var notes: String?
-    public var exercises: [ImportedExercise]
+    public var exercises: [ImportedExercise]?  // Optional for segment-only days
     
     public init(
         name: String,
         shortCode: String? = nil,
         goal: String? = nil,
         notes: String? = nil,
-        exercises: [ImportedExercise]
+        exercises: [ImportedExercise]? = nil
     ) {
         self.name = name
         self.shortCode = shortCode
@@ -588,7 +590,7 @@ public struct BlockGenerator {
     
     /// Convert an ImportedDay to a DayTemplate
     private static func convertDay(_ imported: ImportedDay, blockWarmUp: String, blockFinisher: String) -> DayTemplate {
-        let exercises = imported.exercises.map { convertExercise($0) }
+        let exercises = imported.exercises?.map { convertExercise($0) } ?? []
         
         // Build day notes
         var dayNotes = ""
