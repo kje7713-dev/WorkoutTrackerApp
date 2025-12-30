@@ -260,7 +260,7 @@ public final class BlockNormalizer {
             roundDurationSeconds: segment.roundPlan?.roundDurationSeconds ?? segment.partnerPlan?.roundDurationSeconds,
             restSeconds: segment.roundPlan?.restSeconds ?? segment.partnerPlan?.restSeconds,
             workSeconds: nil,
-            resistance: segment.resistance ?? segment.partnerPlan?.resistance ?? segment.roles?.resistance,
+            resistance: segment.resistance ?? segment.partnerPlan?.resistance,
             attackerGoal: segment.roles?.attackerGoal ?? segment.partnerPlan?.roles?.attackerGoal,
             defenderGoal: segment.roles?.defenderGoal ?? segment.partnerPlan?.roles?.defenderGoal,
             successRateTarget: segment.qualityTargets?.successRateTarget ?? segment.partnerPlan?.qualityTargets?.successRateTarget,

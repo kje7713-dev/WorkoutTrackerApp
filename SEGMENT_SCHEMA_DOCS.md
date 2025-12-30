@@ -189,8 +189,6 @@ Role definitions for partner work.
 **Properties:**
 - `attackerGoal` (String?) - Attacker objective
 - `defenderGoal` (String?) - Defender objective
-- `resistance` (Int) - Resistance level (0-100)
-- `switchEverySeconds` (Int?) - Switch timing
 - `switchEveryReps` (Int?) - Switch after reps
 
 #### QualityTargets
@@ -340,6 +338,7 @@ See `bjj_class_segments_example.json` for a complete example.
   "Days": [
     {
       "name": "Day Name",
+      "shortCode": "Optional short code for UI display",
       "segments": [
         {
           "name": "Segment Name",
@@ -355,6 +354,8 @@ See `bjj_class_segments_example.json` for a complete example.
   ]
 }
 ```
+
+**Note:** The `shortCode` field in day definitions is optional and can be used for compact UI display (e.g., "BJJ1", "Day A").
 
 ## UI Integration
 

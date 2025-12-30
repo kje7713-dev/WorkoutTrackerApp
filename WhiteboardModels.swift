@@ -411,8 +411,6 @@ public struct AuthoringRoundPlan: Codable {
 public struct AuthoringRoles: Codable {
     public var attackerGoal: String?
     public var defenderGoal: String?
-    public var resistance: Int?
-    public var switchEverySeconds: Int?
     public var switchEveryReps: Int?
 }
 
