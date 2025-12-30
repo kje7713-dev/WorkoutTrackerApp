@@ -1,0 +1,19 @@
+{
+  "_comment": "Recommended PartnerPlan Structure - All fields in correct locations",
+  "partnerPlan": {
+    "rounds": 3,
+    "roundDurationSeconds": 180,
+    "restSeconds": 60,
+    "roles": {
+      "attackerGoal": "Complete technique",
+      "defenderGoal": "Provide resistance"
+    },
+    "resistance": 25,
+    "switchEverySeconds": 90,
+    "qualityTargets": {
+      "cleanRepsTarget": 10,
+      "successRateTarget": 0.8,
+      "decisionSpeedSeconds": 2.5
+    }
+  }
+}
