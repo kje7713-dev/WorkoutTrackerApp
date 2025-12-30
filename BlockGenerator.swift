@@ -64,29 +64,159 @@ public struct ImportedBlock: Codable {
 }
 
 /// Imported Day structure for multi-day blocks
-/// Note: Currently only supports exercises. Segments field in JSON will be parsed but ignored during import.
-/// For full segment support, use the whiteboard authoring feature.
+/// Supports both exercises and segments for comprehensive block import
 public struct ImportedDay: Codable {
     public var name: String
     public var shortCode: String?
     public var goal: String?
     public var notes: String?
     public var exercises: [ImportedExercise]?  // Optional for segment-only days
+    public var segments: [ImportedSegment]?    // For non-traditional sessions (BJJ, yoga, etc.)
     
     public init(
         name: String,
         shortCode: String? = nil,
         goal: String? = nil,
         notes: String? = nil,
-        exercises: [ImportedExercise]? = nil
+        exercises: [ImportedExercise]? = nil,
+        segments: [ImportedSegment]? = nil
     ) {
         self.name = name
         self.shortCode = shortCode
         self.goal = goal
         self.notes = notes
         self.exercises = exercises
+        self.segments = segments
     }
 }
+
+// MARK: - Imported Segment Structures
+
+/// Imported Segment for non-traditional sessions (BJJ, yoga, etc.)
+public struct ImportedSegment: Codable {
+    public var name: String
+    public var segmentType: String
+    public var domain: String?
+    public var durationMinutes: Int?
+    public var objective: String?
+    public var constraints: [String]?
+    public var coachingCues: [String]?
+    public var positions: [String]?
+    public var techniques: [ImportedTechnique]?
+    public var drillPlan: ImportedDrillPlan?
+    public var partnerPlan: ImportedPartnerPlan?
+    public var roundPlan: ImportedRoundPlan?
+    public var roles: ImportedRoles?
+    public var resistance: Int?
+    public var qualityTargets: ImportedQualityTargets?
+    public var scoring: ImportedScoring?
+    public var startPosition: String?
+    public var endCondition: String?
+    public var startingState: ImportedStartingState?
+    public var holdSeconds: Int?
+    public var breathCount: Int?
+    public var flowSequence: [ImportedFlowStep]?
+    public var intensityScale: String?
+    public var props: [String]?
+    public var breathwork: ImportedBreathwork?
+    public var media: ImportedMedia?
+    public var safety: ImportedSafety?
+    public var notes: String?
+}
+
+public struct ImportedTechnique: Codable {
+    public var name: String
+    public var variant: String?
+    public var keyDetails: [String]?
+    public var commonErrors: [String]?
+    public var counters: [String]?
+    public var followUps: [String]?
+}
+
+public struct ImportedDrillPlan: Codable {
+    public var items: [ImportedDrillItem]?
+}
+
+public struct ImportedDrillItem: Codable {
+    public var name: String
+    public var workSeconds: Int
+    public var restSeconds: Int
+    public var notes: String?
+}
+
+public struct ImportedPartnerPlan: Codable {
+    public var rounds: Int?
+    public var roundDurationSeconds: Int?
+    public var restSeconds: Int?
+    public var roles: ImportedRoles?
+    public var resistance: Int?
+    public var switchEverySeconds: Int?
+    public var qualityTargets: ImportedQualityTargets?
+}
+
+public struct ImportedRoundPlan: Codable {
+    public var rounds: Int?
+    public var roundDurationSeconds: Int?
+    public var restSeconds: Int?
+    public var intensityCue: String?
+    public var resetRule: String?
+    public var startingState: ImportedStartingState?
+    public var winConditions: [String]?
+}
+
+public struct ImportedRoles: Codable {
+    public var attackerGoal: String?
+    public var defenderGoal: String?
+    public var switchEveryReps: Int?
+}
+
+public struct ImportedQualityTargets: Codable {
+    public var successRateTarget: Double?
+    public var cleanRepsTarget: Int?
+    public var decisionSpeedSeconds: Double?
+    public var controlTimeSeconds: Int?
+    public var breathControl: String?
+}
+
+public struct ImportedScoring: Codable {
+    public var attackerScoresIf: [String]?
+    public var defenderScoresIf: [String]?
+}
+
+public struct ImportedStartingState: Codable {
+    public var grips: [String]?
+    public var roles: [String]?
+}
+
+public struct ImportedFlowStep: Codable {
+    public var poseName: String
+    public var holdSeconds: Int
+    public var transitionCue: String?
+}
+
+public struct ImportedBreathwork: Codable {
+    public var style: String?
+    public var pattern: String?
+    public var durationSeconds: Int?
+}
+
+public struct ImportedMedia: Codable {
+    public var videoUrl: String?
+    public var imageUrl: String?
+    public var diagramAssetId: String?
+    public var coachNotesMarkdown: String?
+    public var commonFaults: [String]?
+    public var keyCues: [String]?
+    public var checkpoints: [String]?
+}
+
+public struct ImportedSafety: Codable {
+    public var contraindications: [String]?
+    public var stopIf: [String]?
+    public var intensityCeiling: String?
+}
+
+// MARK: - Imported Exercise Structures
 
 /// Imported Exercise with full field support
 public struct ImportedExercise: Codable {
@@ -591,6 +721,7 @@ public struct BlockGenerator {
     /// Convert an ImportedDay to a DayTemplate
     private static func convertDay(_ imported: ImportedDay, blockWarmUp: String, blockFinisher: String) -> DayTemplate {
         let exercises = imported.exercises?.map { convertExercise($0) } ?? []
+        let segments = imported.segments?.map { convertSegment($0) } ?? []
         
         // Build day notes
         var dayNotes = ""
@@ -603,7 +734,8 @@ public struct BlockGenerator {
             shortCode: imported.shortCode,
             goal: parseGoal(from: imported.goal ?? ""),
             notes: dayNotes,
-            exercises: exercises
+            exercises: exercises,
+            segments: segments.isEmpty ? nil : segments
         )
     }
     
@@ -783,6 +915,264 @@ public struct BlockGenerator {
         case "volume": return .volume
         case "custom": return .custom
         default: return .weight
+        }
+    }
+    
+    // MARK: - Segment Conversion
+    
+    /// Convert an ImportedSegment to a Segment
+    private static func convertSegment(_ imported: ImportedSegment) -> Segment {
+        // Parse segment type
+        let segmentType = parseSegmentType(from: imported.segmentType)
+        
+        // Parse domain
+        let domain = parseDomain(from: imported.domain)
+        
+        // Parse intensity scale
+        let intensityScale = parseIntensityScale(from: imported.intensityScale)
+        
+        // Convert techniques
+        let techniques = imported.techniques?.map { tech in
+            Technique(
+                name: tech.name,
+                variant: tech.variant,
+                keyDetails: tech.keyDetails ?? [],
+                commonErrors: tech.commonErrors ?? [],
+                counters: tech.counters ?? [],
+                followUps: tech.followUps ?? []
+            )
+        } ?? []
+        
+        // Convert drill plan
+        var drillPlan: DrillPlan?
+        if let importedDrillPlan = imported.drillPlan, let items = importedDrillPlan.items {
+            let drillItems = items.map { item in
+                DrillItem(
+                    name: item.name,
+                    workSeconds: item.workSeconds,
+                    restSeconds: item.restSeconds,
+                    notes: item.notes
+                )
+            }
+            drillPlan = DrillPlan(items: drillItems)
+        }
+        
+        // Convert partner plan
+        var partnerPlan: PartnerPlan?
+        if let importedPartnerPlan = imported.partnerPlan {
+            let roles = importedPartnerPlan.roles.map { r in
+                Roles(
+                    attackerGoal: r.attackerGoal,
+                    defenderGoal: r.defenderGoal,
+                    switchEveryReps: r.switchEveryReps
+                )
+            }
+            
+            let qualityTargets = importedPartnerPlan.qualityTargets.map { q in
+                QualityTargets(
+                    successRateTarget: q.successRateTarget,
+                    cleanRepsTarget: q.cleanRepsTarget,
+                    decisionSpeedSeconds: q.decisionSpeedSeconds,
+                    controlTimeSeconds: q.controlTimeSeconds,
+                    breathControl: q.breathControl
+                )
+            }
+            
+            partnerPlan = PartnerPlan(
+                rounds: importedPartnerPlan.rounds ?? 1,
+                roundDurationSeconds: importedPartnerPlan.roundDurationSeconds ?? 60,
+                restSeconds: importedPartnerPlan.restSeconds ?? 0,
+                roles: roles,
+                resistance: importedPartnerPlan.resistance ?? 0,
+                switchEverySeconds: importedPartnerPlan.switchEverySeconds,
+                qualityTargets: qualityTargets
+            )
+        }
+        
+        // Convert round plan
+        var roundPlan: RoundPlan?
+        if let importedRoundPlan = imported.roundPlan {
+            let startingState = importedRoundPlan.startingState.map { s in
+                StartingState(
+                    grips: s.grips ?? [],
+                    roles: s.roles ?? []
+                )
+            }
+            
+            roundPlan = RoundPlan(
+                rounds: importedRoundPlan.rounds ?? 1,
+                roundDurationSeconds: importedRoundPlan.roundDurationSeconds ?? 60,
+                restSeconds: importedRoundPlan.restSeconds ?? 0,
+                intensityCue: importedRoundPlan.intensityCue,
+                resetRule: importedRoundPlan.resetRule,
+                startingState: startingState,
+                winConditions: importedRoundPlan.winConditions ?? []
+            )
+        }
+        
+        // Convert roles
+        var roles: Roles?
+        if let importedRoles = imported.roles {
+            roles = Roles(
+                attackerGoal: importedRoles.attackerGoal,
+                defenderGoal: importedRoles.defenderGoal,
+                switchEveryReps: importedRoles.switchEveryReps
+            )
+        }
+        
+        // Convert quality targets
+        var qualityTargets: QualityTargets?
+        if let importedQualityTargets = imported.qualityTargets {
+            qualityTargets = QualityTargets(
+                successRateTarget: importedQualityTargets.successRateTarget,
+                cleanRepsTarget: importedQualityTargets.cleanRepsTarget,
+                decisionSpeedSeconds: importedQualityTargets.decisionSpeedSeconds,
+                controlTimeSeconds: importedQualityTargets.controlTimeSeconds,
+                breathControl: importedQualityTargets.breathControl
+            )
+        }
+        
+        // Convert scoring
+        var scoring: Scoring?
+        if let importedScoring = imported.scoring {
+            scoring = Scoring(
+                attackerScoresIf: importedScoring.attackerScoresIf ?? [],
+                defenderScoresIf: importedScoring.defenderScoresIf ?? []
+            )
+        }
+        
+        // Convert starting state
+        var startingState: StartingState?
+        if let importedStartingState = imported.startingState {
+            startingState = StartingState(
+                grips: importedStartingState.grips ?? [],
+                roles: importedStartingState.roles ?? []
+            )
+        }
+        
+        // Convert flow sequence
+        let flowSequence = imported.flowSequence?.map { step in
+            FlowStep(
+                poseName: step.poseName,
+                holdSeconds: step.holdSeconds,
+                transitionCue: step.transitionCue
+            )
+        } ?? []
+        
+        // Convert breathwork
+        var breathwork: BreathworkPlan?
+        if let importedBreathwork = imported.breathwork,
+           let style = importedBreathwork.style,
+           let pattern = importedBreathwork.pattern,
+           let durationSeconds = importedBreathwork.durationSeconds {
+            breathwork = BreathworkPlan(
+                style: style,
+                pattern: pattern,
+                durationSeconds: durationSeconds
+            )
+        }
+        
+        // Convert media
+        var media: Media?
+        if let importedMedia = imported.media {
+            media = Media(
+                videoUrl: importedMedia.videoUrl,
+                imageUrl: importedMedia.imageUrl,
+                diagramAssetId: importedMedia.diagramAssetId,
+                coachNotesMarkdown: importedMedia.coachNotesMarkdown,
+                commonFaults: importedMedia.commonFaults ?? [],
+                keyCues: importedMedia.keyCues ?? [],
+                checkpoints: importedMedia.checkpoints ?? []
+            )
+        }
+        
+        // Convert safety
+        var safety: Safety?
+        if let importedSafety = imported.safety {
+            safety = Safety(
+                contraindications: importedSafety.contraindications ?? [],
+                stopIf: importedSafety.stopIf ?? [],
+                intensityCeiling: importedSafety.intensityCeiling
+            )
+        }
+        
+        return Segment(
+            name: imported.name,
+            segmentType: segmentType,
+            domain: domain,
+            durationMinutes: imported.durationMinutes,
+            objective: imported.objective,
+            constraints: imported.constraints ?? [],
+            coachingCues: imported.coachingCues ?? [],
+            positions: imported.positions ?? [],
+            techniques: techniques,
+            roundPlan: roundPlan,
+            drillPlan: drillPlan,
+            partnerPlan: partnerPlan,
+            roles: roles,
+            resistance: imported.resistance,
+            qualityTargets: qualityTargets,
+            scoring: scoring,
+            startPosition: imported.startPosition,
+            endCondition: imported.endCondition,
+            startingState: startingState,
+            holdSeconds: imported.holdSeconds,
+            breathCount: imported.breathCount,
+            flowSequence: flowSequence,
+            intensityScale: intensityScale,
+            props: imported.props ?? [],
+            breathwork: breathwork,
+            media: media,
+            safety: safety,
+            notes: imported.notes
+        )
+    }
+    
+    /// Parse segment type from string
+    private static func parseSegmentType(from typeString: String) -> SegmentType {
+        let lower = typeString.lowercased()
+        
+        switch lower {
+        case "warmup", "warm-up", "warm_up": return .warmup
+        case "mobility": return .mobility
+        case "technique": return .technique
+        case "drill": return .drill
+        case "positionalspar", "positional_spar", "positional-spar": return .positionalSpar
+        case "rolling": return .rolling
+        case "cooldown", "cool-down", "cool_down": return .cooldown
+        case "lecture": return .lecture
+        case "breathwork": return .breathwork
+        case "flow": return .other  // Flow can be mapped to 'other' or you could add a new type
+        default: return .other
+        }
+    }
+    
+    /// Parse domain from string
+    private static func parseDomain(from domainString: String?) -> Domain? {
+        guard let domain = domainString?.lowercased() else { return nil }
+        
+        switch domain {
+        case "grappling": return .grappling
+        case "yoga": return .yoga
+        case "strength": return .strength
+        case "conditioning": return .conditioning
+        case "mobility": return .mobility
+        case "other": return .other
+        default: return nil
+        }
+    }
+    
+    /// Parse intensity scale from string
+    private static func parseIntensityScale(from scaleString: String?) -> IntensityScale? {
+        guard let scale = scaleString?.lowercased() else { return nil }
+        
+        switch scale {
+        case "restorative": return .restorative
+        case "easy": return .easy
+        case "moderate": return .moderate
+        case "strong": return .strong
+        case "peak": return .peak
+        default: return nil
         }
     }
 }
