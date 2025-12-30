@@ -598,28 +598,28 @@ struct BlockGeneratorView: View {
                   
                   // DRILLING STRUCTURE:
                   "drillPlan": { [OPTIONAL - for warmup drills]
-                    "items": [
+                    "items": [ [REQUIRED if drillPlan present]
                       {
-                        "name": "Drill name",
-                        "workSeconds": 60,
-                        "restSeconds": 15,
-                        "notes": "Coaching point"
+                        "name": "Drill name", [REQUIRED]
+                        "workSeconds": 60, [REQUIRED]
+                        "restSeconds": 15, [REQUIRED]
+                        "notes": "Coaching point" [OPTIONAL]
                       }
                     ]
                   },
                   
                   // PARTNER WORK:
                   "partnerPlan": { [OPTIONAL - for technique practice]
-                    "rounds": 3,
-                    "roundDurationSeconds": 180,
-                    "restSeconds": 60,
-                    "roles": {
+                    "rounds": 3, [REQUIRED if partnerPlan present]
+                    "roundDurationSeconds": 180, [REQUIRED if partnerPlan present]
+                    "restSeconds": 60, [REQUIRED if partnerPlan present]
+                    "resistance": 25, [OPTIONAL, 0-100 scale]
+                    "switchEverySeconds": 90, [OPTIONAL]
+                    "roles": { [OPTIONAL]
                       "attackerGoal": "Complete technique",
-                      "defenderGoal": "Provide resistance",
-                      "resistance": 25 [0-100 scale],
-                      "switchEverySeconds": 90
+                      "defenderGoal": "Provide resistance"
                     },
-                    "qualityTargets": {
+                    "qualityTargets": { [OPTIONAL]
                       "cleanRepsTarget": 10,
                       "successRateTarget": 0.8,
                       "decisionSpeedSeconds": 2.5
@@ -628,12 +628,12 @@ struct BlockGeneratorView: View {
                   
                   // LIVE ROUNDS:
                   "roundPlan": { [OPTIONAL - for sparring]
-                    "rounds": 5,
-                    "roundDurationSeconds": 300,
-                    "restSeconds": 60,
-                    "intensityCue": "moderate|hard|live",
-                    "resetRule": "Reset on score/submission",
-                    "winConditions": ["Submission", "Points"]
+                    "rounds": 5, [REQUIRED if roundPlan present]
+                    "roundDurationSeconds": 300, [REQUIRED if roundPlan present]
+                    "restSeconds": 60, [REQUIRED if roundPlan present]
+                    "intensityCue": "moderate|hard|live", [OPTIONAL]
+                    "resetRule": "Reset on score/submission", [OPTIONAL]
+                    "winConditions": ["Submission", "Points"] [OPTIONAL]
                   },
                   
                   // POSITIONAL SPARRING:
@@ -658,9 +658,9 @@ struct BlockGeneratorView: View {
                   
                   // BREATHWORK:
                   "breathwork": { [OPTIONAL]
-                    "style": "Box breathing",
-                    "pattern": "4s inhale / 4s hold / 4s exhale / 4s hold",
-                    "durationSeconds": 300
+                    "style": "Box breathing", [REQUIRED if breathwork present]
+                    "pattern": "4s inhale / 4s hold / 4s exhale / 4s hold", [REQUIRED if breathwork present]
+                    "durationSeconds": 300 [REQUIRED if breathwork present]
                   },
                   
                   // COACHING & SAFETY:
