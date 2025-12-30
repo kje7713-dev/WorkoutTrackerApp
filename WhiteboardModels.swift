@@ -332,7 +332,7 @@ public struct AuthoringDay: Codable {
     public var name: String
     public var shortCode: String?
     public var goal: String?
-    public var exercises: [AuthoringExercise]
+    public var exercises: [AuthoringExercise]?  // Optional for segment-only days
     public var segments: [AuthoringSegment]?  // Added for non-traditional sessions
 }
 

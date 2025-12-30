@@ -206,7 +206,7 @@ public final class BlockNormalizer {
     
     /// Normalize an authoring day
     private static func normalizeAuthoringDay(_ day: AuthoringDay) -> UnifiedDay {
-        let exercises = day.exercises.map { normalizeAuthoringExercise($0) }
+        let exercises = day.exercises?.map { normalizeAuthoringExercise($0) } ?? []
         let segments = day.segments?.map { normalizeAuthoringSegment($0) } ?? []
         
         return UnifiedDay(
