@@ -132,6 +132,11 @@ struct MobileWhiteboardDayView: View {
     @State private var selectedSegmentId: UUID? = nil
     @Namespace private var animation
     
+    // Cache formatted sections for exercises
+    private var formattedSections: [WhiteboardSection] {
+        WhiteboardFormatter.formatDay(day)
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // 1) STICKY HEADER
@@ -150,10 +155,19 @@ struct MobileWhiteboardDayView: View {
                                 .background(Color(.systemBackground))
                         }
                         
-                        // 3) SEGMENT CARD STACK
-                        segmentCardStack
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
+                        // 3) SEGMENT CARD STACK (for segment-based days)
+                        if !day.segments.isEmpty {
+                            segmentCardStack
+                                .padding(.horizontal, 16)
+                                .padding(.top, 8)
+                        }
+                        
+                        // 4) EXERCISE SECTIONS (for traditional exercise-based days)
+                        if !day.exercises.isEmpty {
+                            exerciseSections
+                                .padding(.horizontal, 16)
+                                .padding(.top, 8)
+                        }
                     }
                 }
                 .onChange(of: selectedSegmentId) { _, newId in
@@ -267,6 +281,73 @@ struct MobileWhiteboardDayView: View {
                         } else {
                             expandedSegmentId = segment.id
                         }
+                    }
+                }
+            }
+        }
+        .padding(.bottom, 24)
+    }
+    
+    // MARK: - 4) Exercise Sections
+    
+    private var exerciseSections: some View {
+        LazyVStack(spacing: 20) {
+            ForEach(formattedSections) { section in
+                VStack(alignment: .leading, spacing: 12) {
+                    // Section header
+                    HStack {
+                        Rectangle()
+                            .fill(Color.primary)
+                            .frame(width: 4, height: 20)
+                        
+                        Text(section.title.uppercased())
+                            .font(.system(.headline, design: .monospaced))
+                            .fontWeight(.bold)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                    }
+                    .padding(.bottom, 4)
+                    
+                    // Section items
+                    ForEach(section.items) { item in
+                        VStack(alignment: .leading, spacing: 6) {
+                            // Primary line (exercise name)
+                            Text(item.primary)
+                                .font(.system(.body, design: .monospaced))
+                                .fontWeight(.semibold)
+                            
+                            // Secondary line (prescription)
+                            if let secondary = item.secondary {
+                                Text(secondary)
+                                    .font(.system(.subheadline, design: .monospaced))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            // Tertiary line (rest)
+                            if let tertiary = item.tertiary {
+                                Text(tertiary)
+                                    .font(.system(.caption, design: .monospaced))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            // Bullets with improved formatting
+                            if !item.bullets.isEmpty {
+                                VStack(alignment: .leading, spacing: 3) {
+                                    ForEach(item.bullets, id: \.self) { bullet in
+                                        BulletItemView(text: bullet)
+                                    }
+                                }
+                                .padding(.leading, 4)
+                                .padding(.top, 4)
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(.secondarySystemBackground))
+                        )
                     }
                 }
             }
