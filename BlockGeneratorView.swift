@@ -494,9 +494,14 @@ struct BlockGeneratorView: View {
     // MARK: - Template Strings
     
     private func aiPromptTemplate(withRequirements requirements: String?) -> String {
-        let requirementsText = requirements?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false 
-            ? requirements!
-            : "[Describe your training goals, experience level, available equipment, time constraints, and specific exercises/activities you want.]"
+        let trimmedRequirements = requirements?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let requirementsText: String
+        
+        if let trimmed = trimmedRequirements, !trimmed.isEmpty {
+            requirementsText = trimmed
+        } else {
+            requirementsText = "[Describe your training goals, experience level, available equipment, time constraints, and specific exercises/activities you want.]"
+        }
         
         return """
         I need you to generate a workout block in JSON format for the Savage By Design workout tracker app.
