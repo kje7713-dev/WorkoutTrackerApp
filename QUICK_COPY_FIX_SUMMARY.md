@@ -57,9 +57,9 @@ Updated tests to use safe optional chaining:
 **Files:** `BlockGenerator.swift`, `BlockGeneratorView.swift`
 
 Added clear documentation about:
-- Segment support limitation (parsed but not imported)
-- Recommendation to use whiteboard authoring for full segment support
-- Warning in quick copy template about current limitations
+- Full segment support (segments are parsed and imported)
+- How to use segments for BJJ, yoga, and skill-based training
+- Examples of segment-based blocks in quick copy template
 
 ## Testing
 ### Unit Tests
