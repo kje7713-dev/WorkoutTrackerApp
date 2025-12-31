@@ -132,6 +132,11 @@ struct MobileWhiteboardDayView: View {
     @State private var selectedSegmentId: UUID? = nil
     @Namespace private var animation
     
+    // Cache formatted sections for exercises
+    private var formattedSections: [WhiteboardSection] {
+        WhiteboardFormatter.formatDay(day)
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // 1) STICKY HEADER
@@ -287,7 +292,7 @@ struct MobileWhiteboardDayView: View {
     
     private var exerciseSections: some View {
         LazyVStack(spacing: 20) {
-            ForEach(WhiteboardFormatter.formatDay(day)) { section in
+            ForEach(formattedSections) { section in
                 VStack(alignment: .leading, spacing: 12) {
                     // Section header
                     HStack {
