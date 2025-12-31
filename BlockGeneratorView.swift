@@ -32,6 +32,7 @@ struct BlockGeneratorView: View {
     @State private var hideConfirmationTask: DispatchWorkItem?
     @State private var pastedJSON: String = ""
     @State private var showingPaywall: Bool = false
+    @State private var userRequirements: String = ""
     
     // MARK: - Body
     
@@ -285,19 +286,55 @@ struct BlockGeneratorView: View {
     
     private var aiPromptTemplateSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("AI Prompt Template")
-                    .font(.system(size: 16, weight: .semibold))
+            Text("AI Prompt Template")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(primaryTextColor)
+            
+            Text("Fill in your specific requirements below, then copy the complete prompt to use with ChatGPT, Claude, or any AI assistant.")
+                .font(.system(size: 12))
+                .foregroundColor(theme.mutedText)
+            
+            // Requirements input field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Your Requirements (Optional)")
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(primaryTextColor)
                 
+                TextEditor(text: $userRequirements)
+                    .font(.system(size: 13))
+                    .frame(minHeight: 100, maxHeight: 150)
+                    .padding(8)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(UIColor.separator), lineWidth: 1)
+                    )
+                    .overlay(
+                        Group {
+                            if userRequirements.isEmpty {
+                                Text("Example: I want a 4-week upper/lower split for intermediate lifters, 4 days per week, focusing on strength and hypertrophy. I have access to a full gym with barbells, dumbbells, and machines.")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(theme.mutedText.opacity(0.5))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 16)
+                                    .allowsHitTesting(false)
+                            }
+                        },
+                        alignment: .topLeading
+                    )
+            }
+            
+            // Copy button with prompt preview
+            HStack {
                 Spacer()
                 
                 Button {
-                    copyToClipboard(aiPromptTemplate)
+                    copyToClipboard(aiPromptTemplate(withRequirements: userRequirements.isEmpty ? nil : userRequirements))
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "doc.on.doc")
-                        Text("Copy")
+                        Text("Copy Complete Prompt")
                     }
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.white)
@@ -308,19 +345,20 @@ struct BlockGeneratorView: View {
                 }
             }
             
-            Text("Copy this template and paste it into ChatGPT, Claude, or any AI assistant. Then add your specific workout requirements at the bottom.")
-                .font(.system(size: 12))
-                .foregroundColor(theme.mutedText)
-            
-            ScrollView(.horizontal, showsIndicators: true) {
-                Text(aiPromptTemplate)
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(theme.mutedText)
-                    .padding(12)
-                    .background(Color(UIColor.systemBackground))
-                    .cornerRadius(8)
+            // Prompt preview (collapsible)
+            DisclosureGroup("Preview Full Prompt") {
+                ScrollView(.horizontal, showsIndicators: true) {
+                    Text(aiPromptTemplate(withRequirements: userRequirements.isEmpty ? nil : userRequirements))
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(theme.mutedText)
+                        .padding(12)
+                        .background(Color(UIColor.systemBackground))
+                        .cornerRadius(8)
+                }
+                .frame(maxHeight: 150)
             }
-            .frame(maxHeight: 150)
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(primaryTextColor)
         }
     }
     
@@ -455,12 +493,16 @@ struct BlockGeneratorView: View {
     
     // MARK: - Template Strings
     
-    private var aiPromptTemplate: String {
-        """
+    private func aiPromptTemplate(withRequirements requirements: String?) -> String {
+        let requirementsText = requirements?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false 
+            ? requirements!
+            : "[Describe your training goals, experience level, available equipment, time constraints, and specific exercises/activities you want.]"
+        
+        return """
         I need you to generate a workout block in JSON format for the Savage By Design workout tracker app.
         
         MY REQUIREMENTS:
-        [Describe your training goals, experience level, available equipment, time constraints, and specific exercises/activities you want.]
+        \(requirementsText)
         
         IMPORTANT - JSON Format Specification:
         - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
