@@ -97,10 +97,10 @@ A horizontally scrollable timeline showing all segments at a glance.
 ┌──────────────────────────────────────┐
 │ 🧠 │ Single Leg Entry Technique      │
 │ ║  │ TECHNIQUE • 15 min              │
-│ ║  │ Build clean entry with control  │
-│ ║  │ [6× rounds] [2 techniques]      │
 └──────────────────────────────────────┘
 ```
+- Shows only: icon, title, type label, and duration
+- Tap to expand for full details
 
 **Expanded State:**
 Shows detailed sections in this order (only if data exists):

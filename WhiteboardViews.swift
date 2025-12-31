@@ -525,17 +525,6 @@ struct SegmentCard: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
-                // 1-line objective preview
-                if let objective = segment.objective {
-                    Text(objective)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-                
-                // Key payload micro-badges
-                keyPayloadBadges
             }
             
             Spacer()
@@ -544,30 +533,6 @@ struct SegmentCard: View {
             Image(systemName: isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle")
                 .font(.title3)
                 .foregroundColor(.accentColor)
-        }
-    }
-    
-    private var keyPayloadBadges: some View {
-        HStack(spacing: 6) {
-            // Rounds
-            if let rounds = segment.rounds {
-                MicroBadge(icon: "arrow.clockwise", text: "\(rounds)×")
-            }
-            
-            // Start Position
-            if let startPos = segment.startPosition {
-                MicroBadge(icon: "figure.stand", text: String(startPos.prefix(10)))
-            }
-            
-            // Constraints
-            if !segment.constraints.isEmpty {
-                MicroBadge(icon: "exclamationmark.triangle", text: "\(segment.constraints.count) rules")
-            }
-            
-            // Techniques
-            if !segment.techniques.isEmpty {
-                MicroBadge(icon: "brain", text: "\(segment.techniques.count) tech")
-            }
         }
     }
     

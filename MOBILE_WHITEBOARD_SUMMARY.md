@@ -23,7 +23,7 @@ This document summarizes the complete implementation of the mobile-first whitebo
 #### 2. Progressive disclosure: collapsed cards by default, expand on tap ✅
 **Implementation:**
 - All segment cards start collapsed showing only key information
-- Collapsed state shows: icon, title, type, duration, objective preview, micro-badges
+- Collapsed state shows: icon, title, type label, and duration
 - Tap card header to expand and reveal detailed sections
 - Only one card expanded at a time (clean, focused experience)
 - Smooth animations for expand/collapse (0.3s easeInOut)
