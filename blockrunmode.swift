@@ -591,6 +591,23 @@ struct BlockRunModeView: View {
                 let segmentStates: [RunSegmentState]? = day.segments?.map { segment in
                     let drillItemNames = segment.drillPlan?.items.map { $0.name } ?? []
                     
+                    // Extract technique names for summary
+                    let techniqueNames = segment.techniques.map { $0.name }
+                    
+                    // Extract safety notes
+                    let safetyNotes = segment.safety?.contraindications ?? []
+                    
+                    // Extract partner goals
+                    let attackerGoal = segment.partnerPlan?.roles?.attackerGoal ?? segment.roles?.attackerGoal
+                    let defenderGoal = segment.partnerPlan?.roles?.defenderGoal ?? segment.roles?.defenderGoal
+                    
+                    // Extract resistance level
+                    let resistance = segment.partnerPlan?.resistance ?? segment.resistance
+                    
+                    // Extract quality targets
+                    let targetSuccessRate = segment.partnerPlan?.qualityTargets?.successRateTarget ?? segment.qualityTargets?.successRateTarget
+                    let targetCleanReps = segment.partnerPlan?.qualityTargets?.cleanRepsTarget ?? segment.qualityTargets?.cleanRepsTarget
+                    
                     return RunSegmentState(
                         segmentId: segment.id,
                         name: segment.name,
@@ -601,7 +618,16 @@ struct BlockRunModeView: View {
                         totalRounds: segment.roundPlan?.rounds ?? segment.partnerPlan?.rounds,
                         roundDurationSeconds: segment.roundPlan?.roundDurationSeconds ?? segment.partnerPlan?.roundDurationSeconds,
                         restSeconds: segment.roundPlan?.restSeconds ?? segment.partnerPlan?.restSeconds,
-                        drillItems: drillItemNames
+                        drillItems: drillItemNames,
+                        techniqueNames: techniqueNames,
+                        coachingCues: segment.coachingCues,
+                        constraints: segment.constraints,
+                        attackerGoal: attackerGoal,
+                        defenderGoal: defenderGoal,
+                        resistance: resistance,
+                        targetSuccessRate: targetSuccessRate,
+                        targetCleanReps: targetCleanReps,
+                        safetyNotes: safetyNotes
                     )
                 }
 
@@ -1841,6 +1867,17 @@ struct RunSegmentState: Identifiable, Codable {
     var endTime: Date?
     var isCompleted: Bool = false
     
+    // Summary details for tracking (added for issue: segments lack detail)
+    let techniqueNames: [String]  // Names of techniques covered
+    let coachingCues: [String]    // Key coaching cues
+    let constraints: [String]     // Training constraints
+    let attackerGoal: String?     // Partner drill attacker goal
+    let defenderGoal: String?     // Partner drill defender goal
+    let resistance: Int?          // Resistance level (0-100)
+    let targetSuccessRate: Double?  // Target success rate (0-1)
+    let targetCleanReps: Int?     // Target clean reps
+    let safetyNotes: [String]     // Safety contraindications
+    
     init(
         segmentId: SegmentID? = nil,
         name: String,
@@ -1852,7 +1889,16 @@ struct RunSegmentState: Identifiable, Codable {
         roundDurationSeconds: Int? = nil,
         restSeconds: Int? = nil,
         drillItems: [String] = [],
-        isCompleted: Bool = false
+        isCompleted: Bool = false,
+        techniqueNames: [String] = [],
+        coachingCues: [String] = [],
+        constraints: [String] = [],
+        attackerGoal: String? = nil,
+        defenderGoal: String? = nil,
+        resistance: Int? = nil,
+        targetSuccessRate: Double? = nil,
+        targetCleanReps: Int? = nil,
+        safetyNotes: [String] = []
     ) {
         self.segmentId = segmentId
         self.name = name
@@ -1865,6 +1911,15 @@ struct RunSegmentState: Identifiable, Codable {
         self.restSeconds = restSeconds
         self.drillItems = drillItems
         self.isCompleted = isCompleted
+        self.techniqueNames = techniqueNames
+        self.coachingCues = coachingCues
+        self.constraints = constraints
+        self.attackerGoal = attackerGoal
+        self.defenderGoal = defenderGoal
+        self.resistance = resistance
+        self.targetSuccessRate = targetSuccessRate
+        self.targetCleanReps = targetCleanReps
+        self.safetyNotes = safetyNotes
     }
 }
 
@@ -2030,6 +2085,8 @@ struct SegmentRunCard: View {
     @Binding var segment: RunSegmentState
     let onSave: () -> Void
     
+    @State private var showingWhiteboardHint: Bool = false
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header with segment name and type
@@ -2088,6 +2145,163 @@ struct SegmentRunCard: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .padding(.vertical, 4)
+            }
+            
+            // Techniques summary (if present)
+            if !segment.techniqueNames.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Techniques")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    ForEach(segment.techniqueNames, id: \.self) { techniqueName in
+                        HStack(spacing: 6) {
+                            Image(systemName: "target")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                            Text(techniqueName)
+                                .font(.subheadline)
+                        }
+                    }
+                }
+                .padding(.vertical, 6)
+            }
+            
+            // Coaching cues (if present)
+            if !segment.coachingCues.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Key Cues")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    ForEach(segment.coachingCues, id: \.self) { cue in
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("•")
+                                .font(.caption)
+                            Text(cue)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(.vertical, 6)
+            }
+            
+            // Partner roles (if present)
+            if segment.attackerGoal != nil || segment.defenderGoal != nil {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Partner Roles")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    if let attackerGoal = segment.attackerGoal {
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("⚔️")
+                                .font(.caption)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Attacker:")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                Text(attackerGoal)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    
+                    if let defenderGoal = segment.defenderGoal {
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("🛡️")
+                                .font(.caption)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Defender:")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                Text(defenderGoal)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    
+                    // Resistance level if present
+                    if let resistance = segment.resistance {
+                        HStack(spacing: 8) {
+                            Text("Resistance:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            HStack(spacing: 4) {
+                                ForEach(0..<5) { index in
+                                    Rectangle()
+                                        .fill(index < Int(Double(resistance) / 20.0) ? Color.orange : Color.gray.opacity(0.3))
+                                        .frame(width: 20, height: 8)
+                                        .cornerRadius(2)
+                                }
+                            }
+                            Text("\(resistance)%")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.blue.opacity(0.1))
+                )
+            }
+            
+            // Constraints (if present)
+            if !segment.constraints.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Constraints")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    ForEach(segment.constraints, id: \.self) { constraint in
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("⚠️")
+                                .font(.caption)
+                            Text(constraint)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(.vertical, 6)
+            }
+            
+            // Quality targets (if present)
+            if segment.targetSuccessRate != nil || segment.targetCleanReps != nil {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Quality Targets")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    if let targetRate = segment.targetSuccessRate {
+                        HStack(spacing: 6) {
+                            Image(systemName: "percent")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                            Text("Success Rate: \(Int(targetRate * 100))%")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    if let targetReps = segment.targetCleanReps {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.shield")
+                                .font(.caption)
+                                .foregroundColor(.green)
+                            Text("Clean Reps: \(targetReps)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(.vertical, 6)
             }
             
             // Round tracking if present
@@ -2253,12 +2467,52 @@ struct SegmentRunCard: View {
                 )
             }
             
+            // Safety notes (if present)
+            if !segment.safetyNotes.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Safety")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.red)
+                    
+                    ForEach(segment.safetyNotes, id: \.self) { note in
+                        HStack(alignment: .top, spacing: 6) {
+                            Text("🚨")
+                                .font(.caption)
+                            Text(note)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(.vertical, 8)
+                .padding(.horizontal, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.red.opacity(0.1))
+                )
+            }
+            
             // Notes if present
             if let notes = segment.notes, !notes.isEmpty {
                 Text(notes)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .padding(.vertical, 4)
+            }
+            
+            // Whiteboard hint
+            HStack {
+                Spacer()
+                HStack(spacing: 4) {
+                    Image(systemName: "rectangle.and.text.magnifyingglass")
+                        .font(.caption)
+                    Text("Tap 'Whiteboard' for full details")
+                        .font(.caption)
+                }
+                .foregroundColor(.accentColor)
+                .padding(.vertical, 4)
+                Spacer()
             }
         }
         .padding()

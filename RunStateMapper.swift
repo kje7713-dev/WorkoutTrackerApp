@@ -94,6 +94,23 @@ struct RunStateMapper {
                 let originalSegment = dayTemplate.segments?.first { $0.id == sessionSegment.segmentId }
                 let drillItemNames = originalSegment?.drillPlan?.items.map { $0.name } ?? []
                 
+                // Extract technique names for summary
+                let techniqueNames = originalSegment?.techniques.map { $0.name } ?? []
+                
+                // Extract safety notes
+                let safetyNotes = originalSegment?.safety?.contraindications ?? []
+                
+                // Extract partner goals
+                let attackerGoal = originalSegment?.partnerPlan?.roles?.attackerGoal ?? originalSegment?.roles?.attackerGoal
+                let defenderGoal = originalSegment?.partnerPlan?.roles?.defenderGoal ?? originalSegment?.roles?.defenderGoal
+                
+                // Extract resistance level
+                let resistance = originalSegment?.partnerPlan?.resistance ?? originalSegment?.resistance
+                
+                // Extract quality targets
+                let targetSuccessRate = originalSegment?.partnerPlan?.qualityTargets?.successRateTarget ?? originalSegment?.qualityTargets?.successRateTarget
+                let targetCleanReps = originalSegment?.partnerPlan?.qualityTargets?.cleanRepsTarget ?? originalSegment?.qualityTargets?.cleanRepsTarget
+                
                 return RunSegmentState(
                     segmentId: sessionSegment.segmentId ?? UUID(),
                     name: sessionSegment.name,
@@ -104,7 +121,16 @@ struct RunStateMapper {
                     totalRounds: originalSegment?.roundPlan?.rounds ?? originalSegment?.partnerPlan?.rounds,
                     roundDurationSeconds: originalSegment?.roundPlan?.roundDurationSeconds ?? originalSegment?.partnerPlan?.roundDurationSeconds,
                     restSeconds: originalSegment?.roundPlan?.restSeconds ?? originalSegment?.partnerPlan?.restSeconds,
-                    drillItems: drillItemNames
+                    drillItems: drillItemNames,
+                    techniqueNames: techniqueNames,
+                    coachingCues: originalSegment?.coachingCues ?? [],
+                    constraints: originalSegment?.constraints ?? [],
+                    attackerGoal: attackerGoal,
+                    defenderGoal: defenderGoal,
+                    resistance: resistance,
+                    targetSuccessRate: targetSuccessRate,
+                    targetCleanReps: targetCleanReps,
+                    safetyNotes: safetyNotes
                 )
             }
             
