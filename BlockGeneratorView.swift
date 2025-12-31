@@ -315,7 +315,7 @@ struct BlockGeneratorView: View {
                             if userRequirements.isEmpty {
                                 Text("Example: I want a 4-week upper/lower split for intermediate lifters, 4 days per week, focusing on strength and hypertrophy. I have access to a full gym with barbells, dumbbells, and machines.")
                                     .font(.system(size: 13))
-                                    .foregroundColor(theme.mutedText.opacity(0.5))
+                                    .foregroundColor(theme.mutedText.opacity(0.6))
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 16)
                                     .allowsHitTesting(false)
