@@ -71,6 +71,9 @@ public struct SessionFactory {
                     in: block,
                     weekIndex: weekIndex
                 )
+                
+                // Convert segments from day template to session segments
+                let segments = makeSessionSegments(from: dayTemplate)
 
                 let session = WorkoutSession(
                     id: UUID(),
@@ -79,14 +82,26 @@ public struct SessionFactory {
                     dayTemplateId: dayTemplate.id,
                     date: nil,                      // FR-SESSGEN-4: set on first open, in UI flow
                     status: .notStarted,            // Enum as defined in DataDictionary
-                    exercises: exercises
+                    exercises: exercises,
+                    segments: segments.isEmpty ? nil : segments
                 )
 
                 sessions.append(session)
+                
+                // Log segment creation for debugging
+                if !segments.isEmpty {
+                    AppLogger.debug("  Created session with \(segments.count) segments for day '\(dayTemplate.name)'", subsystem: .session, category: "SessionFactory")
+                }
             }
         }
 
-        AppLogger.info("✅ Generated \(sessions.count) total sessions for block '\(block.name)'", subsystem: .session, category: "SessionFactory")
+        // Count total segments across all sessions
+        let totalSegments = sessions.reduce(0) { $0 + ($1.segments?.count ?? 0) }
+        if totalSegments > 0 {
+            AppLogger.info("✅ Generated \(sessions.count) total sessions (\(totalSegments) segments) for block '\(block.name)'", subsystem: .session, category: "SessionFactory")
+        } else {
+            AppLogger.info("✅ Generated \(sessions.count) total sessions for block '\(block.name)'", subsystem: .session, category: "SessionFactory")
+        }
         return sessions
     }
 
@@ -113,6 +128,34 @@ public struct SessionFactory {
                 customName: exerciseTemplate.customName,
                 expectedSets: expectedSets,
                 loggedSets: loggedSets
+            )
+        }
+    }
+
+    // MARK: - Helpers: DayTemplate → [SessionSegment]
+    
+    /// Convert segments from a day template to session segments for tracking
+    private func makeSessionSegments(from dayTemplate: DayTemplate) -> [SessionSegment] {
+        guard let segments = dayTemplate.segments else { return [] }
+        
+        return segments.map { segment in
+            SessionSegment(
+                id: UUID(),
+                segmentId: segment.id,
+                name: segment.name,
+                segmentType: segment.segmentType,
+                startTime: nil,
+                endTime: nil,
+                isCompleted: false,
+                actualDurationMinutes: segment.durationMinutes,
+                successRate: nil,
+                cleanReps: nil,
+                decisionSpeed: nil,
+                controlTime: nil,
+                roundsCompleted: nil,
+                drillItemsCompleted: nil,
+                notes: nil,
+                coachFeedback: nil
             )
         }
     }

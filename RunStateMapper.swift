@@ -78,7 +78,8 @@ struct RunStateMapper {
                 return RunDayState(
                     name: dayTemplate.name,
                     shortCode: dayTemplate.shortCode ?? "",
-                    exercises: []
+                    exercises: [],
+                    segments: nil
                 )
             }
             
@@ -87,10 +88,31 @@ struct RunStateMapper {
                 createRunExerciseState(from: sessionExercise, dayTemplate: dayTemplate)
             }
             
+            // Convert session segments to run segment states
+            let segmentStates: [RunSegmentState]? = session.segments?.map { sessionSegment in
+                // Find the original segment from day template for additional data
+                let originalSegment = dayTemplate.segments?.first { $0.id == sessionSegment.segmentId }
+                let drillItemNames = originalSegment?.drillPlan?.items.map { $0.name } ?? []
+                
+                return RunSegmentState(
+                    segmentId: sessionSegment.segmentId ?? UUID(),
+                    name: sessionSegment.name,
+                    segmentType: sessionSegment.segmentType,
+                    durationMinutes: sessionSegment.actualDurationMinutes,
+                    objective: originalSegment?.objective,
+                    notes: sessionSegment.notes,
+                    totalRounds: originalSegment?.roundPlan?.rounds ?? originalSegment?.partnerPlan?.rounds,
+                    roundDurationSeconds: originalSegment?.roundPlan?.roundDurationSeconds ?? originalSegment?.partnerPlan?.roundDurationSeconds,
+                    restSeconds: originalSegment?.roundPlan?.restSeconds ?? originalSegment?.partnerPlan?.restSeconds,
+                    drillItems: drillItemNames
+                )
+            }
+            
             return RunDayState(
                 name: dayTemplate.name,
                 shortCode: dayTemplate.shortCode ?? "",
-                exercises: exerciseStates
+                exercises: exerciseStates,
+                segments: segmentStates
             )
         }
     }
@@ -345,6 +367,34 @@ struct RunStateMapper {
         }
         
         updatedSession.exercises = updatedExercises
+        
+        // Update segments if present in run state
+        if let runSegments = runDay.segments {
+            var updatedSegments: [SessionSegment] = []
+            
+            for (segmentIndex, runSegment) in runSegments.enumerated() {
+                if let existingSegments = session.segments, segmentIndex < existingSegments.count {
+                    // Update existing segment
+                    var updatedSegment = existingSegments[segmentIndex]
+                    updatedSegment.actualDurationMinutes = runSegment.durationMinutes
+                    updatedSegment.notes = runSegment.notes
+                    updatedSegment.isCompleted = false // TODO: Add completion tracking to RunSegmentState
+                    updatedSegments.append(updatedSegment)
+                } else {
+                    // Create new segment (shouldn't normally happen, but handle gracefully)
+                    let newSegment = SessionSegment(
+                        segmentId: runSegment.segmentId,
+                        name: runSegment.name,
+                        segmentType: runSegment.segmentType,
+                        actualDurationMinutes: runSegment.durationMinutes,
+                        notes: runSegment.notes
+                    )
+                    updatedSegments.append(newSegment)
+                }
+            }
+            
+            updatedSession.segments = updatedSegments.isEmpty ? nil : updatedSegments
+        }
         
         // Update session status based on completion
         updatedSession.status = calculateSessionStatus(for: updatedSession)
