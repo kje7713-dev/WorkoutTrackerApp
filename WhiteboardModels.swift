@@ -143,7 +143,8 @@ public struct UnifiedConditioningSet: Codable, Equatable {
 }
 
 /// Unified segment for non-traditional sessions
-public struct UnifiedSegment: Codable, Equatable {
+public struct UnifiedSegment: Codable, Equatable, Identifiable {
+    public var id: UUID
     public var name: String
     public var segmentType: String  // warmup|technique|drill|positionalSpar|rolling|cooldown|lecture|breathwork|other
     public var domain: String?  // grappling|yoga|strength|conditioning|mobility|other
@@ -191,6 +192,7 @@ public struct UnifiedSegment: Codable, Equatable {
     public var mediaDiagramAssetId: String?
     
     public init(
+        id: UUID = UUID(),
         name: String,
         segmentType: String,
         domain: String? = nil,
@@ -237,6 +239,7 @@ public struct UnifiedSegment: Codable, Equatable {
         mediaImageUrl: String? = nil,
         mediaDiagramAssetId: String? = nil
     ) {
+        self.id = id
         self.name = name
         self.segmentType = segmentType
         self.domain = domain

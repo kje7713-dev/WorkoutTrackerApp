@@ -68,7 +68,7 @@ struct WhiteboardWeekView: View {
     }
 }
 
-// MARK: - Full-Screen Whiteboard Day View
+// MARK: - Full-Screen Whiteboard Day View (Mobile-First)
 
 struct WhiteboardFullScreenDayView: View {
     let unifiedBlock: UnifiedBlock
@@ -92,15 +92,12 @@ struct WhiteboardFullScreenDayView: View {
                     .ignoresSafeArea()
                 
                 if let day = day {
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            WhiteboardDayCardView(
-                                day: day,
-                                dayNumber: dayIndex + 1
-                            )
-                        }
-                        .padding()
-                    }
+                    MobileWhiteboardDayView(
+                        day: day,
+                        dayNumber: dayIndex + 1,
+                        blockTitle: unifiedBlock.title,
+                        weekNumber: weekIndex + 1
+                    )
                 } else {
                     Text("No data for this day")
                         .foregroundColor(.secondary)
@@ -108,17 +105,6 @@ struct WhiteboardFullScreenDayView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 2) {
-                        Text(unifiedBlock.title)
-                            .font(.headline)
-                            .fontWeight(.bold)
-                        Text("Week \(weekIndex + 1) • Day \(dayIndex + 1)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         dismiss()
@@ -130,6 +116,933 @@ struct WhiteboardFullScreenDayView: View {
                     .accessibilityLabel("Close whiteboard")
                 }
             }
+        }
+    }
+}
+
+// MARK: - Mobile Whiteboard Day View
+
+struct MobileWhiteboardDayView: View {
+    let day: UnifiedDay
+    let dayNumber: Int
+    let blockTitle: String
+    let weekNumber: Int
+    
+    @State private var expandedSegmentId: UUID? = nil
+    @State private var selectedSegmentId: UUID? = nil
+    @Namespace private var animation
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // 1) STICKY HEADER
+            stickyHeader
+                .background(Color(.systemBackground))
+            
+            Divider()
+            
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // 2) CLASS FLOW STRIP
+                        if !day.segments.isEmpty {
+                            classFlowStrip
+                                .padding(.vertical, 12)
+                                .background(Color(.systemBackground))
+                        }
+                        
+                        // 3) SEGMENT CARD STACK
+                        segmentCardStack
+                            .padding(.horizontal, 16)
+                            .padding(.top, 8)
+                    }
+                }
+                .onChange(of: selectedSegmentId) { _, newId in
+                    if let newId = newId {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo(newId, anchor: .top)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - 1) Sticky Header
+    
+    private var stickyHeader: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Line 1: Day Name (bold)
+            Text(day.name)
+                .font(.title2)
+                .fontWeight(.bold)
+            
+            // Line 2: Chips [Goal] [Duration] [Difficulty]
+            HStack(spacing: 8) {
+                if let goal = day.goal {
+                    ChipView(text: goal.uppercased(), color: .blue)
+                }
+                
+                // Calculate total duration from segments
+                if !day.segments.isEmpty {
+                    let totalMinutes = day.segments.compactMap { $0.durationMinutes }.reduce(0, +)
+                    if totalMinutes > 0 {
+                        ChipView(text: "\(totalMinutes) min", color: .orange)
+                    }
+                }
+                
+                // Difficulty could be derived from segment types or added to model
+                // For now, we'll skip it if not available
+            }
+            
+            // Line 3: Tags (positions, techniques, etc.)
+            if !day.segments.isEmpty {
+                let allPositions = Set(day.segments.flatMap { $0.positions })
+                if !allPositions.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(Array(allPositions.prefix(5)), id: \.self) { position in
+                                TagChipView(text: position)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+    
+    // MARK: - 2) Class Flow Strip
+    
+    private var classFlowStrip: some View {
+        VStack(spacing: 8) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(Array(day.segments.enumerated()), id: \.element.id) { index, segment in
+                        SegmentPillCard(
+                            segment: segment,
+                            index: index + 1,
+                            isSelected: selectedSegmentId == segment.id
+                        )
+                        .onTapGesture {
+                            selectedSegmentId = segment.id
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            
+            // Progress indicator
+            if !day.segments.isEmpty {
+                Text("\(selectedSegmentIndex + 1) / \(day.segments.count) segments")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+    
+    private var selectedSegmentIndex: Int {
+        if let id = selectedSegmentId,
+           let index = day.segments.firstIndex(where: { $0.id == id }) {
+            return index
+        }
+        return 0
+    }
+    
+    // MARK: - 3) Segment Card Stack
+    
+    private var segmentCardStack: some View {
+        LazyVStack(spacing: 12) {
+            ForEach(day.segments) { segment in
+                SegmentCard(
+                    segment: segment,
+                    isExpanded: expandedSegmentId == segment.id
+                )
+                .id(segment.id)
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        if expandedSegmentId == segment.id {
+                            expandedSegmentId = nil
+                        } else {
+                            expandedSegmentId = segment.id
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.bottom, 24)
+    }
+}
+
+// MARK: - Chip View
+
+struct ChipView: View {
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        Text(text)
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundColor(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(color)
+            )
+    }
+}
+
+// MARK: - Tag Chip View
+
+struct TagChipView: View {
+    let text: String
+    
+    var body: some View {
+        Text(text)
+            .font(.caption2)
+            .foregroundColor(.primary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+            )
+    }
+}
+
+// MARK: - Segment Pill Card
+
+struct SegmentPillCard: View {
+    let segment: UnifiedSegment
+    let index: Int
+    let isSelected: Bool
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            HStack(spacing: 6) {
+                // Icon
+                Text(segmentTypeIcon)
+                    .font(.body)
+                
+                // Short name
+                Text(segment.name)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+            }
+            
+            // Duration badge
+            if let duration = segment.durationMinutes {
+                Text("\(duration)m")
+                    .font(.caption2)
+                    .foregroundColor(.white.opacity(0.9))
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(segmentTypeColor)
+                .shadow(color: isSelected ? segmentTypeColor.opacity(0.4) : .clear, radius: 8, x: 0, y: 2)
+        )
+        .foregroundColor(.white)
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
+    }
+    
+    private var segmentTypeIcon: String {
+        switch segment.segmentType.lowercased() {
+        case "warmup": return "🔄"
+        case "mobility": return "🧘"
+        case "technique": return "🧠"
+        case "drill": return "🔁"
+        case "positionalspar": return "⚔️"
+        case "rolling": return "🥋"
+        case "cooldown": return "🌬️"
+        case "lecture": return "🎓"
+        case "breathwork": return "🌬️"
+        case "flow": return "🧘"
+        default: return "📌"
+        }
+    }
+    
+    private var segmentTypeColor: Color {
+        switch segment.segmentType.lowercased() {
+        case "warmup", "mobility": return Color.orange
+        case "technique": return Color.blue
+        case "drill": return Color.purple
+        case "positionalspar", "rolling": return Color.red
+        case "cooldown", "breathwork", "flow": return Color.green
+        case "lecture": return Color.gray
+        default: return Color.secondary
+        }
+    }
+}
+
+// MARK: - Segment Card
+
+struct SegmentCard: View {
+    let segment: UnifiedSegment
+    let isExpanded: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Card header (always visible)
+            cardHeader
+            
+            // Expanded content
+            if isExpanded {
+                Divider()
+                    .padding(.vertical, 8)
+                
+                expandedContent
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+        )
+    }
+    
+    // MARK: - Card Header (Collapsed View)
+    
+    private var cardHeader: some View {
+        HStack(alignment: .top, spacing: 12) {
+            // Left: icon + color stripe
+            VStack(spacing: 4) {
+                Text(segmentTypeIcon)
+                    .font(.title2)
+                
+                Rectangle()
+                    .fill(segmentTypeColor)
+                    .frame(width: 4, height: 40)
+            }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                // Title
+                Text(segment.name)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                
+                // Subtitle: type + duration
+                HStack(spacing: 8) {
+                    Text(segment.segmentType.uppercased())
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(segmentTypeColor)
+                    
+                    if let duration = segment.durationMinutes {
+                        Text("•")
+                            .foregroundColor(.secondary)
+                        Text("\(duration) min")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // 1-line objective preview
+                if let objective = segment.objective {
+                    Text(objective)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                }
+                
+                // Key payload micro-badges
+                keyPayloadBadges
+            }
+            
+            Spacer()
+            
+            // Expand indicator
+            Image(systemName: isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle")
+                .font(.title3)
+                .foregroundColor(.accentColor)
+        }
+    }
+    
+    private var keyPayloadBadges: some View {
+        HStack(spacing: 6) {
+            // Rounds
+            if let rounds = segment.rounds {
+                MicroBadge(icon: "arrow.clockwise", text: "\(rounds)×")
+            }
+            
+            // Start Position
+            if let startPos = segment.startPosition {
+                MicroBadge(icon: "figure.stand", text: String(startPos.prefix(10)))
+            }
+            
+            // Constraints
+            if !segment.constraints.isEmpty {
+                MicroBadge(icon: "exclamationmark.triangle", text: "\(segment.constraints.count) rules")
+            }
+            
+            // Techniques
+            if !segment.techniques.isEmpty {
+                MicroBadge(icon: "brain", text: "\(segment.techniques.count) tech")
+            }
+        }
+    }
+    
+    // MARK: - Expanded Content
+    
+    private var expandedContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // A) Objective (full)
+            if let objective = segment.objective {
+                SectionView(title: "Objective") {
+                    Text(objective)
+                        .font(.subheadline)
+                }
+            }
+            
+            // B) Start / Positions
+            if !segment.positions.isEmpty {
+                SectionView(title: "Positions") {
+                    FlowLayout(items: segment.positions) { position in
+                        TagChipView(text: position)
+                    }
+                }
+            }
+            
+            // C) Techniques
+            if !segment.techniques.isEmpty {
+                SectionView(title: "Techniques") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(segment.techniques, id: \.name) { technique in
+                            TechniqueRow(technique: technique)
+                        }
+                    }
+                }
+            }
+            
+            // D) Drill Plan
+            if !segment.drillItems.isEmpty {
+                SectionView(title: "Drill Plan") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(segment.drillItems, id: \.name) { item in
+                            HStack {
+                                Text(item.name)
+                                    .font(.subheadline)
+                                Spacer()
+                                Text("\(item.workSeconds)s work / \(item.restSeconds)s rest")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+            }
+            
+            // E) Partner Plan
+            if let rounds = segment.rounds,
+               let roundDuration = segment.roundDurationSeconds,
+               (segment.attackerGoal != nil || segment.defenderGoal != nil) {
+                SectionView(title: "Partner Plan") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("\(rounds) × \(formatTime(roundDuration)) rounds")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        if let rest = segment.restSeconds {
+                            Text("Rest: \(formatTime(rest))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        if let attackerGoal = segment.attackerGoal {
+                            BulletPoint(text: "Attacker: \(attackerGoal)")
+                        }
+                        
+                        if let defenderGoal = segment.defenderGoal {
+                            BulletPoint(text: "Defender: \(defenderGoal)")
+                        }
+                        
+                        if let resistance = segment.resistance {
+                            HStack {
+                                Text("Resistance:")
+                                    .font(.caption)
+                                ProgressView(value: Double(resistance), total: 100)
+                                    .tint(resistanceColor(resistance))
+                                Text("\(resistance)%")
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.blue.opacity(0.3), lineWidth: 2)
+                    )
+                }
+            }
+            
+            // F) Round Plan (Live Rounds)
+            if let rounds = segment.rounds,
+               let roundDuration = segment.roundDurationSeconds,
+               segment.attackerGoal == nil && segment.defenderGoal == nil {
+                SectionView(title: "Live Rounds") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("\(rounds) × \(formatTime(roundDuration))")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        if let rest = segment.restSeconds {
+                            Text("Rest: \(formatTime(rest))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        if let intensity = segment.intensityCue {
+                            BulletPoint(text: "Intensity: \(intensity)")
+                        }
+                        
+                        if let resetRule = segment.resetRule {
+                            BulletPoint(text: "Reset: \(resetRule)")
+                        }
+                        
+                        if !segment.winConditions.isEmpty {
+                            Text("Win Conditions:")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                            ForEach(segment.winConditions, id: \.self) { condition in
+                                BulletPoint(text: condition, indent: true)
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.red.opacity(0.3), lineWidth: 2)
+                    )
+                }
+            }
+            
+            // G) Constraints
+            if !segment.constraints.isEmpty {
+                SectionView(title: "Constraints") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(segment.constraints, id: \.self) { constraint in
+                            HStack(alignment: .top, spacing: 6) {
+                                Text("⚠️")
+                                    .font(.caption)
+                                Text(constraint)
+                                    .font(.subheadline)
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.orange.opacity(0.1))
+                    )
+                }
+            }
+            
+            // H) Scoring
+            if !segment.scoring.isEmpty {
+                SectionView(title: "Scoring") {
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(segment.scoring.prefix(segment.scoring.count / 2 + segment.scoring.count % 2), id: \.self) { score in
+                                BulletPoint(text: score)
+                            }
+                        }
+                        
+                        if segment.scoring.count > 1 {
+                            Divider()
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                ForEach(segment.scoring.dropFirst((segment.scoring.count / 2 + segment.scoring.count % 2)), id: \.self) { score in
+                                    BulletPoint(text: score)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // I) Flow / Mobility
+            if !segment.flowSequence.isEmpty {
+                SectionView(title: "Flow Sequence") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(segment.flowSequence, id: \.poseName) { step in
+                            HStack {
+                                Text(step.poseName)
+                                    .font(.subheadline)
+                                Spacer()
+                                Text("\(step.holdSeconds)s")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                            
+                            if let transition = step.transitionCue {
+                                Text("→ \(transition)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .italic()
+                                    .padding(.leading, 12)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // J) Breathwork
+            if let style = segment.breathworkStyle {
+                SectionView(title: "Breathwork") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(style)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        if let pattern = segment.breathworkPattern {
+                            Text(pattern)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        if let duration = segment.breathworkDurationSeconds {
+                            Text("\(formatTime(duration))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.green.opacity(0.1))
+                    )
+                }
+            }
+            
+            // K) Coaching Cues
+            if !segment.coachingCues.isEmpty {
+                SectionView(title: "Coaching Cues") {
+                    FlowLayout(items: segment.coachingCues) { cue in
+                        Text(cue)
+                            .font(.caption)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.blue.opacity(0.1))
+                            )
+                    }
+                }
+            }
+            
+            // L) Safety
+            if !segment.contraindications.isEmpty || !segment.stopIf.isEmpty {
+                SectionView(title: "Safety") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        if !segment.contraindications.isEmpty {
+                            Text("Contraindications:")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                            ForEach(segment.contraindications, id: \.self) { item in
+                                HStack(alignment: .top, spacing: 6) {
+                                    Text("⛔")
+                                        .font(.caption)
+                                    Text(item)
+                                        .font(.caption)
+                                }
+                            }
+                        }
+                        
+                        if !segment.stopIf.isEmpty {
+                            Text("Stop if:")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .padding(.top, 4)
+                            ForEach(segment.stopIf, id: \.self) { item in
+                                HStack(alignment: .top, spacing: 6) {
+                                    Text("🛑")
+                                        .font(.caption)
+                                    Text(item)
+                                        .font(.caption)
+                                }
+                            }
+                        }
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.red.opacity(0.1))
+                    )
+                }
+            }
+            
+            // M) Notes (last)
+            if let notes = segment.notes, !notes.isEmpty {
+                SectionView(title: "Notes") {
+                    Text(notes)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Helper Properties
+    
+    private var segmentTypeIcon: String {
+        switch segment.segmentType.lowercased() {
+        case "warmup": return "🔄"
+        case "mobility": return "🧘"
+        case "technique": return "🧠"
+        case "drill": return "🔁"
+        case "positionalspar": return "⚔️"
+        case "rolling": return "🥋"
+        case "cooldown": return "🌬️"
+        case "lecture": return "🎓"
+        case "breathwork": return "🌬️"
+        case "flow": return "🧘"
+        default: return "📌"
+        }
+    }
+    
+    private var segmentTypeColor: Color {
+        switch segment.segmentType.lowercased() {
+        case "warmup", "mobility": return Color.orange
+        case "technique": return Color.blue
+        case "drill": return Color.purple
+        case "positionalspar", "rolling": return Color.red
+        case "cooldown", "breathwork", "flow": return Color.green
+        case "lecture": return Color.gray
+        default: return Color.secondary
+        }
+    }
+    
+    private func formatTime(_ seconds: Int) -> String {
+        let minutes = seconds / 60
+        let secs = seconds % 60
+        if minutes > 0 {
+            return String(format: "%d:%02d", minutes, secs)
+        } else {
+            return "\(secs)s"
+        }
+    }
+    
+    private func resistanceColor(_ resistance: Int) -> Color {
+        switch resistance {
+        case 0...25: return .green
+        case 26...50: return .yellow
+        case 51...75: return .orange
+        default: return .red
+        }
+    }
+}
+
+// MARK: - Supporting Views
+
+struct MicroBadge: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: icon)
+                .font(.system(size: 10))
+            Text(text)
+                .font(.system(size: 10))
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color.primary.opacity(0.1))
+        )
+        .foregroundColor(.primary)
+    }
+}
+
+struct SectionView<Content: View>: View {
+    let title: String
+    let content: Content
+    
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.bold)
+                .textCase(.uppercase)
+                .foregroundColor(.primary)
+            
+            content
+        }
+    }
+}
+
+struct BulletPoint: View {
+    let text: String
+    var indent: Bool = false
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 6) {
+            if indent {
+                Spacer().frame(width: 12)
+            }
+            Text("•")
+                .font(.caption)
+            Text(text)
+                .font(.caption)
+        }
+    }
+}
+
+struct TechniqueRow: View {
+    let technique: UnifiedTechnique
+    @State private var isExpanded: Bool = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(technique.name)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        if let variant = technique.variant {
+                            Text(variant)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+            
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 8) {
+                    if !technique.keyDetails.isEmpty {
+                        Text("Key Details:")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        ForEach(technique.keyDetails, id: \.self) { detail in
+                            BulletPoint(text: detail, indent: true)
+                        }
+                    }
+                    
+                    if !technique.commonErrors.isEmpty {
+                        Text("Common Errors:")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        ForEach(technique.commonErrors, id: \.self) { error in
+                            BulletPoint(text: error, indent: true)
+                        }
+                    }
+                    
+                    if !technique.followUps.isEmpty {
+                        Text("Follow-ups:")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        ForEach(technique.followUps, id: \.self) { followUp in
+                            BulletPoint(text: followUp, indent: true)
+                        }
+                    }
+                    
+                    if !technique.counters.isEmpty {
+                        Text("Counters:")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        ForEach(technique.counters, id: \.self) { counter in
+                            BulletPoint(text: counter, indent: true)
+                        }
+                    }
+                }
+                .padding(.leading, 12)
+                .padding(.top, 4)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.tertiarySystemBackground))
+        )
+    }
+}
+
+struct FlowLayout<Item: Hashable, ItemView: View>: View {
+    let items: [Item]
+    let itemView: (Item) -> ItemView
+    
+    @State private var totalHeight: CGFloat = 0
+    
+    var body: some View {
+        VStack {
+            GeometryReader { geometry in
+                self.generateContent(in: geometry)
+            }
+        }
+        .frame(height: totalHeight)
+    }
+    
+    private func generateContent(in g: GeometryProxy) -> some View {
+        var width = CGFloat.zero
+        var height = CGFloat.zero
+        
+        return ZStack(alignment: .topLeading) {
+            ForEach(items, id: \.self) { item in
+                itemView(item)
+                    .padding([.horizontal, .vertical], 4)
+                    .alignmentGuide(.leading, computeValue: { d in
+                        if (abs(width - d.width) > g.size.width) {
+                            width = 0
+                            height -= d.height
+                        }
+                        let result = width
+                        if item == items.last {
+                            width = 0
+                        } else {
+                            width -= d.width
+                        }
+                        return result
+                    })
+                    .alignmentGuide(.top, computeValue: { d in
+                        let result = height
+                        if item == items.last {
+                            height = 0
+                        }
+                        return result
+                    })
+            }
+        }
+        .background(viewHeightReader($totalHeight))
+    }
+    
+    private func viewHeightReader(_ binding: Binding<CGFloat>) -> some View {
+        return GeometryReader { geometry -> Color in
+            let rect = geometry.frame(in: .local)
+            DispatchQueue.main.async {
+                binding.wrappedValue = rect.size.height
+            }
+            return .clear
         }
     }
 }
