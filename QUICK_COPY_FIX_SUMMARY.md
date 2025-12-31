@@ -82,18 +82,14 @@ Added clear documentation about:
 - **App behavior**: No functional changes to existing features
 
 ### ✅ New Capability
-- **Segment-based JSON**: Now parses without errors
+- **Segment-based JSON**: Now parses and imports without errors
 - **Quick copy examples**: All examples work (exercise and segment)
 - **User experience**: No confusing parsing errors
-
-### ⚠️ Known Limitation
-- **Segment import**: Segment data is parsed but NOT imported yet
-- **Workaround**: Use whiteboard authoring feature for segment-based blocks
-- **Future work**: Full segment import support can be added if needed
+- **Full segment support**: Segments are fully imported and can be viewed in whiteboard view and tracked during workouts
 
 ## Files Changed
 1. `BlockGenerator.swift` - Made exercises optional, updated convertDay, added docs
-2. `BlockGeneratorView.swift` - Added warning about segment limitations
+2. `BlockGeneratorView.swift` - Updated JSON format documentation
 3. `Tests/BlockGeneratorTests.swift` - Updated tests, added new test case
 
 ## Consistency with Previous Fix
