@@ -34,12 +34,6 @@ struct BlockGeneratorView: View {
     @State private var showingPaywall: Bool = false
     @State private var userRequirements: String = ""
     
-    // MARK: - Computed Properties
-    
-    private var requirementsForPrompt: String? {
-        userRequirements.isEmpty ? nil : userRequirements
-    }
-    
     // MARK: - Body
     
     var body: some View {
@@ -336,7 +330,7 @@ struct BlockGeneratorView: View {
                 Spacer()
                 
                 Button {
-                    copyToClipboard(aiPromptTemplate(withRequirements: requirementsForPrompt))
+                    copyToClipboard(aiPromptTemplate(withRequirements: userRequirements))
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "doc.on.doc")
@@ -354,7 +348,7 @@ struct BlockGeneratorView: View {
             // Prompt preview (collapsible)
             DisclosureGroup("Preview Full Prompt") {
                 ScrollView(.horizontal, showsIndicators: true) {
-                    Text(aiPromptTemplate(withRequirements: requirementsForPrompt))
+                    Text(aiPromptTemplate(withRequirements: userRequirements))
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundColor(theme.mutedText)
                         .padding(12)
