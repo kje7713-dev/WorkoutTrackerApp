@@ -76,13 +76,24 @@ public final class BlockNormalizer {
             )
         } ?? []
         
-        // Extract techniques
+        // Extract techniques with all fields
         let techniques = segment.techniques.map { tech in
             UnifiedTechnique(
                 name: tech.name,
                 variant: tech.variant,
                 keyDetails: tech.keyDetails,
-                commonErrors: tech.commonErrors
+                commonErrors: tech.commonErrors,
+                counters: tech.counters,
+                followUps: tech.followUps
+            )
+        }
+        
+        // Extract flow sequence items
+        let flowSequence = segment.flowSequence.map { step in
+            UnifiedFlowStep(
+                poseName: step.poseName,
+                holdSeconds: step.holdSeconds,
+                transitionCue: step.transitionCue
             )
         }
         
@@ -92,6 +103,10 @@ public final class BlockNormalizer {
             scoringStrings.append(contentsOf: scoring.attackerScoresIf.map { "Attacker: \($0)" })
             scoringStrings.append(contentsOf: scoring.defenderScoresIf.map { "Defender: \($0)" })
         }
+        
+        // Extract starting state
+        let startingStateGrips = segment.startingState?.grips ?? []
+        let startingStateRoles = segment.startingState?.roles ?? []
         
         // Build unified segment
         return UnifiedSegment(
@@ -113,16 +128,33 @@ public final class BlockNormalizer {
             defenderGoal: segment.roles?.defenderGoal ?? segment.partnerPlan?.roles?.defenderGoal,
             successRateTarget: segment.qualityTargets?.successRateTarget ?? segment.partnerPlan?.qualityTargets?.successRateTarget,
             cleanRepsTarget: segment.qualityTargets?.cleanRepsTarget ?? segment.partnerPlan?.qualityTargets?.cleanRepsTarget,
+            decisionSpeedSeconds: segment.qualityTargets?.decisionSpeedSeconds ?? segment.partnerPlan?.qualityTargets?.decisionSpeedSeconds,
+            controlTimeSeconds: segment.qualityTargets?.controlTimeSeconds ?? segment.partnerPlan?.qualityTargets?.controlTimeSeconds,
             startPosition: segment.startPosition,
+            endCondition: segment.endCondition,
             scoring: scoringStrings,
+            winConditions: segment.roundPlan?.winConditions ?? [],
+            resetRule: segment.roundPlan?.resetRule,
+            intensityCue: segment.roundPlan?.intensityCue,
+            switchEverySeconds: segment.partnerPlan?.switchEverySeconds,
             breathworkStyle: segment.breathwork?.style,
             breathworkPattern: segment.breathwork?.pattern,
+            breathworkDurationSeconds: segment.breathwork?.durationSeconds,
+            breathCount: segment.breathCount,
             holdSeconds: segment.holdSeconds,
             intensityScale: segment.intensityScale?.rawValue,
             props: segment.props,
+            flowSequence: flowSequence,
             notes: segment.notes,
             contraindications: segment.safety?.contraindications ?? [],
-            drillItems: drillItems
+            stopIf: segment.safety?.stopIf ?? [],
+            intensityCeiling: segment.safety?.intensityCeiling,
+            drillItems: drillItems,
+            startingStateGrips: startingStateGrips,
+            startingStateRoles: startingStateRoles,
+            mediaVideoUrl: segment.media?.videoUrl,
+            mediaImageUrl: segment.media?.imageUrl,
+            mediaDiagramAssetId: segment.media?.diagramAssetId
         )
     }
     
@@ -229,13 +261,24 @@ public final class BlockNormalizer {
             )
         } ?? []
         
-        // Extract techniques
+        // Extract techniques with all fields
         let techniques = segment.techniques?.map { tech in
             UnifiedTechnique(
                 name: tech.name,
                 variant: tech.variant,
                 keyDetails: tech.keyDetails ?? [],
-                commonErrors: tech.commonErrors ?? []
+                commonErrors: tech.commonErrors ?? [],
+                counters: tech.counters ?? [],
+                followUps: tech.followUps ?? []
+            )
+        } ?? []
+        
+        // Extract flow sequence items
+        let flowSequence = segment.flowSequence?.map { step in
+            UnifiedFlowStep(
+                poseName: step.poseName,
+                holdSeconds: step.holdSeconds,
+                transitionCue: step.transitionCue
             )
         } ?? []
         
@@ -245,6 +288,10 @@ public final class BlockNormalizer {
             scoringStrings.append(contentsOf: (scoring.attackerScoresIf ?? []).map { "Attacker: \($0)" })
             scoringStrings.append(contentsOf: (scoring.defenderScoresIf ?? []).map { "Defender: \($0)" })
         }
+        
+        // Extract starting state
+        let startingStateGrips = segment.startingState?.grips ?? []
+        let startingStateRoles = segment.startingState?.roles ?? []
         
         return UnifiedSegment(
             name: segment.name,
@@ -265,16 +312,33 @@ public final class BlockNormalizer {
             defenderGoal: segment.roles?.defenderGoal ?? segment.partnerPlan?.roles?.defenderGoal,
             successRateTarget: segment.qualityTargets?.successRateTarget ?? segment.partnerPlan?.qualityTargets?.successRateTarget,
             cleanRepsTarget: segment.qualityTargets?.cleanRepsTarget ?? segment.partnerPlan?.qualityTargets?.cleanRepsTarget,
+            decisionSpeedSeconds: segment.qualityTargets?.decisionSpeedSeconds ?? segment.partnerPlan?.qualityTargets?.decisionSpeedSeconds,
+            controlTimeSeconds: segment.qualityTargets?.controlTimeSeconds ?? segment.partnerPlan?.qualityTargets?.controlTimeSeconds,
             startPosition: segment.startPosition,
+            endCondition: segment.endCondition,
             scoring: scoringStrings,
+            winConditions: segment.roundPlan?.winConditions ?? [],
+            resetRule: segment.roundPlan?.resetRule,
+            intensityCue: segment.roundPlan?.intensityCue,
+            switchEverySeconds: segment.partnerPlan?.switchEverySeconds,
             breathworkStyle: segment.breathwork?.style,
             breathworkPattern: segment.breathwork?.pattern,
+            breathworkDurationSeconds: segment.breathwork?.durationSeconds,
+            breathCount: segment.breathCount,
             holdSeconds: segment.holdSeconds,
             intensityScale: segment.intensityScale,
             props: segment.props ?? [],
+            flowSequence: flowSequence,
             notes: segment.notes,
             contraindications: segment.safety?.contraindications ?? [],
-            drillItems: drillItems
+            stopIf: segment.safety?.stopIf ?? [],
+            intensityCeiling: segment.safety?.intensityCeiling,
+            drillItems: drillItems,
+            startingStateGrips: startingStateGrips,
+            startingStateRoles: startingStateRoles,
+            mediaVideoUrl: segment.media?.videoUrl,
+            mediaImageUrl: segment.media?.imageUrl,
+            mediaDiagramAssetId: segment.media?.diagramAssetId
         )
     }
     

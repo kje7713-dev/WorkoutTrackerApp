@@ -119,7 +119,12 @@ public final class WhiteboardFormatter {
         
         // Add objective
         if let objective = segment.objective {
-            bullets.append("Objective: \(objective)")
+            bullets.append("📋 Objective: \(objective)")
+        }
+        
+        // Add start position
+        if let startPosition = segment.startPosition {
+            bullets.append("🎯 Start Position: \(startPosition)")
         }
         
         // Add positions if present
@@ -127,23 +132,132 @@ public final class WhiteboardFormatter {
             bullets.append("Positions: \(segment.positions.joined(separator: ", "))")
         }
         
-        // Add techniques
+        // Add starting state if present
+        if !segment.startingStateGrips.isEmpty || !segment.startingStateRoles.isEmpty {
+            bullets.append("Starting State:")
+            if !segment.startingStateGrips.isEmpty {
+                bullets.append("  - Grips: \(segment.startingStateGrips.joined(separator: ", "))")
+            }
+            if !segment.startingStateRoles.isEmpty {
+                bullets.append("  - Roles: \(segment.startingStateRoles.joined(separator: ", "))")
+            }
+        }
+        
+        // Add techniques with expanded details
         for technique in segment.techniques {
-            var techString = "• \(technique.name)"
+            var techString = "🥋 \(technique.name)"
             if let variant = technique.variant {
                 techString += " (\(variant))"
             }
             bullets.append(techString)
+            
             if !technique.keyDetails.isEmpty {
-                bullets.append(contentsOf: technique.keyDetails.map { "  - \($0)" })
+                bullets.append("  Key Details:")
+                bullets.append(contentsOf: technique.keyDetails.map { "    • \($0)" })
+            }
+            
+            if !technique.commonErrors.isEmpty {
+                bullets.append("  Common Errors:")
+                bullets.append(contentsOf: technique.commonErrors.map { "    ⚠️ \($0)" })
+            }
+            
+            if !technique.counters.isEmpty {
+                bullets.append("  Counters:")
+                bullets.append(contentsOf: technique.counters.map { "    🛡️ \($0)" })
+            }
+            
+            if !technique.followUps.isEmpty {
+                bullets.append("  Follow-ups:")
+                bullets.append(contentsOf: technique.followUps.map { "    ➡️ \($0)" })
             }
         }
         
         // Add drill items
-        for item in segment.drillItems {
-            let timeStr = formatSeconds(item.workSeconds)
-            let restStr = item.restSeconds > 0 ? " / \(formatSeconds(item.restSeconds)) rest" : ""
-            bullets.append("• \(item.name): \(timeStr)\(restStr)")
+        if !segment.drillItems.isEmpty {
+            bullets.append("Drill Plan:")
+            for item in segment.drillItems {
+                let timeStr = formatSeconds(item.workSeconds)
+                let restStr = item.restSeconds > 0 ? " / \(formatSeconds(item.restSeconds)) rest" : ""
+                var drillLine = "  • \(item.name): \(timeStr)\(restStr)"
+                if let notes = item.notes {
+                    drillLine += " — \(notes)"
+                }
+                bullets.append(drillLine)
+            }
+        }
+        
+        // Add flow sequence for yoga/mobility
+        if !segment.flowSequence.isEmpty {
+            bullets.append("Flow Sequence:")
+            for step in segment.flowSequence {
+                var flowLine = "  • \(step.poseName) — \(step.holdSeconds)s"
+                if let cue = step.transitionCue {
+                    flowLine += " — \(cue)"
+                }
+                bullets.append(flowLine)
+            }
+        }
+        
+        // Add quality targets with all fields
+        var qualityTargetLines: [String] = []
+        if let successRate = segment.successRateTarget {
+            qualityTargetLines.append("  • Success rate: \(Int(successRate * 100))%")
+        }
+        if let cleanReps = segment.cleanRepsTarget {
+            qualityTargetLines.append("  • Clean reps: \(cleanReps)")
+        }
+        if let decisionSpeed = segment.decisionSpeedSeconds {
+            qualityTargetLines.append("  • Decision speed: \(String(format: "%.1f", decisionSpeed))s")
+        }
+        if let controlTime = segment.controlTimeSeconds {
+            qualityTargetLines.append("  • Control time: \(controlTime)s")
+        }
+        if !qualityTargetLines.isEmpty {
+            bullets.append("🎯 Quality Targets:")
+            bullets.append(contentsOf: qualityTargetLines)
+        }
+        
+        // Add partner plan details
+        if let switchEverySeconds = segment.switchEverySeconds {
+            bullets.append("Switch roles every: \(formatSeconds(switchEverySeconds))")
+        }
+        
+        // Add roles for partner work
+        if let attackerGoal = segment.attackerGoal {
+            bullets.append("🔴 Attacker: \(attackerGoal)")
+        }
+        if let defenderGoal = segment.defenderGoal {
+            bullets.append("🔵 Defender: \(defenderGoal)")
+        }
+        if let resistance = segment.resistance {
+            bullets.append("💪 Resistance: \(resistance)%")
+        }
+        
+        // Add intensity cue
+        if let intensityCue = segment.intensityCue {
+            bullets.append("Intensity: \(intensityCue)")
+        }
+        
+        // Add reset rule
+        if let resetRule = segment.resetRule {
+            bullets.append("Reset: \(resetRule)")
+        }
+        
+        // Add win conditions
+        if !segment.winConditions.isEmpty {
+            bullets.append("Win Conditions:")
+            bullets.append(contentsOf: segment.winConditions.map { "  ✓ \($0)" })
+        }
+        
+        // Add scoring
+        if !segment.scoring.isEmpty {
+            bullets.append("Scoring:")
+            bullets.append(contentsOf: segment.scoring.map { "  • \($0)" })
+        }
+        
+        // Add end condition
+        if let endCondition = segment.endCondition {
+            bullets.append("End Condition: \(endCondition)")
         }
         
         // Add constraints
@@ -154,39 +268,74 @@ public final class WhiteboardFormatter {
         
         // Add coaching cues
         if !segment.coachingCues.isEmpty {
-            bullets.append("Cues:")
+            bullets.append("💡 Coaching Cues:")
             bullets.append(contentsOf: segment.coachingCues.map { "  - \($0)" })
         }
         
-        // Add quality targets
-        if let successRate = segment.successRateTarget {
-            bullets.append("Target success rate: \(Int(successRate * 100))%")
-        }
-        if let cleanReps = segment.cleanRepsTarget {
-            bullets.append("Target clean reps: \(cleanReps)")
-        }
-        
-        // Add roles for partner work
-        if let attackerGoal = segment.attackerGoal {
-            bullets.append("Attacker: \(attackerGoal)")
-        }
-        if let defenderGoal = segment.defenderGoal {
-            bullets.append("Defender: \(defenderGoal)")
-        }
-        if let resistance = segment.resistance {
-            bullets.append("Resistance: \(resistance)%")
+        // Add breathwork details
+        if let breathworkStyle = segment.breathworkStyle {
+            var breathLine = "🫁 Breathwork: \(breathworkStyle)"
+            if let pattern = segment.breathworkPattern {
+                breathLine += " — \(pattern)"
+            }
+            if let duration = segment.breathworkDurationSeconds {
+                breathLine += " — \(formatSeconds(duration))"
+            }
+            bullets.append(breathLine)
         }
         
-        // Add scoring
-        if !segment.scoring.isEmpty {
-            bullets.append("Scoring:")
-            bullets.append(contentsOf: segment.scoring.map { "  - \($0)" })
+        // Add breath count
+        if let breathCount = segment.breathCount {
+            bullets.append("Breath count: \(breathCount)")
         }
         
-        // Add safety notes
+        // Add hold seconds for yoga/mobility
+        if let holdSeconds = segment.holdSeconds {
+            bullets.append("Hold: \(holdSeconds)s")
+        }
+        
+        // Add intensity scale
+        if let intensityScale = segment.intensityScale {
+            bullets.append("Intensity scale: \(intensityScale)")
+        }
+        
+        // Add props
+        if !segment.props.isEmpty {
+            bullets.append("Props: \(segment.props.joined(separator: ", "))")
+        }
+        
+        // Add media links
+        var mediaLines: [String] = []
+        if let videoUrl = segment.mediaVideoUrl {
+            mediaLines.append("  📹 Video: \(videoUrl)")
+        }
+        if let imageUrl = segment.mediaImageUrl {
+            mediaLines.append("  🖼️ Image: \(imageUrl)")
+        }
+        if let diagramId = segment.mediaDiagramAssetId {
+            mediaLines.append("  📊 Diagram: \(diagramId)")
+        }
+        if !mediaLines.isEmpty {
+            bullets.append("Media:")
+            bullets.append(contentsOf: mediaLines)
+        }
+        
+        // Add safety notes with all fields
+        var safetyLines: [String] = []
         if !segment.contraindications.isEmpty {
+            safetyLines.append("  Contraindications:")
+            safetyLines.append(contentsOf: segment.contraindications.map { "    • \($0)" })
+        }
+        if !segment.stopIf.isEmpty {
+            safetyLines.append("  Stop If:")
+            safetyLines.append(contentsOf: segment.stopIf.map { "    • \($0)" })
+        }
+        if let intensityCeiling = segment.intensityCeiling {
+            safetyLines.append("  Intensity Ceiling: \(intensityCeiling)")
+        }
+        if !safetyLines.isEmpty {
             bullets.append("⚠️ Safety:")
-            bullets.append(contentsOf: segment.contraindications.map { "  - \($0)" })
+            bullets.append(contentsOf: safetyLines)
         }
         
         // Build primary line (segment name)
@@ -214,7 +363,7 @@ public final class WhiteboardFormatter {
         
         // Add notes to bullets if present
         if let notes = segment.notes {
-            bullets.append("Notes: \(notes)")
+            bullets.append("📝 Notes: \(notes)")
         }
         
         return WhiteboardItem(
