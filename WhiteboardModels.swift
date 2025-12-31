@@ -162,16 +162,33 @@ public struct UnifiedSegment: Codable, Equatable {
     public var defenderGoal: String?
     public var successRateTarget: Double?
     public var cleanRepsTarget: Int?
+    public var decisionSpeedSeconds: Double?
+    public var controlTimeSeconds: Int?
     public var startPosition: String?
+    public var endCondition: String?
     public var scoring: [String]  // Simplified scoring description
+    public var winConditions: [String]
+    public var resetRule: String?
+    public var intensityCue: String?
+    public var switchEverySeconds: Int?
     public var breathworkStyle: String?
     public var breathworkPattern: String?
+    public var breathworkDurationSeconds: Int?
+    public var breathCount: Int?
     public var holdSeconds: Int?
     public var intensityScale: String?
     public var props: [String]
+    public var flowSequence: [UnifiedFlowStep]
     public var notes: String?
     public var contraindications: [String]
+    public var stopIf: [String]
+    public var intensityCeiling: String?
     public var drillItems: [UnifiedDrillItem]
+    public var startingStateGrips: [String]
+    public var startingStateRoles: [String]
+    public var mediaVideoUrl: String?
+    public var mediaImageUrl: String?
+    public var mediaDiagramAssetId: String?
     
     public init(
         name: String,
@@ -192,16 +209,33 @@ public struct UnifiedSegment: Codable, Equatable {
         defenderGoal: String? = nil,
         successRateTarget: Double? = nil,
         cleanRepsTarget: Int? = nil,
+        decisionSpeedSeconds: Double? = nil,
+        controlTimeSeconds: Int? = nil,
         startPosition: String? = nil,
+        endCondition: String? = nil,
         scoring: [String] = [],
+        winConditions: [String] = [],
+        resetRule: String? = nil,
+        intensityCue: String? = nil,
+        switchEverySeconds: Int? = nil,
         breathworkStyle: String? = nil,
         breathworkPattern: String? = nil,
+        breathworkDurationSeconds: Int? = nil,
+        breathCount: Int? = nil,
         holdSeconds: Int? = nil,
         intensityScale: String? = nil,
         props: [String] = [],
+        flowSequence: [UnifiedFlowStep] = [],
         notes: String? = nil,
         contraindications: [String] = [],
-        drillItems: [UnifiedDrillItem] = []
+        stopIf: [String] = [],
+        intensityCeiling: String? = nil,
+        drillItems: [UnifiedDrillItem] = [],
+        startingStateGrips: [String] = [],
+        startingStateRoles: [String] = [],
+        mediaVideoUrl: String? = nil,
+        mediaImageUrl: String? = nil,
+        mediaDiagramAssetId: String? = nil
     ) {
         self.name = name
         self.segmentType = segmentType
@@ -221,16 +255,33 @@ public struct UnifiedSegment: Codable, Equatable {
         self.defenderGoal = defenderGoal
         self.successRateTarget = successRateTarget
         self.cleanRepsTarget = cleanRepsTarget
+        self.decisionSpeedSeconds = decisionSpeedSeconds
+        self.controlTimeSeconds = controlTimeSeconds
         self.startPosition = startPosition
+        self.endCondition = endCondition
         self.scoring = scoring
+        self.winConditions = winConditions
+        self.resetRule = resetRule
+        self.intensityCue = intensityCue
+        self.switchEverySeconds = switchEverySeconds
         self.breathworkStyle = breathworkStyle
         self.breathworkPattern = breathworkPattern
+        self.breathworkDurationSeconds = breathworkDurationSeconds
+        self.breathCount = breathCount
         self.holdSeconds = holdSeconds
         self.intensityScale = intensityScale
         self.props = props
+        self.flowSequence = flowSequence
         self.notes = notes
         self.contraindications = contraindications
+        self.stopIf = stopIf
+        self.intensityCeiling = intensityCeiling
         self.drillItems = drillItems
+        self.startingStateGrips = startingStateGrips
+        self.startingStateRoles = startingStateRoles
+        self.mediaVideoUrl = mediaVideoUrl
+        self.mediaImageUrl = mediaImageUrl
+        self.mediaDiagramAssetId = mediaDiagramAssetId
     }
 }
 
@@ -240,17 +291,23 @@ public struct UnifiedTechnique: Codable, Equatable {
     public var variant: String?
     public var keyDetails: [String]
     public var commonErrors: [String]
+    public var counters: [String]
+    public var followUps: [String]
     
     public init(
         name: String,
         variant: String? = nil,
         keyDetails: [String] = [],
-        commonErrors: [String] = []
+        commonErrors: [String] = [],
+        counters: [String] = [],
+        followUps: [String] = []
     ) {
         self.name = name
         self.variant = variant
         self.keyDetails = keyDetails
         self.commonErrors = commonErrors
+        self.counters = counters
+        self.followUps = followUps
     }
 }
 
@@ -271,6 +328,23 @@ public struct UnifiedDrillItem: Codable, Equatable {
         self.workSeconds = workSeconds
         self.restSeconds = restSeconds
         self.notes = notes
+    }
+}
+
+/// Unified flow step for yoga/mobility sequences
+public struct UnifiedFlowStep: Codable, Equatable {
+    public var poseName: String
+    public var holdSeconds: Int
+    public var transitionCue: String?
+    
+    public init(
+        poseName: String,
+        holdSeconds: Int,
+        transitionCue: String? = nil
+    ) {
+        self.poseName = poseName
+        self.holdSeconds = holdSeconds
+        self.transitionCue = transitionCue
     }
 }
 

@@ -1,0 +1,210 @@
+{
+  "Title": "SegmentAllFields_Demo",
+  "Goal": "mixed",
+  "TargetAthlete": "Intermediate",
+  "NumberOfWeeks": 1,
+  "DurationMinutes": 60,
+  "Difficulty": 4,
+  "Equipment": "Grappling mats, training partner(s), timer, yoga block, strap, wall space (optional)",
+  "WarmUp": "See segment: Warm-up & Movement Prep (drillPlan).",
+  "Finisher": "See segment: Cooldown + Breathwork (flowSequence + breathwork).",
+  "Notes": "This file is a schema stress-test that intentionally populates every Segment field at least once.",
+  "EstimatedTotalTimeMinutes": 60,
+  "Progression": "Not a training plan—this is a field coverage demo.",
+  "Days": [
+    {
+      "name": "Day 1: Segment Field Coverage",
+      "shortCode": "S1",
+      "goal": "mixed",
+      "notes": "Segments-only Day (no exercises) to validate parsing.",
+      "segments": [
+        {
+          "name": "Warm-up & Movement Prep",
+          "segmentType": "warmup",
+          "domain": "grappling",
+          "durationMinutes": 10,
+          "objective": "Increase temperature and prep positions for technique with structured movement drills.",
+          "startPosition": "standing",
+          "positions": ["standing", "inside_tie", "front_headlock"],
+          "techniques": [
+            {
+              "name": "Snap-down to front headlock",
+              "variant": "collar tie snap",
+              "keyDetails": ["Elbows tight", "Snap to the mat then circle", "Head position to the same side"],
+              "commonErrors": ["Reaching with arms", "Bending at the waist", "Snapping without moving feet"],
+              "counters": ["Posture up and circle out"],
+              "followUps": ["Go-behind spin", "Resnap to single"]
+            }
+          ],
+          "drillPlan": {
+            "items": [
+              {
+                "name": "Stance-in-motion",
+                "workSeconds": 60,
+                "restSeconds": 15,
+                "notes": "Level change + circle + recover to stance."
+              },
+              {
+                "name": "Sprawl → hip heist",
+                "workSeconds": 60,
+                "restSeconds": 15,
+                "notes": "Hips heavy, head up, hands post."
+              }
+            ]
+          },
+          "partnerPlan": {
+            "rounds": 2,
+            "roundDurationSeconds": 180,
+            "restSeconds": 45,
+            "roles": {
+              "attackerGoal": "Win inside tie and snap to front headlock cleanly",
+              "defenderGoal": "Provide posture/frame reactions without full resistance"
+            },
+            "resistance": 25,
+            "switchEverySeconds": 90,
+            "qualityTargets": {
+              "cleanRepsTarget": 10,
+              "successRateTarget": 0.85,
+              "decisionSpeedSeconds": 3.0,
+              "controlTimeSeconds": 2
+            }
+          },
+          "roundPlan": {
+            "rounds": 2,
+            "roundDurationSeconds": 60,
+            "restSeconds": 30,
+            "intensityCue": "moderate",
+            "resetRule": "Reset after clean front headlock control is achieved",
+            "winConditions": ["Control 2 seconds", "Clean angle to go-behind"]
+          },
+          "scoring": {
+            "attackerScoresIf": ["Front headlock control 2s", "Go-behind control 2s"],
+            "defenderScoresIf": ["Clear tie and disengage to neutral 2s", "Posture fully and square up"]
+          },
+          "flowSequence": [
+            {
+              "poseName": "Cat-Cow",
+              "holdSeconds": 20,
+              "transitionCue": "Breathe and move slowly through spine."
+            }
+          ],
+          "intensityScale": "easy",
+          "holdSeconds": 20,
+          "breathCount": 4,
+          "props": ["wall", "block"],
+          "breathwork": {
+            "style": "Box breathing",
+            "pattern": "4s inhale / 4s hold / 4s exhale / 4s hold",
+            "durationSeconds": 120
+          },
+          "constraints": ["No submissions", "No slams", "Stay technical; prioritize posture"],
+          "coachingCues": ["Hands inside", "Head position wins", "Move feet before reaching"],
+          "media": {
+            "videoUrl": "https://example.com/video/front-headlock-snapdown",
+            "imageUrl": "https://example.com/image/front-headlock.png",
+            "diagramAssetId": "diagram_front_headlock_snapdown_v1"
+          },
+          "safety": {
+            "contraindications": ["Avoid neck cranks", "No explosive mat returns"],
+            "stopIf": ["Sharp pain", "Dizziness", "Numbness/tingling"],
+            "intensityCeiling": "75%"
+          },
+          "endCondition": "Complete all drill items and partner rounds",
+          "startingState": {
+            "grips": ["inside_tie", "collar_tie"],
+            "roles": ["attacker", "defender"]
+          },
+          "notes": "This segment intentionally includes every optional field to verify decode/UI."
+        },
+        {
+          "name": "Technique: Inside Tie → Single (Full Detail)",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 15,
+          "objective": "Practice a complete technical sequence with coaching cues, constraints, partner structure, and success metrics.",
+          "startPosition": "standing_tieup",
+          "positions": ["standing", "inside_tie", "single_leg"],
+          "techniques": [
+            {
+              "name": "Single-leg entry and finish",
+              "variant": "inside tie pull + run-the-pipe",
+              "keyDetails": ["Angle first", "Head outside", "Leg tight to hip", "Finish through corner"],
+              "commonErrors": ["Reaching", "Pulling straight back", "Head down"],
+              "counters": ["Whizzer", "Sprawl"],
+              "followUps": ["Shelf finish", "Go-behind if they turn away"]
+            }
+          ],
+          "drillPlan": {
+            "items": [
+              {
+                "name": "Entry-only reps",
+                "workSeconds": 90,
+                "restSeconds": 30,
+                "notes": "Stop once leg is secured; reset immediately."
+              }
+            ]
+          },
+          "partnerPlan": {
+            "rounds": 3,
+            "roundDurationSeconds": 180,
+            "restSeconds": 60,
+            "roles": {
+              "attackerGoal": "Hit clean entry and finish with control",
+              "defenderGoal": "Use light whizzer/sprawl and recover stance"
+            },
+            "resistance": 50,
+            "switchEverySeconds": 90,
+            "qualityTargets": {
+              "cleanRepsTarget": 8,
+              "successRateTarget": 0.7,
+              "decisionSpeedSeconds": 5.0,
+              "controlTimeSeconds": 3
+            }
+          },
+          "roundPlan": {
+            "rounds": 2,
+            "roundDurationSeconds": 120,
+            "restSeconds": 30,
+            "intensityCue": "hard",
+            "resetRule": "Reset on takedown + 3s control OR after 20s stall",
+            "winConditions": ["Takedown", "3 seconds top control"]
+          },
+          "scoring": {
+            "attackerScoresIf": ["Single finish + 3s control", "Go-behind + 3s control"],
+            "defenderScoresIf": ["Stuff shot and establish front headlock 3s", "Disengage cleanly 3s"]
+          },
+          "flowSequence": [
+            {
+              "poseName": "Low Lunge (quick reset)",
+              "holdSeconds": 15,
+              "transitionCue": "Shake legs out; reset stance."
+            }
+          ],
+          "intensityScale": "moderate",
+          "holdSeconds": 15,
+          "breathCount": 3,
+          "props": ["strap"],
+          "breathwork": {
+            "style": "Cadence breathing",
+            "pattern": "4s inhale / 6s exhale",
+            "durationSeconds": 60
+          },
+          "constraints": ["Attacker must attempt single within first 10 seconds", "No guard pulling for attacker"],
+          "coachingCues": ["Posture tall", "Angle before finish", "Chain immediately if defended"],
+          "media": {
+            "videoUrl": "https://example.com/video/single-leg-run-the-pipe",
+            "imageUrl": "https://example.com/image/single-leg.png",
+            "diagramAssetId": "diagram_single_leg_chain_v2"
+          },
+          "safety": {
+            "contraindications": ["No slams", "No twisting finishes on planted knee"],
+            "stopIf": ["Knee torque", "Sharp hip pain"],
+            "intensityCeiling": "85%"
+          },
+          "endCondition": "All rounds completed or athlete fatigue",
+          "notes": "Again, extra fields included for coverage. In real plans, keep yoga/breath fields for cooldown segments."
+        }
+      ]
+    }
+  ]
+}
