@@ -71,7 +71,7 @@ Added clear documentation about:
 
 ### Manual Verification
 ✅ BJJ quick copy example (3046 bytes) parses successfully  
-✅ Segment data is parsed (but not imported as expected)  
+✅ Segment data is parsed and imported correctly  
 ✅ No "required field exercises" error anymore  
 
 ## Impact Assessment
@@ -82,14 +82,14 @@ Added clear documentation about:
 - **App behavior**: No functional changes to existing features
 
 ### ✅ New Capability
-- **Segment-based JSON**: Now parses and imports without errors
+- **Segment-based JSON**: Parses and imports without errors
 - **Quick copy examples**: All examples work (exercise and segment)
 - **User experience**: No confusing parsing errors
 - **Full segment support**: Segments are fully imported and can be viewed in whiteboard view and tracked during workouts
 
 ## Files Changed
 1. `BlockGenerator.swift` - Made exercises optional, updated convertDay, added docs
-2. `BlockGeneratorView.swift` - Updated JSON format documentation
+2. `BlockGeneratorView.swift` - Removed misleading segment import warning
 3. `Tests/BlockGeneratorTests.swift` - Updated tests, added new test case
 
 ## Consistency with Previous Fix
