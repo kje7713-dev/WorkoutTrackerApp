@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial production readiness preparations
+- END_USER_README.md - Comprehensive end-user facing documentation explaining app capabilities
 - README.md with comprehensive documentation
 - CHANGELOG.md for version tracking
 - Release configuration for production builds
 
 ### Changed
+- Improved README.md structure with clear separation between user and developer documentation
+- Enhanced documentation organization with quick-start guide for end users
 - Improved logging with structured output
 - Enhanced error handling in repositories
 
