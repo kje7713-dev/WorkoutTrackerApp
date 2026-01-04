@@ -702,4 +702,83 @@ final class SegmentTests: XCTestCase {
         XCTAssertEqual(decoded.segments?[1].segmentType, .mobility)
         XCTAssertEqual(decoded.segments?[1].domain, .yoga)
     }
+    
+    func testGeneralizedUseCasesExampleJSON() throws {
+        // Test that the generalized_use_cases_example.json file can be parsed correctly
+        guard let testBundle = Bundle(for: type(of: self)).path(forResource: "generalized_use_cases_example", ofType: "json") else {
+            XCTFail("Could not find generalized_use_cases_example.json in test bundle")
+            return
+        }
+        
+        let data = try Data(contentsOf: URL(fileURLWithPath: testBundle))
+        
+        // Parse the imported block
+        let decoder = JSONDecoder()
+        let importedBlock = try decoder.decode(ImportedBlock.self, from: data)
+        
+        // Verify structure
+        XCTAssertEqual(importedBlock.Title, "Multi-Domain Training Examples")
+        XCTAssertEqual(importedBlock.NumberOfWeeks, 1)
+        XCTAssertNotNil(importedBlock.Days)
+        XCTAssertEqual(importedBlock.Days?.count, 5, "Should have 5 example days")
+        
+        // Verify Soccer Practice Day
+        let soccerDay = importedBlock.Days?[0]
+        XCTAssertEqual(soccerDay?.name, "Soccer Practice Day")
+        XCTAssertEqual(soccerDay?.segments?.count, 4)
+        XCTAssertEqual(soccerDay?.segments?[2].name, "Small-Sided Games")
+        XCTAssertEqual(soccerDay?.segments?[2].segmentType, "practice")
+        XCTAssertEqual(soccerDay?.segments?[2].domain, "sports")
+        
+        // Verify PowerBI Training Day
+        let powerBIDay = importedBlock.Days?[1]
+        XCTAssertEqual(powerBIDay?.name, "PowerBI Training - Day 1")
+        XCTAssertEqual(powerBIDay?.segments?.count, 6)
+        XCTAssertEqual(powerBIDay?.segments?[0].segmentType, "presentation")
+        XCTAssertEqual(powerBIDay?.segments?[0].domain, "analytics")
+        XCTAssertEqual(powerBIDay?.segments?[1].segmentType, "demonstration")
+        XCTAssertEqual(powerBIDay?.segments?[3].segmentType, "discussion")
+        XCTAssertEqual(powerBIDay?.segments?[5].segmentType, "assessment")
+        
+        // Verify Business Workshop Day
+        let businessDay = importedBlock.Days?[2]
+        XCTAssertEqual(businessDay?.name, "Business Workshop")
+        XCTAssertEqual(businessDay?.segments?.count, 5)
+        XCTAssertEqual(businessDay?.segments?[0].domain, "business")
+        
+        // Verify Educational Course Day
+        let eduDay = importedBlock.Days?[3]
+        XCTAssertEqual(eduDay?.name, "Educational Course Session")
+        XCTAssertEqual(eduDay?.segments?.count, 6)
+        XCTAssertEqual(eduDay?.segments?[0].domain, "education")
+        
+        // Verify Basketball Training Day
+        let basketballDay = importedBlock.Days?[4]
+        XCTAssertEqual(basketballDay?.name, "Basketball Skills Training")
+        XCTAssertEqual(basketballDay?.segments?.count, 5)
+        XCTAssertEqual(basketballDay?.segments?[0].domain, "sports")
+        
+        // Convert to Block model using BlockGenerator
+        let block = try BlockGenerator.mapImportedBlock(importedBlock)
+        
+        // Verify block structure
+        XCTAssertEqual(block.name, "Multi-Domain Training Examples")
+        XCTAssertEqual(block.numberOfWeeks, 1)
+        XCTAssertEqual(block.days.count, 5)
+        
+        // Verify all segment types are correctly parsed
+        let allSegments = block.days.flatMap { $0.segments ?? [] }
+        XCTAssertTrue(allSegments.contains { $0.segmentType == .practice })
+        XCTAssertTrue(allSegments.contains { $0.segmentType == .presentation })
+        XCTAssertTrue(allSegments.contains { $0.segmentType == .demonstration })
+        XCTAssertTrue(allSegments.contains { $0.segmentType == .discussion })
+        XCTAssertTrue(allSegments.contains { $0.segmentType == .review })
+        XCTAssertTrue(allSegments.contains { $0.segmentType == .assessment })
+        
+        // Verify all domains are correctly parsed
+        XCTAssertTrue(allSegments.contains { $0.domain == .sports })
+        XCTAssertTrue(allSegments.contains { $0.domain == .analytics })
+        XCTAssertTrue(allSegments.contains { $0.domain == .business })
+        XCTAssertTrue(allSegments.contains { $0.domain == .education })
+    }
 }
