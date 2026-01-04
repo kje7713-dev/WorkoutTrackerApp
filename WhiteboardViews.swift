@@ -469,6 +469,10 @@ struct SegmentCard: View {
     let segment: UnifiedSegment
     let isExpanded: Bool
     
+    // MARK: - Constants
+    
+    private let bulletSeparator = " • "
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Card header (always visible)
@@ -548,15 +552,8 @@ struct SegmentCard: View {
         var parts: [String] = []
         
         // Add rounds info if present
-        if let rounds = segment.rounds, let roundDuration = segment.roundDurationSeconds {
-            let timeStr = formatTime(roundDuration)
-            parts.append("\(rounds) × \(timeStr)")
-            
-            if let rest = segment.restSeconds, rest > 0 {
-                parts.append("rest: \(formatTime(rest))")
-            }
-        } else if let rounds = segment.rounds {
-            parts.append("\(rounds) rounds")
+        if let roundInfo = formatRoundsInfo() {
+            parts.append(roundInfo)
         }
         
         // Add technique count
@@ -571,7 +568,37 @@ struct SegmentCard: View {
             parts.append("\(count) position\(count > 1 ? "s" : "")")
         }
         
-        return parts.isEmpty ? nil : parts.joined(separator: " • ")
+        return parts.isEmpty ? nil : parts.joined(separator: bulletSeparator)
+    }
+    
+    /// Format rounds and rest information for summary
+    private func formatRoundsInfo() -> String? {
+        if let rounds = segment.rounds, let roundDuration = segment.roundDurationSeconds {
+            let timeStr = formatTime(roundDuration)
+            var info = "\(rounds) × \(timeStr)"
+            
+            if let rest = segment.restSeconds, rest > 0 {
+                info += bulletSeparator + "rest: \(formatTime(rest))"
+            }
+            
+            return info
+        } else if let rounds = segment.rounds {
+            return "\(rounds) rounds"
+        }
+        
+        return nil
+    }
+    
+    /// Determine if partner plan section should be shown
+    private var shouldShowPartnerPlan: Bool {
+        guard segment.rounds != nil, segment.roundDurationSeconds != nil else {
+            return false
+        }
+        
+        return segment.attackerGoal != nil ||
+               segment.defenderGoal != nil ||
+               segment.resistance != nil ||
+               segment.segmentType.lowercased() == "technique"
     }
     
     // MARK: - Expanded Content
@@ -626,14 +653,14 @@ struct SegmentCard: View {
             }
             
             // E) Partner Plan (shows when there's structured partner work)
-            if let rounds = segment.rounds,
-               let roundDuration = segment.roundDurationSeconds,
-               (segment.attackerGoal != nil || segment.defenderGoal != nil || segment.resistance != nil || segment.segmentType.lowercased() == "technique") {
+            if shouldShowPartnerPlan {
                 SectionView(title: "Partner Plan") {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("\(rounds) × \(formatTime(roundDuration)) rounds")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
+                        if let rounds = segment.rounds, let roundDuration = segment.roundDurationSeconds {
+                            Text("\(rounds) × \(formatTime(roundDuration)) rounds")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                        }
                         
                         if let rest = segment.restSeconds {
                             Text("Rest: \(formatTime(rest))")
