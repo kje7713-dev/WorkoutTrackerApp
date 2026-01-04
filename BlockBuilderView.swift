@@ -41,6 +41,7 @@ struct EditableExercise: Identifiable, Equatable {
     var conditioningRestSeconds: Int? = nil
 
     var notes: String = ""
+    var videoUrls: [String] = []
 }
 
 struct EditableDay: Identifiable, Equatable {
@@ -405,7 +406,8 @@ struct BlockBuilderView: View {
                     strengthSets: strengthSets,
                     conditioningSets: conditioningSets,
                     genericSets: nil,
-                    progressionRule: progressionRule
+                    progressionRule: progressionRule,
+                    videoUrls: editableExercise.videoUrls.isEmpty ? nil : editableExercise.videoUrls
                 )
             }
 
@@ -537,6 +539,7 @@ struct BlockBuilderView: View {
                 e.name = exercise.customName ?? ""
                 e.type = exercise.type
                 e.notes = exercise.notes ?? ""
+                e.videoUrls = exercise.videoUrls ?? []
 
                 // Strength mapping
                 if exercise.type == .strength,

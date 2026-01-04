@@ -449,6 +449,7 @@ public struct ExerciseDefinition: Identifiable, Codable, Equatable {
     public var category: ExerciseCategory?
     public var defaultConditioningType: ConditioningType?
     public var tags: [String]
+    public var videoUrls: [String]?
 
     public init(
         id: ExerciseDefinitionID = ExerciseDefinitionID(),
@@ -456,7 +457,8 @@ public struct ExerciseDefinition: Identifiable, Codable, Equatable {
         type: ExerciseType,
         category: ExerciseCategory? = nil,
         defaultConditioningType: ConditioningType? = nil,
-        tags: [String] = []
+        tags: [String] = [],
+        videoUrls: [String]? = nil
     ) {
         self.id = id
         self.name = name
@@ -464,6 +466,7 @@ public struct ExerciseDefinition: Identifiable, Codable, Equatable {
         self.category = category
         self.defaultConditioningType = defaultConditioningType
         self.tags = tags
+        self.videoUrls = videoUrls
     }
 }
 
@@ -732,6 +735,9 @@ public struct ExerciseTemplate: Identifiable, Codable, Equatable {
 
     /// Progression rule applied across weeks.
     public var progressionRule: ProgressionRule
+    
+    /// Video URLs for technique demonstrations
+    public var videoUrls: [String]?
 
     public init(
         id: ExerciseTemplateID = ExerciseTemplateID(),
@@ -745,7 +751,8 @@ public struct ExerciseTemplate: Identifiable, Codable, Equatable {
         strengthSets: [StrengthSetTemplate]? = nil,
         conditioningSets: [ConditioningSetTemplate]? = nil,
         genericSets: [SetTemplate]? = nil,
-        progressionRule: ProgressionRule
+        progressionRule: ProgressionRule,
+        videoUrls: [String]? = nil
     ) {
         self.id = id
         self.exerciseDefinitionId = exerciseDefinitionId
@@ -759,6 +766,7 @@ public struct ExerciseTemplate: Identifiable, Codable, Equatable {
         self.conditioningSets = conditioningSets
         self.genericSets = genericSets
         self.progressionRule = progressionRule
+        self.videoUrls = videoUrls
     }
 }
 

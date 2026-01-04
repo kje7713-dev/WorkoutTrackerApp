@@ -583,7 +583,8 @@ struct BlockRunModeView: View {
                         type: exercise.type,
                         notes: notes,
                         sets: sets,
-                        setGroupId: exercise.setGroupId
+                        setGroupId: exercise.setGroupId,
+                        videoUrls: exercise.videoUrls
                     )
                 }
                 
@@ -1207,6 +1208,41 @@ struct ExerciseRunCard: View {
                         onSave()
                     }
 
+                // Video URLs section (if present)
+                if let videoUrls = exercise.videoUrls, !videoUrls.isEmpty {
+                    Text("Videos")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .padding(.top, 4)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(videoUrls, id: \.self) { urlString in
+                            if let url = URL(string: urlString) {
+                                Link(destination: url) {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "play.rectangle.fill")
+                                            .foregroundColor(.red)
+                                            .font(.caption)
+                                        Text("Technique demo")
+                                            .font(.caption)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        Image(systemName: "arrow.up.forward.square")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(8)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(Color(.systemBackground).opacity(0.5))
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Sets
                 ForEach($exercise.sets) { $set in
                     SetRunRow(runSet: $set, onSave: onSave)
@@ -1751,6 +1787,7 @@ struct RunExerciseState: Identifiable, Codable {
     var notes: String
     var sets: [RunSetState]
     var setGroupId: SetGroupID?  // For superset/circuit grouping
+    var videoUrls: [String]?
 }
 
 struct RunSetState: Identifiable, Codable {
