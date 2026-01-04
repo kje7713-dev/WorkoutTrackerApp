@@ -845,7 +845,8 @@ struct DayRunView: View {
                     type: type
                 )
             ],
-            setGroupId: nil  // New exercises don't belong to a group
+            setGroupId: nil,  // New exercises don't belong to a group
+            videoUrls: nil
         )
         day.exercises.append(newExercise)
         
