@@ -519,3 +519,293 @@ final class DataManagementTests: XCTestCase {
         XCTAssertGreaterThan(stats.estimatedTotalSizeBytes, 0)
     }
 }
+
+// MARK: - Comprehensive Field Coverage Tests
+
+extension DataManagementTests {
+    
+    /// Test that all new fields (videoUrls, skill progression, segments) are properly exported and imported
+    func testComprehensiveFieldExportImport() throws {
+        // Given a block with ALL possible fields populated
+        
+        // Create technique with videoUrls
+        let technique = Technique(
+            name: "Armbar from Guard",
+            variant: "Traditional",
+            keyDetails: ["Control head", "Angle hips"],
+            commonErrors: ["Not breaking posture"],
+            counters: ["Stack"],
+            followUps: ["Triangle", "Omoplata"],
+            videoUrls: ["https://youtube.com/armbar-1", "https://youtube.com/armbar-2"]
+        )
+        
+        // Create segment with all fields
+        let segment = Segment(
+            name: "Technique Drill",
+            segmentType: .technique,
+            domain: .grappling,
+            durationMinutes: 15,
+            objective: "Master armbar mechanics",
+            constraints: ["No submissions"],
+            coachingCues: ["Control first", "Hip angle matters"],
+            positions: ["closed_guard", "mount"],
+            techniques: [technique],
+            roundPlan: RoundPlan(
+                rounds: 5,
+                roundDurationSeconds: 180,
+                restSeconds: 60,
+                intensityCue: "moderate",
+                winConditions: ["Secure position 3 seconds"]
+            ),
+            notes: "Progressive resistance"
+        )
+        
+        // Create exercise with videoUrls and advanced progression
+        let exerciseWithVideo = ExerciseTemplate(
+            customName: "Bench Press",
+            type: .strength,
+            category: .pressHorizontal,
+            notes: "Competition style",
+            strengthSets: [
+                StrengthSetTemplate(
+                    index: 0,
+                    reps: 5,
+                    weight: 225.0,
+                    percentageOfMax: 0.85,
+                    rpe: 8.5,
+                    rir: 1.5,
+                    tempo: "3-1-1-0",
+                    restSeconds: 240,
+                    notes: "Controlled eccentric"
+                )
+            ],
+            progressionRule: ProgressionRule(
+                type: .weight,
+                deltaWeight: 5.0,
+                deltaSets: nil,
+                deloadWeekIndexes: [4, 8],
+                customParams: ["notes": "Conservative progression"],
+                deltaResistance: nil,
+                deltaRounds: nil,
+                deltaConstraints: nil
+            ),
+            videoUrls: ["https://youtube.com/bench-setup", "https://youtube.com/bench-technique"]
+        )
+        
+        // Create exercise with skill-based progression
+        let skillExercise = ExerciseTemplate(
+            customName: "Guard Passing Drill",
+            type: .other,
+            category: .other,
+            notes: "Progressive resistance",
+            progressionRule: ProgressionRule(
+                type: .skill,
+                deltaWeight: nil,
+                deltaSets: nil,
+                deloadWeekIndexes: nil,
+                customParams: nil,
+                deltaResistance: 10,  // Increase resistance 10% per week
+                deltaRounds: 1,       // Add 1 round every 2 weeks
+                deltaConstraints: ["Week 1: No grips", "Week 2: One grip only"]
+            )
+        )
+        
+        // Create conditioning exercise with videoUrls
+        let conditioningExercise = ExerciseTemplate(
+            customName: "Rowing Intervals",
+            type: .conditioning,
+            category: .conditioning,
+            conditioningType: .intervals,
+            notes: "Maintain stroke rate 24-26",
+            conditioningSets: [
+                ConditioningSetTemplate(
+                    index: 0,
+                    durationSeconds: 120,
+                    distanceMeters: 500.0,
+                    calories: 25.0,
+                    targetPace: "1:45/500m",
+                    effortDescriptor: "hard",
+                    restSeconds: 60,
+                    notes: "Focus on consistent pacing"
+                )
+            ],
+            progressionRule: ProgressionRule(type: .custom),
+            videoUrls: ["https://youtube.com/rowing-technique"]
+        )
+        
+        // Create day template with both exercises and segments
+        let day = DayTemplate(
+            name: "Hybrid Training Day",
+            shortCode: "HTD",
+            goal: .mixed,
+            notes: "Combination strength and skill work",
+            exercises: [exerciseWithVideo, skillExercise, conditioningExercise],
+            segments: [segment]
+        )
+        
+        // Create week-specific templates
+        let week1Days = [day]
+        let week2Days = [DayTemplate(
+            name: "Hybrid Training Day - Week 2",
+            shortCode: "HTD2",
+            exercises: [exerciseWithVideo],
+            segments: [segment]
+        )]
+        
+        // Create block with all metadata fields
+        let block = Block(
+            name: "Comprehensive Test Block",
+            description: "Block with all possible fields",
+            numberOfWeeks: 2,
+            goal: .mixed,
+            days: week1Days,
+            weekTemplates: [week1Days, week2Days],
+            source: .ai,
+            aiMetadata: AIMetadata(prompt: "Test prompt", createdAt: Date()),
+            isArchived: false,
+            isActive: true,
+            tags: ["test", "comprehensive"],
+            disciplines: [.bjj, .yoga],
+            ruleset: .ibjjf,
+            attire: .gi,
+            classType: .advanced
+        )
+        
+        // Create exercise definition with videoUrls
+        let exerciseDef = ExerciseDefinition(
+            name: "Squat",
+            type: .strength,
+            category: .squat,
+            tags: ["compound", "lower"],
+            videoUrls: ["https://youtube.com/squat-form"]
+        )
+        
+        blocksRepository.add(block)
+        exerciseRepository.add(exerciseDef)
+        
+        // When exporting
+        let exportData = try dataService.exportAllDataAsJSON()
+        
+        // Then verify export contains data
+        XCTAssertGreaterThan(exportData.count, 0)
+        
+        // Decode to verify structure
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(AppDataExport.self, from: exportData)
+        
+        XCTAssertEqual(decoded.blocks.count, 1)
+        XCTAssertEqual(decoded.exercises.count, 1)
+        
+        let exportedBlock = decoded.blocks[0]
+        
+        // Verify block metadata fields
+        XCTAssertEqual(exportedBlock.name, "Comprehensive Test Block")
+        XCTAssertEqual(exportedBlock.numberOfWeeks, 2)
+        XCTAssertEqual(exportedBlock.goal, .mixed)
+        XCTAssertEqual(exportedBlock.tags, ["test", "comprehensive"])
+        XCTAssertEqual(exportedBlock.disciplines, [.bjj, .yoga])
+        XCTAssertEqual(exportedBlock.ruleset, .ibjjf)
+        XCTAssertEqual(exportedBlock.attire, .gi)
+        XCTAssertEqual(exportedBlock.classType, .advanced)
+        
+        // Verify weekTemplates
+        XCTAssertNotNil(exportedBlock.weekTemplates)
+        XCTAssertEqual(exportedBlock.weekTemplates?.count, 2)
+        
+        // Verify day has segments
+        let exportedDay = exportedBlock.days[0]
+        XCTAssertNotNil(exportedDay.segments)
+        XCTAssertEqual(exportedDay.segments?.count, 1)
+        
+        // Verify segment fields
+        let exportedSegment = exportedDay.segments![0]
+        XCTAssertEqual(exportedSegment.name, "Technique Drill")
+        XCTAssertEqual(exportedSegment.segmentType, .technique)
+        XCTAssertEqual(exportedSegment.domain, .grappling)
+        XCTAssertEqual(exportedSegment.techniques.count, 1)
+        
+        // Verify technique videoUrls
+        let exportedTechnique = exportedSegment.techniques[0]
+        XCTAssertEqual(exportedTechnique.videoUrls?.count, 2)
+        XCTAssertEqual(exportedTechnique.videoUrls?[0], "https://youtube.com/armbar-1")
+        XCTAssertEqual(exportedTechnique.videoUrls?[1], "https://youtube.com/armbar-2")
+        
+        // Verify exercise with videoUrls
+        let exportedExercise = exportedDay.exercises[0]
+        XCTAssertEqual(exportedExercise.customName, "Bench Press")
+        XCTAssertEqual(exportedExercise.videoUrls?.count, 2)
+        XCTAssertEqual(exportedExercise.videoUrls?[0], "https://youtube.com/bench-setup")
+        
+        // Verify progression with deloadWeekIndexes
+        XCTAssertEqual(exportedExercise.progressionRule.type, .weight)
+        XCTAssertEqual(exportedExercise.progressionRule.deltaWeight, 5.0)
+        XCTAssertEqual(exportedExercise.progressionRule.deloadWeekIndexes, [4, 8])
+        
+        // Verify skill-based progression
+        let exportedSkillExercise = exportedDay.exercises[1]
+        XCTAssertEqual(exportedSkillExercise.customName, "Guard Passing Drill")
+        XCTAssertEqual(exportedSkillExercise.progressionRule.type, .skill)
+        XCTAssertEqual(exportedSkillExercise.progressionRule.deltaResistance, 10)
+        XCTAssertEqual(exportedSkillExercise.progressionRule.deltaRounds, 1)
+        XCTAssertEqual(exportedSkillExercise.progressionRule.deltaConstraints?.count, 2)
+        
+        // Verify conditioning exercise with videoUrls
+        let exportedCondExercise = exportedDay.exercises[2]
+        XCTAssertEqual(exportedCondExercise.customName, "Rowing Intervals")
+        XCTAssertEqual(exportedCondExercise.videoUrls?.count, 1)
+        XCTAssertEqual(exportedCondExercise.videoUrls?[0], "https://youtube.com/rowing-technique")
+        
+        // Verify exercise definition videoUrls
+        let exportedExerciseDef = decoded.exercises[0]
+        XCTAssertEqual(exportedExerciseDef.name, "Squat")
+        XCTAssertEqual(exportedExerciseDef.videoUrls?.count, 1)
+        XCTAssertEqual(exportedExerciseDef.videoUrls?[0], "https://youtube.com/squat-form")
+        
+        // Now test round-trip by importing back
+        let freshBlocksRepo = BlocksRepository(blocks: [])
+        let freshSessionsRepo = SessionsRepository(sessions: [])
+        let freshExerciseRepo = ExerciseLibraryRepository(exercises: [])
+        
+        let importService = DataManagementService(
+            blocksRepository: freshBlocksRepo,
+            sessionsRepository: freshSessionsRepo,
+            exerciseRepository: freshExerciseRepo
+        )
+        
+        // When importing with replace strategy
+        try importService.importDataFromJSON(exportData, strategy: .replace)
+        
+        // Then all data should be imported correctly
+        XCTAssertEqual(freshBlocksRepo.allBlocks().count, 1)
+        XCTAssertEqual(freshExerciseRepo.all().count, 1)
+        
+        let importedBlock = freshBlocksRepo.allBlocks()[0]
+        
+        // Verify all fields survived the round-trip
+        XCTAssertEqual(importedBlock.name, "Comprehensive Test Block")
+        XCTAssertEqual(importedBlock.tags, ["test", "comprehensive"])
+        XCTAssertEqual(importedBlock.disciplines, [.bjj, .yoga])
+        XCTAssertNotNil(importedBlock.weekTemplates)
+        XCTAssertEqual(importedBlock.weekTemplates?.count, 2)
+        
+        let importedDay = importedBlock.days[0]
+        XCTAssertNotNil(importedDay.segments)
+        XCTAssertEqual(importedDay.segments?.count, 1)
+        
+        let importedSegment = importedDay.segments![0]
+        XCTAssertEqual(importedSegment.techniques[0].videoUrls?.count, 2)
+        
+        let importedExercise = importedDay.exercises[0]
+        XCTAssertEqual(importedExercise.videoUrls?.count, 2)
+        XCTAssertEqual(importedExercise.progressionRule.deloadWeekIndexes, [4, 8])
+        
+        let importedSkillExercise = importedDay.exercises[1]
+        XCTAssertEqual(importedSkillExercise.progressionRule.type, .skill)
+        XCTAssertEqual(importedSkillExercise.progressionRule.deltaResistance, 10)
+        XCTAssertEqual(importedSkillExercise.progressionRule.deltaRounds, 1)
+        
+        let importedExerciseDef = freshExerciseRepo.all()[0]
+        XCTAssertEqual(importedExerciseDef.videoUrls?.count, 1)
+    }
+}
