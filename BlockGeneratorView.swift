@@ -625,8 +625,8 @@ struct BlockGeneratorView: View {
               "segments": [
                 {
                   "name": "Warm-up & Movement Drills",  // Or "Technique: Guard Basics", "Live Rolling", etc.
-                  "segmentType": "warmup|mobility|technique|drill|positionalSpar|rolling|cooldown|lecture|breathwork|other",
-                  "domain": "grappling|yoga|strength|conditioning|mobility|other" [OPTIONAL],
+                  "segmentType": "warmup|mobility|technique|drill|positionalSpar|rolling|cooldown|lecture|breathwork|practice|presentation|review|demonstration|discussion|assessment|other",
+                  "domain": "grappling|yoga|strength|conditioning|mobility|sports|business|education|analytics|other" [OPTIONAL],
                   "durationMinutes": 15 [OPTIONAL],
                   "objective": "Clear learning objective" [OPTIONAL],
                   

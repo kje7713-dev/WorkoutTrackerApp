@@ -1,0 +1,235 @@
+{
+  "Title": "Multi-Domain Training Examples",
+  "NumberOfWeeks": 1,
+  "Goal": "mixed",
+  "Days": [
+    {
+      "name": "Soccer Practice Day",
+      "shortCode": "SOCCER1",
+      "segments": [
+        {
+          "name": "Dynamic Warmup",
+          "segmentType": "warmup",
+          "domain": "sports",
+          "durationMinutes": 10,
+          "objective": "Prepare players for practice",
+          "coachingCues": ["Focus on dynamic movements", "Keep intensity moderate"]
+        },
+        {
+          "name": "Passing Drills",
+          "segmentType": "drill",
+          "domain": "sports",
+          "durationMinutes": 20,
+          "objective": "Improve passing accuracy and speed",
+          "constraints": ["Two-touch only", "10-yard spacing"]
+        },
+        {
+          "name": "Small-Sided Games",
+          "segmentType": "practice",
+          "domain": "sports",
+          "durationMinutes": 25,
+          "objective": "Apply skills in game-like situations"
+        },
+        {
+          "name": "Cool Down",
+          "segmentType": "cooldown",
+          "domain": "sports",
+          "durationMinutes": 5
+        }
+      ]
+    },
+    {
+      "name": "PowerBI Training - Day 1",
+      "shortCode": "PBI1",
+      "segments": [
+        {
+          "name": "PowerBI Overview",
+          "segmentType": "presentation",
+          "domain": "analytics",
+          "durationMinutes": 15,
+          "objective": "Introduce PowerBI interface and capabilities",
+          "coachingCues": [
+            "Show main interface components",
+            "Explain data connection process",
+            "Demonstrate visualization options"
+          ]
+        },
+        {
+          "name": "Creating Your First Dashboard",
+          "segmentType": "demonstration",
+          "domain": "analytics",
+          "durationMinutes": 30,
+          "objective": "Step-by-step dashboard creation",
+          "coachingCues": [
+            "Connect to sample data source",
+            "Create basic visualizations",
+            "Apply filters and slicers",
+            "Format and arrange visuals"
+          ]
+        },
+        {
+          "name": "Hands-On Practice",
+          "segmentType": "practice",
+          "domain": "analytics",
+          "durationMinutes": 45,
+          "objective": "Build a dashboard with sample data",
+          "notes": "Provide sample datasets and challenge scenarios"
+        },
+        {
+          "name": "Group Discussion",
+          "segmentType": "discussion",
+          "domain": "analytics",
+          "durationMinutes": 15,
+          "objective": "Share solutions and discuss best practices"
+        },
+        {
+          "name": "Review and Q&A",
+          "segmentType": "review",
+          "domain": "analytics",
+          "durationMinutes": 15,
+          "objective": "Review common issues and answer questions"
+        },
+        {
+          "name": "Knowledge Check",
+          "segmentType": "assessment",
+          "domain": "analytics",
+          "durationMinutes": 10,
+          "objective": "Verify understanding of key concepts"
+        }
+      ]
+    },
+    {
+      "name": "Business Workshop",
+      "shortCode": "BIZ1",
+      "segments": [
+        {
+          "name": "Opening Discussion",
+          "segmentType": "discussion",
+          "domain": "business",
+          "durationMinutes": 15,
+          "objective": "Share experiences and set learning goals"
+        },
+        {
+          "name": "Core Concepts Lecture",
+          "segmentType": "lecture",
+          "domain": "business",
+          "durationMinutes": 30,
+          "objective": "Cover fundamental project management principles"
+        },
+        {
+          "name": "Case Study Demonstration",
+          "segmentType": "demonstration",
+          "domain": "business",
+          "durationMinutes": 20,
+          "objective": "Walk through real-world project scenario"
+        },
+        {
+          "name": "Group Activity",
+          "segmentType": "practice",
+          "domain": "business",
+          "durationMinutes": 30,
+          "objective": "Apply concepts to practice scenarios"
+        },
+        {
+          "name": "Presentations and Review",
+          "segmentType": "review",
+          "domain": "business",
+          "durationMinutes": 15,
+          "objective": "Review key takeaways and action items"
+        }
+      ]
+    },
+    {
+      "name": "Educational Course Session",
+      "shortCode": "EDU1",
+      "segments": [
+        {
+          "name": "Introduction and Icebreaker",
+          "segmentType": "discussion",
+          "domain": "education",
+          "durationMinutes": 10,
+          "objective": "Build rapport and introduce topic"
+        },
+        {
+          "name": "Concept Presentation",
+          "segmentType": "presentation",
+          "domain": "education",
+          "durationMinutes": 25,
+          "objective": "Present key learning concepts"
+        },
+        {
+          "name": "Practical Examples",
+          "segmentType": "demonstration",
+          "domain": "education",
+          "durationMinutes": 20,
+          "objective": "Show real-world applications"
+        },
+        {
+          "name": "Student Practice Activity",
+          "segmentType": "practice",
+          "domain": "education",
+          "durationMinutes": 30,
+          "objective": "Students apply concepts independently"
+        },
+        {
+          "name": "Peer Review",
+          "segmentType": "review",
+          "domain": "education",
+          "durationMinutes": 15,
+          "objective": "Review student work and provide feedback"
+        },
+        {
+          "name": "Quick Quiz",
+          "segmentType": "assessment",
+          "domain": "education",
+          "durationMinutes": 10,
+          "objective": "Check understanding of key concepts"
+        }
+      ]
+    },
+    {
+      "name": "Basketball Skills Training",
+      "shortCode": "BBALL1",
+      "segments": [
+        {
+          "name": "Court Warm-up",
+          "segmentType": "warmup",
+          "domain": "sports",
+          "durationMinutes": 10,
+          "objective": "Dynamic warm-up and mobility",
+          "coachingCues": ["Light jogging", "Dynamic stretches", "Ball handling warmup"]
+        },
+        {
+          "name": "Shooting Form Technique",
+          "segmentType": "technique",
+          "domain": "sports",
+          "durationMinutes": 15,
+          "objective": "Perfect shooting mechanics",
+          "coachingCues": ["BEEF: Balance, Eyes, Elbow, Follow-through", "Start close to basket"]
+        },
+        {
+          "name": "Spot Shooting Drill",
+          "segmentType": "drill",
+          "domain": "sports",
+          "durationMinutes": 20,
+          "objective": "Repetition and muscle memory",
+          "constraints": ["Make 5 shots from each spot", "No movement until target hit"]
+        },
+        {
+          "name": "5-on-5 Scrimmage",
+          "segmentType": "practice",
+          "domain": "sports",
+          "durationMinutes": 30,
+          "objective": "Game situation application"
+        },
+        {
+          "name": "Performance Review",
+          "segmentType": "review",
+          "domain": "sports",
+          "durationMinutes": 10,
+          "objective": "Discuss what worked and areas to improve"
+        }
+      ]
+    }
+  ]
+}

@@ -1142,6 +1142,12 @@ public struct BlockGenerator {
         case "cooldown", "cool-down", "cool_down": return .cooldown
         case "lecture": return .lecture
         case "breathwork": return .breathwork
+        case "practice": return .practice
+        case "presentation": return .presentation
+        case "review": return .review
+        case "demonstration", "demo": return .demonstration
+        case "discussion": return .discussion
+        case "assessment", "quiz", "test": return .assessment
         case "flow": return .other  // Flow can be mapped to 'other' or you could add a new type
         default: return .other
         }
@@ -1157,6 +1163,10 @@ public struct BlockGenerator {
         case "strength": return .strength
         case "conditioning": return .conditioning
         case "mobility": return .mobility
+        case "sports", "sport": return .sports
+        case "business": return .business
+        case "education": return .education
+        case "analytics": return .analytics
         case "other": return .other
         default: return nil
         }

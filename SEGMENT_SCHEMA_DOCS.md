@@ -2,7 +2,16 @@
 
 ## Overview
 
-This document describes the schema extensions added to support non-traditional training sessions such as BJJ (Brazilian Jiu-Jitsu), yoga, breathwork, and other skill-based activities. These extensions are fully backwards compatible with existing exercise-based workout blocks.
+This document describes the schema extensions added to support structured training sessions beyond traditional gym workouts. The segment feature supports:
+
+- **Sports practices**: Soccer, basketball, tennis, and team sports training
+- **Business/Professional training**: PowerBI, Excel, project management, and corporate courses
+- **Educational workshops**: Courses, seminars, and collaborative learning sessions
+- **Martial arts**: BJJ (Brazilian Jiu-Jitsu), wrestling, judo, and grappling
+- **Yoga and mobility**: Yoga classes, flexibility work, and movement practice
+- **Skill-based activities**: Any structured session with phases or modules
+
+These extensions are fully backwards compatible with existing exercise-based workout blocks.
 
 ## Key Concepts
 
@@ -27,6 +36,12 @@ Defines the type of class segment:
 - `cooldown` - Cool-down and recovery
 - `lecture` - Instructional lecture or video review
 - `breathwork` - Breathing exercises
+- `practice` - General sport practice or skill work (NEW - for team sports, skill training)
+- `presentation` - Educational presentations or demos (NEW - for teaching/training)
+- `review` - Reviewing/analyzing work or performance (NEW - for feedback/reflection)
+- `demonstration` - Demonstrating skills or techniques (NEW - for showing examples)
+- `discussion` - Collaborative discussion or brainstorming (NEW - for group learning)
+- `assessment` - Testing, evaluation, or quiz (NEW - for knowledge checks)
 - `other` - Other segment types
 
 ### Domain
@@ -36,6 +51,10 @@ Training domain classification:
 - `strength` - Strength training
 - `conditioning` - Conditioning work
 - `mobility` - Mobility work
+- `sports` - General sports (soccer, basketball, tennis, etc.) (NEW)
+- `business` - Business/professional training (NEW - for corporate training)
+- `education` - Educational content and learning (NEW - for workshops, courses)
+- `analytics` - Data analysis and business intelligence (NEW - for PowerBI, Excel, etc.)
 - `other` - Other domains
 
 ### Discipline
@@ -428,6 +447,178 @@ See `Tests/bjj_class_segments_example.json` for a complete 7-segment BJJ class i
 }
 ```
 
+## Generalized Use Case Examples
+
+### Soccer Practice Session
+
+```json
+{
+  "name": "Soccer Practice",
+  "segments": [
+    {
+      "name": "Dynamic Warmup",
+      "segmentType": "warmup",
+      "domain": "sports",
+      "durationMinutes": 10,
+      "objective": "Prepare players for training"
+    },
+    {
+      "name": "Passing Drills",
+      "segmentType": "drill",
+      "domain": "sports",
+      "durationMinutes": 20,
+      "objective": "Improve passing accuracy and speed",
+      "constraints": ["Two-touch only", "10-yard spacing"]
+    },
+    {
+      "name": "Small-Sided Games",
+      "segmentType": "practice",
+      "domain": "sports",
+      "durationMinutes": 25,
+      "objective": "Apply skills in game-like situations"
+    },
+    {
+      "name": "Cool Down",
+      "segmentType": "cooldown",
+      "domain": "sports",
+      "durationMinutes": 5
+    }
+  ]
+}
+```
+
+### PowerBI Training Course
+
+```json
+{
+  "name": "PowerBI Fundamentals - Day 1",
+  "segments": [
+    {
+      "name": "PowerBI Overview",
+      "segmentType": "presentation",
+      "domain": "analytics",
+      "durationMinutes": 15,
+      "objective": "Introduce PowerBI interface and capabilities"
+    },
+    {
+      "name": "Creating Your First Dashboard",
+      "segmentType": "demonstration",
+      "domain": "analytics",
+      "durationMinutes": 30,
+      "objective": "Step-by-step dashboard creation",
+      "coachingCues": [
+        "Connect to data source",
+        "Choose appropriate visualizations",
+        "Apply filters and slicers"
+      ]
+    },
+    {
+      "name": "Hands-On Practice",
+      "segmentType": "practice",
+      "domain": "analytics",
+      "durationMinutes": 45,
+      "objective": "Build a dashboard with sample data"
+    },
+    {
+      "name": "Review and Q&A",
+      "segmentType": "review",
+      "domain": "analytics",
+      "durationMinutes": 20,
+      "objective": "Review common issues and answer questions"
+    },
+    {
+      "name": "Knowledge Check",
+      "segmentType": "assessment",
+      "domain": "analytics",
+      "durationMinutes": 10,
+      "objective": "Verify understanding of key concepts"
+    }
+  ]
+}
+```
+
+### Educational Workshop
+
+```json
+{
+  "name": "Project Management Workshop",
+  "segments": [
+    {
+      "name": "Opening Discussion",
+      "segmentType": "discussion",
+      "domain": "business",
+      "durationMinutes": 15,
+      "objective": "Share experiences and set learning goals"
+    },
+    {
+      "name": "Core Concepts",
+      "segmentType": "lecture",
+      "domain": "business",
+      "durationMinutes": 30,
+      "objective": "Cover fundamental PM principles"
+    },
+    {
+      "name": "Case Study Activity",
+      "segmentType": "practice",
+      "domain": "business",
+      "durationMinutes": 25,
+      "objective": "Apply concepts to real-world scenarios"
+    },
+    {
+      "name": "Group Presentations",
+      "segmentType": "demonstration",
+      "domain": "business",
+      "durationMinutes": 20,
+      "objective": "Share solutions and learn from peers"
+    },
+    {
+      "name": "Closing Review",
+      "segmentType": "review",
+      "domain": "business",
+      "durationMinutes": 10,
+      "objective": "Summarize key takeaways"
+    }
+  ]
+}
+```
+
+### Basketball Training Session
+
+```json
+{
+  "name": "Basketball Skills Development",
+  "segments": [
+    {
+      "name": "Dynamic Warmup",
+      "segmentType": "warmup",
+      "domain": "sports",
+      "durationMinutes": 10
+    },
+    {
+      "name": "Shooting Form Technique",
+      "segmentType": "technique",
+      "domain": "sports",
+      "durationMinutes": 15,
+      "objective": "Perfect shooting mechanics"
+    },
+    {
+      "name": "Shooting Drills",
+      "segmentType": "drill",
+      "domain": "sports",
+      "durationMinutes": 20,
+      "objective": "Repetition and muscle memory"
+    },
+    {
+      "name": "5-on-5 Scrimmage",
+      "segmentType": "practice",
+      "domain": "sports",
+      "durationMinutes": 30,
+      "objective": "Game situation application"
+    }
+  ]
+}
+```
+
 ## Migration Guide
 
 ### For Existing Blocks
@@ -448,14 +639,26 @@ Simply add a `segments` array to a DayTemplate:
 
 ## Best Practices
 
-1. **Use segments for non-traditional sessions** where the structure is more about phases/modules than sets/reps
+1. **Use segments for structured sessions** where the structure is more about phases/modules than sets/reps
+   - Sports practices (soccer, basketball, etc.)
+   - Educational workshops and training courses
+   - Business training sessions (PowerBI, Excel, etc.)
+   - Non-traditional fitness (BJJ, yoga, martial arts)
 2. **Use exercises for traditional gym work** with sets, reps, and weight
-3. **Use hybrid days** when appropriate (e.g., strength work + BJJ conditioning)
-4. **Be descriptive with objectives** to guide athletes through the session
+3. **Use hybrid days** when appropriate (e.g., strength work + sports conditioning)
+4. **Be descriptive with objectives** to guide participants through the session
 5. **Include safety notes** for high-risk activities
 6. **Track quality over quantity** for skill-based work using quality targets
 7. **Use constraints** to create progressive difficulty
 8. **Document techniques thoroughly** with key details and common errors
+9. **Choose appropriate segment types**:
+   - Use `practice` for applying skills in realistic scenarios
+   - Use `presentation` for introducing new concepts
+   - Use `demonstration` for showing step-by-step processes
+   - Use `discussion` for collaborative learning
+   - Use `assessment` for knowledge checks and evaluations
+   - Use `review` for analyzing performance and providing feedback
+10. **Select relevant domains** to organize and filter your content effectively
 
 ## Future Enhancements
 
