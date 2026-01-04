@@ -212,3 +212,58 @@ After applying fixes:
 
 ### Optional
 - `project.yml` - Add output files to "Embed Git Branch" script phase (if it exists there)
+
+---
+
+## Fixes Applied
+
+### ✅ Fix 1: Added videoUrls Field to AuthoringTechnique
+
+**File Modified:** `WhiteboardModels.swift`
+
+**Change:**
+```swift
+public struct AuthoringTechnique: Codable {
+    public var name: String
+    public var variant: String?
+    public var keyDetails: [String]?
+    public var commonErrors: [String]?
+    public var counters: [String]?
+    public var followUps: [String]?
+    public var videoUrls: [String]?  // ✅ ADDED
+}
+```
+
+**Result:** This fix resolves the compilation error in `BlockNormalizer.swift:274:33` by ensuring that `AuthoringTechnique` has all the fields required to map to `UnifiedTechnique`.
+
+### ✅ Fix 2: Added Output Files to Embed Git Branch Script
+
+**File Modified:** `project.yml`
+
+**Change:**
+```yaml
+preBuildScripts:
+  - name: Embed Git Branch
+    script: |
+      # Get the current git branch name
+      BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+      echo "Build branch: $BRANCH_NAME"
+      
+      # Update Info.plist with branch name
+      /usr/libexec/PlistBuddy -c "Delete :BUILD_BRANCH" "${INFOPLIST_FILE}" 2>/dev/null || true
+      /usr/libexec/PlistBuddy -c "Add :BUILD_BRANCH string $BRANCH_NAME" "${INFOPLIST_FILE}"
+    outputFiles:  # ✅ ADDED
+      - "${INFOPLIST_FILE}"
+```
+
+**Result:** This fix addresses the Xcode warning by declaring the output file that the script modifies, allowing Xcode to properly track dependencies and avoid unnecessary script execution.
+
+---
+
+## Expected Outcome
+
+After these fixes:
+1. ✅ Build should compile successfully without errors
+2. ✅ Build warning about "Embed Git Branch" script should be eliminated
+3. ✅ CI pipeline should pass on next push
+4. ✅ All video URL features should work correctly with the updated schema
