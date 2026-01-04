@@ -525,6 +525,13 @@ struct SegmentCard: View {
                             .foregroundColor(.secondary)
                     }
                 }
+                
+                // Additional info: rounds/partner plan summary
+                if let summary = cardSummary {
+                    Text(summary)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
             
             Spacer()
@@ -534,6 +541,37 @@ struct SegmentCard: View {
                 .font(.title3)
                 .foregroundColor(.accentColor)
         }
+    }
+    
+    /// Summary text for collapsed card (rounds, techniques, etc.)
+    private var cardSummary: String? {
+        var parts: [String] = []
+        
+        // Add rounds info if present
+        if let rounds = segment.rounds, let roundDuration = segment.roundDurationSeconds {
+            let timeStr = formatTime(roundDuration)
+            parts.append("\(rounds) × \(timeStr)")
+            
+            if let rest = segment.restSeconds, rest > 0 {
+                parts.append("rest: \(formatTime(rest))")
+            }
+        } else if let rounds = segment.rounds {
+            parts.append("\(rounds) rounds")
+        }
+        
+        // Add technique count
+        if !segment.techniques.isEmpty {
+            let count = segment.techniques.count
+            parts.append("\(count) technique\(count > 1 ? "s" : "")")
+        }
+        
+        // Add positions count if present and no techniques
+        if segment.techniques.isEmpty && !segment.positions.isEmpty {
+            let count = segment.positions.count
+            parts.append("\(count) position\(count > 1 ? "s" : "")")
+        }
+        
+        return parts.isEmpty ? nil : parts.joined(separator: " • ")
     }
     
     // MARK: - Expanded Content
@@ -587,10 +625,10 @@ struct SegmentCard: View {
                 }
             }
             
-            // E) Partner Plan
+            // E) Partner Plan (shows when there's structured partner work)
             if let rounds = segment.rounds,
                let roundDuration = segment.roundDurationSeconds,
-               (segment.attackerGoal != nil || segment.defenderGoal != nil) {
+               (segment.attackerGoal != nil || segment.defenderGoal != nil || segment.resistance != nil || segment.segmentType.lowercased() == "technique") {
                 SectionView(title: "Partner Plan") {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("\(rounds) × \(formatTime(roundDuration)) rounds")

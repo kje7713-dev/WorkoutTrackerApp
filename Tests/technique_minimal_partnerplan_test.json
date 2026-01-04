@@ -1,0 +1,39 @@
+{
+  "Title": "Technique_With_Minimal_PartnerPlan",
+  "Goal": "mixed",
+  "TargetAthlete": "Intermediate",
+  "NumberOfWeeks": 1,
+  "DurationMinutes": 20,
+  "Difficulty": 3,
+  "Equipment": "Training partner(s), timer",
+  "Days": [
+    {
+      "name": "Day 1: Technique Development Test",
+      "goal": "mixed",
+      "segments": [
+        {
+          "name": "Technique: Hand-fighting → Snap/Threat → Guard Pull",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 20,
+          "positions": ["standing", "guard"],
+          "techniques": [
+            {
+              "name": "2-on-1 / collar tie → off-balance → pull to angle",
+              "keyDetails": [
+                "Create reaction first",
+                "Pull to outside hip line",
+                "Immediate shin shield entry"
+              ]
+            }
+          ],
+          "partnerPlan": {
+            "rounds": 5,
+            "roundDurationSeconds": 150,
+            "restSeconds": 45
+          }
+        }
+      ]
+    }
+  ]
+}

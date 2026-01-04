@@ -661,4 +661,61 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertTrue(item.bullets.contains("10 Push-ups"))
         XCTAssertTrue(item.bullets.contains("Rest remaining time each minute"))
     }
+    
+    func testTechniqueSegmentWithMinimalPartnerPlan() {
+        // Given: A technique segment with partner plan but no attacker/defender goals
+        let day = UnifiedDay(
+            name: "Technique Development",
+            segments: [
+                UnifiedSegment(
+                    name: "Technique: Hand-fighting → Snap/Threat → Guard Pull",
+                    segmentType: "technique",
+                    domain: "grappling",
+                    durationMinutes: 20,
+                    positions: ["standing", "guard"],
+                    techniques: [
+                        UnifiedTechnique(
+                            name: "2-on-1 / collar tie → off-balance → pull to angle",
+                            keyDetails: [
+                                "Create reaction first",
+                                "Pull to outside hip line",
+                                "Immediate shin shield entry"
+                            ]
+                        )
+                    ],
+                    rounds: 5,
+                    roundDurationSeconds: 150,
+                    restSeconds: 45
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should create Technique Development section
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Technique Development")
+        XCTAssertEqual(sections[0].items.count, 1)
+        
+        let item = sections[0].items[0]
+        
+        // Verify primary line (segment name)
+        XCTAssertEqual(item.primary, "Technique: Hand-fighting → Snap/Threat → Guard Pull")
+        
+        // Verify secondary line includes rounds and duration
+        XCTAssertNotNil(item.secondary)
+        XCTAssertTrue(item.secondary!.contains("20 min"))
+        XCTAssertTrue(item.secondary!.contains("5 rounds"))
+        XCTAssertTrue(item.secondary!.contains("2:30"))
+        
+        // Verify tertiary line includes rest
+        XCTAssertNotNil(item.tertiary)
+        XCTAssertTrue(item.tertiary!.contains("Rest"))
+        XCTAssertTrue(item.tertiary!.contains("0:45"))
+        
+        // Verify techniques are in bullets
+        XCTAssertTrue(item.bullets.contains(where: { $0.contains("2-on-1 / collar tie") }))
+        XCTAssertTrue(item.bullets.contains(where: { $0.contains("Create reaction first") }))
+    }
 }
