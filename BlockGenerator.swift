@@ -131,6 +131,7 @@ public struct ImportedTechnique: Codable {
     public var commonErrors: [String]?
     public var counters: [String]?
     public var followUps: [String]?
+    public var videoUrls: [String]?
 }
 
 public struct ImportedDrillPlan: Codable {
@@ -244,9 +245,16 @@ public struct ImportedExercise: Codable {
     public var setGroupKind: String?           // "superset", "circuit", "giantSet"
     
     // Progression
-    public var progressionType: String?        // "weight", "volume", "custom"
+    public var progressionType: String?        // "weight", "volume", "custom", "skill"
     public var progressionDeltaWeight: Double? // e.g., 5.0 for +5 lbs per week
     public var progressionDeltaSets: Int?      // e.g., +1 set per week
+    public var deloadWeekIndexes: [Int]?       // e.g., [4, 8] for deload weeks
+    public var deltaResistance: Int?           // Change in resistance level (0-100) for skill-based
+    public var deltaRounds: Int?               // Change in number of rounds for skill-based
+    public var deltaConstraints: [String]?     // Progressive constraint tightening for skill-based
+    
+    // Video URLs for technique demonstration
+    public var videoUrls: [String]?
     
     public init(
         name: String,
@@ -263,7 +271,12 @@ public struct ImportedExercise: Codable {
         setGroupKind: String? = nil,
         progressionType: String? = nil,
         progressionDeltaWeight: Double? = nil,
-        progressionDeltaSets: Int? = nil
+        progressionDeltaSets: Int? = nil,
+        deloadWeekIndexes: [Int]? = nil,
+        deltaResistance: Int? = nil,
+        deltaRounds: Int? = nil,
+        deltaConstraints: [String]? = nil,
+        videoUrls: [String]? = nil
     ) {
         self.name = name
         self.type = type
@@ -280,6 +293,11 @@ public struct ImportedExercise: Codable {
         self.progressionType = progressionType
         self.progressionDeltaWeight = progressionDeltaWeight
         self.progressionDeltaSets = progressionDeltaSets
+        self.deloadWeekIndexes = deloadWeekIndexes
+        self.deltaResistance = deltaResistance
+        self.deltaRounds = deltaRounds
+        self.deltaConstraints = deltaConstraints
+        self.videoUrls = videoUrls
     }
 }
 
@@ -807,15 +825,20 @@ public struct BlockGenerator {
         // Parse conditioning type
         let conditioningType = parseConditioningType(from: imported.conditioningType)
         
-        // Create progression rule
+        // Create progression rule with all fields
         let progressionType = parseProgressionType(from: imported.progressionType)
         let progressionRule = ProgressionRule(
             type: progressionType,
             deltaWeight: imported.progressionDeltaWeight ?? (progressionType == .weight ? 5.0 : nil),
-            deltaSets: imported.progressionDeltaSets
+            deltaSets: imported.progressionDeltaSets,
+            deloadWeekIndexes: imported.deloadWeekIndexes,
+            customParams: nil,
+            deltaResistance: imported.deltaResistance,
+            deltaRounds: imported.deltaRounds,
+            deltaConstraints: imported.deltaConstraints
         )
         
-        // Create exercise template
+        // Create exercise template with videoUrls
         return ExerciseTemplate(
             customName: imported.name,
             type: exerciseType,
@@ -825,7 +848,8 @@ public struct BlockGenerator {
             setGroupId: setGroupId,
             strengthSets: strengthSets,
             conditioningSets: conditioningSets,
-            progressionRule: progressionRule
+            progressionRule: progressionRule,
+            videoUrls: imported.videoUrls
         )
     }
     
@@ -914,6 +938,7 @@ public struct BlockGenerator {
         case "weight": return .weight
         case "volume": return .volume
         case "custom": return .custom
+        case "skill": return .skill
         default: return .weight
         }
     }
@@ -939,7 +964,8 @@ public struct BlockGenerator {
                 keyDetails: tech.keyDetails ?? [],
                 commonErrors: tech.commonErrors ?? [],
                 counters: tech.counters ?? [],
-                followUps: tech.followUps ?? []
+                followUps: tech.followUps ?? [],
+                videoUrls: tech.videoUrls
             )
         } ?? []
         
