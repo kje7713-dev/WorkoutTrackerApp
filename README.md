@@ -2,7 +2,25 @@
 
 An iOS workout tracking application built with SwiftUI for structured training through block periodization.
 
-> **📖 Looking for the User Guide?** If you want to learn how to **use the app effectively**, see the **[User Guide](USER_GUIDE.md)**. This README is for developers.
+---
+
+## 👥 **For App Users**
+
+> **📱 New to Savage By Design?** Start here:
+> 
+> ### **[→ END USER README - Learn What This App Can Do](END_USER_README.md)** ⭐
+> 
+> Quick, easy-to-read overview of all app capabilities, features, and how to get started in 60 seconds.
+>
+> ### **[→ Complete User Guide - Detailed How-To Guide](USER_GUIDE.md)** 📚
+> 
+> Comprehensive 600+ line guide with step-by-step instructions, tips, and troubleshooting.
+
+---
+
+## 👨‍💻 **For Developers**
+
+This README below is for developers who want to build, modify, or contribute to the app.
 
 ## Overview
 
@@ -177,7 +195,8 @@ For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) a
 ## Documentation
 
 ### For Users
-- **[User Guide](USER_GUIDE.md)** - 📖 **Complete guide on how to use the app effectively**
+- **[End User README](END_USER_README.md)** - ⭐ **Quick overview of app capabilities** (Start here!)
+- **[User Guide](USER_GUIDE.md)** - 📖 **Complete guide on how to use the app effectively** (Detailed how-to)
 
 ### For Developers
 - **[README](README.md)** - This file, development setup and technical overview
