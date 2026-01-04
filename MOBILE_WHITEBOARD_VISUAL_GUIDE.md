@@ -6,8 +6,6 @@
 ┌──────────────────────────────────────────────────┐
 │ ╔══════════════ STICKY HEADER ═════════════════╗ │
 │ ║  Technique Day                               ║ │
-│ ║  [TECHNICAL] [60 min]                        ║ │
-│ ║  [Standing] [Turtle] [Guard] [Side Control]  ║ │
 │ ╚══════════════════════════════════════════════╝ │
 ├──────────────────────────────────────────────────┤
 │ ╔════════ CLASS FLOW STRIP (scroll →) ═════════╗ │
@@ -106,15 +104,23 @@
 
 ### Sticky Header
 
+**For Segment-based Days:**
 ```
 ┌──────────────────────────────────────────┐
 │ Technique Day                            │ ← Title (.title2 + .bold)
-│                                          │
-│ [TECHNICAL] [60 min]                     │ ← Chips (.caption + colored bg)
-│                                          │
-│ [Standing] [Turtle] [Guard] ...          │ ← Tags (scrollable, outlined)
 └──────────────────────────────────────────┘
 ```
+
+**For Exercise-based Days:**
+```
+┌──────────────────────────────────────────┐
+│ Strength Day                             │ ← Title (.title2 + .bold)
+│                                          │
+│ [STRENGTH]                               │ ← Goal chip (if present)
+└──────────────────────────────────────────┘
+```
+
+**Note:** Chips (goal, duration, position tags) are only shown for exercise-based days. For segment-based days, this information is already displayed in the segment pill cards and detailed segment views, so the chips were removed to avoid redundancy.
 
 ### Flow Strip Pill
 

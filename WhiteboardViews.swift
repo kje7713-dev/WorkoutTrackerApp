@@ -191,34 +191,15 @@ struct MobileWhiteboardDayView: View {
                 .fontWeight(.bold)
             
             // Line 2: Chips [Goal] [Duration] [Difficulty]
-            HStack(spacing: 8) {
-                if let goal = day.goal {
-                    ChipView(text: goal.uppercased(), color: .blue)
-                }
-                
-                // Calculate total duration from segments
-                if !day.segments.isEmpty {
-                    let totalMinutes = day.segments.compactMap { $0.durationMinutes }.reduce(0, +)
-                    if totalMinutes > 0 {
-                        ChipView(text: "\(totalMinutes) min", color: .orange)
+            // Only show chips for non-segment days (exercise-based days)
+            if day.segments.isEmpty {
+                HStack(spacing: 8) {
+                    if let goal = day.goal {
+                        ChipView(text: goal.uppercased(), color: .blue)
                     }
-                }
-                
-                // Difficulty could be derived from segment types or added to model
-                // For now, we'll skip it if not available
-            }
-            
-            // Line 3: Tags (positions, techniques, etc.)
-            if !day.segments.isEmpty {
-                let allPositions = Set(day.segments.flatMap { $0.positions })
-                if !allPositions.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
-                            ForEach(Array(allPositions.prefix(5)), id: \.self) { position in
-                                TagChipView(text: position)
-                            }
-                        }
-                    }
+                    
+                    // Difficulty could be derived from segment types or added to model
+                    // For now, we'll skip it if not available
                 }
             }
         }
