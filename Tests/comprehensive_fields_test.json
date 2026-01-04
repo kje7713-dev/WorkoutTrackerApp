@@ -1,0 +1,181 @@
+{
+  "Title": "Comprehensive Fields Test Block",
+  "Goal": "mixed",
+  "TargetAthlete": "Advanced",
+  "NumberOfWeeks": 2,
+  "DurationMinutes": 90,
+  "Difficulty": 4,
+  "Equipment": "Full gym, yoga mat, grappling mats",
+  "WarmUp": "Dynamic stretching and mobility work",
+  "Finisher": "Core work and cooldown",
+  "Notes": "Test block demonstrating all schema fields",
+  "EstimatedTotalTimeMinutes": 90,
+  "Progression": "Progressive overload with programmed deloads",
+  "Days": [
+    {
+      "name": "Day 1: Strength with Video URLs",
+      "shortCode": "D1S",
+      "goal": "strength",
+      "notes": "Focus on technique with video references",
+      "exercises": [
+        {
+          "name": "Bench Press",
+          "type": "strength",
+          "category": "pressHorizontal",
+          "sets": [
+            {
+              "reps": 5,
+              "weight": 225.0,
+              "percentageOfMax": 0.85,
+              "rpe": 8.5,
+              "rir": 1.5,
+              "tempo": "3-1-1-0",
+              "restSeconds": 240,
+              "notes": "Controlled eccentric"
+            },
+            {
+              "reps": 5,
+              "weight": 235.0,
+              "percentageOfMax": 0.88,
+              "rpe": 9.0,
+              "rir": 1.0,
+              "tempo": "3-1-1-0",
+              "restSeconds": 240,
+              "notes": "Touch and go"
+            }
+          ],
+          "notes": "Competition pause on chest",
+          "progressionType": "weight",
+          "progressionDeltaWeight": 5.0,
+          "deloadWeekIndexes": [4, 8],
+          "videoUrls": [
+            "https://youtube.com/bench-press-setup",
+            "https://youtube.com/bench-press-technique"
+          ]
+        },
+        {
+          "name": "Barbell Row",
+          "type": "strength",
+          "category": "pullHorizontal",
+          "setsReps": "4x8",
+          "restSeconds": 120,
+          "intensityCue": "RPE 7-8",
+          "setGroupId": "A1",
+          "setGroupKind": "superset",
+          "progressionType": "weight",
+          "progressionDeltaWeight": 2.5,
+          "videoUrls": ["https://youtube.com/barbell-row"]
+        },
+        {
+          "name": "Dumbbell Pullover",
+          "type": "strength",
+          "setsReps": "4x12",
+          "restSeconds": 120,
+          "intensityCue": "Deep stretch",
+          "setGroupId": "A1",
+          "setGroupKind": "superset",
+          "progressionType": "volume"
+        }
+      ]
+    },
+    {
+      "name": "Day 2: Conditioning with Video URLs",
+      "shortCode": "D2C",
+      "goal": "conditioning",
+      "exercises": [
+        {
+          "name": "Rowing Intervals",
+          "type": "conditioning",
+          "category": "conditioning",
+          "conditioningType": "intervals",
+          "conditioningSets": [
+            {
+              "durationSeconds": 120,
+              "distanceMeters": 500.0,
+              "calories": 25.0,
+              "targetPace": "1:45/500m",
+              "effortDescriptor": "hard",
+              "restSeconds": 60,
+              "notes": "Maintain stroke rate 24-26"
+            },
+            {
+              "durationSeconds": 120,
+              "distanceMeters": 500.0,
+              "calories": 25.0,
+              "targetPace": "1:45/500m",
+              "effortDescriptor": "hard",
+              "restSeconds": 60
+            }
+          ],
+          "notes": "Focus on consistent pacing",
+          "progressionType": "custom",
+          "videoUrls": ["https://youtube.com/rowing-technique"]
+        }
+      ]
+    },
+    {
+      "name": "Day 3: Skill-Based Training (BJJ)",
+      "shortCode": "D3BJJ",
+      "goal": "mixed",
+      "notes": "Progressive resistance grappling drills",
+      "segments": [
+        {
+          "name": "Guard Technique Drill",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 15,
+          "objective": "Master closed guard control and attacks",
+          "positions": ["closed_guard", "mount"],
+          "techniques": [
+            {
+              "name": "Armbar from Guard",
+              "variant": "Traditional",
+              "keyDetails": ["Control head", "Angle hips", "Leg over face"],
+              "commonErrors": ["Not breaking posture", "Weak base"],
+              "counters": ["Stack", "Posture up"],
+              "followUps": ["Triangle", "Omoplata"],
+              "videoUrls": [
+                "https://youtube.com/armbar-setup",
+                "https://youtube.com/armbar-finish"
+              ]
+            }
+          ],
+          "partnerPlan": {
+            "rounds": 5,
+            "roundDurationSeconds": 180,
+            "restSeconds": 60,
+            "roles": {
+              "attackerGoal": "Execute armbar from closed guard",
+              "defenderGoal": "Provide resistance and posture"
+            },
+            "resistance": 25,
+            "switchEverySeconds": 90,
+            "qualityTargets": {
+              "successRateTarget": 0.7,
+              "cleanRepsTarget": 5
+            }
+          },
+          "constraints": ["No submissions", "Technical focus"],
+          "coachingCues": ["Control first", "Hip angle matters", "Break posture"],
+          "notes": "Increase resistance each round"
+        }
+      ],
+      "exercises": [
+        {
+          "name": "Guard Passing Drill",
+          "type": "other",
+          "notes": "Progressive resistance passing",
+          "progressionType": "skill",
+          "deltaResistance": 10,
+          "deltaRounds": 1,
+          "deltaConstraints": [
+            "Week 1: No grips allowed",
+            "Week 2: One grip allowed",
+            "Week 3: Full grips",
+            "Week 4: Add submissions"
+          ]
+        }
+      ]
+    }
+  ]
+}

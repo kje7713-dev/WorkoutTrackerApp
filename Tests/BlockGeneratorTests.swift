@@ -353,6 +353,12 @@ Progression: Increase weight by 2.5%
         }
         print("")
         
+        print("Test 5: Comprehensive Fields Parsing")
+        if !testComprehensiveFieldsParsing() {
+            allPassed = false
+        }
+        print("")
+        
         if allPassed {
             print("✅ All BlockGenerator tests passed!")
         } else {
@@ -360,5 +366,247 @@ Progression: Increase weight by 2.5%
         }
         
         return allPassed
+    }
+    
+    /// Test parsing comprehensive fields (videoUrls, skill progression, segments)
+    static func testComprehensiveFieldsParsing() -> Bool {
+        // Load test JSON file
+        guard let url = Bundle.main.url(forResource: "comprehensive_fields_test", withExtension: "json"),
+              let jsonString = try? String(contentsOf: url) else {
+            print("❌ Could not load comprehensive_fields_test.json")
+            return false
+        }
+        
+        let result = BlockGenerator.decodeBlock(from: jsonString)
+        
+        guard case .success(let importedBlock) = result else {
+            print("❌ Failed to parse comprehensive fields JSON: \(result)")
+            return false
+        }
+        
+        // Verify basic block fields
+        guard importedBlock.Title == "Comprehensive Fields Test Block" else {
+            print("❌ Block title mismatch")
+            return false
+        }
+        
+        guard let days = importedBlock.Days, days.count == 3 else {
+            print("❌ Expected 3 days, got \(importedBlock.Days?.count ?? 0)")
+            return false
+        }
+        
+        // Test Day 1: Strength with videoUrls and advanced progression
+        let day1 = days[0]
+        guard let day1Exercises = day1.exercises, day1Exercises.count == 3 else {
+            print("❌ Day 1 should have 3 exercises")
+            return false
+        }
+        
+        // Verify Bench Press with videoUrls and deloadWeekIndexes
+        let benchPress = day1Exercises[0]
+        guard benchPress.name == "Bench Press" else {
+            print("❌ First exercise should be Bench Press")
+            return false
+        }
+        
+        guard let videoUrls = benchPress.videoUrls, videoUrls.count == 2 else {
+            print("❌ Bench Press should have 2 video URLs")
+            return false
+        }
+        
+        guard videoUrls[0] == "https://youtube.com/bench-press-setup" else {
+            print("❌ First video URL mismatch")
+            return false
+        }
+        
+        guard benchPress.progressionType == "weight" else {
+            print("❌ Bench Press should have weight progression")
+            return false
+        }
+        
+        guard let deloadWeeks = benchPress.deloadWeekIndexes, deloadWeeks == [4, 8] else {
+            print("❌ Bench Press should have deload weeks [4, 8]")
+            return false
+        }
+        
+        guard let sets = benchPress.sets, sets.count == 2 else {
+            print("❌ Bench Press should have 2 advanced sets")
+            return false
+        }
+        
+        // Verify superset grouping
+        let row = day1Exercises[1]
+        let pullover = day1Exercises[2]
+        guard row.setGroupId == pullover.setGroupId else {
+            print("❌ Row and Pullover should have same setGroupId")
+            return false
+        }
+        
+        guard row.setGroupKind == "superset" && pullover.setGroupKind == "superset" else {
+            print("❌ Row and Pullover should be marked as superset")
+            return false
+        }
+        
+        // Test Day 2: Conditioning with videoUrls
+        let day2 = days[1]
+        guard let day2Exercises = day2.exercises, day2Exercises.count == 1 else {
+            print("❌ Day 2 should have 1 exercise")
+            return false
+        }
+        
+        let rowing = day2Exercises[0]
+        guard rowing.name == "Rowing Intervals" else {
+            print("❌ Day 2 exercise should be Rowing Intervals")
+            return false
+        }
+        
+        guard let rowingVideos = rowing.videoUrls, rowingVideos.count == 1 else {
+            print("❌ Rowing should have 1 video URL")
+            return false
+        }
+        
+        guard let conditioningSets = rowing.conditioningSets, conditioningSets.count == 2 else {
+            print("❌ Rowing should have 2 conditioning sets")
+            return false
+        }
+        
+        // Test Day 3: Segments and skill-based progression
+        let day3 = days[2]
+        guard let day3Segments = day3.segments, day3Segments.count == 1 else {
+            print("❌ Day 3 should have 1 segment")
+            return false
+        }
+        
+        let segment = day3Segments[0]
+        guard segment.name == "Guard Technique Drill" else {
+            print("❌ Segment should be Guard Technique Drill")
+            return false
+        }
+        
+        guard let techniques = segment.techniques, techniques.count == 1 else {
+            print("❌ Segment should have 1 technique")
+            return false
+        }
+        
+        let technique = techniques[0]
+        guard technique.name == "Armbar from Guard" else {
+            print("❌ Technique should be Armbar from Guard")
+            return false
+        }
+        
+        guard let techniqueVideos = technique.videoUrls, techniqueVideos.count == 2 else {
+            print("❌ Technique should have 2 video URLs")
+            return false
+        }
+        
+        guard techniqueVideos[0] == "https://youtube.com/armbar-setup" else {
+            print("❌ Technique video URL mismatch")
+            return false
+        }
+        
+        // Verify skill-based exercise
+        guard let day3Exercises = day3.exercises, day3Exercises.count == 1 else {
+            print("❌ Day 3 should have 1 exercise")
+            return false
+        }
+        
+        let skillExercise = day3Exercises[0]
+        guard skillExercise.name == "Guard Passing Drill" else {
+            print("❌ Skill exercise should be Guard Passing Drill")
+            return false
+        }
+        
+        guard skillExercise.progressionType == "skill" else {
+            print("❌ Exercise should have skill progression type")
+            return false
+        }
+        
+        guard let deltaResistance = skillExercise.deltaResistance, deltaResistance == 10 else {
+            print("❌ Should have deltaResistance of 10")
+            return false
+        }
+        
+        guard let deltaRounds = skillExercise.deltaRounds, deltaRounds == 1 else {
+            print("❌ Should have deltaRounds of 1")
+            return false
+        }
+        
+        guard let deltaConstraints = skillExercise.deltaConstraints, deltaConstraints.count == 4 else {
+            print("❌ Should have 4 deltaConstraints")
+            return false
+        }
+        
+        // Convert to Block and verify fields are preserved
+        let block = BlockGenerator.convertToBlock(importedBlock)
+        
+        guard block.name == "Comprehensive Fields Test Block" else {
+            print("❌ Converted block name mismatch")
+            return false
+        }
+        
+        guard block.days.count == 3 else {
+            print("❌ Converted block should have 3 days")
+            return false
+        }
+        
+        // Verify exercise videoUrls survived conversion
+        let convertedBenchPress = block.days[0].exercises[0]
+        guard let convertedVideoUrls = convertedBenchPress.videoUrls, convertedVideoUrls.count == 2 else {
+            print("❌ Converted exercise should preserve videoUrls")
+            return false
+        }
+        
+        // Verify progression fields survived conversion
+        guard convertedBenchPress.progressionRule.type == .weight else {
+            print("❌ Converted progression type should be weight")
+            return false
+        }
+        
+        guard convertedBenchPress.progressionRule.deloadWeekIndexes == [4, 8] else {
+            print("❌ Converted deload weeks should be [4, 8]")
+            return false
+        }
+        
+        // Verify segment and technique videoUrls survived conversion
+        guard let convertedSegment = block.days[2].segments?.first else {
+            print("❌ Converted block should preserve segments")
+            return false
+        }
+        
+        guard let convertedTechnique = convertedSegment.techniques.first else {
+            print("❌ Converted segment should have techniques")
+            return false
+        }
+        
+        guard let convertedTechniqueVideos = convertedTechnique.videoUrls, 
+              convertedTechniqueVideos.count == 2 else {
+            print("❌ Converted technique should preserve videoUrls")
+            return false
+        }
+        
+        // Verify skill progression survived conversion
+        let convertedSkillExercise = block.days[2].exercises[0]
+        guard convertedSkillExercise.progressionRule.type == .skill else {
+            print("❌ Converted skill exercise should have skill progression")
+            return false
+        }
+        
+        guard convertedSkillExercise.progressionRule.deltaResistance == 10 else {
+            print("❌ Converted skill exercise should preserve deltaResistance")
+            return false
+        }
+        
+        guard convertedSkillExercise.progressionRule.deltaRounds == 1 else {
+            print("❌ Converted skill exercise should preserve deltaRounds")
+            return false
+        }
+        
+        guard convertedSkillExercise.progressionRule.deltaConstraints?.count == 4 else {
+            print("❌ Converted skill exercise should preserve deltaConstraints")
+            return false
+        }
+        
+        print("✅ Comprehensive fields parsing test passed")
+        return true
     }
 }
