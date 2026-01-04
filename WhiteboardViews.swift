@@ -271,18 +271,18 @@ struct MobileWhiteboardDayView: View {
             ForEach(day.segments) { segment in
                 SegmentCard(
                     segment: segment,
-                    isExpanded: expandedSegmentId == segment.id
-                )
-                .id(segment.id)
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        if expandedSegmentId == segment.id {
-                            expandedSegmentId = nil
-                        } else {
-                            expandedSegmentId = segment.id
+                    isExpanded: expandedSegmentId == segment.id,
+                    onToggle: {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            if expandedSegmentId == segment.id {
+                                expandedSegmentId = nil
+                            } else {
+                                expandedSegmentId = segment.id
+                            }
                         }
                     }
-                }
+                )
+                .id(segment.id)
             }
         }
         .padding(.bottom, 24)
@@ -471,11 +471,15 @@ struct SegmentPillCard: View {
 struct SegmentCard: View {
     let segment: UnifiedSegment
     let isExpanded: Bool
+    let onToggle: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Card header (always visible)
-            cardHeader
+            // Card header (always visible) - now a button
+            Button(action: onToggle) {
+                cardHeader
+            }
+            .buttonStyle(.plain)
             
             // Expanded content
             if isExpanded {
