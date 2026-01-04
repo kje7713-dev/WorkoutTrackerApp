@@ -454,10 +454,13 @@ struct SegmentPillCard: View {
         switch segment.segmentType.lowercased() {
         case "warmup", "mobility": return Color.orange
         case "technique": return Color.blue
-        case "drill": return Color.purple
+        case "drill", "practice": return Color.purple
         case "positionalspar", "rolling": return Color.red
         case "cooldown", "breathwork", "flow": return Color.green
-        case "lecture": return Color.gray
+        case "lecture", "presentation": return Color.gray
+        case "review", "assessment": return Color.cyan
+        case "demonstration": return Color.indigo
+        case "discussion": return Color.teal
         default: return Color.secondary
         }
     }
@@ -860,10 +863,13 @@ struct SegmentCard: View {
         switch segment.segmentType.lowercased() {
         case "warmup", "mobility": return Color.orange
         case "technique": return Color.blue
-        case "drill": return Color.purple
+        case "drill", "practice": return Color.purple
         case "positionalspar", "rolling": return Color.red
         case "cooldown", "breathwork", "flow": return Color.green
-        case "lecture": return Color.gray
+        case "lecture", "presentation": return Color.gray
+        case "review", "assessment": return Color.cyan
+        case "demonstration": return Color.indigo
+        case "discussion": return Color.teal
         default: return Color.secondary
         }
     }
