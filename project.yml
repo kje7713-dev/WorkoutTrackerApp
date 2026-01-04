@@ -27,6 +27,8 @@ targets:
           # Update Info.plist with branch name
           /usr/libexec/PlistBuddy -c "Delete :BUILD_BRANCH" "${INFOPLIST_FILE}" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :BUILD_BRANCH string $BRANCH_NAME" "${INFOPLIST_FILE}"
+        outputFiles:
+          - "${INFOPLIST_FILE}"
 
     info:
       path: Info.plist
