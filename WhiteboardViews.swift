@@ -1026,6 +1026,38 @@ struct TechniqueRow: View {
                             BulletPoint(text: counter, indent: true)
                         }
                     }
+                    
+                    if let videoUrls = technique.videoUrls, !videoUrls.isEmpty {
+                        Text("Videos")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(videoUrls, id: \.self) { urlString in
+                                if let url = URL(string: urlString) {
+                                    Link(destination: url) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "play.rectangle.fill")
+                                                .foregroundColor(.red)
+                                                .font(.caption)
+                                            Text("Technique demo")
+                                                .font(.caption)
+                                                .foregroundColor(.primary)
+                                            Image(systemName: "arrow.up.forward.square")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .padding(8)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .fill(Color(.systemBackground).opacity(0.5))
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 .padding(.leading, 12)
                 .padding(.top, 4)
