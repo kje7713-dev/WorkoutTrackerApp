@@ -265,6 +265,7 @@ Segment (Models.swift)
 - [x] commonErrors array
 - [x] counters array ← NEW
 - [x] followUps array ← NEW
+- [x] videoUrls array ← NEW
 
 ### Drill Plan
 - [x] drillItems array (name, workSeconds, restSeconds, notes)

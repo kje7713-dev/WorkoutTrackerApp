@@ -162,6 +162,7 @@ Represents a specific technique or skill.
 - `commonErrors` ([String]) - Common mistakes
 - `counters` ([String]) - Counter techniques
 - `followUps` ([String]) - Follow-up options
+- `videoUrls` ([String]?) - Video URLs for technique demonstrations
 
 #### RoundPlan
 Structure for timed rounds (sparring, drills).
