@@ -604,6 +604,9 @@ struct BlockGeneratorView: View {
               "progressionDeltaWeight": 5.0 [OPTIONAL],
               "progressionDeltaSets": 1 [OPTIONAL],
               
+              // VIDEO DEMONSTRATION:
+              "videoUrls": ["https://youtube.com/video1", "https://youtube.com/video2"] [OPTIONAL - array of video URLs for technique demonstration],
+              
               "notes": "Exercise-specific notes" [OPTIONAL]
             }
           ],
@@ -639,7 +642,8 @@ struct BlockGeneratorView: View {
                       "keyDetails": ["Key point 1", "Key point 2"],
                       "commonErrors": ["Error 1", "Error 2"],
                       "counters": ["Counter 1"],
-                      "followUps": ["Follow-up 1"]
+                      "followUps": ["Follow-up 1"],
+                      "videoUrls": ["https://youtube.com/technique-demo"] [OPTIONAL - array of instructional video URLs]
                     }
                   ],
                   
@@ -708,6 +712,17 @@ struct BlockGeneratorView: View {
                     "style": "Box breathing",
                     "pattern": "4s inhale / 4s hold / 4s exhale / 4s hold",
                     "durationSeconds": 300
+                  },
+                  
+                  // MEDIA & RESOURCES:
+                  "media": { [OPTIONAL]
+                    "videoUrl": "https://youtube.com/segment-overview" [OPTIONAL - primary video URL for the segment],
+                    "imageUrl": "https://example.com/diagram.png" [OPTIONAL - reference image URL],
+                    "diagramAssetId": "asset-id-123" [OPTIONAL - diagram asset identifier],
+                    "coachNotesMarkdown": "## Coach Notes\n- Point 1\n- Point 2" [OPTIONAL - markdown formatted coaching notes],
+                    "commonFaults": ["Fault 1", "Fault 2"] [OPTIONAL - common mistakes],
+                    "keyCues": ["Cue 1", "Cue 2"] [OPTIONAL - key coaching cues],
+                    "checkpoints": ["Checkpoint 1", "Checkpoint 2"] [OPTIONAL - assessment checkpoints]
                   },
                   
                   // COACHING & SAFETY:
@@ -787,7 +802,8 @@ struct BlockGeneratorView: View {
               "setsReps": "3x8",
               "restSeconds": 180,
               "intensityCue": "RPE 7",
-              "progressionDeltaWeight": 5.0
+              "progressionDeltaWeight": 5.0,
+              "videoUrls": ["https://youtube.com/squat-form"]
             },
             {
               "name": "Barbell Bench Press",
@@ -798,7 +814,8 @@ struct BlockGeneratorView: View {
                 {"reps": 8, "weight": 135, "rpe": 7.5, "restSeconds": 120},
                 {"reps": 8, "weight": 135, "rpe": 8, "restSeconds": 120}
               ],
-              "progressionDeltaWeight": 5.0
+              "progressionDeltaWeight": 5.0,
+              "videoUrls": ["https://youtube.com/bench-setup", "https://youtube.com/bench-technique"]
             }
           ],
           "Finisher": "10 min cooldown",
@@ -847,9 +864,15 @@ struct BlockGeneratorView: View {
                     {
                       "name": "Closed guard posture break",
                       "keyDetails": ["Break posture with legs", "Control head", "Create angle"],
-                      "commonErrors": ["Opening guard too early", "Not controlling head"]
+                      "commonErrors": ["Opening guard too early", "Not controlling head"],
+                      "videoUrls": ["https://youtube.com/closed-guard-posture-break"]
                     }
                   ],
+                  "media": {
+                    "videoUrl": "https://youtube.com/closed-guard-fundamentals",
+                    "coachNotesMarkdown": "## Key Points\n- Maintain tight guard\n- Control distance\n- Break posture first",
+                    "keyCues": ["Squeeze knees", "Control head", "Create angle"]
+                  },
                   "partnerPlan": {
                     "rounds": 4,
                     "roundDurationSeconds": 180,
