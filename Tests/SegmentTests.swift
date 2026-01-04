@@ -391,4 +391,315 @@ final class SegmentTests: XCTestCase {
         XCTAssertNotNil(sessions[0].segments, "Session should have segments")
         XCTAssertEqual(sessions[0].segments?.count, 1, "Session should have 1 segment")
     }
+    
+    // MARK: - Generalized Use Case Tests
+    
+    func testNewSegmentTypesSerialization() throws {
+        // Test all new segment types for proper serialization
+        let newTypes: [SegmentType] = [
+            .practice,
+            .presentation,
+            .review,
+            .demonstration,
+            .discussion,
+            .assessment
+        ]
+        
+        for segmentType in newTypes {
+            let segment = Segment(
+                name: "Test \(segmentType.rawValue)",
+                segmentType: segmentType,
+                durationMinutes: 15
+            )
+            
+            // Encode and decode
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(segment)
+            let decoder = JSONDecoder()
+            let decoded = try decoder.decode(Segment.self, from: data)
+            
+            // Verify
+            XCTAssertEqual(decoded.segmentType, segmentType)
+            XCTAssertEqual(decoded.name, segment.name)
+        }
+    }
+    
+    func testNewDomainsSerialization() throws {
+        // Test all new domain types for proper serialization
+        let newDomains: [Domain] = [
+            .sports,
+            .business,
+            .education,
+            .analytics
+        ]
+        
+        for domain in newDomains {
+            let segment = Segment(
+                name: "Test Segment",
+                segmentType: .practice,
+                domain: domain,
+                durationMinutes: 20
+            )
+            
+            // Encode and decode
+            let encoder = JSONEncoder()
+            let data = try encoder.encode(segment)
+            let decoder = JSONDecoder()
+            let decoded = try decoder.decode(Segment.self, from: data)
+            
+            // Verify
+            XCTAssertEqual(decoded.domain, domain)
+        }
+    }
+    
+    func testSportsPracticeSession() throws {
+        // Create a soccer practice session with multiple segments
+        let warmupSegment = Segment(
+            name: "Dynamic Warmup",
+            segmentType: .warmup,
+            domain: .sports,
+            durationMinutes: 10,
+            objective: "Prepare players for practice"
+        )
+        
+        let drillSegment = Segment(
+            name: "Passing Drills",
+            segmentType: .drill,
+            domain: .sports,
+            durationMinutes: 20,
+            objective: "Improve passing accuracy and speed"
+        )
+        
+        let practiceSegment = Segment(
+            name: "Small-Sided Games",
+            segmentType: .practice,
+            domain: .sports,
+            durationMinutes: 25,
+            objective: "Apply skills in game-like situations"
+        )
+        
+        let cooldownSegment = Segment(
+            name: "Cool Down",
+            segmentType: .cooldown,
+            domain: .sports,
+            durationMinutes: 5
+        )
+        
+        let day = DayTemplate(
+            name: "Soccer Practice - Week 1",
+            segments: [warmupSegment, drillSegment, practiceSegment, cooldownSegment]
+        )
+        
+        let block = Block(
+            name: "Soccer Season Training",
+            numberOfWeeks: 4,
+            days: [day],
+            tags: ["soccer", "youth", "team"],
+            disciplines: nil
+        )
+        
+        // Encode and decode
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(block)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Block.self, from: data)
+        
+        // Verify
+        XCTAssertEqual(decoded.days[0].segments?.count, 4)
+        XCTAssertEqual(decoded.days[0].segments?[2].segmentType, .practice)
+        XCTAssertEqual(decoded.days[0].segments?[2].domain, .sports)
+    }
+    
+    func testBusinessTrainingSession() throws {
+        // Create a PowerBI training session
+        let presentationSegment = Segment(
+            name: "PowerBI Overview",
+            segmentType: .presentation,
+            domain: .analytics,
+            durationMinutes: 15,
+            objective: "Introduce PowerBI interface and capabilities"
+        )
+        
+        let demonstrationSegment = Segment(
+            name: "Creating Your First Dashboard",
+            segmentType: .demonstration,
+            domain: .analytics,
+            durationMinutes: 30,
+            objective: "Step-by-step dashboard creation"
+        )
+        
+        let practiceSegment = Segment(
+            name: "Hands-On Practice",
+            segmentType: .practice,
+            domain: .analytics,
+            durationMinutes: 45,
+            objective: "Build a dashboard with sample data"
+        )
+        
+        let reviewSegment = Segment(
+            name: "Review and Q&A",
+            segmentType: .review,
+            domain: .analytics,
+            durationMinutes: 20,
+            objective: "Review common issues and answer questions"
+        )
+        
+        let assessmentSegment = Segment(
+            name: "Knowledge Check",
+            segmentType: .assessment,
+            domain: .analytics,
+            durationMinutes: 10,
+            objective: "Verify understanding of key concepts"
+        )
+        
+        let day = DayTemplate(
+            name: "PowerBI Training - Day 1",
+            segments: [presentationSegment, demonstrationSegment, practiceSegment, reviewSegment, assessmentSegment]
+        )
+        
+        let block = Block(
+            name: "PowerBI Fundamentals Course",
+            description: "Complete PowerBI training for business analysts",
+            numberOfWeeks: 1,
+            days: [day],
+            tags: ["powerbi", "analytics", "training"]
+        )
+        
+        // Encode and decode
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(block)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Block.self, from: data)
+        
+        // Verify all segment types
+        XCTAssertEqual(decoded.days[0].segments?.count, 5)
+        XCTAssertEqual(decoded.days[0].segments?[0].segmentType, .presentation)
+        XCTAssertEqual(decoded.days[0].segments?[1].segmentType, .demonstration)
+        XCTAssertEqual(decoded.days[0].segments?[2].segmentType, .practice)
+        XCTAssertEqual(decoded.days[0].segments?[3].segmentType, .review)
+        XCTAssertEqual(decoded.days[0].segments?[4].segmentType, .assessment)
+        XCTAssertEqual(decoded.days[0].segments?[0].domain, .analytics)
+    }
+    
+    func testEducationalWorkshopSession() throws {
+        // Create a general educational workshop
+        let discussionSegment = Segment(
+            name: "Opening Discussion",
+            segmentType: .discussion,
+            domain: .education,
+            durationMinutes: 15,
+            objective: "Introduce topic and gather initial thoughts"
+        )
+        
+        let lectureSegment = Segment(
+            name: "Core Concepts",
+            segmentType: .lecture,
+            domain: .education,
+            durationMinutes: 30,
+            objective: "Cover fundamental concepts"
+        )
+        
+        let practiceSegment = Segment(
+            name: "Group Activity",
+            segmentType: .practice,
+            domain: .education,
+            durationMinutes: 25,
+            objective: "Apply concepts in small groups"
+        )
+        
+        let reviewSegment = Segment(
+            name: "Closing Review",
+            segmentType: .review,
+            domain: .education,
+            durationMinutes: 10,
+            objective: "Summarize key takeaways"
+        )
+        
+        let day = DayTemplate(
+            name: "Workshop Day",
+            segments: [discussionSegment, lectureSegment, practiceSegment, reviewSegment]
+        )
+        
+        let block = Block(
+            name: "Educational Workshop Series",
+            numberOfWeeks: 1,
+            days: [day]
+        )
+        
+        // Encode and decode
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(block)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(Block.self, from: data)
+        
+        // Verify
+        XCTAssertEqual(decoded.days[0].segments?.count, 4)
+        XCTAssertEqual(decoded.days[0].segments?[0].segmentType, .discussion)
+        XCTAssertEqual(decoded.days[0].segments?[0].domain, .education)
+    }
+    
+    func testSessionFactoryWithNewSegmentTypes() throws {
+        // Test that SessionFactory handles new segment types correctly
+        let segment = Segment(
+            name: "Team Practice",
+            segmentType: .practice,
+            domain: .sports,
+            durationMinutes: 45,
+            objective: "Scrimmage and game situations"
+        )
+        
+        let day = DayTemplate(
+            name: "Practice Day",
+            segments: [segment]
+        )
+        
+        let block = Block(
+            name: "Sports Block",
+            numberOfWeeks: 2,
+            days: [day]
+        )
+        
+        // Generate sessions
+        let factory = SessionFactory()
+        let sessions = factory.makeSessions(for: block)
+        
+        // Verify sessions created with new segment type
+        XCTAssertEqual(sessions.count, 2)
+        XCTAssertNotNil(sessions[0].segments)
+        XCTAssertEqual(sessions[0].segments?[0].segmentType, .practice)
+    }
+    
+    func testBackwardCompatibilityWithNewEnums() throws {
+        // Verify that adding new enum cases doesn't break existing segment-based content
+        let existingBJJSegment = Segment(
+            name: "Rolling",
+            segmentType: .rolling,
+            domain: .grappling,
+            durationMinutes: 30
+        )
+        
+        let existingYogaSegment = Segment(
+            name: "Flow Sequence",
+            segmentType: .mobility,
+            domain: .yoga,
+            durationMinutes: 20
+        )
+        
+        let day = DayTemplate(
+            name: "Mixed Day",
+            segments: [existingBJJSegment, existingYogaSegment]
+        )
+        
+        // Encode and decode
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(day)
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(DayTemplate.self, from: data)
+        
+        // Verify existing types still work
+        XCTAssertEqual(decoded.segments?[0].segmentType, .rolling)
+        XCTAssertEqual(decoded.segments?[0].domain, .grappling)
+        XCTAssertEqual(decoded.segments?[1].segmentType, .mobility)
+        XCTAssertEqual(decoded.segments?[1].domain, .yoga)
+    }
 }

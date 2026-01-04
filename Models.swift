@@ -105,7 +105,7 @@ public enum SetGroupKind: String, Codable {
 
 // MARK: - Non-Traditional Session Enums
 
-/// Type of class segment for structured sessions (BJJ, yoga, etc.)
+/// Type of class segment for structured sessions (BJJ, yoga, sports practice, business training, etc.)
 public enum SegmentType: String, Codable {
     case warmup
     case mobility
@@ -116,6 +116,12 @@ public enum SegmentType: String, Codable {
     case cooldown
     case lecture
     case breathwork
+    case practice         // General sport practice or skill work
+    case presentation     // Educational presentations or demos
+    case review           // Reviewing/analyzing work or performance
+    case demonstration    // Demonstrating skills or techniques
+    case discussion       // Collaborative discussion or brainstorming
+    case assessment       // Testing, evaluation, or quiz
     case other
 }
 
@@ -126,6 +132,10 @@ public enum Domain: String, Codable {
     case strength
     case conditioning
     case mobility
+    case sports          // General sports (soccer, basketball, etc.)
+    case business        // Business/professional training
+    case education       // Educational content and learning
+    case analytics       // Data analysis and business intelligence
     case other
 }
 

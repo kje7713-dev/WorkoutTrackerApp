@@ -2524,14 +2524,20 @@ struct SegmentRunCard: View {
             return Color.orange
         case .technique:
             return Color.blue
-        case .drill:
+        case .drill, .practice:
             return Color.purple
         case .positionalSpar, .rolling:
             return Color.red
         case .cooldown, .breathwork:
             return Color.green
-        case .lecture:
+        case .lecture, .presentation:
             return Color.gray
+        case .review, .assessment:
+            return Color.cyan
+        case .demonstration:
+            return Color.indigo
+        case .discussion:
+            return Color.teal
         case .other:
             return Color.secondary
         }
