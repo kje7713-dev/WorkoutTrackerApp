@@ -12,14 +12,17 @@
 2. [Understanding Training Blocks](#understanding-training-blocks)
 3. [Creating Your First Block](#creating-your-first-block)
 4. [Understanding Exercises](#understanding-exercises)
-5. [Running Workout Sessions](#running-workout-sessions)
-6. [Using the Whiteboard](#using-the-whiteboard)
-7. [Tracking Your Progress](#tracking-your-progress)
-8. [AI Block Generation](#ai-block-generation)
-9. [Pro Features](#pro-features)
-10. [Data Management](#data-management)
-11. [Tips & Best Practices](#tips--best-practices)
-12. [Troubleshooting](#troubleshooting)
+5. [Understanding Segments](#understanding-segments)
+6. [Segment Use Cases](#segment-use-cases)
+7. [Creating Segment-Based Days](#creating-segment-based-days)
+8. [Running Workout Sessions](#running-workout-sessions)
+9. [Using the Whiteboard](#using-the-whiteboard)
+10. [Tracking Your Progress](#tracking-your-progress)
+11. [AI Block Generation](#ai-block-generation)
+12. [Pro Features](#pro-features)
+13. [Data Management](#data-management)
+14. [Tips & Best Practices](#tips--best-practices)
+15. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -207,6 +210,628 @@ Exercises are organized by movement pattern:
 
 ---
 
+## Understanding Segments
+
+### What are Segments?
+
+**Segments** are an alternative way to structure training days, designed for activities that don't fit the traditional sets/reps/weight model. While exercises focus on strength and conditioning with quantifiable metrics, segments represent distinct phases or modules within a training session.
+
+**Key Differences:**
+
+| **Exercises** | **Segments** |
+|---------------|--------------|
+| Sets, reps, weight | Time-based modules |
+| Strength & conditioning focused | Skill-based activities |
+| Progressive overload via weight/volume | Progressive via complexity/resistance |
+| Examples: Squats, bench press | Examples: Technique work, sparring rounds |
+
+### When to Use Segments vs. Exercises
+
+**Use Exercises for:**
+- Weightlifting and strength training
+- Conditioning with measurable outputs (distance, calories, time)
+- Activities with clear set/rep structures
+- Progressive overload through weight or volume
+
+**Use Segments for:**
+- Martial arts training (BJJ, wrestling, judo, MMA)
+- Yoga and mobility work
+- Skill-based practice sessions
+- Class-style training with distinct phases
+- Activities focused on technique over load
+
+**Hybrid Approach:**
+You can mix both in a single day! For example:
+- Strength training (exercises) followed by mobility work (segments)
+- BJJ class (segments) with conditioning finisher (exercises)
+
+### Segment Types
+
+The app supports various segment types to match your training structure:
+
+#### 1. Warmup
+**Purpose:** Prepare the body and mind for training
+**Typical Duration:** 5-10 minutes
+**Examples:**
+- Dynamic stretching sequences
+- Movement preparation drills
+- Sport-specific warm-up patterns
+- General cardiovascular warm-up
+
+**What to Include:**
+- Light movement to raise body temperature
+- Joint mobility work
+- Movement patterns used in the session
+- Mental preparation and focus
+
+#### 2. Mobility
+**Purpose:** Flexibility, range of motion, and movement quality
+**Typical Duration:** 10-20 minutes
+**Examples:**
+- Yoga flows
+- Dynamic stretching routines
+- Joint mobility sequences
+- Foam rolling protocols
+
+**Tracking Options:**
+- Hold duration (seconds)
+- Breath count
+- Intensity scale (restorative to peak)
+- Props used (blocks, straps, rollers)
+
+#### 3. Technique
+**Purpose:** Learn and refine specific skills or movements
+**Typical Duration:** 10-20 minutes
+**Examples:**
+- Martial arts technique instruction
+- Movement pattern practice
+- Skill progressions
+- Form work
+
+**What to Track:**
+- Techniques covered
+- Key coaching cues
+- Common errors to avoid
+- Success rate and clean reps
+
+#### 4. Drill
+**Purpose:** Repetitive practice with specific constraints
+**Typical Duration:** 5-15 minutes
+**Examples:**
+- Timed drill circuits
+- Partner drilling sequences
+- Positional repetitions
+- Skill isolation work
+
+**Structure Options:**
+- Work/rest intervals
+- Rep-based progressions
+- Partner rotation schedules
+- Constraint progressions
+
+#### 5. Positional Sparring
+**Purpose:** Live practice from specific positions with defined rules
+**Typical Duration:** 10-20 minutes
+**Examples:**
+- Grappling from specific positions
+- Scenario-based sparring
+- Flow rolling with constraints
+- Positional battles
+
+**Key Features:**
+- Starting positions defined
+- Win conditions specified
+- Resistance levels (0-100%)
+- Role definitions (attacker/defender)
+
+#### 6. Rolling / Live Training
+**Purpose:** Free practice or sparring
+**Typical Duration:** 15-30 minutes
+**Examples:**
+- Free rolling (BJJ)
+- Live wrestling
+- Open sparring rounds
+- Competition simulation
+
+**Typical Format:**
+- Round-based (e.g., 5 rounds × 5 minutes)
+- Rest intervals between rounds
+- Partner rotation
+- Intensity management
+
+#### 7. Cooldown
+**Purpose:** Recovery and transition out of training
+**Typical Duration:** 5-10 minutes
+**Examples:**
+- Static stretching
+- Breathwork
+- Gentle movement
+- Reflection and notes
+
+**Recovery Focus:**
+- Lower heart rate gradually
+- Address tight areas
+- Mental recovery
+- Session review
+
+#### 8. Lecture / Review
+**Purpose:** Instructional content and conceptual learning
+**Typical Duration:** 5-15 minutes
+**Examples:**
+- Video review
+- Strategy discussion
+- Conceptual instruction
+- Q&A sessions
+
+#### 9. Breathwork
+**Purpose:** Respiratory training and nervous system regulation
+**Typical Duration:** 5-15 minutes
+**Examples:**
+- Box breathing
+- Diaphragmatic breathing
+- Wim Hof method
+- Pranayama techniques
+
+**Tracking:**
+- Breathing pattern (e.g., "4s inhale / 6s exhale")
+- Duration
+- Breath count
+- Style/method used
+
+#### 10. Other
+**Purpose:** Custom segment types not covered above
+**Use for:** Any activity that doesn't fit standard categories
+
+---
+
+## Segment Use Cases
+
+### Use Case 1: Brazilian Jiu-Jitsu (BJJ) Class
+
+**Structure:** Segment-based day representing a typical BJJ class
+
+**Example Day Structure:**
+```
+BJJ Class: Inside Tie to Single Leg (60 minutes)
+
+1. Warmup (8 min)
+   - General movement and grappling prep
+   - Stance work and sprawls
+   - Partner pummeling
+
+2. Technique 1 (12 min)
+   - Inside tie to single leg entry
+   - Partner drilling with light resistance
+   - Focus: Clean entry and head position
+
+3. Technique 2 (12 min)
+   - Single leg finishing options
+   - Run-the-pipe and shelf finishes
+   - Partner drilling with progression
+
+4. Drill (10 min)
+   - Constrained drilling with specific rules
+   - Timed rounds with quality focus
+   - Partner rotation
+
+5. Positional Sparring (10 min)
+   - From standing, must attempt single within 10s
+   - Win conditions: Takedown + 3s control
+   - Moderate resistance (50%)
+
+6. Live Rolling (6 min)
+   - 2 rounds × 3 minutes
+   - Free rolling to integrate techniques
+   - Rest 30s between rounds
+
+7. Cooldown (2 min)
+   - Light stretching
+   - Breathwork
+```
+
+**Why Segments Work Better Than Exercises:**
+- Class structure is time-based, not set-based
+- Focus on skill acquisition, not weight progression
+- Roles (attacker/defender) and resistance levels matter
+- Quality metrics (success rate, clean reps) more relevant than total volume
+
+**Tracking During Session:**
+- Check off completed segments
+- Log rounds completed
+- Note success rate for positional work
+- Record coach feedback and personal observations
+
+### Use Case 2: Yoga Practice
+
+**Structure:** Segment-based yoga session
+
+**Example Day Structure:**
+```
+Restorative Yoga (45 minutes)
+
+1. Breathwork (5 min)
+   - Diaphragmatic breathing
+   - Pattern: 4s inhale / 6s exhale
+   - Seated meditation posture
+
+2. Gentle Flow (15 min)
+   - Sun salutations modified
+   - Intensity: Easy
+   - Props: Block, strap
+   - Flow sequence:
+     • Child's Pose (60s)
+     • Cat-Cow (20s, move with breath)
+     • Downward Dog (60s)
+     • Forward fold variations
+
+3. Deep Stretch (20 min)
+   - Hold-based poses
+   - Intensity: Restorative
+   - Props: Blocks, bolster
+   - Poses:
+     • Pigeon pose (2 min each side)
+     • Supine twist (90s each side)
+     • Forward fold (3 min)
+
+4. Savasana (5 min)
+   - Final relaxation
+   - Body scan meditation
+```
+
+**Why Segments Work:**
+- Time-based holds rather than reps
+- Flow sequences with transitions
+- Intensity scale (restorative to peak)
+- Props tracking
+- Breath awareness integration
+
+### Use Case 3: Wrestling Practice
+
+**Structure:** Segment-based wrestling training
+
+**Example Day Structure:**
+```
+Folkstyle Wrestling: Neutral Position (90 minutes)
+
+1. Warmup (10 min)
+   - Stance and motion
+   - Penetration steps
+   - Sprawl drills
+   
+2. Technique (20 min)
+   - Double leg variations
+   - Head position and hand placement
+   - Finishing sequences
+   
+3. Drill (15 min)
+   - Shot + sprawl + reshot
+   - Timed intervals: 1 min work / 30s rest
+   - Partner rotation every 3 rounds
+   
+4. Positional Sparring (20 min)
+   - Standing neutral only
+   - Reset after takedown
+   - 4 rounds × 3 min / 1 min rest
+   
+5. Live Wrestling (20 min)
+   - Full match situation
+   - 6 rounds × 2 min / 1 min rest
+   - Competition intensity
+   
+6. Cooldown (5 min)
+   - Static stretching
+   - Hip and shoulder mobility
+```
+
+### Use Case 4: MMA Striking Class
+
+**Structure:** Segment-based striking session
+
+**Example Day Structure:**
+```
+Boxing Fundamentals (60 minutes)
+
+1. Warmup (8 min)
+   - Jump rope
+   - Shadow boxing
+   - Dynamic stretching
+   
+2. Technique (15 min)
+   - Jab-cross-hook combinations
+   - Footwork patterns
+   - Head movement drills
+   
+3. Drill (12 min)
+   - Pad work with partner
+   - 2 min rounds / 30s rest
+   - Focus on form and snap
+   
+4. Positional Sparring (15 min)
+   - Jab and circle only
+   - Light contact (30% power)
+   - Work distance management
+   
+5. Conditioning (8 min)
+   - Heavy bag intervals
+   - 30s max output / 30s rest
+   - 8 rounds total
+   
+6. Cooldown (2 min)
+   - Light stretching
+   - Breathing exercises
+```
+
+### Use Case 5: Hybrid Day (Strength + Mobility)
+
+**Structure:** Mix exercises and segments in one day
+
+**Example Day Structure:**
+```
+Lower Body Strength + Mobility (75 minutes)
+
+EXERCISES (Traditional format):
+1. Back Squat: 4 sets × 5 reps @ 225 lbs
+2. Romanian Deadlift: 3 sets × 8 reps @ 185 lbs
+3. Bulgarian Split Squat: 3 sets × 10 reps @ 60 lbs
+
+SEGMENTS (Time-based format):
+4. Hip Mobility (10 min)
+   - 90/90 hip stretches
+   - Hip flexor work
+   - Adductor stretching
+   
+5. Yoga Flow (15 min)
+   - Warrior sequences
+   - Deep lunges
+   - Pigeon pose variations
+   
+6. Breathwork (5 min)
+   - Recovery breathing
+   - Parasympathetic activation
+```
+
+**Benefits of Hybrid Approach:**
+- Use appropriate structure for each activity type
+- Track strength metrics for lifting
+- Track quality and time for mobility
+- Single cohesive training day
+
+### Use Case 6: Open Mat / Free Training
+
+**Structure:** Simple segment structure for unstructured training
+
+**Example Day Structure:**
+```
+Open Mat Session (60 minutes)
+
+1. Warmup (5 min)
+   - Self-directed movement prep
+   
+2. Technique Review (15 min)
+   - Work on personal weaknesses
+   - Notes: Reviewed guard retention concepts
+   
+3. Positional Work (20 min)
+   - Various starting positions
+   - Partner: Advanced blue belt
+   - Notes: Focused on maintaining frames
+   
+4. Live Rolling (15 min)
+   - 3 rounds × 4 min
+   - Mixed intensity
+   - Notes: Worked on staying calm
+   
+5. Cooldown (5 min)
+   - Stretching and reflection
+```
+
+**Flexibility:**
+- Less structured than formal class
+- Still captures time allocation
+- Notes field for personalization
+- Tracks training volume
+
+---
+
+## Creating Segment-Based Days
+
+### Method 1: JSON Import (Pro Feature)
+
+Segment-based days are currently created by importing JSON files. This allows for detailed specification of all segment properties.
+
+**Basic JSON Structure:**
+```json
+{
+  "Title": "BJJ Class Template",
+  "NumberOfWeeks": 4,
+  "Days": [
+    {
+      "name": "BJJ Fundamentals",
+      "segments": [
+        {
+          "name": "General Warmup",
+          "segmentType": "warmup",
+          "domain": "grappling",
+          "durationMinutes": 8,
+          "objective": "Prepare body for grappling",
+          "drillPlan": {
+            "items": [
+              {
+                "name": "Stance and motion",
+                "workSeconds": 60,
+                "restSeconds": 15
+              }
+            ]
+          }
+        },
+        {
+          "name": "Technique Work",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 15,
+          "objective": "Learn single leg entry",
+          "techniques": [
+            {
+              "name": "Single leg takedown",
+              "keyDetails": [
+                "Level change first",
+                "Head position outside"
+              ],
+              "commonErrors": [
+                "Reaching with arms",
+                "Head down"
+              ]
+            }
+          ],
+          "partnerPlan": {
+            "rounds": 3,
+            "roundDurationSeconds": 180,
+            "restSeconds": 60,
+            "resistance": 30
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Method 2: Using AI Block Generator (Pro Feature)
+
+1. From **BLOCKS** screen, tap **AI BLOCK GENERATOR**
+2. Use AI tools (ChatGPT, Claude, etc.) to generate segment-based blocks
+3. Prompt example: 
+   ```
+   "Create a 4-week BJJ training block in JSON format with segments 
+   for warmup, technique, drilling, and live training. Focus on 
+   guard passing concepts."
+   ```
+4. Import the generated JSON file or paste directly
+
+### Method 3: Hybrid Days (Exercises + Segments)
+
+You can combine traditional exercises with segments in the same day:
+
+**Use Cases:**
+- Strength work followed by mobility (exercises → segments)
+- Wrestling technique followed by conditioning (segments → exercises)
+- Lifting with yoga cooldown (exercises → segments)
+
+**In JSON:**
+```json
+{
+  "name": "Hybrid Day",
+  "exercises": [
+    {
+      "name": "Back Squat",
+      "sets": 4,
+      "reps": 5,
+      "weight": 225
+    }
+  ],
+  "segments": [
+    {
+      "name": "Hip Mobility",
+      "segmentType": "mobility",
+      "durationMinutes": 10
+    }
+  ]
+}
+```
+
+### Segment Field Reference
+
+#### Essential Fields (Minimum Required)
+- **name** – Segment name
+- **segmentType** – Type (warmup, technique, drill, etc.)
+- **durationMinutes** – Planned duration
+
+#### Common Optional Fields
+
+**For All Segment Types:**
+- **objective** – Learning goal or purpose
+- **notes** – Additional information
+- **coachingCues** – Key teaching points
+- **constraints** – Rules or limitations
+
+**For Skill Work (Technique, Drill):**
+- **techniques** – Array of techniques covered
+  - name, keyDetails, commonErrors, counters, followUps
+- **positions** – Starting positions
+- **qualityTargets** – Success metrics
+  - successRateTarget, cleanRepsTarget, decisionSpeedSeconds
+
+**For Drilling:**
+- **drillPlan** – Timed drill sequence
+  - items array with workSeconds, restSeconds
+- **partnerPlan** – Partner drilling structure
+  - rounds, roundDurationSeconds, resistance
+  - roles (attackerGoal, defenderGoal)
+
+**For Live Training (Sparring, Rolling):**
+- **roundPlan** – Round structure
+  - rounds, roundDurationSeconds, restSeconds
+  - winConditions, resetRule, intensityCue
+- **startPosition** – Where to begin
+- **scoring** – Win conditions for attacker/defender
+
+**For Yoga/Mobility:**
+- **flowSequence** – Array of poses with hold times
+- **holdSeconds** – Static hold duration
+- **breathCount** – Number of breaths
+- **intensityScale** – restorative, easy, moderate, strong, peak
+- **props** – Equipment needed
+
+**For Breathwork:**
+- **breathwork** – Breathing pattern
+  - style, pattern, durationSeconds
+
+**For Safety:**
+- **safety** – Safety information
+  - contraindications, stopIf, intensityCeiling
+
+**For Media/Reference:**
+- **media** – Instructional content
+  - videoUrl, imageUrl, diagramAssetId
+
+### Complete Example: BJJ Class JSON
+
+See the file `Tests/bjj_class_segments_example.json` in the repository for a fully-detailed example with all segment types and fields demonstrated.
+
+### Tips for Creating Segment-Based Blocks
+
+1. **Start Simple**
+   - Begin with basic segments (warmup, technique, cooldown)
+   - Add complexity as needed
+   - Not every field needs to be populated
+
+2. **Be Clear with Objectives**
+   - Each segment should have a clear learning goal
+   - Help athletes understand the "why"
+
+3. **Use Appropriate Segment Types**
+   - Match segment type to the activity
+   - Use "other" for anything that doesn't fit
+
+4. **Plan Realistic Durations**
+   - Account for transitions between segments
+   - Leave buffer time for instruction
+
+5. **Include Safety Notes**
+   - Especially important for high-intensity or contact segments
+   - Document contraindications and stop conditions
+
+6. **Track What Matters**
+   - Use quality targets for skill-based work
+   - Don't worry about tracking every metric
+   - Focus on meaningful progression
+
+7. **Consider Hybrid Approaches**
+   - Mix exercises and segments when appropriate
+   - Use the right tool for each activity
+
+---
+
 ## Running Workout Sessions
 
 ### Starting a Workout
@@ -223,17 +848,26 @@ Exercises are organized by movement pattern:
 - **Tap day tabs** at the top to switch between workout days
 - The current week is highlighted at the top
 
-**Logging Sets:**
+**Logging Sets (Exercise-Based Days):**
 - Each exercise shows **expected values** from your template
 - Tap a set to expand and log your actual performance
 - Use **+ / -** buttons to adjust weight, reps, time, distance, etc.
 - Check the **✓** box when you complete the set
 - The set turns green when marked complete
 
-**Set Status Indicators:**
+**Logging Segments (Segment-Based Days):**
+- Each segment shows its type, duration, and objective
+- Tap the segment card to expand and view details
+- Check the **✓** box when you complete the segment
+- For segments with rounds (sparring, drilling):
+  - Use **+ / -** buttons to log rounds completed
+  - Track quality metrics if specified (success rate, clean reps)
+- Add notes about technique, partner feedback, or observations
+
+**Status Indicators:**
 - **Gray** – Not started
 - **Green with checkmark** – Completed
-- **Progress bar** – Shows how many sets completed
+- **Progress bar** – Shows completion percentage
 
 **Auto-Save:**
 - The app automatically saves your progress as you go
@@ -271,8 +905,10 @@ Exercises are organized by movement pattern:
 ### What is the Whiteboard?
 
 The **Whiteboard** is a clean, minimal view of your training block that shows:
-- All exercises for each day
-- Sets, reps, and weights
+- All exercises for each day (for exercise-based days)
+- All segments for each day (for segment-based days)
+- Sets, reps, and weights (exercises)
+- Objectives, techniques, and round plans (segments)
 - Week-by-week progression
 - A format similar to what you'd see on a gym whiteboard
 
@@ -300,6 +936,8 @@ The **Whiteboard** is a clean, minimal view of your training block that shows:
 - Print it out and bring it to the gym
 - Share programs with training partners
 - Review past blocks to plan future training
+- View segment-based training plans (BJJ classes, yoga sessions)
+- See technique progressions and drilling structures at a glance
 
 ---
 
@@ -357,8 +995,9 @@ The app can **import training blocks from JSON files** that are generated by AI 
 
 The JSON must follow the Block structure:
 - Block name, description, number of weeks
-- Day templates with exercises
-- Exercise details (sets, reps, progression)
+- Day templates with exercises and/or segments
+- Exercise details (sets, reps, progression) for traditional training
+- Segment details (type, duration, techniques, round plans) for skill-based training
 - Strength or conditioning parameters
 
 **Example Use Cases:**
@@ -366,6 +1005,8 @@ The JSON must follow the Block structure:
 - Use ChatGPT or other AI to generate training blocks
 - Share blocks between devices via JSON files
 - Backup and transfer blocks
+- Import BJJ class templates, yoga sequences, or martial arts training plans
+- Create hybrid programs with both exercises and segments
 
 **Note:** This feature is for **importing** blocks only. The app doesn't generate AI content itself—it imports blocks created externally.
 
@@ -507,12 +1148,16 @@ Your workout data is stored locally on your device. Back it up to:
 - Use notes fields for coaching cues
 - Export data backups monthly
 - Screenshot your whiteboard for quick reference
+- Use segments for skill-based training (BJJ, yoga, martial arts)
+- Mix exercises and segments when appropriate (hybrid days)
+- Track quality over quantity for segment-based work
 
 ❌ **DON'T:**
 - Skip logging—you lose valuable data
 - Delete blocks immediately after completion (archive first)
 - Forget to progress weight/volume across weeks
 - Ignore deload weeks—recovery is training
+- Use exercises for activities better suited to segments (e.g., yoga, BJJ classes)
 
 ### Sample Programs to Try
 
@@ -531,6 +1176,27 @@ Your workout data is stored locally on your device. Back it up to:
 - Linear periodization from 5x5 to 3x3 to 1x1
 - Deloads on weeks 4, 8, 12
 - Accessory work at 3x10-15
+
+**BJJ Training Block (4 weeks, 3 days/week) - Segments:**
+- Day 1: Guard Retention Fundamentals
+  - Warmup → Technique → Drilling → Positional Sparring → Cooldown
+- Day 2: Passing Concepts
+  - Warmup → Technique → Drilling → Live Rolling → Cooldown
+- Day 3: Takedowns and Top Control
+  - Warmup → Technique → Situational Sparring → Integration → Cooldown
+
+**Yoga & Mobility Program (4 weeks, 4 days/week) - Segments:**
+- Day 1: Power Vinyasa (45 min)
+- Day 2: Restorative & Yin (60 min)
+- Day 3: Core & Balance Focus (30 min)
+- Day 4: Breathwork & Meditation (20 min)
+
+**Hybrid Athlete Program (6 weeks, 5 days/week) - Mixed:**
+- Day 1: Lower Body Strength (exercises) + Hip Mobility (segments)
+- Day 2: BJJ Class (segments)
+- Day 3: Upper Body Strength (exercises) + Shoulder Mobility (segments)
+- Day 4: Wrestling Conditioning (segments)
+- Day 5: Full Body Lift (exercises) + Yoga Flow (segments)
 
 ---
 
@@ -589,6 +1255,10 @@ Your workout data is stored locally on your device. Back it up to:
 
 **Session** – A single workout instance with logged data
 
+**Exercise** – A traditional strength or conditioning movement with sets, reps, and weight
+
+**Segment** – A time-based training module for skill work, technique, or non-traditional activities
+
 **Set** – One round of an exercise (e.g., 5 reps at 185 lbs)
 
 **Progressive Overload** – Gradually increasing training stress (weight, volume, intensity)
@@ -610,6 +1280,27 @@ Your workout data is stored locally on your device. Back it up to:
 **EMOM** – Every Minute On the Minute
 
 **Periodization** – Systematic planning of training variables over time
+
+**Segment Types:**
+
+- **Warmup Segment** – Preparation phase with movement and mobility
+- **Technique Segment** – Skill instruction and practice with coaching cues
+- **Drill Segment** – Repetitive practice with timed work/rest intervals
+- **Positional Sparring** – Live practice from specific positions with constraints
+- **Rolling/Live Training** – Free sparring or competition simulation
+- **Cooldown Segment** – Recovery and transition out of training
+- **Breathwork Segment** – Respiratory training and nervous system work
+- **Mobility Segment** – Flexibility and range of motion work
+
+**Quality Targets** – Skill-based metrics (success rate, clean reps, decision speed) for segment tracking
+
+**Resistance Level** – Intensity of opposition in partner drills (0-100%), where 0% is no resistance and 100% is full competition intensity
+
+**Round Plan** – Structure for timed rounds in sparring or drilling (rounds, duration, rest)
+
+**Partner Plan** – Framework for partner drilling with role definitions and resistance levels
+
+**Hybrid Day** – Training day combining both exercises and segments
 
 ---
 
@@ -635,6 +1326,7 @@ Your workout data is stored locally on your device. Back it up to:
 - [ ] Review your history (BLOCK HISTORY)
 - [ ] Export a backup (DATA MANAGEMENT)
 - [ ] Consider upgrading to Pro for Whiteboard access
+- [ ] **Advanced:** Import a segment-based block (BJJ, yoga, etc.) via AI Block Generator
 
 ---
 
