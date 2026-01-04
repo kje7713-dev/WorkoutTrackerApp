@@ -373,7 +373,7 @@ A: 100% accurate based on what you log. The app never estimates—it shows exact
 ## 📖 Need More Help?
 
 ### **Detailed Documentation:**
-- **[Complete User Guide](USER_GUIDE.md)** - 600+ line comprehensive guide
+- **[Complete User Guide](USER_GUIDE.md)** - 1300+ line comprehensive guide covering exercises and segments
 - **[Developer README](README.md)** - Technical details for developers
 
 ### **Support:**
