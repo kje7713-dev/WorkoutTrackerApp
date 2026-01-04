@@ -41,21 +41,20 @@ VStack(alignment: .leading, spacing: 8) {
         .font(.title2)
         .fontWeight(.bold)
     
-    // Line 2: Chips [Goal] [Duration]
-    HStack(spacing: 8) {
-        ChipView(text: "STRENGTH", color: .blue)
-        ChipView(text: "60 min", color: .orange)
-    }
-    
-    // Line 3: Tags (positions)
-    ScrollView(.horizontal) {
-        HStack {
-            TagChipView(text: "Standing")
-            TagChipView(text: "Turtle")
+    // Line 2: Chips [Goal] [Duration] [Positions]
+    // NOTE: Chips are only shown for exercise-based days (when segments are empty)
+    // For segment-based days, this information is shown in the segment cards
+    if day.segments.isEmpty {
+        HStack(spacing: 8) {
+            if let goal = day.goal {
+                ChipView(text: goal.uppercased(), color: .blue)
+            }
         }
     }
 }
 ```
+
+**Rationale:** Chips are hidden for segment-based days to avoid redundancy. Duration is already shown in segment pill cards, and positions are displayed in expanded segment details.
 
 #### 2. Class Flow Strip
 A horizontally scrollable timeline showing all segments at a glance.
