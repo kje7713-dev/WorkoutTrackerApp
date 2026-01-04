@@ -216,7 +216,7 @@ final class BJJImportTests: XCTestCase {
     }
     
     func testWhiteboardFormattingWithSegments() throws {
-        // Create a simple day with segments
+        // Create a simple day with segments and exercises
         let segment = UnifiedSegment(
             name: "Test Segment",
             segmentType: "technique",
@@ -226,24 +226,39 @@ final class BJJImportTests: XCTestCase {
             coachingCues: ["Cue 1", "Cue 2"]
         )
         
+        let exercise = UnifiedExercise(
+            name: "Test Exercise",
+            type: "strength",
+            category: "squat",
+            strengthSets: [
+                UnifiedStrengthSet(reps: 5),
+                UnifiedStrengthSet(reps: 5),
+                UnifiedStrengthSet(reps: 5)
+            ]
+        )
+        
         let day = UnifiedDay(
             name: "Test Day",
-            segments: [segment]
+            segments: [segment],
+            exercises: [exercise]
         )
         
         // Format for whiteboard
         let sections = WhiteboardFormatter.formatDay(day)
         
-        // Verify sections were created
+        // Verify that segments are NOT included in formatted sections
+        // (they are rendered separately as collapsible cards)
+        // Only exercise sections should be present
         XCTAssertGreaterThan(sections.count, 0)
         
-        // Find technique section
+        // Verify no "Technique Development" section exists (segments are rendered separately)
         let techniqueSection = sections.first { $0.title == "Technique Development" }
-        XCTAssertNotNil(techniqueSection)
-        XCTAssertEqual(techniqueSection?.items.count, 1)
+        XCTAssertNil(techniqueSection, "Segments should not be formatted as sections - they are rendered separately")
         
-        let item = techniqueSection?.items[0]
-        XCTAssertEqual(item?.primary, "Test Segment")
-        XCTAssertNotNil(item?.secondary)
+        // Verify the exercise was formatted into a section
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Strength")
+        XCTAssertEqual(sections[0].items.count, 1)
+        XCTAssertEqual(sections[0].items[0].primary, "Test Exercise")
     }
 }
