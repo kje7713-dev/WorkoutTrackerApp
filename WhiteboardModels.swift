@@ -455,6 +455,7 @@ public struct AuthoringTechnique: Codable {
     public var commonErrors: [String]?
     public var counters: [String]?
     public var followUps: [String]?
+    public var videoUrls: [String]?
 }
 
 public struct AuthoringDrillPlan: Codable {
