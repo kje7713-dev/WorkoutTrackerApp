@@ -1,0 +1,114 @@
+{
+  "id": "test-block-video-urls",
+  "name": "Test Block - Exercise Video URLs",
+  "description": "Test block demonstrating exercise video URL feature",
+  "numberOfWeeks": 2,
+  "source": "user",
+  "days": [
+    {
+      "id": "day-1",
+      "name": "Upper Body",
+      "shortCode": "UB",
+      "exercises": [
+        {
+          "id": "ex-1",
+          "customName": "Bench Press",
+          "type": "strength",
+          "progressionRule": {
+            "type": "weight",
+            "deltaWeight": 5.0
+          },
+          "strengthSets": [
+            {
+              "id": "set-1",
+              "index": 0,
+              "reps": 5,
+              "weight": 135.0
+            },
+            {
+              "id": "set-2",
+              "index": 1,
+              "reps": 5,
+              "weight": 135.0
+            },
+            {
+              "id": "set-3",
+              "index": 2,
+              "reps": 5,
+              "weight": 135.0
+            }
+          ],
+          "videoUrls": [
+            "https://www.youtube.com/watch?v=example-bench-press"
+          ]
+        },
+        {
+          "id": "ex-2",
+          "customName": "Overhead Press",
+          "type": "strength",
+          "progressionRule": {
+            "type": "weight",
+            "deltaWeight": 2.5
+          },
+          "strengthSets": [
+            {
+              "id": "set-4",
+              "index": 0,
+              "reps": 8,
+              "weight": 95.0
+            }
+          ],
+          "videoUrls": [
+            "https://www.youtube.com/watch?v=example-ohp-1",
+            "https://www.youtube.com/watch?v=example-ohp-2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "day-2",
+      "name": "Conditioning",
+      "shortCode": "CON",
+      "exercises": [
+        {
+          "id": "ex-3",
+          "customName": "Rowing",
+          "type": "conditioning",
+          "conditioningType": "monostructural",
+          "progressionRule": {
+            "type": "custom"
+          },
+          "conditioningSets": [
+            {
+              "id": "set-5",
+              "index": 0,
+              "durationSeconds": 600,
+              "distanceMeters": 2000
+            }
+          ],
+          "videoUrls": [
+            "https://www.youtube.com/watch?v=example-rowing-technique"
+          ]
+        },
+        {
+          "id": "ex-4",
+          "customName": "Air Bike",
+          "type": "conditioning",
+          "conditioningType": "intervals",
+          "progressionRule": {
+            "type": "custom"
+          },
+          "conditioningSets": [
+            {
+              "id": "set-6",
+              "index": 0,
+              "durationSeconds": 300,
+              "calories": 50.0
+            }
+          ],
+          "notes": "Legacy exercise without video URLs - should still work fine"
+        }
+      ]
+    }
+  ]
+}
