@@ -203,6 +203,7 @@ public struct Technique: Codable, Equatable {
     public var commonErrors: [String]
     public var counters: [String]
     public var followUps: [String]
+    public var videoUrls: [String]?
     
     public init(
         name: String,
@@ -210,7 +211,8 @@ public struct Technique: Codable, Equatable {
         keyDetails: [String] = [],
         commonErrors: [String] = [],
         counters: [String] = [],
-        followUps: [String] = []
+        followUps: [String] = [],
+        videoUrls: [String]? = nil
     ) {
         self.name = name
         self.variant = variant
@@ -218,6 +220,7 @@ public struct Technique: Codable, Equatable {
         self.commonErrors = commonErrors
         self.counters = counters
         self.followUps = followUps
+        self.videoUrls = videoUrls
     }
 }
 

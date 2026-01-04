@@ -1,0 +1,54 @@
+{
+  "Title": "Technique Video URLs Test",
+  "Goal": "technique",
+  "TargetAthlete": "Intermediate",
+  "NumberOfWeeks": 1,
+  "DurationMinutes": 30,
+  "Difficulty": 3,
+  "Equipment": "Grappling mats, training partner",
+  "WarmUp": "General movement prep",
+  "Finisher": "Cool down stretching",
+  "Notes": "Test file to validate videoUrls rendering",
+  "EstimatedTotalTimeMinutes": 30,
+  "Progression": "Test progression",
+  "Days": [
+    {
+      "name": "Day 1: Video URLs Test",
+      "shortCode": "V1",
+      "goal": "technique",
+      "notes": "Test rendering of technique videoUrls",
+      "segments": [
+        {
+          "name": "Technique Demonstration",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 20,
+          "objective": "Test videoUrls rendering with single and multiple videos",
+          "techniques": [
+            {
+              "name": "Single Leg Takedown",
+              "variant": "High crotch finish",
+              "keyDetails": ["Level change", "Penetration step", "Head position"],
+              "commonErrors": ["Reaching without level change"],
+              "videoUrls": ["https://www.youtube.com/watch?v=example1"]
+            },
+            {
+              "name": "Double Leg Takedown",
+              "variant": "Mat return",
+              "keyDetails": ["Drive through", "Keep head up"],
+              "videoUrls": [
+                "https://www.youtube.com/watch?v=example2",
+                "https://www.youtube.com/watch?v=example3"
+              ]
+            },
+            {
+              "name": "Front Headlock",
+              "keyDetails": ["Control the elbow", "Head position"],
+              "commonErrors": ["Reaching too far"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

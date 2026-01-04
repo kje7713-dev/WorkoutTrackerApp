@@ -84,7 +84,8 @@ public final class BlockNormalizer {
                 keyDetails: tech.keyDetails,
                 commonErrors: tech.commonErrors,
                 counters: tech.counters,
-                followUps: tech.followUps
+                followUps: tech.followUps,
+                videoUrls: tech.videoUrls
             )
         }
         
@@ -269,7 +270,8 @@ public final class BlockNormalizer {
                 keyDetails: tech.keyDetails ?? [],
                 commonErrors: tech.commonErrors ?? [],
                 counters: tech.counters ?? [],
-                followUps: tech.followUps ?? []
+                followUps: tech.followUps ?? [],
+                videoUrls: tech.videoUrls
             )
         } ?? []
         
