@@ -93,7 +93,7 @@ if subscriptionManager.isSubscribed {
 - Type: Auto-renewable subscription
 - Duration: 1 month (P1M)
 - Price: Set in App Store Connect
-- Trial: 15 days free
+- Trial: 15 days (P15D), free
 - Group: SBD - PRO (21493252)
 
 ### Implementation
