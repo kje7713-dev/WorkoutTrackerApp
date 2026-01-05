@@ -59,7 +59,6 @@ targets:
           - "Assets.xcassets"
           - "LaunchScreen.storyboard"   # ✅ ADDED: ensures launch screen is bundled
           - "PrivacyInfo.xcprivacy"     # ✅ ADDED: iOS 17+ privacy manifest
-          - "Configuration.storekit"    # ✅ ADDED: StoreKit configuration for subscription testing
         excludes:
           - "Tests/**"                   # Exclude all test files from main target
           - "*Test*.swift"               # Exclude test files at root level
@@ -96,10 +95,8 @@ schemes:
         WorkoutTrackerApp: all
     run:
       config: Debug
-      storeKitConfiguration: Configuration.storekit
     test:
       config: Debug
-      storeKitConfiguration: Configuration.storekit
       gatherCoverageData: false
     profile:
       config: Release

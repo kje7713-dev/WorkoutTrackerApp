@@ -154,14 +154,14 @@ Test files are located in the `Tests/` directory and follow the naming pattern `
 The app includes in-app subscriptions using StoreKit 2. To test subscription functionality:
 
 1. Generate the Xcode project: `xcodegen generate`
-2. The project is configured to use `Configuration.storekit` for local testing
-3. See the **[StoreKit Testing Guide](docs/STOREKIT_TESTING_GUIDE.md)** for comprehensive setup and troubleshooting
+2. The app uses direct StoreKit API calls to fetch products from App Store Connect
+3. For local testing, use Apple's Sandbox environment or Xcode's StoreKit testing features
 
 Key points:
-- Use iOS Simulator for quick testing (no sandbox account needed)
-- StoreKit configuration includes a monthly subscription with 15-day free trial
-- Xcode scheme is pre-configured to use the StoreKit configuration file
-- For device testing, you can use Apple's sandbox environment
+- Products are fetched directly from the App Store using `Product.products(for:)`
+- Monthly subscription with 15-day free trial is configured in App Store Connect
+- Use iOS Simulator with StoreKit testing for quick testing (no sandbox account needed)
+- For device testing, use Apple's sandbox environment with a test account
 
 ## Architecture
 

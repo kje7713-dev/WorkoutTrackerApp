@@ -54,11 +54,6 @@ Basic app functionality remains free:
    - Restore purchases
    - Link to Apple subscription settings
 
-4. **Configuration.storekit**
-   - StoreKit testing configuration
-   - Product definitions
-   - Trial configuration
-
 ### Integration Points
 
 - **SavageByDesignApp.swift** - SubscriptionManager injected as environment object
@@ -101,6 +96,20 @@ if subscriptionManager.isSubscribed {
 - Trial: 15 days (P15D), free
 - Group: SBD - PRO (21493252)
 
+### Implementation
+The app uses StoreKit 2's direct API calls to fetch products:
+```swift
+// In SubscriptionManager.swift
+let products = try await Product.products(for: [productID])
+// where productID = SubscriptionConstants.monthlyProductID
+```
+
+This approach:
+- Fetches product information directly from App Store Connect
+- Works with both sandbox and production environments
+- No local configuration file needed
+- Product details managed in App Store Connect
+
 ## Testing
 
 For comprehensive testing instructions, see the **[StoreKit Testing Guide](STOREKIT_TESTING_GUIDE.md)**.
@@ -108,9 +117,9 @@ For comprehensive testing instructions, see the **[StoreKit Testing Guide](STORE
 ### Quick Start
 
 1. Generate Xcode project: `xcodegen generate`
-2. The scheme is pre-configured to use `Configuration.storekit`
-3. Run the app in simulator (no sandbox account needed)
-4. Test subscription purchase and feature unlocking
+2. Run the app in simulator (uses Xcode's StoreKit testing)
+3. Test subscription purchase and feature unlocking
+4. For device testing, use Apple's sandbox environment
 
 ### Sandbox Testing
 
