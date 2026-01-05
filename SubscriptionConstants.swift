@@ -17,8 +17,8 @@ enum SubscriptionConstants {
     
     // MARK: - Future Product IDs (for reference)
     
-    // static let annualProductID = "com.kje7713.WorkoutTrackerApp.pro.annual"
-    // static let lifetimeProductID = "com.kje7713.WorkoutTrackerApp.pro.lifetime"
+    // static let annualProductID = "com.savagebydesign.pro.annual"
+    // static let lifetimeProductID = "com.savagebydesign.pro.lifetime"
     
     // MARK: - Subscription Details
     
