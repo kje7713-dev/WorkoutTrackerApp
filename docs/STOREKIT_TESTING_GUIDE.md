@@ -210,6 +210,7 @@ The `SubscriptionManager` class uses StoreKit 2's direct API approach:
 ```swift
 // Load products directly from App Store
 let products = try await Product.products(for: [productID])
+// where productID = SubscriptionConstants.monthlyProductID
 ```
 
 This method:

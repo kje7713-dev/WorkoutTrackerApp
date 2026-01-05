@@ -99,7 +99,9 @@ if subscriptionManager.isSubscribed {
 ### Implementation
 The app uses StoreKit 2's direct API calls to fetch products:
 ```swift
+// In SubscriptionManager.swift
 let products = try await Product.products(for: [productID])
+// where productID = SubscriptionConstants.monthlyProductID
 ```
 
 This approach:
