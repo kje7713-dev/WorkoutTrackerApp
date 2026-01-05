@@ -79,12 +79,14 @@ class SubscriptionManager: ObservableObject {
                 subscriptionProduct = product
                 AppLogger.info("Loaded subscription product: \(product.displayName)", subsystem: .general, category: "Subscription")
             } else {
+                let errorDetail = "Product ID '\(productID)' not found in App Store Connect. Verify the product is configured correctly and active."
                 AppLogger.error("Subscription product not found: \(productID)", subsystem: .general, category: "Subscription")
-                errorMessage = "Unable to load subscription information"
+                errorMessage = "Unable to load subscription: \(errorDetail)"
             }
         } catch {
+            let errorDetail = getDetailedStoreKitError(error)
             AppLogger.error("Failed to load products: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
-            errorMessage = "Failed to load subscription information"
+            errorMessage = "Failed to load subscription: \(errorDetail)"
         }
     }
     
@@ -93,7 +95,7 @@ class SubscriptionManager: ObservableObject {
     /// Purchase subscription with 15-day free trial
     func purchase() async -> Bool {
         guard let product = subscriptionProduct else {
-            errorMessage = "Subscription not available"
+            errorMessage = "Subscription not available. Please ensure the product is loaded before attempting purchase."
             return false
         }
         
@@ -120,16 +122,18 @@ class SubscriptionManager: ObservableObject {
                 
             case .pending:
                 AppLogger.info("Purchase pending", subsystem: .general, category: "Subscription")
-                errorMessage = "Purchase is pending approval"
+                errorMessage = "Purchase is pending approval. This may occur when Ask to Buy is enabled or parental approval is required."
                 return false
                 
             @unknown default:
                 AppLogger.error("Unknown purchase result", subsystem: .general, category: "Subscription")
+                errorMessage = "Purchase returned an unexpected result. Please try again."
                 return false
             }
         } catch {
+            let errorDetail = getDetailedStoreKitError(error)
             AppLogger.error("Purchase failed: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
-            errorMessage = "Purchase failed: \(error.localizedDescription)"
+            errorMessage = "Purchase failed: \(errorDetail)"
             return false
         }
     }
@@ -143,8 +147,9 @@ class SubscriptionManager: ObservableObject {
             await checkEntitlementStatus()
             AppLogger.info("Purchases restored", subsystem: .general, category: "Subscription")
         } catch {
+            let errorDetail = getDetailedStoreKitError(error)
             AppLogger.error("Failed to restore purchases: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
-            errorMessage = "Failed to restore purchases"
+            errorMessage = "Failed to restore purchases: \(errorDetail)"
         }
     }
     
@@ -235,6 +240,61 @@ class SubscriptionManager: ObservableObject {
         case .verified(let safe):
             return safe
         }
+    }
+    
+    // MARK: - Error Handling Helpers
+    
+    /// Provide detailed, actionable error messages for StoreKit errors
+    private func getDetailedStoreKitError(_ error: Error) -> String {
+        let baseError = error.localizedDescription
+        
+        // Check for Product.PurchaseError (StoreKit 2)
+        if let purchaseError = error as? Product.PurchaseError {
+            switch purchaseError {
+            case .productUnavailable:
+                return "Product unavailable. The product may not be available in your region or may be temporarily unavailable."
+            case .purchaseNotAllowed:
+                return "Purchases are not allowed on this device. Check Screen Time restrictions in Settings."
+            case .ineligibleForOffer:
+                return "You're not eligible for this offer. This may occur if you've already used a trial."
+            case .invalidOfferIdentifier:
+                return "Invalid offer configuration. Please contact support if this persists."
+            case .invalidOfferPrice:
+                return "Invalid price for this offer. Please contact support if this persists."
+            case .invalidOfferSignature:
+                return "Offer signature is invalid. Please contact support if this persists."
+            case .missingOfferParameters:
+                return "Offer parameters are missing. Please contact support if this persists."
+            @unknown default:
+                return "Purchase error: \(baseError)"
+            }
+        }
+        
+        // Check error description for common issues
+        let lowercasedError = baseError.lowercased()
+        
+        if lowercasedError.contains("network") || lowercasedError.contains("connection") {
+            return "Network error: \(baseError). Check your internet connection and try again."
+        }
+        
+        if lowercasedError.contains("sandbox") {
+            return "Sandbox error: \(baseError). Ensure you're signed in with a sandbox test account in Settings > App Store > Sandbox Account."
+        }
+        
+        if lowercasedError.contains("not found") || lowercasedError.contains("invalid product") {
+            return "Product configuration error: \(baseError). The product may not be set up correctly in App Store Connect."
+        }
+        
+        if lowercasedError.contains("authentication") || lowercasedError.contains("not authenticated") {
+            return "Authentication required: \(baseError). Sign in to the App Store to make purchases."
+        }
+        
+        if lowercasedError.contains("cancelled") {
+            return "Operation was cancelled."
+        }
+        
+        // Return the original error with a helpful prefix
+        return "\(baseError). If this persists, try restarting the app or checking your App Store connection."
     }
     
     // MARK: - Subscription Info
