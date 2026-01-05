@@ -13,7 +13,7 @@ enum SubscriptionConstants {
     // MARK: - Product Identifiers
     
     /// Monthly Pro subscription product ID
-    static let monthlyProductID = "com.kje7713.WorkoutTrackerApp.pro.monthly"
+    static let monthlyProductID = "com.savagebydesign.pro.monthly"
     
     // MARK: - Future Product IDs (for reference)
     
