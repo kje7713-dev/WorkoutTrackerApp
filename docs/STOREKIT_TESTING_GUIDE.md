@@ -236,7 +236,8 @@ Before considering subscription testing complete, verify:
 ## Additional Resources
 
 - [Apple StoreKit Testing Documentation](https://developer.apple.com/documentation/storekit/in-app_purchase/testing_in-app_purchases_with_sandbox)
-- [StoreKit Configuration File Reference](https://developer.apple.com/documentation/xcode/setting-up-storekit-testing-in-xcode)
+- [StoreKit 2 API Documentation](https://developer.apple.com/documentation/storekit/product)
+- [Setting up StoreKit Testing in Xcode](https://developer.apple.com/documentation/xcode/setting-up-storekit-testing-in-xcode)
 - [Subscription Implementation Guide](./SUBSCRIPTION_IMPLEMENTATION.md)
 
 ## Support
