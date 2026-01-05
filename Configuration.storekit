@@ -16,12 +16,12 @@
     "_storeKitErrors" : [
       {
         "current" : null,
-        "enabled" : false,
+        "enabled" : true,
         "name" : "Load Products"
       },
       {
         "current" : null,
-        "enabled" : false,
+        "enabled" : true,
         "name" : "Purchase"
       },
       {
@@ -31,12 +31,12 @@
       },
       {
         "current" : null,
-        "enabled" : false,
+        "enabled" : true,
         "name" : "App Store Sync"
       },
       {
         "current" : null,
-        "enabled" : false,
+        "enabled" : true,
         "name" : "Subscription Status"
       },
       {
@@ -46,17 +46,17 @@
       },
       {
         "current" : null,
-        "enabled" : false,
+        "enabled" : true,
         "name" : "Manage Subscriptions Sheet"
       },
       {
         "current" : null,
-        "enabled" : false,
+        "enabled" : true,
         "name" : "Refund Request Sheet"
       },
       {
         "current" : null,
-        "enabled" : false,
+        "enabled" : true,
         "name" : "Offer Code Redeem Sheet"
       }
     ]
