@@ -129,7 +129,6 @@ struct MobileWhiteboardDayView: View {
     let weekNumber: Int
     
     @State private var expandedSegmentId: UUID? = nil
-    @State private var selectedSegmentId: UUID? = nil
     @Namespace private var animation
     
     // Cache formatted sections for exercises
@@ -145,36 +144,20 @@ struct MobileWhiteboardDayView: View {
             
             Divider()
             
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // 2) CLASS FLOW STRIP
-                        if !day.segments.isEmpty {
-                            classFlowStrip
-                                .padding(.vertical, 12)
-                                .background(Color(.systemBackground))
-                        }
-                        
-                        // 3) SEGMENT CARD STACK (for segment-based days)
-                        if !day.segments.isEmpty {
-                            segmentCardStack
-                                .padding(.horizontal, 16)
-                                .padding(.top, 8)
-                        }
-                        
-                        // 4) EXERCISE SECTIONS (for traditional exercise-based days)
-                        if !day.exercises.isEmpty {
-                            exerciseSections
-                                .padding(.horizontal, 16)
-                                .padding(.top, 8)
-                        }
+            ScrollView {
+                VStack(spacing: 0) {
+                    // SEGMENT CARD STACK (for segment-based days)
+                    if !day.segments.isEmpty {
+                        segmentCardStack
+                            .padding(.horizontal, 16)
+                            .padding(.top, 8)
                     }
-                }
-                .onChange(of: selectedSegmentId) { _, newId in
-                    if let newId = newId {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            proxy.scrollTo(newId, anchor: .top)
-                        }
+                    
+                    // EXERCISE SECTIONS (for traditional exercise-based days)
+                    if !day.exercises.isEmpty {
+                        exerciseSections
+                            .padding(.horizontal, 16)
+                            .padding(.top, 8)
                     }
                 }
             }
@@ -208,44 +191,7 @@ struct MobileWhiteboardDayView: View {
         .padding(.vertical, 12)
     }
     
-    // MARK: - 2) Class Flow Strip
-    
-    private var classFlowStrip: some View {
-        VStack(spacing: 8) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(Array(day.segments.enumerated()), id: \.element.id) { index, segment in
-                        SegmentPillCard(
-                            segment: segment,
-                            index: index + 1,
-                            isSelected: selectedSegmentId == segment.id
-                        )
-                        .onTapGesture {
-                            selectedSegmentId = segment.id
-                        }
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-            
-            // Progress indicator
-            if !day.segments.isEmpty {
-                Text("\(selectedSegmentIndex + 1) / \(day.segments.count) segments")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-        }
-    }
-    
-    private var selectedSegmentIndex: Int {
-        if let id = selectedSegmentId,
-           let index = day.segments.firstIndex(where: { $0.id == id }) {
-            return index
-        }
-        return 0
-    }
-    
-    // MARK: - 3) Segment Card Stack
+    // MARK: - 2) Segment Card Stack
     
     private var segmentCardStack: some View {
         LazyVStack(spacing: 12) {
@@ -269,7 +215,7 @@ struct MobileWhiteboardDayView: View {
         .padding(.bottom, 24)
     }
     
-    // MARK: - 4) Exercise Sections
+    // MARK: - 3) Exercise Sections
     
     private var exerciseSections: some View {
         LazyVStack(spacing: 20) {

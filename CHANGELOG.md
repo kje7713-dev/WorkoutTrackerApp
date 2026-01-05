@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved logging with structured output
 - Enhanced error handling in repositories
 
+### Removed
+- Horizontal scrolling segment chips from whiteboard view - Removed the "Class Flow Strip" with horizontal scrolling pills to simplify the UI. Segment cards are now displayed directly in a vertical list without the redundant navigation strip
+
 ### Security
 - Implemented privacy manifest for iOS 17+ compliance
 - Reduced production logging of sensitive data
