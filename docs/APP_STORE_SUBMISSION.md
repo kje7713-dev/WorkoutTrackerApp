@@ -17,7 +17,7 @@ This document provides guidance for submitting Savage By Design with subscriptio
   - Description: "Advanced planning and tracking tools"
 
 - [ ] Configure subscription group
-  - Name: "Pro Subscription"
+  - Name: "SBD - PRO"
   - Add monthly subscription product
 
 ### App Build

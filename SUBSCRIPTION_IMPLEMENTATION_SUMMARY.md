@@ -106,7 +106,7 @@ if subscriptionManager.isSubscribed {
 - Price: Configured in App Store Connect
 - Trial: 15 days free
 - Auto-renewable monthly subscription
-- Subscription group: "Pro Subscription"
+- Subscription group: "SBD - PRO"
 - Localization: English (US)
 
 ### 6. Legal & Compliance

@@ -171,7 +171,7 @@ The subscription feature has been fully implemented and is ready for sandbox tes
 ## Next Steps
 
 ### 1. App Store Connect Setup (Required)
-- [ ] Create subscription group "Pro Subscription"
+- [ ] Create subscription group "SBD - PRO"
 - [ ] Add product: `com.savagebydesign.pro.monthly`
 - [ ] Set price tier in App Store Connect
 - [ ] Add 15-day free trial introductory offer

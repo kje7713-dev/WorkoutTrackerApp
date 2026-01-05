@@ -99,7 +99,7 @@ if subscriptionManager.isSubscribed {
 - Duration: 1 month (P1M)
 - Price: Set in App Store Connect
 - Trial: 15 days (P15D), free
-- Group: Pro Subscription (21493252)
+- Group: SBD - PRO (21493252)
 
 ## Testing
 
@@ -171,7 +171,7 @@ The subscription unlocks software tools that process externally generated conten
 ### Steps Required
 
 1. **Create Subscription Group**
-   - Name: "Pro Subscription"
+   - Name: "SBD - PRO"
    - Add monthly subscription
 
 2. **Configure Product**
