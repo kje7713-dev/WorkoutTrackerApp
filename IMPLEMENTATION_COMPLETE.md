@@ -130,7 +130,7 @@ The subscription feature has been fully implemented and is ready for sandbox tes
 ## Technical Specifications
 
 - **Framework**: StoreKit 2
-- **Product ID**: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+- **Product ID**: `com.savagebydesign.pro.monthly`
 - **Price**: Configured in App Store Connect
 - **Trial**: 15 days free
 - **Type**: Auto-renewable subscription
@@ -171,8 +171,8 @@ The subscription feature has been fully implemented and is ready for sandbox tes
 ## Next Steps
 
 ### 1. App Store Connect Setup (Required)
-- [ ] Create subscription group "Pro Subscription"
-- [ ] Add product: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+- [ ] Create subscription group "SBD - PRO"
+- [ ] Add product: `com.savagebydesign.pro.monthly`
 - [ ] Set price tier in App Store Connect
 - [ ] Add 15-day free trial introductory offer
 - [ ] Add product localization

@@ -31,7 +31,7 @@ This will create `WorkoutTrackerApp.xcodeproj` with the StoreKit configuration f
 3. Click on `Configuration.storekit` to view the test subscription products
 
 The configuration includes:
-- **Product ID**: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+- **Product ID**: `com.savagebydesign.pro.monthly`
 - **Display Name**: "Savage By Design Pro"
 - **Price**: Configured in StoreKit test environment
 - **Free Trial**: 15 days
@@ -156,7 +156,7 @@ With an active subscription, test these features:
 1. Verify `Configuration.storekit` is selected in the scheme (see Setup step 3)
 2. Check that product ID in `SubscriptionConstants.swift` matches the configuration:
    ```swift
-   static let monthlyProductID = "com.kje7713.WorkoutTrackerApp.pro.monthly"
+   static let monthlyProductID = "com.savagebydesign.pro.monthly"
    ```
 3. If using a device, ensure you're signed into a sandbox account
 4. Try restarting Xcode and rebuilding the app

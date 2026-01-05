@@ -67,7 +67,7 @@
       "localizations" : [
 
       ],
-      "name" : "Pro Subscription",
+      "name" : "SBD - PRO",
       "subscriptions" : [
         {
           "adHocOffers" : [
@@ -92,7 +92,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.kje7713.WorkoutTrackerApp.pro.monthly",
+          "productID" : "com.savagebydesign.pro.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Pro Monthly Subscription",
           "subscriptionGroupID" : "21493252",

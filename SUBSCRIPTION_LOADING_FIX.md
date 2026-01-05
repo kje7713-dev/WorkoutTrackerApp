@@ -82,7 +82,7 @@ open WorkoutTrackerApp.xcodeproj
 
 1. In Xcode's Project Navigator, look for `Configuration.storekit` - it should now be visible
 2. Click on `Configuration.storekit` to view the subscription products
-3. Verify the product ID matches: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+3. Verify the product ID matches: `com.savagebydesign.pro.monthly`
 
 ### Step 4: Verify Scheme Configuration
 
@@ -146,7 +146,7 @@ After following the steps above, verify:
    - Check for product loading failures
 
 4. **Verify product ID matches**:
-   - In `SubscriptionConstants.swift`: `"com.kje7713.WorkoutTrackerApp.pro.monthly"`
+   - In `SubscriptionConstants.swift`: `"com.savagebydesign.pro.monthly"`
    - In `Configuration.storekit`: Same product ID
 
 5. **Check scheme configuration again**:

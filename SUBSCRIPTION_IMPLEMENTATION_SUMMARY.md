@@ -102,11 +102,11 @@ if subscriptionManager.isSubscribed {
 ### 5. StoreKit Configuration
 
 **Configuration.storekit**
-- Product ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+- Product ID: `com.savagebydesign.pro.monthly`
 - Price: Configured in App Store Connect
 - Trial: 15 days free
 - Auto-renewable monthly subscription
-- Subscription group: "Pro Subscription"
+- Subscription group: "SBD - PRO"
 - Localization: English (US)
 
 ### 6. Legal & Compliance
@@ -308,7 +308,7 @@ if subscriptionManager.isSubscribed {
 
 ### App Store Connect Setup
 1. Create subscription in App Store Connect
-2. Configure product with ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+2. Configure product with ID: `com.savagebydesign.pro.monthly`
 3. Set price tier in App Store Connect
 4. Add 15-day free trial offer
 5. Submit subscription for review
