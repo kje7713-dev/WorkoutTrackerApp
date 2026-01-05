@@ -92,7 +92,7 @@ if subscriptionManager.isSubscribed {
 ## StoreKit Configuration
 
 ### Product ID
-`com.kje7713.WorkoutTrackerApp.pro.monthly`
+`com.savagebydesign.pro.monthly`
 
 ### Subscription Details
 - Type: Auto-renewable subscription
@@ -175,7 +175,7 @@ The subscription unlocks software tools that process externally generated conten
    - Add monthly subscription
 
 2. **Configure Product**
-   - Product ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+   - Product ID: `com.savagebydesign.pro.monthly`
    - Reference Name: "Pro Monthly Subscription"
    - Price: Set in App Store Connect pricing tier
    - Subscription Duration: 1 month

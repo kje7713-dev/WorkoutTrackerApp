@@ -7,7 +7,7 @@ This document provides guidance for submitting Savage By Design with subscriptio
 ### App Store Connect Configuration
 
 - [ ] Create subscription in App Store Connect
-  - Product ID: `com.kje7713.WorkoutTrackerApp.pro.monthly`
+  - Product ID: `com.savagebydesign.pro.monthly`
   - Price: Configure in App Store Connect pricing tier
   - Free trial: 15 days
   - Auto-renewal: Enabled
