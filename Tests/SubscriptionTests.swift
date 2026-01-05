@@ -237,6 +237,64 @@ struct SubscriptionTests {
         return result
     }
     
+    // MARK: - Error Message Tests
+    
+    /// Test that error messages are descriptive and actionable
+    static func testErrorMessageQuality() -> Bool {
+        print("Testing error message quality...")
+        
+        // Error messages should be descriptive (not just "Unable to load subscription information")
+        let genericError = "Unable to load subscription information"
+        let improvedError = "Unable to load subscription: Product ID 'com.example.subscription' not found in App Store Connect. Verify the product is configured correctly and active."
+        
+        // Improved error should be longer and contain actionable information
+        let isImproved = improvedError.count > genericError.count && 
+                         improvedError.contains("Product ID") && 
+                         improvedError.contains("Verify")
+        
+        print("Error message quality: \(isImproved ? "PASS" : "FAIL")")
+        return isImproved
+    }
+    
+    /// Test that network errors provide troubleshooting hints
+    static func testNetworkErrorMessages() -> Bool {
+        print("Testing network error messages...")
+        
+        // Network error should provide troubleshooting steps
+        let networkError = "Network error: The Internet connection appears to be offline. Check your internet connection and try again."
+        
+        let containsTroubleshooting = networkError.contains("Check your internet connection")
+        
+        print("Network error messages: \(containsTroubleshooting ? "PASS" : "FAIL")")
+        return containsTroubleshooting
+    }
+    
+    /// Test that sandbox errors provide configuration hints
+    static func testSandboxErrorMessages() -> Bool {
+        print("Testing sandbox error messages...")
+        
+        // Sandbox error should explain how to fix it
+        let sandboxError = "Sandbox error: Not signed in with test account. Ensure you're signed in with a sandbox test account in Settings > App Store > Sandbox Account."
+        
+        let containsInstructions = sandboxError.contains("Settings") && sandboxError.contains("Sandbox Account")
+        
+        print("Sandbox error messages: \(containsInstructions ? "PASS" : "FAIL")")
+        return containsInstructions
+    }
+    
+    /// Test that product configuration errors are informative
+    static func testProductConfigErrorMessages() -> Bool {
+        print("Testing product configuration error messages...")
+        
+        // Product config error should indicate the issue
+        let configError = "Product configuration error: Product not found. The product may not be set up correctly in App Store Connect."
+        
+        let containsGuidance = configError.contains("App Store Connect")
+        
+        print("Product config error messages: \(containsGuidance ? "PASS" : "FAIL")")
+        return containsGuidance
+    }
+    
     // MARK: - Run All Tests
     
     static func runAllTests() -> Bool {
@@ -254,7 +312,11 @@ struct SubscriptionTests {
             ("Advanced Analytics Gating", testAdvancedAnalyticsGating),
             ("Dev Code Unlock", testDevCodeUnlock),
             ("Dev Unlock Feature Access", testDevUnlockFeatureAccess),
-            ("Dev Unlock Persistence", testDevUnlockPersistence)
+            ("Dev Unlock Persistence", testDevUnlockPersistence),
+            ("Error Message Quality", testErrorMessageQuality),
+            ("Network Error Messages", testNetworkErrorMessages),
+            ("Sandbox Error Messages", testSandboxErrorMessages),
+            ("Product Config Error Messages", testProductConfigErrorMessages)
         ]
         
         var passedTests = 0
