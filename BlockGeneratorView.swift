@@ -509,6 +509,30 @@ struct BlockGeneratorView: View {
         MY REQUIREMENTS:
         \(requirementsText)
         
+        ═══════════════════════════════════════════════════════════════
+        GENERATION SCOPE CONTRACT (REQUIRED)
+        ═══════════════════════════════════════════════════════════════
+        
+        Before generating structured output:
+        1. Identify if the request is HIGH-ENTROPY (multi-day, curriculum, course, program, series).
+        2. If yes, ask at most 5 scoping questions that materially affect output size or structure.
+        3. If the user does not answer, apply defaults below.
+        
+        DEFAULTS:
+        - UnitDuration: moderate
+        - ItemsPerUnit: low (2 primary items)
+        - DetailDepth: medium
+        - Media: none
+        - StructureConsistency: identical structure across units
+        
+        RULES:
+        - Do not introduce optional fields unless used consistently across ALL units.
+        - Cap each item's descriptive text to 120 characters per field.
+        - Units must differ by content selection or constraints, not schema shape.
+        - Render a cached file for download if needed to address performance limitations.
+        
+        ═══════════════════════════════════════════════════════════════
+        
         IMPORTANT - JSON Format Specification:
         - The file MUST be valid JSON with proper syntax (commas, quotes, brackets)
         - All BLOCK-LEVEL fields are REQUIRED (Title, Goal, TargetAthlete, DurationMinutes, etc.)
