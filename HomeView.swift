@@ -10,9 +10,6 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.sbdTheme) private var theme
-    @EnvironmentObject private var subscriptionManager: SubscriptionManager
-    
-    @State private var showingSubscriptionManagement = false
     
     private var buildBranchLabel: String {
         let branch = getBuildBranch()
@@ -152,67 +149,6 @@ struct HomeView: View {
                 .padding(.bottom, 20)  // Safe area bottom padding
             }
             .padding(.horizontal, 20)
-            
-            // MARK: - Pro Status Badge (Top-right corner)
-            if subscriptionManager.isSubscribed {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(theme.accent)  // Electric Green glowing dot
-                        .frame(width: 8, height: 8)
-                        .shadow(color: theme.accent.opacity(0.8), radius: 4, x: 0, y: 0)
-                    
-                    Text("PRO ACTIVE")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(1.2)
-                        .foregroundColor(primaryTextColor)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(backgroundButtonColor)
-                        .shadow(color: theme.accent.opacity(0.2), radius: 4, x: 0, y: 2)
-                )
-                .padding(.top, 50)
-                .padding(.trailing, 20)
-                .onTapGesture {
-                    showingSubscriptionManagement = true
-                }
-            } else {
-                // Show "GO PRO" badge for non-subscribers
-                HStack(spacing: 6) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 10))
-                        .foregroundColor(theme.premiumGold)
-                    
-                    Text("GO PRO")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(1.2)
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                )
-                .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 4, x: 0, y: 2)
-                .padding(.top, 50)
-                .padding(.trailing, 20)
-                .onTapGesture {
-                    showingSubscriptionManagement = true
-                }
-            }
-        }
-        .sheet(isPresented: $showingSubscriptionManagement) {
-            SubscriptionManagementView()
-                .environmentObject(subscriptionManager)
         }
     }
 
