@@ -193,12 +193,14 @@ struct HomeView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
-                    LinearGradient(
-                        gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .cornerRadius(8)
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                 )
                 .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 4, x: 0, y: 2)
                 .padding(.top, 50)
