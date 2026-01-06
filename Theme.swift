@@ -170,7 +170,12 @@ public struct SBDCard<Content: View>: View {
                     endPoint: .bottom
                 )
             } else {
-                theme.cardBackgroundLight
+                // Use solid color for light mode
+                LinearGradient(
+                    gradient: Gradient(colors: [theme.cardBackgroundLight, theme.cardBackgroundLight]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
             }
         }
     }

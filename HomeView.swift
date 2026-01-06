@@ -149,7 +149,7 @@ struct HomeView: View {
                         )
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.bottom, 20)  // 20px from bottom home indicator
+                .padding(.bottom, 20)  // Safe area bottom padding
             }
             .padding(.horizontal, 20)
             
