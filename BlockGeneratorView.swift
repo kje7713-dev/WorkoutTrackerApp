@@ -510,26 +510,86 @@ struct BlockGeneratorView: View {
         \(requirementsText)
         
         ═══════════════════════════════════════════════════════════════
-        GENERATION SCOPE CONTRACT (REQUIRED)
+        GENERATION SCOPE CONTRACT (REQUIRED) — REVISED
         ═══════════════════════════════════════════════════════════════
         
         Before generating structured output:
         1. Identify if the request is HIGH-ENTROPY (multi-day, curriculum, course, program, series).
-        2. If yes, ask at most 5 scoping questions that materially affect output size or structure.
-        3. If the user does not answer, apply defaults below.
+        2. If HIGH-ENTROPY, perform SCOPE VALIDATION (below) BEFORE asking questions or generating JSON.
+        3. Ask at most 5 scoping questions ONLY if required by the rules below.
+        4. If the user does not answer questions, apply the DEFAULTS below.
         
-        DEFAULTS:
+        ───────────────────────────────────────────────────────────────
+        SCOPE VALIDATION (MANDATORY FOR HIGH-ENTROPY)
+        ───────────────────────────────────────────────────────────────
+        Before generating JSON, the model MUST:
+        A) Classify contentType as one of:
+           workout | seminar | course | curriculum | protocol | other
+        
+        B) Classify mediaImpact as one of:
+           low | medium | high
+        
+           Guidance:
+           - mediaImpact is at least "medium" when contentType is seminar/course/curriculum/protocol
+           - mediaImpact is usually "low" for simple strength blocks unless videos were requested
+        
+        C) Identify the "Primary Item" for the plan:
+           - Primary Item = the main repeatable unit inside a session
+             Examples: technique, exercise, concept, drill, task, skill
+        
+        D) Print a 3–5 line SCOPE SUMMARY using the chosen defaults/policy
+           (Do NOT ask questions yet.)
+        
+        SCOPE SUMMARY (FORMAT):
+        - contentType: <value>
+        - primaryItem: <value>
+        - mediaImpact: <value>
+        - mediaPolicy: <value>
+        - unitDuration: <value>
+        - itemsPerUnit: <value>
+        - detailDepth: <value>
+        - structureConsistency: <value>
+        
+        If the user corrects any line in the SCOPE SUMMARY, incorporate the correction and then generate JSON.
+        
+        ───────────────────────────────────────────────────────────────
+        DEFAULTS
+        ───────────────────────────────────────────────────────────────
         - UnitDuration: moderate
         - ItemsPerUnit: low (2 primary items)
         - DetailDepth: medium
-        - Media: none
         - StructureConsistency: identical structure across units
         
-        RULES:
+        ───────────────────────────────────────────────────────────────
+        MEDIA DEFAULTS (CONDITIONAL)
+        ───────────────────────────────────────────────────────────────
+        - If mediaImpact == low:
+          - Media: none
+        
+        - If mediaImpact == medium:
+          - Media: limited (1 video per Primary Item)
+        
+        - If mediaImpact == high:
+          - Ask exactly 1 question before generating JSON:
+            "Video policy: none | 1 per session | 1 per primary item | per primary item (multiple)?"
+          - If unanswered: default to "1 per primary item"
+        
+        ───────────────────────────────────────────────────────────────
+        QUESTIONS POLICY
+        ───────────────────────────────────────────────────────────────
+        - Ask at most 5 questions total.
+        - Ask questions ONLY if they materially affect output size or structure.
+        - Do NOT ask questions for minor preferences; use sensible defaults.
+        - If SCOPE SUMMARY looks correct and mediaImpact != high, proceed directly to JSON.
+        
+        ───────────────────────────────────────────────────────────────
+        RULES
+        ───────────────────────────────────────────────────────────────
         - Do not introduce optional fields unless used consistently across ALL units.
         - Cap each item's descriptive text to 120 characters per field.
         - Units must differ by content selection or constraints, not schema shape.
         - Render a cached file for download if needed to address performance limitations.
+        - If the request is ambiguous, prefer defaults + a brief SCOPE SUMMARY over extra questions.
         
         ═══════════════════════════════════════════════════════════════
         
