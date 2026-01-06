@@ -94,24 +94,24 @@ public extension SBDTheme {
     /// Default Savage By Design theme based on the Design System spec.
     static let `default` = SBDTheme(
         primaryTextLight: .black,
-        primaryTextDark: .white,
+        primaryTextDark: Color(red: 0.96, green: 0.96, blue: 0.96),        // #F5F5F5 Off-White
         backgroundLight: .white,
-        backgroundDark: .black,
+        backgroundDark: Color(red: 0.05, green: 0.05, blue: 0.05),         // #0D0D0D Savage Black
         cardBackgroundLight: Color(red: 0.95, green: 0.95, blue: 0.97),    // #F2F2F7 approx
-        cardBackgroundDark: Color(red: 0.11, green: 0.11, blue: 0.12),     // #1C1C1E approx
+        cardBackgroundDark: Color(red: 0.10, green: 0.10, blue: 0.11),     // #1A1A1B Steel Gray
         cardBorderLight: Color(red: 0.90, green: 0.90, blue: 0.92),        // light gray
-        cardBorderDark: Color(red: 0.17, green: 0.17, blue: 0.18),         // dark border
-        success: Color(red: 0.19, green: 0.82, blue: 0.34),                // system green feel
-        mutedText: Color(red: 0.56, green: 0.56, blue: 0.58),              // neutral gray
-        accent: Color(red: 0.00, green: 0.48, blue: 1.00),                 // iOS system blue
+        cardBorderDark: Color(red: 0.18, green: 0.18, blue: 0.18),         // #2D2D2E border
+        success: Color(red: 0.00, green: 0.90, blue: 0.46),                // #00E676 Electric Green
+        mutedText: Color(red: 0.70, green: 0.70, blue: 0.70),              // lighter muted text
+        accent: Color(red: 0.00, green: 0.90, blue: 0.46),                 // #00E676 Electric Green
         premiumGold: Color(red: 1.00, green: 0.84, blue: 0.00),            // Gold accent for premium features
         // Note: premiumGradientStart matches accent for consistency, but kept separate for future flexibility
         premiumGradientStart: Color(red: 0.00, green: 0.48, blue: 1.00),   // Gradient start (blue)
         premiumGradientEnd: Color(red: 0.50, green: 0.00, blue: 0.80),     // Gradient end (purple)
         primaryButtonBackgroundLight: .black,
-        primaryButtonBackgroundDark: .white,
+        primaryButtonBackgroundDark: Color(red: 0.10, green: 0.10, blue: 0.11),  // #1A1A1B Steel Gray
         primaryButtonForegroundLight: .white,
-        primaryButtonForegroundDark: .black,
+        primaryButtonForegroundDark: Color(red: 0.96, green: 0.96, blue: 0.96),  // #F5F5F5 Off-White
         warning: Color(red: 1.00, green: 0.58, blue: 0.00),                // Orange
         error: Color(red: 1.00, green: 0.23, blue: 0.19),                  // Red
         info: Color(red: 0.00, green: 0.48, blue: 1.00)                    // Blue
@@ -150,15 +150,34 @@ public struct SBDCard<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(cardBackground)
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 12)
                     .stroke(cardBorder, lineWidth: 1)
             )
-            .cornerRadius(16)
+            .cornerRadius(12)
             .shadow(color: shadowColor, radius: 3, x: 0, y: 1)
     }
 
-    private var cardBackground: Color {
-        colorScheme == .dark ? theme.cardBackgroundDark : theme.cardBackgroundLight
+    private var cardBackground: some View {
+        Group {
+            if colorScheme == .dark {
+                // Subtle gradient from #1A1A1B to #111112 for dark mode
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        theme.cardBackgroundDark,
+                        Color(red: 0.067, green: 0.067, blue: 0.071)  // #111112
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            } else {
+                // Use solid color for light mode
+                LinearGradient(
+                    gradient: Gradient(colors: [theme.cardBackgroundLight, theme.cardBackgroundLight]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+        }
     }
 
     private var cardBorder: Color {
@@ -194,11 +213,12 @@ public struct SBDPrimaryButton: View {
         Button(action: action) {
             Text(title.uppercased())
                 .font(.system(size: 16, weight: .semibold))
+                .tracking(1.5)  // 1.5px letter-spacing
                 .frame(maxWidth: .infinity)
-                .frame(height: 52)
+                .frame(height: 48)  // Reduced from 52 for sleeker profile
                 .foregroundColor(foregroundColor)
                 .background(backgroundColor)
-                .cornerRadius(20)
+                .cornerRadius(12)  // Changed from 20 (pill-shaped) to 12 (tactical)
         }
         .buttonStyle(PlainButtonStyle())
         .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
@@ -239,15 +259,16 @@ public struct SBDSecondaryButton: View {
         Button(action: action) {
             Text(title.uppercased())
                 .font(.system(size: 16, weight: .semibold))
+                .tracking(1.5)  // 1.5px letter-spacing
                 .frame(maxWidth: .infinity)
-                .frame(height: 52)
+                .frame(height: 48)  // Reduced from 52 for sleeker profile
                 .foregroundColor(textColor)
                 .background(backgroundColor)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 12)
                         .stroke(borderColor, lineWidth: 2)
                 )
-                .cornerRadius(20)
+                .cornerRadius(12)  // Changed from 20 to 12
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -301,9 +322,10 @@ public struct SBDPremiumButton: View {
                 }
                 Text(title.uppercased())
                     .font(.system(size: 16, weight: .semibold))
+                    .tracking(1.5)  // 1.5px letter-spacing
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 52)
+            .frame(height: 48)  // Reduced from 52 for sleeker profile
             .foregroundColor(.white)  // White provides optimal contrast on gradient backgrounds
             .background(
                 LinearGradient(
@@ -312,7 +334,7 @@ public struct SBDPremiumButton: View {
                     endPoint: .trailing
                 )
             )
-            .cornerRadius(20)
+            .cornerRadius(12)  // Changed from 20 to 12
         }
         .buttonStyle(PlainButtonStyle())
         .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
