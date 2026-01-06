@@ -265,6 +265,8 @@ class SubscriptionManager: ObservableObject {
                 return "Offer signature is invalid. Please contact support if this persists."
             case .missingOfferParameters:
                 return "Offer parameters are missing. Please contact support if this persists."
+            case .invalidQuantity:
+                return "Invalid purchase quantity. Please contact support if this persists."
             @unknown default:
                 return "Purchase error: \(baseError)"
             }
