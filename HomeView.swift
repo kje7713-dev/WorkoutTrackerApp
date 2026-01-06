@@ -32,7 +32,7 @@ struct HomeView: View {
     }
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topTrailing) {
             backgroundColor.ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 24) {
@@ -45,16 +45,19 @@ struct HomeView: View {
                         .frame(height: 64)
                         .clipped()
 
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("SAVAGE BY DESIGN")
-                            .font(.system(size: 24, weight: .heavy))
+                            .font(.system(size: 20, weight: .heavy, design: .default))
+                            .tracking(1.5)
                             .foregroundColor(primaryTextColor)
 
                         Text("WE ARE WHAT WE REPEATEDLY DO")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.system(size: 12, weight: .medium))
                             .foregroundColor(primaryTextColor.opacity(0.7))
                             .multilineTextAlignment(.leading)
                     }
+                    
+                    Spacer()
                 }
                 .padding(.top, 40)
 
@@ -63,6 +66,7 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("BLOCKS")
                             .font(.system(size: 16, weight: .bold))
+                            .tracking(1.5)
                             .foregroundColor(primaryTextColor)
 
                         Text("Build and run multi-week strength and conditioning blocks with full session history.")
@@ -74,93 +78,57 @@ struct HomeView: View {
                 // MARK: - Primary Actions
                 VStack(spacing: 12) {
 
-                    // Blocks -> BlocksListView
+                    // Blocks -> BlocksListView (Primary with Electric Green accent)
                     NavigationLink {
                         BlocksListView()
                     } label: {
-                        Text("BLOCKS")
-                            .font(.system(size: 16, weight: .semibold))
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .foregroundColor(foregroundButtonColor)
-                            .background(backgroundButtonColor)
-                            .cornerRadius(20)
-                            .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
+                        HStack {
+                            Rectangle()
+                                .fill(theme.accent)  // Electric Green accent
+                                .frame(width: 3)
+                            
+                            Text("BLOCKS")
+                                .font(.system(size: 16, weight: .semibold))
+                                .tracking(1.5)
+                                .frame(maxWidth: .infinity)
+                                .foregroundColor(foregroundButtonColor)
+                        }
+                        .frame(height: 48)
+                        .background(backgroundButtonColor)
+                        .cornerRadius(12)
+                        .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(PlainButtonStyle())
 
-                    // Block History -> BlockHistoryListView
+                    // Block History -> BlockHistoryListView (Secondary)
                     NavigationLink {
                         BlockHistoryListView()
                     } label: {
                         Text("BLOCK HISTORY")
                             .font(.system(size: 16, weight: .semibold))
+                            .tracking(1.5)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 52)
+                            .frame(height: 48)
                             .foregroundColor(foregroundButtonColor)
                             .background(backgroundButtonColor)
-                            .cornerRadius(20)
+                            .cornerRadius(12)
                             .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(PlainButtonStyle())
                     
-                    // Data Management
+                    // Data Management (Secondary)
                     NavigationLink {
                         DataManagementView()
                     } label: {
                         Text("DATA MANAGEMENT")
                             .font(.system(size: 16, weight: .semibold))
+                            .tracking(1.5)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 52)
+                            .frame(height: 48)
                             .foregroundColor(foregroundButtonColor)
                             .background(backgroundButtonColor)
-                            .cornerRadius(20)
+                            .cornerRadius(12)
                             .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    // Subscription Management - Premium button style
-                    Button {
-                        showingSubscriptionManagement = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            if subscriptionManager.isSubscribed {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.white)
-                            } else {
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(theme.premiumGold)
-                            }
-                            
-                            Text(subscriptionManager.isSubscribed ? "PRO ACTIVE" : "GO PRO")
-                                .font(.system(size: 16, weight: .semibold))
-                                .textCase(.uppercase)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .foregroundColor(.white)
-                        .background(
-                            Group {
-                                if subscriptionManager.isSubscribed {
-                                    theme.success
-                                } else {
-                                    LinearGradient(
-                                        gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                }
-                            }
-                        )
-                        .cornerRadius(20)
-                        .shadow(
-                            color: subscriptionManager.isSubscribed
-                                ? theme.success.opacity(0.3)
-                                : theme.premiumGradientStart.opacity(0.3),
-                            radius: 8,
-                            x: 0,
-                            y: 4
-                        )
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
@@ -181,9 +149,64 @@ struct HomeView: View {
                         )
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.bottom, 8)
+                .padding(.bottom, 20)  // 20px from bottom home indicator
             }
             .padding(.horizontal, 20)
+            
+            // MARK: - Pro Status Badge (Top-right corner)
+            if subscriptionManager.isSubscribed {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(theme.accent)  // Electric Green glowing dot
+                        .frame(width: 8, height: 8)
+                        .shadow(color: theme.accent.opacity(0.8), radius: 4, x: 0, y: 0)
+                    
+                    Text("PRO ACTIVE")
+                        .font(.system(size: 12, weight: .bold))
+                        .tracking(1.2)
+                        .foregroundColor(primaryTextColor)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(backgroundButtonColor)
+                        .shadow(color: theme.accent.opacity(0.2), radius: 4, x: 0, y: 2)
+                )
+                .padding(.top, 50)
+                .padding(.trailing, 20)
+                .onTapGesture {
+                    showingSubscriptionManagement = true
+                }
+            } else {
+                // Show "GO PRO" badge for non-subscribers
+                HStack(spacing: 6) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(theme.premiumGold)
+                    
+                    Text("GO PRO")
+                        .font(.system(size: 12, weight: .bold))
+                        .tracking(1.2)
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .cornerRadius(8)
+                    .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 4, x: 0, y: 2)
+                )
+                .padding(.top, 50)
+                .padding(.trailing, 20)
+                .onTapGesture {
+                    showingSubscriptionManagement = true
+                }
+            }
         }
         .sheet(isPresented: $showingSubscriptionManagement) {
             SubscriptionManagementView()
