@@ -111,33 +111,33 @@ struct HomeView: View {
                     NavigationLink {
                         BlocksListView()
                     } label: {
-                        FeatureRow(
+                        FeatureRowContent(
                             icon: "square.stack.3d.up.fill",
                             title: "Training Blocks",
                             subtitle: "Browse 4–12 week programs and build sessions fast"
-                        ) {}
+                        )
                     }
                     
                     // Progress History
                     NavigationLink {
                         BlockHistoryListView()
                     } label: {
-                        FeatureRow(
+                        FeatureRowContent(
                             icon: "chart.bar.fill",
                             title: "Progress History",
                             subtitle: "See volume, sessions, and your training streak"
-                        ) {}
+                        )
                     }
                     
                     // Curriculum Builder / Data Management
                     NavigationLink {
                         DataManagementView()
                     } label: {
-                        FeatureRow(
+                        FeatureRowContent(
                             icon: "wand.and.stars",
                             title: "Curriculum Builder",
                             subtitle: "Design strength, grappling, or hybrid curricula"
-                        ) {}
+                        )
                     }
                 }
                 .padding(.horizontal, DesignTokens.spacing16)
@@ -172,7 +172,7 @@ struct HomeView: View {
                             .background(Color.proSurface)
                             .overlay(
                                 RoundedRectangle(cornerRadius: DesignTokens.cornerRow)
-                                    .stroke(Color.proDivider.opacity(1.0), lineWidth: 1)
+                                    .stroke(Color.proDivider, lineWidth: DesignTokens.strokeHairline)
                             )
                             .cornerRadius(DesignTokens.cornerRow)
                     }

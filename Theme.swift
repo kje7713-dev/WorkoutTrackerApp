@@ -14,6 +14,7 @@ public struct DesignTokens {
     public static let spacing4: CGFloat = 4
     public static let spacing8: CGFloat = 8
     public static let spacing12: CGFloat = 12
+    public static let spacing14: CGFloat = 14
     public static let spacing16: CGFloat = 16
     public static let spacing20: CGFloat = 20
     public static let spacing24: CGFloat = 24
@@ -459,7 +460,63 @@ public struct HeroCard<Content: View>: View {
     }
 }
 
-/// Feature row for navigation items
+/// Feature row content for navigation items
+public struct FeatureRowContent: View {
+    private let icon: String
+    private let title: String
+    private let subtitle: String
+    
+    public init(icon: String, title: String, subtitle: String) {
+        self.icon = icon
+        self.title = title
+        self.subtitle = subtitle
+    }
+    
+    public var body: some View {
+        HStack(spacing: DesignTokens.spacing12) {
+            // Icon container
+            ZStack {
+                Circle()
+                    .fill(Color.proBrandBlack.opacity(0.06))
+                    .frame(width: 36, height: 36)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(Color.proTextPrimary)
+            }
+            
+            // Text content
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Color.proTextPrimary)
+                
+                Text(subtitle)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(Color.proTextSecondary)
+                    .multilineTextAlignment(.leading)
+            }
+            
+            Spacer()
+            
+            // Chevron
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color.proTextPrimary.opacity(0.35))
+        }
+        .padding(DesignTokens.spacing14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.proSurface)
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.cornerRow)
+                .stroke(Color.proDivider, lineWidth: DesignTokens.strokeHairline)
+        )
+        .cornerRadius(DesignTokens.cornerRow)
+        .shadow(color: Color.black.opacity(0.06), radius: 3, x: 0, y: 3)
+    }
+}
+
+/// Feature row for navigation items (with action)
 public struct FeatureRow: View {
     private let icon: String
     private let title: String
@@ -475,52 +532,8 @@ public struct FeatureRow: View {
     
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: DesignTokens.spacing12) {
-                // Icon container
-                ZStack {
-                    Circle()
-                        .fill(Color.proBrandBlack.opacity(0.06))
-                        .frame(width: 36, height: 36)
-                    
-                    Image(systemName: icon)
-                        .font(.system(size: 18))
-                        .foregroundColor(Color.proTextPrimary)
-                }
-                
-                // Text content
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color.proTextPrimary)
-                    
-                    Text(subtitle)
-                        .font(.system(size: 13, weight: .regular))
-                        .foregroundColor(Color.proTextSecondary)
-                        .multilineTextAlignment(.leading)
-                }
-                
-                Spacer()
-                
-                // Chevron
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color.proTextPrimary.opacity(0.35))
-            }
-            .padding(DesignTokens.spacing14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.proSurface)
-            .overlay(
-                RoundedRectangle(cornerRadius: DesignTokens.cornerRow)
-                    .stroke(Color.proDivider, lineWidth: DesignTokens.strokeHairline)
-            )
-            .cornerRadius(DesignTokens.cornerRow)
-            .shadow(color: Color.black.opacity(0.06), radius: 3, x: 0, y: 3)
+            FeatureRowContent(icon: icon, title: title, subtitle: subtitle)
         }
         .buttonStyle(PlainButtonStyle())
     }
-}
-
-// Add spacing14 to DesignTokens
-public extension DesignTokens {
-    static let spacing14: CGFloat = 14
 }
