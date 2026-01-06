@@ -199,8 +199,8 @@ struct HomeView: View {
                         endPoint: .trailing
                     )
                     .cornerRadius(8)
-                    .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 4, x: 0, y: 2)
                 )
+                .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 4, x: 0, y: 2)
                 .padding(.top, 50)
                 .padding(.trailing, 20)
                 .onTapGesture {
