@@ -36,7 +36,7 @@ struct HomeView: View {
 
                 // MARK: - Logo + Slogan
                 HStack(alignment: .center, spacing: 16) {
-                    Image("SBDPrimaryLogo")
+                    Image("SBDFlame")
                         .resizable()
                         .scaledToFit()
                         .frame(height: 64)
@@ -66,7 +66,7 @@ struct HomeView: View {
                             .tracking(1.5)
                             .foregroundColor(primaryTextColor)
 
-                        Text("Build and run multi-week strength and conditioning blocks with full session history.")
+                        Text("Build and run multi-week strength, conditioning, or segment based curriculum with full session history.")
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(theme.mutedText)
                     }
