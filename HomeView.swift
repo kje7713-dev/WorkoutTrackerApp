@@ -37,6 +37,7 @@ struct HomeView: View {
                 // MARK: - Logo + Slogan
                 HStack(alignment: .center, spacing: 16) {
                     Image("SBDFlame")
+                        .renderingMode(.original)
                         .resizable()
                         .scaledToFit()
                         .frame(height: 64)
