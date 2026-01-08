@@ -94,10 +94,10 @@ struct BlocksListView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .center, spacing: 8) {
             Image(systemName: "flame")
                 .font(.largeTitle)
-                .foregroundColor(.orange)
+                .foregroundStyle(.orange)
                 .accessibilityHidden(true)
             
             Text("Blocks")
