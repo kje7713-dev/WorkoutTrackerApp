@@ -35,28 +35,19 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 24) {
 
                 // MARK: - Logo + Slogan
-                HStack(alignment: .center, spacing: 16) {
-                    Image("SBDFlame")
-                        .renderingMode(.original)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 64)
-                        .clipped()
+                VStack(alignment: .center, spacing: 8) {
+                    Text("SAVAGE BY DESIGN")
+                        .font(.system(size: 40, weight: .heavy, design: .default))
+                        .tracking(1.5)
+                        .foregroundColor(primaryTextColor)
+                        .multilineTextAlignment(.center)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("SAVAGE BY DESIGN")
-                            .font(.system(size: 20, weight: .heavy, design: .default))
-                            .tracking(1.5)
-                            .foregroundColor(primaryTextColor)
-
-                        Text("WE ARE WHAT WE REPEATEDLY DO")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(primaryTextColor.opacity(0.7))
-                            .multilineTextAlignment(.leading)
-                    }
-                    
-                    Spacer()
+                    Text("WE ARE WHAT WE REPEATEDLY DO")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(primaryTextColor.opacity(0.7))
+                        .multilineTextAlignment(.center)
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.top, 40)
 
                 // MARK: - Summary Card
