@@ -98,6 +98,7 @@ struct BlocksListView: View {
             Image(systemName: "flame")
                 .font(.largeTitle)
                 .foregroundColor(.orange)
+                .accessibilityHidden(true)
             
             Text("Blocks")
                 .font(.largeTitle).bold()
