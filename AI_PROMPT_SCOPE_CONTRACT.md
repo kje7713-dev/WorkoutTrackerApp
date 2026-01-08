@@ -90,15 +90,15 @@ Media handling varies based on mediaImpact classification:
 #### 5. Questions Policy (Mandatory for High-Entropy)
 For **HIGH-ENTROPY** requests, the AI **MUST** ask these questions before generating JSON:
 
-**Question 1:** "Unit Duration - How long should each session/unit be? (short/moderate/long)"
+**Question 1:** "How long should each workout session or class be? Please choose: short (20-30 minutes), moderate (45-60 minutes), or long (90+ minutes)."
 
-**Question 2:** "Items Per Unit - How many primary items per session? (low: 2-3 | medium: 4-5 | high: 6+)"
+**Question 2:** "How many exercises or techniques would you like in each session? Please choose: few (2-3 items), moderate (4-5 items), or many (6+ items)."
 
-**Question 3:** "Detail Depth - How detailed should the descriptions be? (brief/medium/detailed)"
+**Question 3:** "How much detail would you like in the descriptions? Please choose: brief (just the essentials), moderate (standard detail), or detailed (comprehensive instructions and cues)."
 
-**Question 4:** "Structure Consistency - Should all units follow identical structure? (yes/no, if no: describe variation)"
+**Question 4:** "Should all weeks and days follow the same structure, or would you like variation? Please answer 'same structure' or describe the variation you want."
 
-**Question 5 (conditional):** Only asked if mediaImpact is 'high': "Video policy: none | 1 per session | 1 per primary item | per primary item (multiple)?"
+**Question 5 (conditional):** Only asked if mediaImpact is 'high': "How many instructional videos would you like included? Please choose: none, one video per session, one video per exercise/technique, or multiple videos per exercise/technique."
 
 **Important Rules:**
 - For HIGH-ENTROPY requests, these questions are **REQUIRED** before generating JSON
