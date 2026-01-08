@@ -94,13 +94,14 @@ struct BlocksListView: View {
     // MARK: - Header
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .center, spacing: 8) {
+            Image(systemName: "flame")
+                .font(.largeTitle)
+                .foregroundStyle(.orange)
+                .accessibilityHidden(true)
+            
             Text("Blocks")
                 .font(.largeTitle).bold()
-
-            Text("Choose a block to run.")
-                .font(.body)
-                .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
