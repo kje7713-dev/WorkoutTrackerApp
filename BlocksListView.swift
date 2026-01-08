@@ -58,8 +58,6 @@ struct BlocksListView: View {
             .padding(.horizontal)
             .padding(.top, 32)
         }
-        .navigationTitle("Blocks")
-        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingAIGenerator) {
             BlockGeneratorView()
                 .environmentObject(blocksRepository)
