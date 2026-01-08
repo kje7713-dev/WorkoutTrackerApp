@@ -515,14 +515,15 @@ struct BlockGeneratorView: View {
         
         Before generating structured output:
         1. Identify if the request is HIGH-ENTROPY (multi-day, curriculum, course, program, series).
-        2. If HIGH-ENTROPY, perform SCOPE VALIDATION (below) BEFORE asking questions or generating JSON.
-        3. Ask at most 5 scoping questions ONLY if required by the rules below.
-        4. If the user does not answer questions, apply the DEFAULTS below.
+        2. If HIGH-ENTROPY, perform SCOPE VALIDATION (below) to classify the request.
+        3. For HIGH-ENTROPY requests, ALWAYS ask the 5 scoping questions (see QUESTIONS POLICY below).
+        4. If the user does not answer questions, THEN apply the DEFAULTS below.
+        5. For LOW-ENTROPY requests (single workout), use sensible defaults without asking questions.
         
         ───────────────────────────────────────────────────────────────
         SCOPE VALIDATION (MANDATORY FOR HIGH-ENTROPY)
         ───────────────────────────────────────────────────────────────
-        Before generating JSON, the model MUST:
+        For HIGH-ENTROPY requests, the model MUST:
         A) Classify contentType as one of:
            workout | seminar | course | curriculum | protocol | other
         
@@ -537,10 +538,18 @@ struct BlockGeneratorView: View {
            - Primary Item = the main repeatable unit inside a session
              Examples: technique, exercise, concept, drill, task, skill
         
-        D) Print a 3–5 line SCOPE SUMMARY using the chosen defaults/policy
-           (Do NOT ask questions yet.)
+        D) Print an initial SCOPE SUMMARY showing the classification:
         
-        SCOPE SUMMARY (FORMAT):
+        SCOPE SUMMARY (INITIAL):
+        - contentType: <value>
+        - primaryItem: <value>
+        - mediaImpact: <value>
+        
+        E) After showing the initial SCOPE SUMMARY, ask the 5 REQUIRED QUESTIONS (see QUESTIONS POLICY).
+        
+        F) After receiving answers (or if no answer, use DEFAULTS), print the FINAL SCOPE SUMMARY:
+        
+        SCOPE SUMMARY (FINAL):
         - contentType: <value>
         - primaryItem: <value>
         - mediaImpact: <value>
@@ -550,37 +559,52 @@ struct BlockGeneratorView: View {
         - detailDepth: <value>
         - structureConsistency: <value>
         
-        If the user corrects any line in the SCOPE SUMMARY, incorporate the correction and then generate JSON.
+        G) Then generate the JSON based on the final scope.
         
         ───────────────────────────────────────────────────────────────
-        DEFAULTS
+        DEFAULTS (APPLIED ONLY IF USER DOESN'T ANSWER QUESTIONS)
         ───────────────────────────────────────────────────────────────
+        These defaults are used ONLY when the user fails to answer the 5 required questions:
         - UnitDuration: moderate
         - ItemsPerUnit: low (2 primary items)
         - DetailDepth: medium
         - StructureConsistency: identical structure across units
         
         ───────────────────────────────────────────────────────────────
-        MEDIA DEFAULTS (CONDITIONAL)
+        MEDIA DEFAULTS (BASED ON mediaImpact CLASSIFICATION)
         ───────────────────────────────────────────────────────────────
         - If mediaImpact == low:
-          - Media: none
+          - Media: none (no Question 5 needed)
         
         - If mediaImpact == medium:
-          - Media: limited (1 video per Primary Item)
+          - Media: limited (1 video per Primary Item) (no Question 5 needed)
         
         - If mediaImpact == high:
-          - Ask exactly 1 question before generating JSON:
-            "Video policy: none | 1 per session | 1 per primary item | per primary item (multiple)?"
-          - If unanswered: default to "1 per primary item"
+          - Ask Question 5: "Video policy: none | 1 per session | 1 per primary item | per primary item (multiple)?"
+          - If user doesn't answer: default to "1 per primary item"
         
         ───────────────────────────────────────────────────────────────
-        QUESTIONS POLICY
+        QUESTIONS POLICY (MANDATORY FOR HIGH-ENTROPY)
         ───────────────────────────────────────────────────────────────
-        - Ask at most 5 questions total.
-        - Ask questions ONLY if they materially affect output size or structure.
-        - Do NOT ask questions for minor preferences; use sensible defaults.
-        - If SCOPE SUMMARY looks correct and mediaImpact != high, proceed directly to JSON.
+        For HIGH-ENTROPY requests, ALWAYS ask these 5 questions (unless mediaImpact is low, then ask 4):
+        
+        Question 1: "How long should each workout session or class be? Please choose: short (20-30 minutes), moderate (45-60 minutes), or long (90+ minutes)."
+        Question 2: "How many exercises or techniques would you like in each session? Please choose: few (2-3 items), moderate (4-5 items), or many (6+ items)."
+        Question 3: "How much detail would you like in the descriptions? Please choose: brief (just the essentials), moderate (standard detail), or detailed (comprehensive instructions and cues)."
+        Question 4: "Should all weeks and days follow the same structure, or would you like variation? Please answer 'same structure' or describe the variation you want."
+        Question 5 (conditional): "If mediaImpact is 'high', ask: How many instructional videos would you like included? Please choose: none, one video per session, one video per exercise/technique, or multiple videos per exercise/technique."
+        
+        IMPORTANT RULES:
+        - For HIGH-ENTROPY requests, these questions are REQUIRED before generating JSON
+        - If the user does not respond to the questions, wait for their response
+        - If the user explicitly says "use defaults" or "skip questions", then apply the DEFAULTS
+        - If the user provides partial answers, ask only the unanswered questions again
+        - For LOW-ENTROPY requests (single workout), skip questions and use defaults
+        
+        Media-specific rule:
+        - If mediaImpact == low: Skip Question 5, use "Media: none"
+        - If mediaImpact == medium: Skip Question 5, use "Media: limited (1 video per Primary Item)"
+        - If mediaImpact == high: Ask Question 5 as the 5th question
         
         ───────────────────────────────────────────────────────────────
         RULES
@@ -589,7 +613,8 @@ struct BlockGeneratorView: View {
         - Cap each item's descriptive text to 120 characters per field.
         - Units must differ by content selection or constraints, not schema shape.
         - Render a cached file for download if needed to address performance limitations.
-        - If the request is ambiguous, prefer defaults + a brief SCOPE SUMMARY over extra questions.
+        - For HIGH-ENTROPY requests, asking the 5 questions is MANDATORY before generating JSON.
+        - Only use defaults if the user explicitly chooses defaults or fails to respond to questions.
         
         ═══════════════════════════════════════════════════════════════
         
