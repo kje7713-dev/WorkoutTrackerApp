@@ -11,23 +11,6 @@ struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.sbdTheme) private var theme
     
-    private var buildBranchLabel: String {
-        let branch = getBuildBranch()
-        // If branch already starts with "copilot/", don't add it again
-        if branch.hasPrefix("copilot/") {
-            return branch
-        }
-        return "copilot/\(branch)"
-    }
-    
-    private func getBuildBranch() -> String {
-        // This will be replaced by the build script or default to "unknown"
-        if let branch = Bundle.main.infoDictionary?["BUILD_BRANCH"] as? String, !branch.isEmpty {
-            return branch
-        }
-        return "unknown"
-    }
-
     var body: some View {
         ZStack(alignment: .topTrailing) {
             backgroundColor.ignoresSafeArea()
@@ -49,20 +32,6 @@ struct HomeView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 40)
-
-                // MARK: - Summary Card
-                SBDCard {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("BLOCKS")
-                            .font(.system(size: 16, weight: .bold))
-                            .tracking(1.5)
-                            .foregroundColor(primaryTextColor)
-
-                        Text("Build and run multi-week strength, conditioning, or segment based curriculum with full session history.")
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundColor(theme.mutedText)
-                    }
-                }
 
                 // MARK: - Primary Actions
                 VStack(spacing: 12) {
@@ -124,20 +93,19 @@ struct HomeView: View {
 
                 Spacer(minLength: 0)
                 
-                // MARK: - Build Branch Label
-                VStack(spacing: 4) {
-                    Text(buildBranchLabel)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(primaryTextColor.opacity(0.8))
-                        .multilineTextAlignment(.center)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(primaryTextColor.opacity(0.1))
-                        )
+                // MARK: - User Guide Button
+                Link(destination: URL(string: "https://savagesbydesign.com/user-guide/")!) {
+                    Text("USER GUIDE")
+                        .font(.system(size: 16, weight: .semibold))
+                        .tracking(1.5)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .foregroundColor(foregroundButtonColor)
+                        .background(backgroundButtonColor)
+                        .cornerRadius(12)
+                        .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                 }
-                .frame(maxWidth: .infinity)
+                .buttonStyle(PlainButtonStyle())
                 .padding(.bottom, 20)  // Safe area bottom padding
             }
             .padding(.horizontal, 20)
