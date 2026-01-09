@@ -136,6 +136,26 @@ struct MobileWhiteboardDayView: View {
         WhiteboardFormatter.formatDay(day)
     }
     
+    // Helper to separate warmup segments from other segments
+    private var warmupSegments: [UnifiedSegment] {
+        day.segments.filter { $0.segmentType.lowercased() == "warmup" }
+    }
+    
+    private var otherSegments: [UnifiedSegment] {
+        day.segments.filter { $0.segmentType.lowercased() != "warmup" }
+    }
+    
+    // Helper to toggle segment expansion state
+    private func toggleSegment(_ segmentId: UUID) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if expandedSegmentId == segmentId {
+                expandedSegmentId = nil
+            } else {
+                expandedSegmentId = segmentId
+            }
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // 1) STICKY HEADER
@@ -146,18 +166,47 @@ struct MobileWhiteboardDayView: View {
             
             ScrollView {
                 VStack(spacing: 0) {
-                    // SEGMENT CARD STACK (for segment-based days)
-                    if !day.segments.isEmpty {
-                        segmentCardStack
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
+                    // ORDER: Warmup segments → Exercises → Other segments
+                    
+                    // 1) WARMUP SEGMENTS (first)
+                    if !warmupSegments.isEmpty {
+                        LazyVStack(spacing: 12) {
+                            ForEach(warmupSegments) { segment in
+                                SegmentCard(
+                                    segment: segment,
+                                    isExpanded: expandedSegmentId == segment.id,
+                                    onToggle: { toggleSegment(segment.id) }
+                                )
+                                .id(segment.id)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .padding(.bottom, 24)
                     }
                     
-                    // EXERCISE SECTIONS (for traditional exercise-based days)
+                    // 2) EXERCISE SECTIONS (middle)
                     if !day.exercises.isEmpty {
                         exerciseSections
                             .padding(.horizontal, 16)
-                            .padding(.top, 8)
+                            .padding(.top, warmupSegments.isEmpty ? 8 : 0)
+                    }
+                    
+                    // 3) OTHER SEGMENTS (last)
+                    if !otherSegments.isEmpty {
+                        LazyVStack(spacing: 12) {
+                            ForEach(otherSegments) { segment in
+                                SegmentCard(
+                                    segment: segment,
+                                    isExpanded: expandedSegmentId == segment.id,
+                                    onToggle: { toggleSegment(segment.id) }
+                                )
+                                .id(segment.id)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, day.exercises.isEmpty && warmupSegments.isEmpty ? 8 : 0)
+                        .padding(.bottom, 24)
                     }
                 }
             }
@@ -191,31 +240,7 @@ struct MobileWhiteboardDayView: View {
         .padding(.vertical, 12)
     }
     
-    // MARK: - 2) Segment Card Stack
-    
-    private var segmentCardStack: some View {
-        LazyVStack(spacing: 12) {
-            ForEach(day.segments) { segment in
-                SegmentCard(
-                    segment: segment,
-                    isExpanded: expandedSegmentId == segment.id,
-                    onToggle: {
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            if expandedSegmentId == segment.id {
-                                expandedSegmentId = nil
-                            } else {
-                                expandedSegmentId = segment.id
-                            }
-                        }
-                    }
-                )
-                .id(segment.id)
-            }
-        }
-        .padding(.bottom, 24)
-    }
-    
-    // MARK: - 3) Exercise Sections
+    // MARK: - 2) Exercise Sections
     
     private var exerciseSections: some View {
         LazyVStack(spacing: 20) {

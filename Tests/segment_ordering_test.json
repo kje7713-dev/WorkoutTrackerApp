@@ -1,0 +1,99 @@
+{
+  "Title": "Segment_Ordering_Test_Block",
+  "Goal": "Test warmup, exercises, and other segments ordering",
+  "TargetAthlete": "Test",
+  "NumberOfWeeks": 1,
+  "DurationMinutes": 60,
+  "Difficulty": 3,
+  "Equipment": "Squat rack, heavy bag",
+  "WarmUp": "See segments",
+  "Finisher": "See segments",
+  "Notes": "This block tests the ordering: warmup segments → exercises → other segments",
+  "Days": [
+    {
+      "name": "Example 1: Warmup then Exercises then Segment",
+      "goal": "mixed",
+      "exercises": [
+        {
+          "name": "Squats",
+          "type": "strength",
+          "category": "squat",
+          "setsReps": "5x5"
+        }
+      ],
+      "segments": [
+        {
+          "name": "Heavy Bag Session",
+          "segmentType": "drill",
+          "domain": "conditioning",
+          "durationMinutes": 20,
+          "objective": "Build conditioning"
+        },
+        {
+          "name": "Yoga Warmup",
+          "segmentType": "warmup",
+          "domain": "mobility",
+          "durationMinutes": 10,
+          "objective": "Prepare body for training"
+        }
+      ]
+    },
+    {
+      "name": "Example 2: Only Warmup and Exercises",
+      "goal": "strength",
+      "exercises": [
+        {
+          "name": "Deadlift",
+          "type": "strength",
+          "category": "hinge",
+          "setsReps": "5x3"
+        },
+        {
+          "name": "Bench Press",
+          "type": "strength",
+          "category": "pressHorizontal",
+          "setsReps": "5x5"
+        }
+      ],
+      "segments": [
+        {
+          "name": "Dynamic Warmup",
+          "segmentType": "warmup",
+          "domain": "mobility",
+          "durationMinutes": 10,
+          "objective": "Prepare for heavy lifting"
+        }
+      ]
+    },
+    {
+      "name": "Example 3: Only Segments (BJJ-style)",
+      "goal": "mixed",
+      "segments": [
+        {
+          "name": "Movement Prep",
+          "segmentType": "warmup",
+          "domain": "grappling",
+          "durationMinutes": 8
+        },
+        {
+          "name": "Technique Drilling",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 20
+        },
+        {
+          "name": "Live Rolling",
+          "segmentType": "rolling",
+          "domain": "grappling",
+          "durationMinutes": 15
+        },
+        {
+          "name": "Cooldown Stretch",
+          "segmentType": "cooldown",
+          "domain": "mobility",
+          "durationMinutes": 5
+        }
+      ]
+    }
+  ]
+}
