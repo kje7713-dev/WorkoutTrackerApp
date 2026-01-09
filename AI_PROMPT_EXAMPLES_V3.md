@@ -83,27 +83,21 @@ GOAL STIMULUS:
 - Secondary Stimulus: None
 - Tertiary Stimulus: None
 
-PRE-SCOPE SUFFICIENCY ANALYSIS:
-1) Minimum Effective Units (MEU): 3 (squat, bench, deadlift - the three requested compounds)
-2) Maximum Recoverable Units (MRU): 4-5 (3 heavy compounds + 1-2 accessories per session)
-3) Time Constraint Check: 3 compounds @ 45-60 min = realistic
-4) Interference Check: All three lifts target strength, no interference
+PRE-SCOPE SUFFICIENCY ANALYSIS — INTERNAL (not shown to user):
+[Internal reasoning about volume and recovery - not exposed]
 
 UNIT JUSTIFICATION:
 - Primary Stimulus: Maximal strength
-- MEU per Session: 3 (squat, bench, deadlift)
-- MRU per Session: 4 (3 compounds + 1 accessory)
-- Chosen Units per Session: 3-4 exercises
-- Rejected Alternatives: Conditioning work (would interfere), isolation movements (not MEU)
-- Final Justification: 3 compound lifts meet MEU while staying under MRU. Adding 1 complementary accessory per day optimizes without overreaching.
+- Chosen Units per Session: 3-4 exercises (main lifts + 1 accessory)
+- Rejected Alternatives: Excessive accessories would compromise recovery for main lifts
+- Final Justification: Three main compound lifts with one complementary accessory per day provides sufficient stimulus while maintaining focus on the requested movements.
 
-QUESTION GATE:
-1) Session duration: short (20–30), moderate (45–60), long (90+)?
-2) Unit density: few (2–3), moderate (4–5), many (6+)?
-3) Detail depth: brief | moderate | detailed?
-4) Structure: identical | progressive | rotational?
+QUESTION GATE (optional - only if needed):
+1) Session duration preference: short (20–30), moderate (45–60), long (90+)?
+2) Detail depth: brief | moderate | detailed?
+3) Structure preference: identical | progressive | rotational?
 
-[If user doesn't answer, use SMART DEFAULTS]
+[Using sensible defaults based on stated goal and athlete level]
 
 SCOPE SUMMARY (FINAL):
 - contentType: workout
@@ -202,7 +196,7 @@ JSON:
 }
 ```
 
-## Example 3: HARD FAILURE - MEU > MRU
+## Example 3: HARD FAILURE - Excessive Volume for Time
 
 **User Input:**
 ```
@@ -217,24 +211,19 @@ ENTROPY CLASSIFICATION: HIGH
 GOAL STIMULUS:
 - Primary Stimulus: Strength (full body)
 
-PRE-SCOPE SUFFICIENCY ANALYSIS:
-1) Minimum Effective Units (MEU): 6 (all exercises requested)
-2) Maximum Recoverable Units (MRU): 3-4 (heavy compounds)
-3) Time Constraint Check: 6 exercises @ 30 min = 5 min per exercise = IMPOSSIBLE
-4) Interference Check: N/A (cannot proceed)
+PRE-SCOPE SUFFICIENCY ANALYSIS — INTERNAL:
+[Internal reasoning: 6 heavy compounds cannot be recovered from in single session, and 30 min is insufficient time]
 
 HARD FAILURE DETECTED:
-- MEU (6) > MRU (4)
-- Session duration (30 min) cannot support MEU (6 exercises)
 
 I cannot generate this program as requested because:
-1. You've requested 6 heavy compound exercises, but maximum recoverable is 3-4
-2. 30 minutes cannot accommodate 6 compound lifts with adequate rest
+1. Six heavy compound exercises in a single session would compromise recovery and training quality
+2. A 30-minute session cannot accommodate six compound lifts with adequate rest between sets
 
 Would you like me to:
-A) Reduce to 3 key compound exercises (squat, bench, deadlift) in 30 minutes
-B) Keep all 6 exercises but extend session to 60-75 minutes
-C) Split into 2 separate sessions (upper/lower split)
+A) Reduce to 3 key compound exercises (squat, bench, deadlift) that fit within 30 minutes
+B) Keep all 6 exercises but extend the session to 60-75 minutes
+C) Split into 2 separate sessions (upper/lower or push/pull split)
 
 Please clarify your preference.
 ```
@@ -260,44 +249,37 @@ GOAL STIMULUS:
 - Primary Stimulus: UNCLEAR (strength OR conditioning?)
 - Secondary Stimulus: CONFLICT DETECTED
 
-PRE-SCOPE SUFFICIENCY ANALYSIS:
-1) Minimum Effective Units (MEU): Depends on primary goal
-2) Maximum Recoverable Units (MRU): Depends on primary goal
-3) Time Constraint Check: Can be managed
-4) Interference Check: SEVERE INTERFERENCE DETECTED
+PRE-SCOPE SUFFICIENCY ANALYSIS — INTERNAL:
+[Internal reasoning detects severe interference between heavy squats and high-volume running]
 
 INTERFERENCE ANALYSIS:
-Heavy squats require:
-- High CNS demand
-- Long recovery (48-72 hours)
-- Muscular fatigue in legs
 
-High-volume running creates:
-- Concurrent training effect (reduces strength gains)
-- Leg fatigue (compromises squat performance)
-- Extended recovery needs
+I've identified a significant conflict in your training goals:
 
-These goals are contradictory at high volumes.
+Heavy squats and high-volume running create competing demands:
+- Heavy squats require significant CNS resources and 48-72 hour recovery
+- High-volume running increases leg fatigue and can reduce strength gains (concurrent training effect)
+- Both together may compromise performance in your primary goal
 
 CLARIFICATION NEEDED:
 Which is your PRIMARY goal?
 
 Option A: Strength-focused
-- Heavy squats 3x/week
-- Light/moderate running 2x/week (recovery runs only)
-- Running volume capped to preserve squat performance
+- Heavy squats 3x/week as primary focus
+- Light/moderate running 2x/week for conditioning (capped to preserve squat performance)
+- Running programmed on non-squat days for recovery
 
 Option B: Conditioning-focused
-- High-volume running program
-- Moderate squats 2x/week (strength maintenance)
-- Squat intensity reduced to prevent overreaching
+- High-volume running as primary program
+- Moderate squats 2x/week for strength maintenance
+- Squat intensity reduced to avoid overreaching
 
-Option C: Hybrid (Advanced athletes only)
+Option C: Hybrid approach (for advanced athletes)
 - Heavy squats 2x/week
 - Moderate running 2-3x/week
-- Requires excellent recovery capacity
+- Requires good recovery capacity and experience with concurrent training
 
-Please specify your primary goal and training experience level.
+Please specify your primary goal and training experience level so I can adjust the program appropriately.
 ```
 
 ## Example 5: Skill-Based (BJJ) with Media Impact
@@ -323,19 +305,14 @@ GOAL STIMULUS:
 - Secondary Stimulus: Drilling proficiency
 - Tertiary Stimulus: Live application
 
-PRE-SCOPE SUFFICIENCY ANALYSIS:
-1) Minimum Effective Units (MEU): 2-3 techniques per session (depth over breadth)
-2) Maximum Recoverable Units (MRU): 4-5 techniques per session (cognitive load limit)
-3) Time Constraint Check: 60-90 min sessions support MEU
-4) Interference Check: No conflicts, all work toward guard mastery
+PRE-SCOPE SUFFICIENCY ANALYSIS — INTERNAL:
+[Internal reasoning about appropriate technique volume and cognitive load for skill retention]
 
 UNIT JUSTIFICATION:
 - Primary Stimulus: Guard technique mastery
-- MEU per Session: 2 techniques (allows depth and drilling time)
-- MRU per Session: 4 techniques (cognitive load limit for retention)
-- Chosen Units per Session: 3 techniques (optimal for learning)
-- Rejected Alternatives: 5+ techniques (too shallow, poor retention)
-- Final Justification: 3 techniques per session allows proper depth, drilling, and live application while staying within cognitive load limits.
+- Chosen Units per Session: 3 techniques
+- Rejected Alternatives: More than 4 techniques would reduce drilling depth and skill retention
+- Final Justification: Three techniques per session allows proper depth, adequate drilling time, and live application while maintaining focus and retention.
 
 QUESTION GATE:
 1) Session duration: short (20–30), moderate (45–60), long (90+)?
@@ -469,19 +446,21 @@ JSON:
 ## Key Takeaways
 
 1. **LOW-ENTROPY**: Simple, direct generation with sensible defaults
-2. **HIGH-ENTROPY**: Detailed analysis before generation
-3. **HARD FAILURES**: AI stops and asks for clarification rather than generating invalid programs
-4. **INTERFERENCE**: AI identifies conflicts between goals and suggests solutions
-5. **SKILL-BASED**: Different analysis for skill vs strength training
-6. **SCHEMA COMPLIANCE**: Never violated, even when training concepts conflict
+2. **HIGH-ENTROPY**: Detailed analysis before generation (internal reasoning not exposed)
+3. **HARD FAILURES**: AI stops and explains the conflict in training terms, suggests solutions
+4. **INTERFERENCE**: AI identifies conflicts between goals and suggests solutions without exposing internal volume metrics
+5. **SKILL-BASED**: Different analysis approach for skill vs strength training
+6. **SCHEMA COMPLIANCE**: Never violated
+7. **VOLUME OWNERSHIP**: AI owns volume/recovery decisions, adjusts automatically with brief justification
 
 ## Testing Your Own Prompts
 
-To test the new v3 prompt:
+To test the revised v3 prompt:
 1. Open BlockGeneratorView in the app
 2. Enter your requirements
 3. Copy the complete prompt
 4. Paste into ChatGPT 4 or Claude
-5. Verify you see the required sections (ENTROPY, GOAL STIMULUS, MEU/MRU, etc.)
-6. Check that JSON conforms to schema
-7. Import into app and verify parsing works
+5. Verify you see the required sections (ENTROPY, GOAL STIMULUS, UNIT JUSTIFICATION without MEU/MRU exposure)
+6. Check that volume decisions are made automatically without asking user
+7. Verify JSON conforms to schema
+8. Import into app and verify parsing works

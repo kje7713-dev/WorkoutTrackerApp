@@ -14,26 +14,25 @@ This document describes the coach-grade training program design system implement
 
 ## Problem Statement
 
-Previous versions of the AI prompt allowed:
-- Overly complex or inconsistent segment structures
-- Unclear training stimulus priorities
-- Unit counts that exceeded recoverable capacity
-- Conflicts between training goals and program structure
-- Schema violations when attempting to express training concepts
+Previous versions of the AI prompt:
+- Exposed internal coaching concepts (MEU/MRU) to users
+- Asked users to define volume parameters they shouldn't need to understand
+- Made the AI assistant seem less autonomous and knowledgeable
 
-## Solution: Coach-Grade Training Program Design System
+## Solution: Coach-Grade Training Program Design System with Agent-Owned Volume
 
 A structured design process has been implemented that:
 1. **Classifies entropy** to identify complexity level
 2. **Identifies goal stimulus** to ensure training clarity
-3. **Analyzes sufficiency** to prevent overreaching
-4. **Justifies unit selection** before generation
+3. **Analyzes sufficiency internally** to prevent overreaching (without exposing metrics)
+4. **Justifies decisions briefly** in user-friendly terms
 5. **Enforces schema compliance** as mandatory
 6. **Provides failure conditions** to catch invalid programs
+7. **Owns volume and recovery decisions** as the expert coach
 
 ### Core Principle
 
-**"Schema correctness is NON-NEGOTIABLE. Training correctness determines unit selection and content. If there is conflict, reduce scope (fewer units) or ask clarifying questions. Never break the schema."**
+**"The AI assistant owns volume, intensity, and recovery decisions. MEU/MRU are internal reasoning tools, not exposed to users unless explaining a safety or recovery concern. Schema correctness remains non-negotiable."**
 
 ## Contract Components
 
@@ -69,58 +68,77 @@ Tertiary Stimulus (optional): [additional training goals]
 
 **Critical Rule**: If goal stimulus is unclear or contradictory, the AI must **STOP** and ask for clarification rather than proceeding.
 
-### 4. PRE-SCOPE SUFFICIENCY ANALYSIS
+### 4. PRE-SCOPE SUFFICIENCY ANALYSIS (INTERNAL - NOT EXPOSED)
 
-Before generating content, the AI must analyze:
+The AI must internally analyze:
 
-1. **Minimum Effective Units (MEU)**: What is the minimum number of exercises/techniques needed to address the primary stimulus?
-2. **Maximum Recoverable Units (MRU)**: What is the maximum number of exercises/techniques the athlete can recover from?
-3. **Time Constraint Check**: Does the session duration support the proposed work?
-4. **Interference Check**: Do secondary/tertiary stimuli interfere with the primary stimulus?
+1. **Minimum effective volume**: What is the minimum volume needed to address the primary stimulus?
+2. **Maximum recoverable volume**: What is the maximum volume the athlete can recover from given their level, frequency, and block length?
+3. **Time constraints**: Does the session duration support the proposed work?
+4. **Interference**: Do secondary/tertiary stimuli interfere with the primary stimulus?
 
-This analysis prevents:
-- Insufficient volume (below MEU)
-- Overreaching (above MRU)
+**Critical Rule**: This analysis is INTERNAL reasoning only. DO NOT:
+- Ask the user to define MEU or MRU
+- Expose these terms in output unless explaining a safety/recovery issue
+- Request volume parameters from the user
+
+The AI owns these decisions and adjusts programming automatically based on:
+- Stated goal
+- Athlete experience level
+- Training frequency
+- Block length
+- Available session time
+
+This prevents:
+- Insufficient volume
+- Overreaching
 - Time constraint violations
 - Training interference
 
 ### 5. UNIT JUSTIFICATION
 
-Before generating JSON, the AI must output:
+Before generating JSON, the AI must output (in user-friendly terms):
 
 ```
 Primary Stimulus: [identified stimulus]
-MEU per Session: [number]
-MRU per Session: [number]
-Chosen Units per Session: [number with rationale]
-Rejected Alternatives: [what was considered but not included, and why]
-Final Justification: [why this unit count serves the primary stimulus]
+Chosen Units per Session: [number with brief rationale]
+Rejected Alternatives (if significant): [what was considered but not included, and why]
+Final Justification (brief): [why this approach serves the primary stimulus]
 ```
 
-This ensures transparency and forces the AI to think through programming decisions.
+This ensures transparency without exposing internal metrics like MEU/MRU.
+Focus on training outcomes rather than volume formulas.
 
-### 6. QUESTION GATE
+### 6. QUESTION GATE (OPTIONAL)
 
 For HIGH-ENTROPY requests (unless user says "use defaults"):
 
+The AI MAY ask clarifying questions if genuinely needed:
 1. **Session duration**: short (20–30), moderate (45–60), long (90+)
-2. **Unit density**: few (2–3), moderate (4–5), many (6+)
-3. **Detail depth**: brief | moderate | detailed
-4. **Structure**: identical | progressive | rotational
-5. **Video policy** (ONLY if mediaImpact = high): Ask video policy
+2. **Detail depth**: brief | moderate | detailed
+3. **Structure**: identical | progressive | rotational
+4. **Video policy** (ONLY if mediaImpact = high): Ask video policy
+
+**DO NOT ask about**:
+- Volume parameters (unit counts, exercise density)
+- Recovery capacity
+- Intensity levels (unless truly ambiguous)
+
+The AI owns volume and recovery decisions based on stated goal, athlete level, frequency, and block length.
 
 ### 7. SMART DEFAULTS
 
 **ONLY IF QUESTIONS SKIPPED**
 
-If Primary Stimulus = strength:
-- MEU = 1 main lift + 1 secondary lift
-- MRU = 3 heavy lifts
-- Default units per session = 2
+The AI determines appropriate volume based on:
+- **Goal**: Strength goals typically need 2-4 main exercises
+- **Athlete level**: Beginners need less volume than advanced
+- **Session duration**: Available time constrains volume
+- **Recovery capacity**: Adjust based on frequency and intensity
 
-If conditioning or skill is appended:
-- Cap total units to preserve output quality
-- Place conditioning after strength
+If conditioning or skill is appended to strength:
+- Adjust total volume to preserve training quality and recovery
+- Place conditioning after strength to prioritize main stimulus
 
 General defaults:
 - UnitDuration = moderate
@@ -158,23 +176,29 @@ These rules are **absolute**:
 ### 10. HARD FAILURE CONDITIONS
 
 The AI must **STOP AND ASK** if:
-- MEU > MRU (impossible to satisfy minimum while respecting maximum)
-- Session duration cannot support MEU (time constraint violation)
-- Primary stimulus is undermined by secondary work (training interference)
-- Unit count cannot be justified (arbitrary selection)
-- Schema compliance cannot be maintained (format violation)
+- The requested volume cannot be recovered from given athlete level, frequency, and intensity
+- Session duration is insufficient for the requested work
+- Secondary work would significantly undermine the primary stimulus
+- The program structure would compromise training quality or safety
+- Schema compliance cannot be maintained
 
-**Operating Principle**: "The number of units is a training decision, schema compliance is mandatory."
+**When explaining failures**:
+- Focus on training outcomes (e.g., "This volume may compromise recovery")
+- Avoid internal metrics terminology
+- Suggest practical alternatives
+- Ask for user preference
+
+**Operating Principle**: "You own volume and recovery decisions. Prioritize training quality and long-term progress. Adjust programming automatically when needed, with brief justification."
 
 ## Benefits
 
-1. **Training Correctness**: MEU/MRU analysis prevents under- and over-programming
-2. **Schema Compliance**: Non-negotiable schema enforcement prevents parsing errors
-3. **Transparency**: Unit justification makes programming decisions explicit
-4. **Failure Prevention**: Hard failure conditions catch invalid programs before generation
-5. **Flexibility**: Training decisions remain flexible while schema remains fixed
-6. **Clarity**: Goal stimulus identification ensures programs address actual needs
-7. **Recovery Optimization**: MRU checks prevent overreaching
+1. **Agent Autonomy**: AI owns volume/recovery decisions like a real coach
+2. **User Experience**: Users don't need to understand MEU/MRU concepts
+3. **Schema Compliance**: Non-negotiable schema enforcement prevents parsing errors
+4. **Transparency**: Brief justifications explain decisions in user-friendly terms
+5. **Failure Prevention**: Hard failure conditions catch issues and suggest alternatives
+6. **Training Quality**: Automatic adjustments prioritize long-term progress
+7. **Recovery Optimization**: Internal analysis prevents overreaching without exposing formulas
 8. **Time Management**: Duration checks ensure programs fit available time
 
 ## Implementation Location
@@ -228,11 +252,11 @@ To verify the contract is working:
   1. Entropy: HIGH
   2. SCOPE SUMMARY (INITIAL) with contentType: workout, primaryItem: exercise, mediaImpact: low
   3. GOAL STIMULUS: Primary = strength
-  4. PRE-SCOPE SUFFICIENCY: MEU = 2 (main + secondary), MRU = 3
-  5. Asks 5 questions (or uses smart defaults if "skip questions")
-  6. UNIT JUSTIFICATION with reasoning
+  4. PRE-SCOPE SUFFICIENCY: Internal analysis (not shown)
+  5. May ask clarifying questions OR use smart defaults
+  6. UNIT JUSTIFICATION with brief reasoning (no MEU/MRU exposure)
   7. SCOPE SUMMARY (FINAL)
-  8. Valid JSON with 2-3 exercises per session
+  8. Valid JSON with appropriate exercise count (2-4 per session based on internal analysis)
 
 ### Test Case 3: HIGH-ENTROPY with Interference
 - **Input**: "4-week block with heavy squats, deadlifts, AND high-volume conditioning"
@@ -240,15 +264,16 @@ To verify the contract is working:
   1. Entropy: HIGH
   2. GOAL STIMULUS: Primary = strength, Secondary = conditioning
   3. INTERFERENCE CHECK: Flags that high-volume conditioning may interfere with strength
-  4. Either: Asks clarification OR reduces conditioning volume
-  5. UNIT JUSTIFICATION explains interference mitigation
+  4. Either: Asks clarification OR automatically reduces conditioning volume
+  5. UNIT JUSTIFICATION explains adjustment without exposing MEU/MRU
 
-### Test Case 4: Hard Failure - MEU > MRU
+### Test Case 4: Hard Failure - Excessive Volume
 - **Input**: "30-minute session with 8 heavy compound lifts"
 - **Expected**:
-  1. PRE-SCOPE SUFFICIENCY: Identifies MEU = 8, MRU = 3, Duration = 30 min
-  2. HARD FAILURE: MEU > MRU
-  3. AI stops and asks: "This request cannot be satisfied. Would you like to reduce exercise count or increase session duration?"
+  1. PRE-SCOPE SUFFICIENCY: Internal analysis identifies issue
+  2. HARD FAILURE: Excessive volume for time and recovery
+  3. AI stops and explains: "This volume cannot be recovered from and 30 min is insufficient"
+  4. Suggests alternatives without using MEU/MRU terminology
 
 ### Test Case 5: BJJ Curriculum (Segments)
 - **Input**: "8-week BJJ guard curriculum"
@@ -264,10 +289,12 @@ To verify the contract is working:
 - [ ] Entropy correctly classified (LOW/HIGH)
 - [ ] SCOPE SUMMARY (INITIAL) provided for HIGH entropy
 - [ ] GOAL STIMULUS identified
-- [ ] PRE-SCOPE SUFFICIENCY analysis shown
-- [ ] UNIT JUSTIFICATION provided before JSON
+- [ ] PRE-SCOPE SUFFICIENCY analysis performed internally (not exposed)
+- [ ] UNIT JUSTIFICATION provided before JSON (brief, user-friendly)
+- [ ] No MEU/MRU terminology exposed to user
+- [ ] Volume decisions made automatically by AI
 - [ ] SCOPE SUMMARY (FINAL) shown
-- [ ] Hard failures trigger questions instead of invalid output
+- [ ] Hard failures explain issues in training terms, not internal metrics
 - [ ] Schema compliance maintained
 - [ ] JSON parses successfully in the app
 
@@ -285,13 +312,13 @@ Potential improvements:
 ## Key Differences from Previous Version
 
 ### What Changed:
-1. **Focus shift**: From "asking questions" to "training correctness analysis"
-2. **New requirement**: MEU/MRU analysis before generation
-3. **New requirement**: UNIT JUSTIFICATION output
-4. **New requirement**: HARD FAILURE conditions
-5. **New rule**: Schema compliance is non-negotiable (previously could be bent)
-6. **Simplified**: Removed verbose question policy, replaced with streamlined QUESTION GATE
-7. **Enhanced**: SMART DEFAULTS now include training-specific logic (strength vs skill)
+1. **Volume Ownership**: AI now owns volume/recovery decisions (not user-defined)
+2. **MEU/MRU Internal**: These concepts are now internal reasoning tools, not exposed
+3. **Question Gate Simplified**: Removed volume/density questions
+4. **Unit Justification Simplified**: No longer exposes MEU/MRU values
+5. **Hard Failures User-Friendly**: Explain issues in training terms, not formulas
+6. **Agent Autonomy**: AI acts more like an expert coach, less like a question-asking assistant
+7. **Focus**: "Determine appropriate volume based on context" vs "Ask user for volume parameters"
 
 ### What Stayed:
 - Entropy detection (LOW/HIGH)
@@ -299,10 +326,11 @@ Potential improvements:
 - Media impact classification
 - JSON schema (unchanged)
 - Segment vs Exercise structure support
+- Schema compliance as non-negotiable
 
 ### Philosophy Change:
-- **Old**: "Ask lots of questions to get user input"
-- **New**: "Analyze training correctness first, reduce scope if needed, schema is mandatory"
+- **Old**: "Ask questions including volume parameters, expose MEU/MRU analysis"
+- **New**: "Own volume/recovery decisions as the expert, use MEU/MRU internally only, adjust automatically with brief justification"
 
-This shift reflects a more coach-like approach where the AI acts as a knowledgeable program designer rather than just a JSON generator.
+This shift makes the AI assistant feel more like an experienced strength coach who understands programming principles and makes informed decisions, rather than a passive tool that needs user input for everything.
 
