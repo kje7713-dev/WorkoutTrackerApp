@@ -514,7 +514,7 @@ struct BlockGeneratorView: View {
         - Athlete experience level
         - Training frequency
         - Block length and periodization
-        - Competitive intent (recreational vs. serious vs. meet prep)
+        - Competitive intent and athlete dedication level
         
         DO NOT ask the user to define volume parameters or recovery capacity.
         DO NOT expose internal reasoning about minimum/maximum volume unless explaining a safety or recovery concern.
@@ -570,11 +570,11 @@ struct BlockGeneratorView: View {
         
         REQUIRED QUESTIONS FOR HIGH-ENTROPY REQUESTS:
         If request is HIGH entropy and missing critical parameters, you MUST ask:
-        1. Training frequency (days per week)
+        1. Training frequency
         2. Session duration available
-        3. Competitive intent (recreational, serious, meet prep)
+        3. Competitive intent
         4. Experience level with stated goal
-        5. Current training volume baseline (if relevant to scaling)
+        5. Current training volume baseline
         
         DO NOT proceed with conservative assumptions. DO NOT reduce volume preemptively.
         ASK first, then program appropriately based on user's actual context.
@@ -698,7 +698,7 @@ struct BlockGeneratorView: View {
         - Secondary work would significantly undermine the primary training stimulus
         - The program structure would compromise training quality or safety
         - Schema compliance cannot be maintained
-        - CRITICAL INPUTS are missing for HIGH-ENTROPY requests (frequency, duration, competitive intent)
+        - Critical inputs are missing for HIGH-ENTROPY requests
         
         Then STOP and briefly explain the conflict, suggest alternatives, and ask for clarification.
         Keep explanations focused on training outcomes (e.g., "This volume may compromise recovery") rather than internal metrics.
