@@ -1011,6 +1011,95 @@ struct BlockGeneratorView: View {
         }
         
         ═══════════════════════════════════════════════════════════════
+        WEEKS INVARIANTS (NON-NEGOTIABLE):
+        ═══════════════════════════════════════════════════════════════
+        
+        When using the "Weeks" array format, the following rules are ABSOLUTE and MUST be enforced:
+        
+        1. **NumberOfWeeks MUST equal Weeks.length**
+           - If you have 4 weeks of data, "NumberOfWeeks": 4 and "Weeks" must contain exactly 4 arrays
+           - NEVER set NumberOfWeeks to a different value than the actual number of week arrays provided
+           - Example: "NumberOfWeeks": 4 requires "Weeks": [week1, week2, week3, week4]
+        
+        2. **Each Weeks[i] MUST be an array of Day objects**
+           - Week 1 = Weeks[0] = array of Day objects
+           - Week 2 = Weeks[1] = array of Day objects
+           - NO exceptions - every week must be an array containing Day objects
+        
+        3. **Each Day MUST contain exactly ONE "exercises" array OR exactly ONE "segments" array (or one of each)**
+           - ✅ CORRECT: { "name": "Day 1", "exercises": [...] }
+           - ✅ CORRECT: { "name": "Day 1", "segments": [...] }
+           - ✅ CORRECT: { "name": "Day 1", "exercises": [...], "segments": [...] }
+           - ❌ WRONG: { "name": "Day 1" } // Missing exercises/segments
+           - ❌ WRONG: Multiple "exercises" keys in same Day
+           - ❌ WRONG: Multiple "segments" keys in same Day
+        
+        4. **NO placeholder days, NO "progression rule" objects, NO narrative items**
+           - Every Day object must be a real, actionable training day
+           - NO placeholder text like "Week 2: Similar to Week 1 but..."
+           - NO progression rule objects in the Weeks array
+           - NO narrative descriptions where Day objects should be
+           - If a week truly has fewer training days, include only those days explicitly
+        
+        5. **If a week has fewer days than others, that MUST be explicit and intentional**
+           - Example: If Week 1 has 4 days and Week 4 (deload) has 2 days, provide exactly 2 Day objects in Week 4
+           - ✅ CORRECT: Week 4 deload with 2 explicit days
+           - ❌ WRONG: Week 4 with "Continue with 2 days from Week 1"
+           - ❌ WRONG: Week 4 with placeholder text instead of Day objects
+        
+        VALIDATION EXAMPLES:
+        
+        ✅ CORRECT Week Structure:
+        {
+          "NumberOfWeeks": 3,
+          "Weeks": [
+            [
+              {"name": "Week 1 Day 1", "exercises": [...]},
+              {"name": "Week 1 Day 2", "exercises": [...]}
+            ],
+            [
+              {"name": "Week 2 Day 1", "exercises": [...]},
+              {"name": "Week 2 Day 2", "exercises": [...]}
+            ],
+            [
+              {"name": "Week 3 Day 1", "exercises": [...]}
+            ]
+          ]
+        }
+        
+        ❌ WRONG - NumberOfWeeks doesn't match:
+        {
+          "NumberOfWeeks": 4,  // Claims 4 weeks
+          "Weeks": [
+            [...],
+            [...],
+            [...]  // Only 3 weeks provided
+          ]
+        }
+        
+        ❌ WRONG - Week contains non-Day objects:
+        {
+          "Weeks": [
+            [{"name": "Day 1", "exercises": [...]}],
+            ["Week 2: Same as Week 1 with 5lbs added"]  // Not a Day object!
+          ]
+        }
+        
+        ❌ WRONG - Day missing exercises/segments:
+        {
+          "Weeks": [
+            [
+              {"name": "Day 1"}  // No exercises or segments!
+            ]
+          ]
+        }
+        
+        REMEMBER: These invariants are NON-NEGOTIABLE. If you cannot satisfy them, you MUST either:
+        - Use "Days" format instead of "Weeks" (if all weeks are identical)
+        - Ask the user for clarification
+        - Stop and explain why the Weeks format cannot be used
+        
+        ═══════════════════════════════════════════════════════════════
         USAGE GUIDELINES:
         ═══════════════════════════════════════════════════════════════
         
