@@ -614,21 +614,70 @@ struct BlockGeneratorView: View {
         CHOOSING BETWEEN EXERCISES vs SEGMENTS:
         ═══════════════════════════════════════════════════════════════
         
-        Use EXERCISES for:
+        IMPORTANT: Each Day must have exactly ONE of each array (not multiple):
+        - If using exercises: ONE "exercises": [...] array per Day
+        - If using segments: ONE "segments": [...] array per Day  
+        - If using both: ONE "exercises": [...] AND ONE "segments": [...] per Day
+        
+        Use EXERCISES ONLY for:
         - Traditional gym workouts (sets, reps, weights)
         - Strength training with progressive overload
+        - Powerlifting programs (squat, bench, deadlift focus)
+        - Bodybuilding routines
         - Conditioning workouts with time/distance/calories
         
-        Use SEGMENTS for:
+        Use SEGMENTS ONLY for:
         - Martial arts classes (BJJ, wrestling, judo, MMA)
         - Yoga and mobility sessions
         - Skill-based training with technique instruction
         - Drills with specific constraints and coaching cues
         - Sessions structured by phases (warmup, technique, drilling, sparring, cooldown)
         
-        Use BOTH in same Day when:
+        Use BOTH (exercises AND segments) in same Day only when:
         - Combining strength work with skill training
         - Gym session followed by technique work
+        - CRITICAL: Still only ONE "exercises" array and ONE "segments" array per Day
+        
+        ═══════════════════════════════════════════════════════════════
+        CRITICAL STRUCTURAL CONSTRAINTS:
+        ═══════════════════════════════════════════════════════════════
+        
+        JSON STRUCTURE RULES (NON-NEGOTIABLE):
+        1. Use exactly ONE "segments" array per Day (if needed)
+        2. Use exactly ONE "exercises" array per Day (if needed)
+        3. NEVER duplicate JSON keys - each key appears once per object
+        4. Arrays ("segments", "exercises") must be properly formatted with square brackets []
+        5. All array items must be separated by commas, with no trailing comma after last item
+        
+        POWERLIFTING/STRENGTH PROGRAMS:
+        - For pure strength/powerlifting programs, use ONLY "exercises" array
+        - Do NOT add "segments" array unless explicitly mixing strength with skill work
+        - Each Day should have ONE "exercises" array containing all lifts for that day
+        - Example structure for 3-week powerlifting program:
+          "Days": [
+            {
+              "name": "Day 1: Squat Focus",
+              "exercises": [ /* all exercises here */ ]
+            },
+            {
+              "name": "Day 2: Bench Focus", 
+              "exercises": [ /* all exercises here */ ]
+            },
+            {
+              "name": "Day 3: Deadlift Focus",
+              "exercises": [ /* all exercises here */ ]
+            }
+          ]
+        
+        SKILL/TECHNIQUE PROGRAMS:
+        - For skill-based training (BJJ, yoga, etc.), use ONLY "segments" array
+        - Do NOT add "exercises" array unless explicitly mixing with strength work
+        
+        HYBRID PROGRAMS (Strength + Skill):
+        - When combining strength and skill work in same Day:
+          * Use ONE "exercises" array for all strength exercises
+          * Use ONE "segments" array for all skill/technique work
+          * Never duplicate these keys
         
         ═══════════════════════════════════════════════════════════════
         COMPLETE JSON Structure (ALL FIELDS AVAILABLE):
@@ -853,31 +902,153 @@ struct BlockGeneratorView: View {
         USAGE GUIDELINES:
         ═══════════════════════════════════════════════════════════════
         
-        FOR GYM WORKOUTS (EXERCISES):
+        FOR GYM WORKOUTS (EXERCISES) - POWERLIFTING, BODYBUILDING, GENERAL STRENGTH:
         1. SIMPLE blocks: Use "Exercises" with "setsReps" format
         2. MULTI-DAY blocks: Use "Days" with detailed "sets" arrays
         3. WEEK-SPECIFIC: Use "Weeks" array for exercise variations
         4. CONDITIONING: Set type="conditioning" and use "conditioningSets"
         5. SUPERSETS: Give exercises same "setGroupId" UUID
+        6. CRITICAL: Each Day has exactly ONE "exercises" array containing ALL exercises
+        7. NEVER create multiple "exercises" keys or duplicate arrays
         
-        FOR SKILL SESSIONS (SEGMENTS):
+        FOR SKILL SESSIONS (SEGMENTS) - BJJ, YOGA, MARTIAL ARTS:
         1. BJJ/GRAPPLING: Use technique, drill, positionalSpar, rolling segments
         2. YOGA: Use mobility/warmup segments with flowSequence
         3. BREATHWORK: Use breathwork segment with pattern details
         4. STRUCTURED CLASSES: Organize by segment phases (warmup → technique → drilling → live → cooldown)
         5. QUALITY TRACKING: Use qualityTargets for skill-based progression
         6. CONSTRAINTS: Add specific rules to focus training (e.g., "Must start from inside tie")
+        7. CRITICAL: Each Day has exactly ONE "segments" array containing ALL segments
+        8. NEVER create multiple "segments" keys or duplicate arrays
         
-        HYBRID SESSIONS:
-        - Put strength work in "exercises" array
-        - Put skill/technique work in "segments" array
-        - Both can coexist in the same Day
+        HYBRID SESSIONS (Strength + Skill):
+        - Put ALL strength work in ONE "exercises" array
+        - Put ALL skill/technique work in ONE "segments" array
+        - Each array appears exactly ONCE per Day
+        - Both can coexist in the same Day but each key appears only once
         """
     }
     
     private var jsonFormatExample: String {
         """
-        // EXAMPLE 1: Gym Workout (Exercise-Based)
+        // EXAMPLE 1: 3-Week Powerlifting Program (3 Days per Week)
+        {
+          "Title": "3-Week Powerlifting Block",
+          "Goal": "strength",
+          "TargetAthlete": "Intermediate",
+          "NumberOfWeeks": 3,
+          "DurationMinutes": 60,
+          "Difficulty": 4,
+          "Equipment": "Barbell, Rack, Bench, Deadlift Platform",
+          "WarmUp": "10 min mobility and activation work",
+          "Days": [
+            {
+              "name": "Day 1: Squat Focus",
+              "shortCode": "SQ",
+              "goal": "strength",
+              "exercises": [
+                {
+                  "name": "Barbell Back Squat",
+                  "type": "strength",
+                  "category": "squat",
+                  "setsReps": "5x5",
+                  "restSeconds": 240,
+                  "intensityCue": "RPE 8",
+                  "progressionDeltaWeight": 10.0
+                },
+                {
+                  "name": "Romanian Deadlift",
+                  "type": "strength",
+                  "category": "hinge",
+                  "setsReps": "3x8",
+                  "restSeconds": 180,
+                  "intensityCue": "RPE 7",
+                  "progressionDeltaWeight": 5.0
+                },
+                {
+                  "name": "Leg Press",
+                  "type": "strength",
+                  "category": "squat",
+                  "setsReps": "3x10",
+                  "restSeconds": 120,
+                  "intensityCue": "RPE 7"
+                }
+              ]
+            },
+            {
+              "name": "Day 2: Bench Press Focus",
+              "shortCode": "BP",
+              "goal": "strength",
+              "exercises": [
+                {
+                  "name": "Barbell Bench Press",
+                  "type": "strength",
+                  "category": "pressHorizontal",
+                  "setsReps": "5x5",
+                  "restSeconds": 240,
+                  "intensityCue": "RPE 8",
+                  "progressionDeltaWeight": 5.0
+                },
+                {
+                  "name": "Barbell Row",
+                  "type": "strength",
+                  "category": "pullHorizontal",
+                  "setsReps": "4x8",
+                  "restSeconds": 180,
+                  "intensityCue": "RPE 7",
+                  "progressionDeltaWeight": 5.0
+                },
+                {
+                  "name": "Overhead Press",
+                  "type": "strength",
+                  "category": "pressVertical",
+                  "setsReps": "3x8",
+                  "restSeconds": 180,
+                  "intensityCue": "RPE 7"
+                }
+              ]
+            },
+            {
+              "name": "Day 3: Deadlift Focus",
+              "shortCode": "DL",
+              "goal": "strength",
+              "exercises": [
+                {
+                  "name": "Barbell Deadlift",
+                  "type": "strength",
+                  "category": "hinge",
+                  "setsReps": "5x3",
+                  "restSeconds": 300,
+                  "intensityCue": "RPE 8-9",
+                  "progressionDeltaWeight": 10.0
+                },
+                {
+                  "name": "Front Squat",
+                  "type": "strength",
+                  "category": "squat",
+                  "setsReps": "3x6",
+                  "restSeconds": 180,
+                  "intensityCue": "RPE 7",
+                  "progressionDeltaWeight": 5.0
+                },
+                {
+                  "name": "Pull-ups",
+                  "type": "strength",
+                  "category": "pullVertical",
+                  "setsReps": "3xAMRAP",
+                  "restSeconds": 120,
+                  "intensityCue": "RPE 8"
+                }
+              ]
+            }
+          ],
+          "Finisher": "10 min core work: planks and ab rollouts",
+          "Notes": "Focus on bar speed and technique. Week 3 reduce volume by 20% for recovery.",
+          "EstimatedTotalTimeMinutes": 60,
+          "Progression": "Add 5-10 lbs per week to main lifts. Week 3 is deload."
+        }
+        
+        // EXAMPLE 2: Full Body Strength (Single Day Format)
         {
           "Title": "Full Body Strength",
           "Goal": "strength",
@@ -917,7 +1088,7 @@ struct BlockGeneratorView: View {
           "Progression": "Add 5 lbs per week, deload week 4"
         }
         
-        // EXAMPLE 2: BJJ Class (Segment-Based)
+        // EXAMPLE 3: BJJ Class (Segment-Based)
         {
           "Title": "BJJ Fundamentals Class",
           "Goal": "mixed",
@@ -1020,7 +1191,7 @@ struct BlockGeneratorView: View {
           "Progression": "Increase resistance 10% per week, add constraints"
         }
         
-        // EXAMPLE 3: Hybrid Session (Exercises + Segments)
+        // EXAMPLE 4: Hybrid Session (Exercises + Segments)
         {
           "Title": "Strength + Yoga Recovery",
           "Goal": "mixed",
