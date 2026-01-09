@@ -4,7 +4,7 @@
 This PR enhances the AI prompt template with simplified, intent-aware instructions for handling large JSON outputs when generating workout blocks. The new approach treats downloadable files as the primary deliverable and avoids automatically printing large JSON in chat.
 
 ## Problem Statement
-Users generating complex training programs (many weeks, many days, or detailed segments) would receive unwieldy JSON outputs in chat interfaces. The previous implementation automatically printed JSON in chat even when a downloadable file was created, which was redundant and could cause corruption. There was also ambiguity about when to create multiple files vs. a single file and when to use .zip packaging.
+Users generating complex training programs (many weeks, many days, or detailed segments) would receive unwieldy JSON outputs in chat interfaces. The previous implementation automatically printed JSON in chat even when a downloadable file was created, which was redundant and could cause corruption. There was also ambiguity about when to create multiple files versus a single file, and when to use .zip packaging versus providing individual files.
 
 ## Solution
 Enhanced the "ARTIFACT OUTPUT — SIMPLIFIED & INTENT-AWARE" section in the AI prompt template (`BlockGeneratorView.swift`) with clearer, more intentional instructions that:
