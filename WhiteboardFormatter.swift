@@ -152,7 +152,7 @@ public final class WhiteboardFormatter {
             if group.count > 1 {
                 // This is a superset/circuit group - label them a1, a2, etc.
                 for (index, exercise) in group.enumerated() {
-                    let label = "\(Character(UnicodeScalar(97 + index)!))\(index + 1)"  // a1, a2, a3...
+                    let label = "a\(index + 1)"  // a1, a2, a3...
                     items.append(formatStrengthExercise(exercise, label: label))
                 }
             } else if let exercise = group.first {

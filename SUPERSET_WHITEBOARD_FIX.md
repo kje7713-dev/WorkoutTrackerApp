@@ -128,7 +128,7 @@ private static func formatStrengthExerciseGroups(_ exerciseGroups: [[UnifiedExer
         if group.count > 1 {
             // Superset group - label them a1, a2, etc.
             for (index, exercise) in group.enumerated() {
-                let label = "\(Character(UnicodeScalar(97 + index)!))\(index + 1)"
+                let label = "a\(index + 1)"
                 items.append(formatStrengthExercise(exercise, label: label))
             }
         } else if let exercise = group.first {
