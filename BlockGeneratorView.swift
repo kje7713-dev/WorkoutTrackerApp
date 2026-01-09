@@ -508,6 +508,28 @@ struct BlockGeneratorView: View {
         
         Schema correctness is NON-NEGOTIABLE. Output MUST be valid JSON and conform exactly to the provided schema.
         
+        ═══════════════════════════════════════════════════════════════
+        ARTIFACT OUTPUT (REQUIRED WHEN LARGE):
+        ═══════════════════════════════════════════════════════════════
+        
+        If the final JSON exceeds 5,000 characters OR NumberOfWeeks > 4 OR DaysPerWeek > 3,
+        you MUST:
+        1) Write the JSON to a file named: [BlockName]_[Weeks]W_[Days]D.json
+        2) Also print the JSON in chat
+        3) If multiple files exist, package them into a single .zip and provide a download link
+        
+        Examples:
+        - "UpperLower_4W_4D.json" for a 4-week upper/lower split with 4 days per week
+        - "Powerlifting_6W_3D.json" for a 6-week powerlifting program with 3 days per week
+        - "BJJ_Fundamentals_8W_2D.json" for an 8-week BJJ program with 2 days per week
+        
+        When generating large/complex programs:
+        - Save the JSON file with the correct naming convention
+        - Still display the full JSON in the chat response for immediate visibility
+        - If you create multiple block files in the same conversation, bundle them into a .zip file
+        
+        ═══════════════════════════════════════════════════════════════
+        
         VOLUME & RECOVERY OWNERSHIP (AGENT-OWNED):
         You are responsible for determining appropriate volume, intensity, and recovery based on:
         - Stated training goal
