@@ -1,156 +1,200 @@
-# AI Prompt Generation Scope Contract (Revised v2)
+# AI Prompt Generation Scope Contract (Revised v3 - Coach-Grade)
 
 ## Overview
 
-This document describes the revised Generation Scope Contract added to the AI prompt template in BlockGeneratorView.swift to address issues with ChatGPT generating overly complex or inconsistent segment structures.
+This document describes the coach-grade training program design system implemented in the AI prompt template in BlockGeneratorView.swift. The system prioritizes schema correctness as non-negotiable while ensuring training program quality through structured analysis and decision-making.
 
-**Latest Update:** The contract now requires the AI to **always ask 5 scoping questions** for HIGH-ENTROPY requests, and only use defaults if the user fails to answer the questions. This ensures better user control and more appropriate outputs.
+**Latest Update (v3):** Complete redesign focused on coach-grade program design with:
+- Entropy detection (LOW/HIGH)
+- Goal stimulus identification
+- Pre-scope sufficiency analysis (MEU/MRU)
+- Unit justification requirements
+- Hard failure conditions for invalid programming
+- Schema compliance as mandatory, training decisions as flexible
 
 ## Problem Statement
 
-ChatGPT was finding the segment structure too flexible, resulting in:
-- Inconsistent schema shapes across generated units
-- Overly verbose descriptions that could overwhelm the parser
-- Performance issues with extremely large or complex outputs
-- Unpredictable use of optional fields across different days/weeks
-- Unclear handling of media content (videos, images, etc.)
-- AI jumping to defaults without user input for complex requests
+Previous versions of the AI prompt allowed:
+- Overly complex or inconsistent segment structures
+- Unclear training stimulus priorities
+- Unit counts that exceeded recoverable capacity
+- Conflicts between training goals and program structure
+- Schema violations when attempting to express training concepts
 
-## Solution: Revised Generation Scope Contract
+## Solution: Coach-Grade Training Program Design System
 
-A structured contract has been added to the AI prompt that establishes clear constraints before generation begins. The revised version includes enhanced scope validation, mandatory questioning for high-entropy requests, and media handling.
+A structured design process has been implemented that:
+1. **Classifies entropy** to identify complexity level
+2. **Identifies goal stimulus** to ensure training clarity
+3. **Analyzes sufficiency** to prevent overreaching
+4. **Justifies unit selection** before generation
+5. **Enforces schema compliance** as mandatory
+6. **Provides failure conditions** to catch invalid programs
 
-### Contract Components
+### Core Principle
 
-#### 1. HIGH-ENTROPY Detection
-The AI must first identify if the user's request is "HIGH-ENTROPY", which includes:
-- Multi-day programs
-- Curriculum or course structures
-- Long-term training programs
-- Series of related sessions
+**"Schema correctness is NON-NEGOTIABLE. Training correctness determines unit selection and content. If there is conflict, reduce scope (fewer units) or ask clarifying questions. Never break the schema."**
 
-#### 2. SCOPE VALIDATION (Mandatory for High-Entropy)
-For HIGH-ENTROPY requests, the AI must:
+## Contract Components
 
-**A) Classify contentType:**
-- workout | seminar | course | curriculum | protocol | other
+### 1. ENTROPY DETECTION
 
-**B) Classify mediaImpact:**
-- low | medium | high
-- Guidance: mediaImpact is at least "medium" for seminar/course/curriculum/protocol
-- Usually "low" for simple strength blocks unless videos were requested
+The AI must classify each request as:
+- **LOW entropy**: Single workout, straightforward requirements
+- **HIGH entropy**: Multi-day, multi-week, curriculum, protocol, or hybrid (strength + skill + conditioning)
 
-**C) Identify the "Primary Item":**
-- The main repeatable unit inside a session
-- Examples: technique, exercise, concept, drill, task, skill
+If HIGH entropy, all subsequent steps are **mandatory**.
 
-**D) Print an INITIAL SCOPE SUMMARY:**
-Shows the classification before asking questions:
-- contentType: <value>
-- primaryItem: <value>
-- mediaImpact: <value>
+### 2. SCOPE SUMMARY (INITIAL)
 
-**E) Ask the 5 REQUIRED QUESTIONS** (see Questions Policy below)
+For HIGH-ENTROPY requests, the AI must classify:
 
-**F) Print a FINAL SCOPE SUMMARY:**
-Shows all parameters after receiving user answers (or applying defaults if no answer):
-- contentType: <value>
-- primaryItem: <value>
-- mediaImpact: <value>
-- mediaPolicy: <value>
-- unitDuration: <value>
-- itemsPerUnit: <value>
-- detailDepth: <value>
-- structureConsistency: <value>
+```
+contentType: workout | seminar | course | curriculum | protocol | other
+primaryItem: exercise | technique | drill | concept | task | skill
+mediaImpact: low | medium | high
+```
 
-**G) Generate the JSON** based on the final scope.
+This classification guides subsequent decisions about scope and media handling.
 
-#### 3. Defaults (Applied Only When User Doesn't Answer)
-These defaults are used **ONLY** when the user fails to answer the 5 required questions:
-- **UnitDuration**: moderate
-- **ItemsPerUnit**: low (2 primary items)
-- **DetailDepth**: medium
-- **StructureConsistency**: identical structure across units
+### 3. GOAL STIMULUS
 
-**Important:** For HIGH-ENTROPY requests, the AI must first ask the questions and wait for user input before applying defaults.
+The AI must identify and document:
 
-#### 4. Media Defaults (Conditional)
-Media handling varies based on mediaImpact classification:
+```
+Primary Stimulus: [e.g., strength, hypertrophy, conditioning, skill acquisition]
+Secondary Stimulus: [e.g., conditioning, mobility]
+Tertiary Stimulus (optional): [additional training goals]
+```
 
-**If mediaImpact == low:**
-- Media: none
+**Critical Rule**: If goal stimulus is unclear or contradictory, the AI must **STOP** and ask for clarification rather than proceeding.
 
-**If mediaImpact == medium:**
-- Media: limited (1 video per Primary Item)
+### 4. PRE-SCOPE SUFFICIENCY ANALYSIS
 
-**If mediaImpact == high:**
-- AI asks exactly 1 question: "Video policy: none | 1 per session | 1 per primary item | per primary item (multiple)?"
-- If unanswered: default to "1 per primary item"
+Before generating content, the AI must analyze:
 
-#### 5. Questions Policy (Mandatory for High-Entropy)
-For **HIGH-ENTROPY** requests, the AI **MUST** ask these questions before generating JSON:
+1. **Minimum Effective Units (MEU)**: What is the minimum number of exercises/techniques needed to address the primary stimulus?
+2. **Maximum Recoverable Units (MRU)**: What is the maximum number of exercises/techniques the athlete can recover from?
+3. **Time Constraint Check**: Does the session duration support the proposed work?
+4. **Interference Check**: Do secondary/tertiary stimuli interfere with the primary stimulus?
 
-**Question 1:** "How long should each workout session or class be? Please choose: short (20-30 minutes), moderate (45-60 minutes), or long (90+ minutes)."
+This analysis prevents:
+- Insufficient volume (below MEU)
+- Overreaching (above MRU)
+- Time constraint violations
+- Training interference
 
-**Question 2:** "How many exercises or techniques would you like in each session? Please choose: few (2-3 items), moderate (4-5 items), or many (6+ items)."
+### 5. UNIT JUSTIFICATION
 
-**Question 3:** "How much detail would you like in the descriptions? Please choose: brief (just the essentials), moderate (standard detail), or detailed (comprehensive instructions and cues)."
+Before generating JSON, the AI must output:
 
-**Question 4:** "Should all weeks and days follow the same structure, or would you like variation? Please answer 'same structure' or describe the variation you want."
+```
+Primary Stimulus: [identified stimulus]
+MEU per Session: [number]
+MRU per Session: [number]
+Chosen Units per Session: [number with rationale]
+Rejected Alternatives: [what was considered but not included, and why]
+Final Justification: [why this unit count serves the primary stimulus]
+```
 
-**Question 5 (conditional):** Only asked if mediaImpact is 'high': "How many instructional videos would you like included? Please choose: none, one video per session, one video per exercise/technique, or multiple videos per exercise/technique."
+This ensures transparency and forces the AI to think through programming decisions.
 
-**Important Rules:**
-- For HIGH-ENTROPY requests, these questions are **REQUIRED** before generating JSON
-- The AI should wait for user responses to these questions
-- If the user explicitly says "use defaults" or "skip questions", then apply the DEFAULTS
-- If the user provides partial answers, ask only the unanswered questions again
-- For LOW-ENTROPY requests (single workout), skip questions and use defaults directly
+### 6. QUESTION GATE
 
-**Media-specific behavior:**
-- If mediaImpact == low: Skip Question 5, use "Media: none"
-- If mediaImpact == medium: Skip Question 5, use "Media: limited (1 video per Primary Item)"
-- If mediaImpact == high: Ask Question 5
+For HIGH-ENTROPY requests (unless user says "use defaults"):
 
-#### 6. Rules
-Strict rules to ensure consistency:
-- **No optional fields** unless used consistently across ALL units
-- **120 character limit** per descriptive text field
-- **Units differ by content**, not schema shape
-- **Cached file rendering** for performance-intensive outputs
-- **For HIGH-ENTROPY requests**: Asking the 5 questions is MANDATORY before generating JSON
-- **Only use defaults** if the user explicitly chooses defaults or fails to respond to questions
+1. **Session duration**: short (20–30), moderate (45–60), long (90+)
+2. **Unit density**: few (2–3), moderate (4–5), many (6+)
+3. **Detail depth**: brief | moderate | detailed
+4. **Structure**: identical | progressive | rotational
+5. **Video policy** (ONLY if mediaImpact = high): Ask video policy
+
+### 7. SMART DEFAULTS
+
+**ONLY IF QUESTIONS SKIPPED**
+
+If Primary Stimulus = strength:
+- MEU = 1 main lift + 1 secondary lift
+- MRU = 3 heavy lifts
+- Default units per session = 2
+
+If conditioning or skill is appended:
+- Cap total units to preserve output quality
+- Place conditioning after strength
+
+General defaults:
+- UnitDuration = moderate
+- DetailDepth = medium
+- StructureConsistency = identical unless progression is implied
+- MediaPolicy = none if mediaImpact = low
+
+### 8. SCOPE SUMMARY (FINAL)
+
+After analysis and questions (or defaults), the AI must output:
+
+```
+contentType: [value]
+primaryItem: [value]
+mediaImpact: [value]
+unitDuration: [value]
+unitsPerSession: [value]
+detailDepth: [value]
+structureConsistency: [value]
+```
+
+**After FINAL SCOPE LOCK:**
+- No scope changes allowed
+- No unit additions allowed
+- No schema reshaping allowed
+
+### 9. SCHEMA PRIORITY RULES
+
+These rules are **absolute**:
+- Never alter schema shape, field names, required fields, or types
+- Never add filler units to appear complete
+- Reduce scope or ask questions instead
+- Schema compliance is mandatory
+
+### 10. HARD FAILURE CONDITIONS
+
+The AI must **STOP AND ASK** if:
+- MEU > MRU (impossible to satisfy minimum while respecting maximum)
+- Session duration cannot support MEU (time constraint violation)
+- Primary stimulus is undermined by secondary work (training interference)
+- Unit count cannot be justified (arbitrary selection)
+- Schema compliance cannot be maintained (format violation)
+
+**Operating Principle**: "The number of units is a training decision, schema compliance is mandatory."
 
 ## Benefits
 
-1. **User Control**: Users are always asked for their preferences on HIGH-ENTROPY requests, ensuring outputs match their needs
-2. **Consistency**: All generated units follow the same schema structure
-3. **Performance**: Limits output size to manageable levels through scoping questions
-4. **Predictability**: Clear defaults ensure the AI knows what to generate when users don't answer
-5. **Quality**: Forces the AI to be concise and focused
-6. **Media Management**: Conditional media policies prevent over-generation of video links while supporting rich content when needed
-7. **Scope Transparency**: Initial and Final SCOPE SUMMARY provide users visibility into the AI's classification and chosen parameters
-8. **Better Engagement**: AI actively seeks user input for complex requests rather than making assumptions
+1. **Training Correctness**: MEU/MRU analysis prevents under- and over-programming
+2. **Schema Compliance**: Non-negotiable schema enforcement prevents parsing errors
+3. **Transparency**: Unit justification makes programming decisions explicit
+4. **Failure Prevention**: Hard failure conditions catch invalid programs before generation
+5. **Flexibility**: Training decisions remain flexible while schema remains fixed
+6. **Clarity**: Goal stimulus identification ensures programs address actual needs
+7. **Recovery Optimization**: MRU checks prevent overreaching
+8. **Time Management**: Duration checks ensure programs fit available time
 
 ## Implementation Location
 
-The contract is inserted in `BlockGeneratorView.swift` in the `aiPromptTemplate(withRequirements:)` function, positioned immediately after the user requirements and before the JSON format specification.
+The contract is in `BlockGeneratorView.swift` in the `aiPromptTemplate(withRequirements:)` function, positioned at the start of the prompt after user requirements.
 
 ```swift
 private func aiPromptTemplate(withRequirements requirements: String?) -> String {
     // ...
     return """
-    I need you to generate a workout block in JSON format...
+    You are a coach-grade training program designer...
     
     MY REQUIREMENTS:
     \(requirementsText)
     
     ═══════════════════════════════════════════════════════════════
-    GENERATION SCOPE CONTRACT (REQUIRED) — REVISED
+    ENTROPY DETECTION AND SCOPE CONTRACT (REQUIRED)
     ═══════════════════════════════════════════════════════════════
     
-    [Contract content with SCOPE VALIDATION, DEFAULTS, MEDIA DEFAULTS, 
-     QUESTIONS POLICY, and RULES sections]
+    [Contract content with all sections]
     
     ═══════════════════════════════════════════════════════════════
     
@@ -162,46 +206,103 @@ private func aiPromptTemplate(withRequirements requirements: String?) -> String 
 
 ## Usage
 
-Users will see the contract when they:
-1. Expand the "Preview Full Prompt" disclosure group in the BlockGeneratorView
-2. Copy the complete prompt using the "Copy Complete Prompt" button
-3. Use the prompt with ChatGPT, Claude, or other AI assistants
-
-The AI assistant will read the contract and apply its constraints during generation, resulting in more consistent and manageable workout block structures.
+Users will interact with the system by:
+1. Providing requirements in the BlockGeneratorView input field
+2. Copying the complete prompt using "Copy Complete Prompt"
+3. Pasting into ChatGPT, Claude, or other AI assistant
+4. Responding to questions if HIGH-ENTROPY is detected
+5. Receiving structured output with SCOPE SUMMARY and UNIT JUSTIFICATION
+6. Getting valid JSON that conforms to the schema
 
 ## Testing
 
 To verify the contract is working:
-1. Generate a multi-week, multi-day program using the AI prompt
-2. Verify the AI provides an **INITIAL SCOPE SUMMARY** showing classification
-3. Verify the AI **asks the 5 required questions** (or 4 if mediaImpact is not 'high')
-4. Verify the AI **waits for user answers** before proceeding
-5. Verify the AI provides a **FINAL SCOPE SUMMARY** with all parameters
-6. Check that all days have consistent field usage
-7. Verify descriptive text is concise (≤120 chars per field)
-8. Confirm optional fields appear consistently or not at all
-9. Validate media content adheres to the declared mediaPolicy
-10. Ensure contentType and primaryItem classifications are appropriate
-11. Validate the JSON parses successfully in the app
 
-**Test Case 1: HIGH-ENTROPY with user answers**
-- Input: "Create a 4-week BJJ curriculum"
-- Expected: AI shows INITIAL SCOPE SUMMARY, asks questions, waits for answers, shows FINAL SCOPE SUMMARY, generates JSON
+### Test Case 1: LOW-ENTROPY Request
+- **Input**: "Create a single upper body workout"
+- **Expected**: AI skips questions, uses smart defaults, generates JSON directly
 
-**Test Case 2: HIGH-ENTROPY with defaults**
-- Input: "Create a 4-week BJJ curriculum" followed by "use defaults"
-- Expected: AI shows INITIAL SCOPE SUMMARY, asks questions, user says "use defaults", AI shows FINAL SCOPE SUMMARY with default values, generates JSON
+### Test Case 2: HIGH-ENTROPY with Strength Focus
+- **Input**: "Create a 4-week strength block"
+- **Expected**:
+  1. Entropy: HIGH
+  2. SCOPE SUMMARY (INITIAL) with contentType: workout, primaryItem: exercise, mediaImpact: low
+  3. GOAL STIMULUS: Primary = strength
+  4. PRE-SCOPE SUFFICIENCY: MEU = 2 (main + secondary), MRU = 3
+  5. Asks 5 questions (or uses smart defaults if "skip questions")
+  6. UNIT JUSTIFICATION with reasoning
+  7. SCOPE SUMMARY (FINAL)
+  8. Valid JSON with 2-3 exercises per session
 
-**Test Case 3: LOW-ENTROPY**
-- Input: "Create a single upper body workout"
-- Expected: AI skips questions, uses defaults, generates JSON directly
+### Test Case 3: HIGH-ENTROPY with Interference
+- **Input**: "4-week block with heavy squats, deadlifts, AND high-volume conditioning"
+- **Expected**:
+  1. Entropy: HIGH
+  2. GOAL STIMULUS: Primary = strength, Secondary = conditioning
+  3. INTERFERENCE CHECK: Flags that high-volume conditioning may interfere with strength
+  4. Either: Asks clarification OR reduces conditioning volume
+  5. UNIT JUSTIFICATION explains interference mitigation
+
+### Test Case 4: Hard Failure - MEU > MRU
+- **Input**: "30-minute session with 8 heavy compound lifts"
+- **Expected**:
+  1. PRE-SCOPE SUFFICIENCY: Identifies MEU = 8, MRU = 3, Duration = 30 min
+  2. HARD FAILURE: MEU > MRU
+  3. AI stops and asks: "This request cannot be satisfied. Would you like to reduce exercise count or increase session duration?"
+
+### Test Case 5: BJJ Curriculum (Segments)
+- **Input**: "8-week BJJ guard curriculum"
+- **Expected**:
+  1. Entropy: HIGH
+  2. SCOPE SUMMARY: contentType = curriculum, primaryItem = technique, mediaImpact = medium/high
+  3. GOAL STIMULUS: Primary = skill (guard techniques)
+  4. Asks about video policy if mediaImpact = high
+  5. Uses segment-based format instead of exercises
+  6. Valid JSON with technique segments
+
+### Validation Checklist
+- [ ] Entropy correctly classified (LOW/HIGH)
+- [ ] SCOPE SUMMARY (INITIAL) provided for HIGH entropy
+- [ ] GOAL STIMULUS identified
+- [ ] PRE-SCOPE SUFFICIENCY analysis shown
+- [ ] UNIT JUSTIFICATION provided before JSON
+- [ ] SCOPE SUMMARY (FINAL) shown
+- [ ] Hard failures trigger questions instead of invalid output
+- [ ] Schema compliance maintained
+- [ ] JSON parses successfully in the app
 
 ## Future Enhancements
 
 Potential improvements:
-- Add user-configurable defaults in app settings
-- Provide preset scoping profiles (e.g., "minimal", "standard", "detailed")
-- Track which scoping defaults were applied for user feedback
-- Add validation warnings if generated output violates contract rules
-- Allow users to save custom SCOPE SUMMARY templates
-- Implement server-side validation of media policies
+- Auto-detect MEU/MRU based on goal and experience level
+- Provide built-in interference matrices for common goal combinations
+- Track historical unit counts to refine MEU/MRU recommendations
+- Add validation warnings if generated output violates sufficiency analysis
+- Implement server-side MEU/MRU calculation
+- Add preset stimulus profiles (e.g., "powerlifting", "CrossFit", "bodybuilding")
+- Include recovery capacity estimation based on training age
+
+## Key Differences from Previous Version
+
+### What Changed:
+1. **Focus shift**: From "asking questions" to "training correctness analysis"
+2. **New requirement**: MEU/MRU analysis before generation
+3. **New requirement**: UNIT JUSTIFICATION output
+4. **New requirement**: HARD FAILURE conditions
+5. **New rule**: Schema compliance is non-negotiable (previously could be bent)
+6. **Simplified**: Removed verbose question policy, replaced with streamlined QUESTION GATE
+7. **Enhanced**: SMART DEFAULTS now include training-specific logic (strength vs skill)
+
+### What Stayed:
+- Entropy detection (LOW/HIGH)
+- SCOPE SUMMARY (INITIAL and FINAL)
+- Media impact classification
+- JSON schema (unchanged)
+- Segment vs Exercise structure support
+
+### Philosophy Change:
+- **Old**: "Ask lots of questions to get user input"
+- **New**: "Analyze training correctness first, reduce scope if needed, schema is mandatory"
+
+This shift reflects a more coach-like approach where the AI acts as a knowledgeable program designer rather than just a JSON generator.
+

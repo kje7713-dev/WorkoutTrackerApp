@@ -504,117 +504,101 @@ struct BlockGeneratorView: View {
         }
         
         return """
-        I need you to generate a workout block in JSON format for the Savage By Design workout tracker app.
+        You are a coach-grade training program designer generating structured content for the Savage By Design workout tracker app.
+        
+        Schema correctness is NON-NEGOTIABLE. Output MUST be valid JSON and conform exactly to the provided schema.
+        Training correctness determines unit selection and content. If there is conflict, reduce scope (fewer units) or ask clarifying questions. Never break the schema.
         
         MY REQUIREMENTS:
         \(requirementsText)
         
         ═══════════════════════════════════════════════════════════════
-        GENERATION SCOPE CONTRACT (REQUIRED) — REVISED
+        ENTROPY DETECTION AND SCOPE CONTRACT (REQUIRED)
         ═══════════════════════════════════════════════════════════════
         
-        Before generating structured output:
-        1. Identify if the request is HIGH-ENTROPY (multi-day, curriculum, course, program, series).
-        2. If HIGH-ENTROPY, perform SCOPE VALIDATION (below) to classify the request.
-        3. For HIGH-ENTROPY requests, ALWAYS ask the 5 scoping questions (see QUESTIONS POLICY below).
-        4. If the user does not answer questions, THEN apply the DEFAULTS below.
-        5. For LOW-ENTROPY requests (single workout), use sensible defaults without asking questions.
+        ENTROPY DETECTION:
+        Classify each request as LOW or HIGH entropy.
+        HIGH entropy includes multi-day, multi-week, curriculum, protocol, or hybrid (strength + skill + conditioning) requests.
+        If HIGH entropy, all steps below are mandatory.
+        
+        SCOPE SUMMARY (INITIAL) — REQUIRED OUTPUT:
+        contentType: workout | seminar | course | curriculum | protocol | other
+        primaryItem: exercise | technique | drill | concept | task | skill
+        mediaImpact: low | medium | high
+        
+        GOAL STIMULUS — REQUIRED:
+        Primary Stimulus:
+        Secondary Stimulus:
+        Tertiary Stimulus (optional):
+        
+        If goal stimulus is unclear or contradictory, STOP and ask for clarification.
+        
+        PRE-SCOPE SUFFICIENCY ANALYSIS — REQUIRED:
+        1) Minimum Effective Units (MEU)
+        2) Maximum Recoverable Units (MRU)
+        3) Time Constraint Check
+        4) Interference Check
+        
+        UNIT JUSTIFICATION — REQUIRED OUTPUT BEFORE JSON:
+        Primary Stimulus:
+        MEU per Session:
+        MRU per Session:
+        Chosen Units per Session:
+        Rejected Alternatives:
+        Final Justification:
+        
+        QUESTION GATE — REQUIRED FOR HIGH ENTROPY (unless user says "use defaults"):
+        1) Session duration: short (20–30), moderate (45–60), long (90+)
+        2) Unit density: few (2–3), moderate (4–5), many (6+)
+        3) Detail depth: brief | moderate | detailed
+        4) Structure: identical | progressive | rotational
+        5) Ask video policy ONLY if mediaImpact = high
+        
+        SMART DEFAULTS (ONLY IF QUESTIONS SKIPPED):
+        If Primary Stimulus = strength:
+        - MEU = 1 main lift + 1 secondary lift
+        - MRU = 3 heavy lifts
+        - Default units per session = 2
+        
+        If conditioning or skill is appended:
+        - Cap total units to preserve output quality
+        - Place conditioning after strength
+        
+        UnitDuration = moderate
+        DetailDepth = medium
+        StructureConsistency = identical unless progression is implied
+        MediaPolicy = none if mediaImpact = low
+        
+        SCOPE SUMMARY (FINAL) — REQUIRED OUTPUT:
+        contentType:
+        primaryItem:
+        mediaImpact:
+        unitDuration:
+        unitsPerSession:
+        detailDepth:
+        structureConsistency:
+        
+        After FINAL SCOPE LOCK:
+        - No scope changes
+        - No unit additions
+        - No schema reshaping
         
         ───────────────────────────────────────────────────────────────
-        SCOPE VALIDATION (MANDATORY FOR HIGH-ENTROPY)
+        SCHEMA PRIORITY RULES
         ───────────────────────────────────────────────────────────────
-        For HIGH-ENTROPY requests, the model MUST:
-        A) Classify contentType as one of:
-           workout | seminar | course | curriculum | protocol | other
+        - Never alter schema shape, field names, required fields, or types
+        - Never add filler units to appear complete
+        - Reduce scope or ask questions instead
         
-        B) Classify mediaImpact as one of:
-           low | medium | high
+        HARD FAILURE CONDITIONS — STOP AND ASK:
+        - MEU > MRU
+        - Session duration cannot support MEU
+        - Primary stimulus is undermined by secondary work
+        - Unit count cannot be justified
+        - Schema compliance cannot be maintained
         
-           Guidance:
-           - mediaImpact is at least "medium" when contentType is seminar/course/curriculum/protocol
-           - mediaImpact is usually "low" for simple strength blocks unless videos were requested
-        
-        C) Identify the "Primary Item" for the plan:
-           - Primary Item = the main repeatable unit inside a session
-             Examples: technique, exercise, concept, drill, task, skill
-        
-        D) Print an initial SCOPE SUMMARY showing the classification:
-        
-        SCOPE SUMMARY (INITIAL):
-        - contentType: <value>
-        - primaryItem: <value>
-        - mediaImpact: <value>
-        
-        E) After showing the initial SCOPE SUMMARY, ask the 5 REQUIRED QUESTIONS (see QUESTIONS POLICY).
-        
-        F) After receiving answers (or if no answer, use DEFAULTS), print the FINAL SCOPE SUMMARY:
-        
-        SCOPE SUMMARY (FINAL):
-        - contentType: <value>
-        - primaryItem: <value>
-        - mediaImpact: <value>
-        - mediaPolicy: <value>
-        - unitDuration: <value>
-        - itemsPerUnit: <value>
-        - detailDepth: <value>
-        - structureConsistency: <value>
-        
-        G) Then generate the JSON based on the final scope.
-        
-        ───────────────────────────────────────────────────────────────
-        DEFAULTS (APPLIED ONLY IF USER DOESN'T ANSWER QUESTIONS)
-        ───────────────────────────────────────────────────────────────
-        These defaults are used ONLY when the user fails to answer the 5 required questions:
-        - UnitDuration: moderate
-        - ItemsPerUnit: low (2 primary items)
-        - DetailDepth: medium
-        - StructureConsistency: identical structure across units
-        
-        ───────────────────────────────────────────────────────────────
-        MEDIA DEFAULTS (BASED ON mediaImpact CLASSIFICATION)
-        ───────────────────────────────────────────────────────────────
-        - If mediaImpact == low:
-          - Media: none (no Question 5 needed)
-        
-        - If mediaImpact == medium:
-          - Media: limited (1 video per Primary Item) (no Question 5 needed)
-        
-        - If mediaImpact == high:
-          - Ask Question 5: "Video policy: none | 1 per session | 1 per primary item | per primary item (multiple)?"
-          - If user doesn't answer: default to "1 per primary item"
-        
-        ───────────────────────────────────────────────────────────────
-        QUESTIONS POLICY (MANDATORY FOR HIGH-ENTROPY)
-        ───────────────────────────────────────────────────────────────
-        For HIGH-ENTROPY requests, ALWAYS ask these 5 questions (unless mediaImpact is low, then ask 4):
-        
-        Question 1: "How long should each workout session or class be? Please choose: short (20-30 minutes), moderate (45-60 minutes), or long (90+ minutes)."
-        Question 2: "How many exercises or techniques would you like in each session? Please choose: few (2-3 items), moderate (4-5 items), or many (6+ items)."
-        Question 3: "How much detail would you like in the descriptions? Please choose: brief (just the essentials), moderate (standard detail), or detailed (comprehensive instructions and cues)."
-        Question 4: "Should all weeks and days follow the same structure, or would you like variation? Please answer 'same structure' or describe the variation you want."
-        Question 5 (conditional): "If mediaImpact is 'high', ask: How many instructional videos would you like included? Please choose: none, one video per session, one video per exercise/technique, or multiple videos per exercise/technique."
-        
-        IMPORTANT RULES:
-        - For HIGH-ENTROPY requests, these questions are REQUIRED before generating JSON
-        - If the user does not respond to the questions, wait for their response
-        - If the user explicitly says "use defaults" or "skip questions", then apply the DEFAULTS
-        - If the user provides partial answers, ask only the unanswered questions again
-        - For LOW-ENTROPY requests (single workout), skip questions and use defaults
-        
-        Media-specific rule:
-        - If mediaImpact == low: Skip Question 5, use "Media: none"
-        - If mediaImpact == medium: Skip Question 5, use "Media: limited (1 video per Primary Item)"
-        - If mediaImpact == high: Ask Question 5 as the 5th question
-        
-        ───────────────────────────────────────────────────────────────
-        RULES
-        ───────────────────────────────────────────────────────────────
-        - Do not introduce optional fields unless used consistently across ALL units.
-        - Cap each item's descriptive text to 120 characters per field.
-        - Units must differ by content selection or constraints, not schema shape.
-        - Render a cached file for download if needed to address performance limitations.
-        - For HIGH-ENTROPY requests, asking the 5 questions is MANDATORY before generating JSON.
-        - Only use defaults if the user explicitly chooses defaults or fails to respond to questions.
+        Operating principle:
+        "The number of units is a training decision, schema compliance is mandatory."
         
         ═══════════════════════════════════════════════════════════════
         
