@@ -114,8 +114,11 @@ public final class WhiteboardFormatter {
         var accessories: [[UnifiedExercise]] = []
         
         for group in exerciseGroups {
-            // Classify the group based on the first exercise
-            if let firstExercise = group.first, isMainLift(firstExercise) {
+            // Classify the group based on whether ANY exercise in the group is a main lift
+            // This keeps superset groups together even if exercises have different classifications
+            let hasMainLift = group.contains { isMainLift($0) }
+            
+            if hasMainLift {
                 mainLifts.append(group)
             } else {
                 accessories.append(group)
@@ -147,14 +150,20 @@ public final class WhiteboardFormatter {
     /// Format strength exercise groups into whiteboard items
     private static func formatStrengthExerciseGroups(_ exerciseGroups: [[UnifiedExercise]]) -> [WhiteboardItem] {
         var items: [WhiteboardItem] = []
+        var supersetGroupIndex = 0  // Track which superset group we're on (0=A, 1=B, 2=C, etc.)
         
         for group in exerciseGroups {
             if group.count > 1 {
-                // This is a superset/circuit group - label them a1, a2, etc.
+                // This is a superset/circuit group - label them A1/A2, B1/B2, etc.
+                // Get the letter for this superset group (A, B, C, D, ...)
+                let groupLetter = Character(UnicodeScalar(65 + supersetGroupIndex)!)  // 65 is 'A' in ASCII
+                
                 for (index, exercise) in group.enumerated() {
-                    let label = "a\(index + 1)"  // a1, a2, a3...
+                    let label = "\(groupLetter)\(index + 1)"  // A1, A2, A3... or B1, B2, B3...
                     items.append(formatStrengthExercise(exercise, label: label))
                 }
+                
+                supersetGroupIndex += 1  // Move to next letter for next superset group
             } else if let exercise = group.first {
                 // Single exercise
                 items.append(formatStrengthExercise(exercise))
@@ -168,7 +177,7 @@ public final class WhiteboardFormatter {
     private static func formatStrengthExercise(_ exercise: UnifiedExercise, label: String? = nil) -> WhiteboardItem {
         var primary = exercise.name
         
-        // Add label prefix for superset exercises (a1, a2, etc.)
+        // Add label prefix for superset exercises (A1, A2, B1, B2, etc.)
         if let label = label {
             primary = "\(label)) \(primary)"
         }
