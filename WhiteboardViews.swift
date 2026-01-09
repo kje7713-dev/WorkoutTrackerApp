@@ -145,6 +145,17 @@ struct MobileWhiteboardDayView: View {
         day.segments.filter { $0.segmentType.lowercased() != "warmup" }
     }
     
+    // Helper to toggle segment expansion state
+    private func toggleSegment(_ segmentId: UUID) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            if expandedSegmentId == segmentId {
+                expandedSegmentId = nil
+            } else {
+                expandedSegmentId = segmentId
+            }
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // 1) STICKY HEADER
@@ -164,15 +175,7 @@ struct MobileWhiteboardDayView: View {
                                 SegmentCard(
                                     segment: segment,
                                     isExpanded: expandedSegmentId == segment.id,
-                                    onToggle: {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            if expandedSegmentId == segment.id {
-                                                expandedSegmentId = nil
-                                            } else {
-                                                expandedSegmentId = segment.id
-                                            }
-                                        }
-                                    }
+                                    onToggle: { toggleSegment(segment.id) }
                                 )
                                 .id(segment.id)
                             }
@@ -196,15 +199,7 @@ struct MobileWhiteboardDayView: View {
                                 SegmentCard(
                                     segment: segment,
                                     isExpanded: expandedSegmentId == segment.id,
-                                    onToggle: {
-                                        withAnimation(.easeInOut(duration: 0.3)) {
-                                            if expandedSegmentId == segment.id {
-                                                expandedSegmentId = nil
-                                            } else {
-                                                expandedSegmentId = segment.id
-                                            }
-                                        }
-                                    }
+                                    onToggle: { toggleSegment(segment.id) }
                                 )
                                 .id(segment.id)
                             }
