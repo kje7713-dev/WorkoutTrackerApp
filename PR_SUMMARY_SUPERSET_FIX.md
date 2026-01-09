@@ -44,7 +44,7 @@ Exercises within a superset are labeled a1, a2, a3, etc.:
 ```swift
 if group.count > 1 {
     for (index, exercise) in group.enumerated() {
-        let label = "\(Character(UnicodeScalar(97 + index)!))\(index + 1)"
+        let label = "a\(index + 1)"
         items.append(formatStrengthExercise(exercise, label: label))
     }
 }
