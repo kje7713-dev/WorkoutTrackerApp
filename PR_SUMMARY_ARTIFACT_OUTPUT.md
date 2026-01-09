@@ -1,13 +1,18 @@
-# PR Summary: ARTIFACT OUTPUT Handling for Large Workout Programs
+# PR Summary: Enhanced ARTIFACT OUTPUT Handling for Large Workout Programs
 
 ## Overview
-This PR implements instructions in the AI prompt template to handle large JSON outputs when generating workout blocks. When certain thresholds are exceeded, AI assistants will create downloadable files instead of overwhelming the chat interface.
+This PR enhances the AI prompt template with simplified, intent-aware instructions for handling large JSON outputs when generating workout blocks. The new approach treats downloadable files as the primary deliverable and avoids automatically printing large JSON in chat.
 
 ## Problem Statement
-Users generating complex training programs (many weeks, many days, or detailed segments) would receive unwieldy JSON outputs in chat interfaces. There was no guidance for AI assistants on when and how to create downloadable files for these large outputs.
+Users generating complex training programs (many weeks, many days, or detailed segments) would receive unwieldy JSON outputs in chat interfaces. The previous implementation automatically printed JSON in chat even when a downloadable file was created, which was redundant and could cause corruption. There was also ambiguity about when to create multiple files versus a single file, and when to use .zip packaging versus providing individual files.
 
 ## Solution
-Added an "ARTIFACT OUTPUT (REQUIRED WHEN LARGE)" section to the AI prompt template in `BlockGeneratorView.swift` that provides clear instructions for file creation based on objective thresholds.
+Enhanced the "ARTIFACT OUTPUT — SIMPLIFIED & INTENT-AWARE" section in the AI prompt template (`BlockGeneratorView.swift`) with clearer, more intentional instructions that:
+- Treat downloadable files as the PRIMARY deliverable
+- Do NOT automatically print JSON in chat
+- Ask users if they want the JSON displayed in chat
+- Only create multiple files when intentionally modular
+- Only use .zip when there are 2+ files
 
 ## Threshold Conditions
 AI assistants will create downloadable files when ANY of these conditions are met:
@@ -17,8 +22,18 @@ AI assistants will create downloadable files when ANY of these conditions are me
 
 ## Required Actions (When Triggered)
 1. Write JSON to a file named: `[BlockName]_[Weeks]W_[Days]D.json`
-2. Print the JSON in chat for immediate visibility
-3. Bundle multiple files into a .zip if they exist
+2. State that the downloadable file is the PRIMARY and AUTHORITATIVE deliverable
+3. Note that the file is preferred for large/complex programs to avoid corruption
+4. DO NOT automatically print the JSON in chat
+5. Ask the user: "Would you like me to also display the JSON in chat for quick reference?"
+
+## Multi-File Rules
+- Only create multiple JSON files if the program is intentionally modular (e.g., separate phases, separate blocks, or reusable libraries)
+- DO NOT split a single block across multiple JSON files unless explicitly requested
+
+## ZIP Usage Rules
+- Create a .zip ONLY when there are 2 or more output JSON files
+- If there is only one JSON file, provide only the .json (no zip)
 
 ## File Changes
 ```
@@ -31,27 +46,12 @@ VISUAL_EXAMPLE.md                 | 107 ++++++++++++++++++++++++++++++++++
 ## Code Changes Detail
 
 ### BlockGeneratorView.swift
-**Location:** Lines 511-531 (new section in `aiPromptTemplate()` function)
+**Location:** Lines 511-540 (updated section in `aiPromptTemplate()` function)
 
-**Change Type:** Addition of prompt text only (no logic changes)
+**Change Type:** Enhancement of prompt text (no logic changes)
 
 **Before:**
 ```swift
-return """
-You are a coach-grade training program designer...
-
-Schema correctness is NON-NEGOTIABLE...
-
-VOLUME & RECOVERY OWNERSHIP (AGENT-OWNED):
-```
-
-**After:**
-```swift
-return """
-You are a coach-grade training program designer...
-
-Schema correctness is NON-NEGOTIABLE...
-
 ═══════════════════════════════════════════════════════════════
 ARTIFACT OUTPUT (REQUIRED WHEN LARGE):
 ═══════════════════════════════════════════════════════════════
@@ -61,20 +61,31 @@ you MUST:
 1) Write the JSON to a file named: [BlockName]_[Weeks]W_[Days]D.json
 2) Also print the JSON in chat
 3) If multiple files exist, package them into a single .zip and provide a download link
+```
 
-Examples:
-- "UpperLower_4W_4D.json" for a 4-week upper/lower split with 4 days per week
-- "Powerlifting_6W_3D.json" for a 6-week powerlifting program with 3 days per week
-- "BJJ_Fundamentals_8W_2D.json" for an 8-week BJJ program with 2 days per week
-
-When generating large/complex programs:
-- Save the JSON file with the correct naming convention
-- Still display the full JSON in the chat response for immediate visibility
-- If you create multiple block files in the same conversation, bundle them into a .zip file
-
+**After:**
+```swift
+═══════════════════════════════════════════════════════════════
+ARTIFACT OUTPUT — SIMPLIFIED & INTENT-AWARE:
 ═══════════════════════════════════════════════════════════════
 
-VOLUME & RECOVERY OWNERSHIP (AGENT-OWNED):
+If the final JSON exceeds 5,000 characters OR NumberOfWeeks > 4 OR DaysPerWeek > 3,
+you MUST create a downloadable artifact file.
+
+ARTIFACT DELIVERY RULES:
+1) Write the JSON to a file named: [BlockName]_[Weeks]W_[Days]D.json
+2) State that the downloadable file is the PRIMARY and AUTHORITATIVE deliverable
+3) Note that the file is preferred for large/complex programs to avoid corruption
+4) DO NOT automatically print the full JSON in chat
+5) Ask the user: "Would you like me to also display the JSON in chat for quick reference?"
+
+MULTI-FILE RULES:
+- Only create multiple JSON files if the program is intentionally modular
+- DO NOT split a single block across multiple JSON files unless explicitly requested
+
+ZIP USAGE:
+- Create a .zip ONLY when there are 2 or more output JSON files
+- If there is only one JSON file, provide only the .json (no zip)
 ```
 
 ## Example Use Cases
@@ -84,38 +95,52 @@ VOLUME & RECOVERY OWNERSHIP (AGENT-OWNED):
 - NumberOfWeeks = 2 (≤ 4) ✓
 - DaysPerWeek = 3 (≤ 3) ✓
 - JSON likely < 5,000 chars ✓
-- **Result:** JSON in chat only
+- **Result:** JSON displayed directly in chat (no file needed)
 
 ### 📁 Case 2: File Creation (Weeks Threshold)
 **Request:** "Create a 6-week, 4-day powerlifting program"
 - NumberOfWeeks = 6 (> 4) ❌ **TRIGGERED**
-- **Result:** `Powerlifting_6W_4D.json` created + JSON in chat
+- **Result:** `Powerlifting_6W_4D.json` created as PRIMARY deliverable
+- **AI Response:** "I've created Powerlifting_6W_4D.json as the authoritative version. Would you like me to also display the JSON in chat for quick reference?"
 
 ### 📁 Case 3: File Creation (Days Threshold)
 **Request:** "Create a 3-week, 5-day split"
 - DaysPerWeek = 5 (> 3) ❌ **TRIGGERED**
-- **Result:** `Split_3W_5D.json` created + JSON in chat
+- **Result:** `Split_3W_5D.json` created as PRIMARY deliverable
+- **AI asks if user wants in-chat display**
 
 ### 📁 Case 4: File Creation (Size Threshold)
 **Request:** "Create a detailed 3-week BJJ curriculum with extensive segment data"
 - JSON > 5,000 characters ❌ **TRIGGERED**
-- **Result:** `BJJ_Curriculum_3W_3D.json` created + JSON in chat
+- **Result:** `BJJ_Curriculum_3W_3D.json` created as PRIMARY deliverable
+- **AI asks if user wants in-chat display**
 
-### 🗜️ Case 5: Zip Bundling (Multiple Files)
+### 🗜️ Case 5: Zip Bundling (Multiple Modular Files)
+**Request:** "Create 3 separate training blocks: a strength block, a conditioning block, and a mobility block"
 **Session generates:**
 1. `Strength_6W_4D.json`
 2. `Conditioning_4W_3D.json`
 3. `Mobility_2W_7D.json`
-- **Result:** `TrainingPrograms.zip` with all files
+- **Result:** `TrainingPrograms.zip` with all 3 files (since 3 > 1 file)
+
+### ✅ Case 6: Single File (No Zip)
+**Request:** "Create a 6-week powerlifting program"
+**Session generates:**
+1. `Powerlifting_6W_3D.json`
+- **Result:** Single .json file provided (NO .zip created since only 1 file)
 
 ## Benefits
 
 ### For Users
 ✅ Large programs don't overwhelm chat interface  
-✅ Immediate visibility via chat display preserved  
+✅ Downloadable file is the primary, authoritative version  
+✅ Avoids JSON corruption from chat copy/paste  
+✅ In-chat JSON display is optional (only when requested)  
 ✅ Easy download and import workflow  
 ✅ Clear, consistent file naming  
-✅ Multi-program bundling for organization  
+✅ Multi-program bundling only when intentionally modular  
+✅ Single programs stay as single files (no unnecessary splitting)  
+✅ No .zip overhead for single-file outputs  
 
 ### For Developers
 ✅ No code logic changes required  
@@ -125,8 +150,10 @@ VOLUME & RECOVERY OWNERSHIP (AGENT-OWNED):
 
 ### For AI Assistants
 ✅ Objective thresholds (no guessing)  
-✅ Clear instructions on file naming  
-✅ Explicit multi-file handling guidance  
+✅ Clear priority: file is primary, chat is optional  
+✅ Explicit instructions on when to create multiple files  
+✅ Clear rules on when to use .zip vs. single .json  
+✅ Reduces chat clutter with large JSON dumps  
 
 ## User Experience Flow
 
@@ -136,10 +163,13 @@ VOLUME & RECOVERY OWNERSHIP (AGENT-OWNED):
 4. **User** pastes prompt into ChatGPT, Claude, or similar AI
 5. **AI** evaluates thresholds and determines if file creation needed
 6. **AI** generates JSON and creates file if conditions met
-7. **AI** displays JSON in chat AND provides download link (if applicable)
-8. **User** downloads file(s)
-9. **User** returns to app and uses "Choose JSON File" to import
-10. **App** parses JSON using existing BlockGenerator logic (unchanged)
+7. **AI** states that downloadable file is the PRIMARY deliverable
+8. **AI** asks user: "Would you like me to also display the JSON in chat for quick reference?"
+9. **User** responds (yes/no)
+10. **AI** displays JSON in chat only if user requested it
+11. **User** downloads file
+12. **User** returns to app and uses "Choose JSON File" to import
+13. **App** parses JSON using existing BlockGenerator logic (unchanged)
 
 ## Integration Points
 
@@ -150,10 +180,14 @@ VOLUME & RECOVERY OWNERSHIP (AGENT-OWNED):
 - ✅ Direct paste via "Parse JSON" button
 - ✅ All existing AI prompt sections (scope, schema, examples)
 
-### New Capability (Added)
+### New Capabilities (Enhanced)
 - ✅ Clear file creation thresholds for AI assistants
+- ✅ File-first approach (file is primary, chat is optional)
+- ✅ User control over in-chat JSON display
 - ✅ Consistent naming convention enforcement
-- ✅ Multi-file bundling guidance
+- ✅ Explicit multi-file rules (only when intentionally modular)
+- ✅ Explicit .zip rules (only when 2+ files)
+- ✅ Reduced chat clutter for large outputs
 
 ## Testing
 
@@ -166,24 +200,30 @@ VOLUME & RECOVERY OWNERSHIP (AGENT-OWNED):
 Test with AI assistant (ChatGPT/Claude) to verify:
 1. ✅ Thresholds correctly detected
 2. ✅ Files created with proper naming
-3. ✅ JSON displayed in chat alongside file
-4. ✅ Multiple files bundled into .zip
+3. ✅ File is stated as PRIMARY deliverable
+4. ✅ JSON NOT automatically displayed in chat
+5. ✅ AI asks user if they want in-chat display
+6. ✅ Multiple files only created when intentionally modular
+7. ✅ .zip only created when 2+ files exist
+8. ✅ Single file outputs provide .json only (no .zip)
 
 ### Example Test Cases
 ```
-Test 1: Small program (2 weeks, 3 days) → No file creation
-Test 2: Long program (6 weeks, 3 days) → File created
-Test 3: Many days (3 weeks, 5 days) → File created  
+Test 1: Small program (2 weeks, 3 days) → No file, JSON in chat
+Test 2: Long program (6 weeks, 3 days) → File created, AI asks about chat display
+Test 3: Many days (3 weeks, 5 days) → File created, AI asks about chat display
 Test 4: Complex segments (3 weeks, 3 days, detailed) → File created if >5000 chars
-Test 5: Multiple programs in session → .zip bundle created
+Test 5: Single modular program → Single .json file (no .zip)
+Test 6: Multiple separate programs requested → Multiple .json files bundled in .zip
+Test 7: Single block split request (not explicitly asked) → Single .json file maintained
 ```
 
 ## Documentation
 
-### Created Files
-- **ARTIFACT_OUTPUT_IMPLEMENTATION.md** - Technical implementation details, architecture decisions, validation status
-- **VISUAL_EXAMPLE.md** - User-facing examples, use cases, workflow diagrams
-- **PR_SUMMARY_ARTIFACT_OUTPUT.md** - This file (comprehensive PR summary)
+### Created/Updated Files
+- **ARTIFACT_OUTPUT_IMPLEMENTATION.md** - Updated with enhanced technical details
+- **PR_SUMMARY_ARTIFACT_OUTPUT.md** - This file (comprehensive PR summary with enhancements)
+- **BlockGeneratorView.swift** - Enhanced ARTIFACT OUTPUT section in AI prompt
 
 ### Copilot Instructions Update
 The `.github/copilot-instructions.md` file was not modified as this is a prompt-level change only. Future developers working on the AI prompt template should reference this PR for guidance on adding new sections.
@@ -223,32 +263,39 @@ Potential improvements for consideration:
 5. ⏳ Monitor user feedback on file generation
 
 ## Related Issues/PRs
-- Branch: `copilot/handle-large-artifact-outputs`
-- Commits: 
-  - `89e2b7e` - Initial plan
-  - `84403cd` - Add ARTIFACT OUTPUT section to AI prompt template
-  - `5c591ef` - Add implementation summary documentation
-  - `9f6310b` - Add visual example documentation
+- Branch: `copilot/enhance-ai-prompt-guidelines`
+- Previous Implementation:
+  - Branch: `copilot/handle-large-artifact-outputs`
+  - Commits: 
+    - `89e2b7e` - Initial plan
+    - `84403cd` - Add ARTIFACT OUTPUT section to AI prompt template
+    - `5c591ef` - Add implementation summary documentation
+    - `9f6310b` - Add visual example documentation
+- Current Enhancement:
+  - Simplified and intent-aware artifact output guidelines
+  - File-first approach with optional chat display
+  - Explicit multi-file and .zip rules
 
 ## Success Criteria
-- [x] ARTIFACT OUTPUT section added to prompt
-- [x] Thresholds clearly defined (JSON size, weeks, days)
-- [x] File naming convention specified with examples
-- [x] Multi-file bundling instructions included
+- [x] ARTIFACT OUTPUT section enhanced with simplified approach
+- [x] File-first delivery model implemented in prompt
+- [x] Optional in-chat JSON display with user confirmation
+- [x] Multi-file rules added (only when intentionally modular)
+- [x] ZIP usage rules added (only when 2+ files)
+- [x] Thresholds remain clearly defined (JSON size, weeks, days)
+- [x] File naming convention maintained with examples
 - [x] Code review passed
-- [x] Security scan passed
-- [x] Documentation created
+- [x] Documentation updated
 - [ ] Manual testing with AI assistants (recommended)
 - [ ] User feedback positive (post-release)
 
 ## Contact
 For questions or feedback on this implementation:
 - Code Owner: @kje7713-dev
-- PR: #[PR_NUMBER]
-- Branch: `copilot/handle-large-artifact-outputs`
+- Branch: `copilot/enhance-ai-prompt-guidelines`
 
 ---
 
-**Implementation Status:** ✅ COMPLETE
+**Implementation Status:** ✅ ENHANCED
 
 **Ready for:** Manual testing and merge
