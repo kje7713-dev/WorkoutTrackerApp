@@ -114,8 +114,11 @@ public final class WhiteboardFormatter {
         var accessories: [[UnifiedExercise]] = []
         
         for group in exerciseGroups {
-            // Classify the group based on the first exercise
-            if let firstExercise = group.first, isMainLift(firstExercise) {
+            // Classify the group based on whether ANY exercise in the group is a main lift
+            // This keeps superset groups together even if exercises have different classifications
+            let hasMainLift = group.contains { isMainLift($0) }
+            
+            if hasMainLift {
                 mainLifts.append(group)
             } else {
                 accessories.append(group)

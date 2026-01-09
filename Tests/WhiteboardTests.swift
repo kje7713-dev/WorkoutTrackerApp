@@ -860,4 +860,40 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(sections[1].items.count, 1)
         XCTAssertEqual(sections[1].items[0].primary, "Bicep Curls")
     }
+    
+    func testSupersetWithAccessoryFirstMainLiftSecondStaysInStrength() {
+        // Given: A superset where accessory comes first, main lift second (reverse order)
+        let supersetId = "reverse-superset"
+        let day = UnifiedDay(
+            name: "Reverse Order Superset",
+            exercises: [
+                UnifiedExercise(
+                    name: "Leg Curls",
+                    type: "strength",
+                    category: "other",
+                    strengthSets: Array(repeating: UnifiedStrengthSet(reps: 12), count: 3),
+                    setGroupId: supersetId
+                ),
+                UnifiedExercise(
+                    name: "Squat",
+                    type: "strength",
+                    category: "squat",
+                    strengthSets: Array(repeating: UnifiedStrengthSet(reps: 5), count: 5),
+                    setGroupId: supersetId
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Both should be in Strength section (because ANY exercise is a main lift)
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Strength")
+        XCTAssertEqual(sections[0].items.count, 2)
+        
+        // Both exercises should be labeled as a superset and stay together
+        XCTAssertEqual(sections[0].items[0].primary, "A1) Leg Curls")
+        XCTAssertEqual(sections[0].items[1].primary, "A2) Squat")
+    }
 }
