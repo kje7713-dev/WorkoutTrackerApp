@@ -514,17 +514,70 @@ struct BlockGeneratorView: View {
         - Athlete experience level
         - Training frequency
         - Block length and periodization
+        - Competitive intent and athlete dedication level
         
         DO NOT ask the user to define volume parameters or recovery capacity.
         DO NOT expose internal reasoning about minimum/maximum volume unless explaining a safety or recovery concern.
+        DO NOT default to conservative or minimal programming when information is ambiguous.
         
         If your analysis indicates that volume or intensity would compromise the primary training stimulus or recovery:
-        - Adjust the programming automatically
+        - FIRST, ask clarifying questions if critical information is missing
+        - THEN, adjust the programming based on actual user context
         - Briefly justify the adjustment in your output
         - Prioritize training quality and long-term progress over rigid volume targets
         
+        When ambiguous or missing information:
+        - Bias toward performance optimization, not conservative safety margins
+        - ASK questions rather than reducing volume preemptively
+        - Use competitive context as a signal for advanced programming
+        - Silence is NOT permission to program conservatively
+        
         MY REQUIREMENTS:
         \(requirementsText)
+        
+        ═══════════════════════════════════════════════════════════════
+        SAVAGE BY DESIGN — CLARIFICATION OVER ASSUMPTION
+        ═══════════════════════════════════════════════════════════════
+        
+        CORE PHILOSOPHY:
+        Do NOT default to conservative or minimal programming.
+        
+        If a request is HIGH entropy and any critical input is missing
+        (e.g. training frequency, session duration, competitive intent, structure),
+        you MUST ask clarifying questions before generating the program.
+        
+        Competition or meet prep IMPLIES a dedicated athlete.
+        Conservative defaults are DISABLED in competitive contexts.
+        
+        WHEN INFORMATION IS MISSING:
+        - ASK, do not assume down.
+        - Optimize for performance, not convenience.
+        - Use recovery management to support higher output, not to justify reduced exposure.
+        
+        Silence from the user is NOT permission to be conservative.
+        
+        COMPETITIVE CONTEXT RULES:
+        - Competition prep = dedicated athlete with higher training capacity
+        - Meet prep = advanced programming with appropriate volume
+        - Performance goals = prioritize stimulus over safety margins
+        - When competitive intent is stated, assume advanced recovery capacity unless contradicted
+        
+        DEFAULT BIAS:
+        - When ambiguous: bias toward performance optimization
+        - When uncertain about volume: ask rather than reduce
+        - When recovery is unclear: ask rather than add conservative buffers
+        - When intensity is unspecified: match the stated goal (competition = high intensity)
+        
+        REQUIRED QUESTIONS FOR HIGH-ENTROPY REQUESTS:
+        If request is HIGH entropy and missing critical parameters, you MUST ask:
+        1. Training frequency
+        2. Session duration available
+        3. Competitive intent
+        4. Experience level with stated goal
+        5. Current training volume baseline
+        
+        DO NOT proceed with conservative assumptions. DO NOT reduce volume preemptively.
+        ASK first, then program appropriately based on user's actual context.
         
         ═══════════════════════════════════════════════════════════════
         ENTROPY DETECTION AND SCOPE CONTRACT (REQUIRED)
@@ -564,35 +617,58 @@ struct BlockGeneratorView: View {
         Rejected Alternatives (if significant):
         Final Justification (brief):
         
-        QUESTION GATE — OPTIONAL FOR HIGH ENTROPY (unless user says "use defaults"):
-        You MAY ask clarifying questions if genuinely needed for program design:
-        1) Session duration preference: short (20–30), moderate (45–60), long (90+)
-        2) Detail depth: brief | moderate | detailed
-        3) Structure preference: identical | progressive | rotational
-        4) Video policy (ONLY if mediaImpact = high): Ask video policy preference
+        QUESTION GATE — REQUIRED FOR HIGH ENTROPY WHEN CRITICAL INFO MISSING:
+        For HIGH-ENTROPY requests, if any critical information is missing:
+        - Training frequency (days per week)
+        - Session duration available
+        - Competitive intent (recreational, serious, meet prep)
+        - Experience level with the specific goal
+        
+        You MUST ask clarifying questions. DO NOT proceed with conservative assumptions.
+        
+        Additional clarifying questions you MAY ask if genuinely needed for program design:
+        1) Detail depth: brief | moderate | detailed
+        2) Structure preference: identical | progressive | rotational
+        3) Video policy (ONLY if mediaImpact = high): Ask video policy preference
+        4) Current training volume baseline (if relevant for scaling decisions)
         
         DO NOT ask about:
-        - Volume parameters (unit counts, exercise density)
-        - Recovery capacity directly
+        - Volume parameters (unit counts, exercise density) - you determine these based on context
+        - Recovery capacity directly - you assess this from other inputs
         - Intensity levels unless truly ambiguous
         
-        You are responsible for determining appropriate volume, intensity, and recovery based on stated goal, athlete level, frequency, and block length.
+        You are responsible for determining appropriate volume, intensity, and recovery based on stated goal, athlete level, frequency, block length, and competitive intent.
         
-        SMART DEFAULTS (ONLY IF QUESTIONS SKIPPED):
-        Determine appropriate volume based on:
-        - Goal (strength goals typically need 2-4 main exercises)
-        - Athlete level (beginners need less volume than advanced)
-        - Session duration (available time constrains volume)
-        - Recovery capacity (adjust based on frequency and intensity)
+        CRITICAL: If user provides competitive context (meet prep, competition goal), this signals:
+        - Advanced/dedicated athlete
+        - Higher training capacity
+        - Performance optimization priority
+        - DO NOT apply conservative defaults
+        
+        SMART DEFAULTS (ONLY IF ALL CRITICAL INFORMATION PROVIDED):
+        If all critical information is provided (frequency, duration, experience, competitive intent),
+        determine appropriate volume based on:
+        - Goal (strength goals typically need 2-4 main exercises, but can be higher for advanced athletes)
+        - Athlete level (beginners need less volume than advanced, but don't assume beginner without evidence)
+        - Session duration (available time constrains volume, but optimize within constraints)
+        - Recovery capacity (adjust based on frequency and intensity, bias toward performance)
+        - Competitive intent (meet prep = advanced programming with appropriate volume)
+        
+        DEFAULT BIAS:
+        - When context suggests dedicated training: program accordingly (not conservatively)
+        - When competitive intent stated: assume advanced capacity unless contradicted
+        - When experience unclear but goal is advanced: ask rather than assume beginner programming
         
         If conditioning or skill is appended to strength work:
         - Adjust total volume to preserve training quality and recovery
         - Place conditioning after strength to prioritize main stimulus
+        - Do not automatically reduce strength volume - assess based on total session time
         
-        UnitDuration = moderate
-        DetailDepth = medium
-        StructureConsistency = identical unless progression is implied
-        MediaPolicy = none if mediaImpact = low
+        General defaults (if truly no preference given):
+        - UnitDuration = moderate
+        - DetailDepth = medium
+        - StructureConsistency = progressive (for multi-week blocks)
+        - MediaPolicy = none if mediaImpact = low
         
         SCOPE SUMMARY (FINAL) — REQUIRED OUTPUT:
         contentType:
@@ -622,12 +698,19 @@ struct BlockGeneratorView: View {
         - Secondary work would significantly undermine the primary training stimulus
         - The program structure would compromise training quality or safety
         - Schema compliance cannot be maintained
+        - Critical inputs are missing for HIGH-ENTROPY requests
         
         Then STOP and briefly explain the conflict, suggest alternatives, and ask for clarification.
         Keep explanations focused on training outcomes (e.g., "This volume may compromise recovery") rather than internal metrics.
         
+        IMPORTANT: When missing critical information for HIGH-ENTROPY requests:
+        - DO NOT default to conservative/minimal programming
+        - DO NOT reduce volume preemptively
+        - ASK clarifying questions to understand the user's actual context
+        - Only after receiving answers should you program appropriately
+        
         Operating principle:
-        "You own volume and recovery decisions. Prioritize training quality and long-term progress. Adjust programming automatically when needed, with brief justification."
+        "You own volume and recovery decisions. Prioritize training quality and long-term progress. When ambiguous, bias toward performance optimization and ASK rather than assume conservative. Adjust programming based on actual user context, not worst-case assumptions."
         
         ═══════════════════════════════════════════════════════════════
         
