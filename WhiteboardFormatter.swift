@@ -21,21 +21,24 @@ public final class WhiteboardFormatter {
         // Partition exercises
         let (strengthExercises, conditioningExercises) = partitionExercises(day.exercises)
         
+        // Group exercises by setGroupId to keep supersets together
+        let groupedStrength = groupExercisesBySetGroup(strengthExercises)
+        
         // Further partition strength into main lifts vs accessories
-        let (mainLifts, accessories) = partitionStrengthExercises(strengthExercises)
+        let (mainLifts, accessories) = partitionStrengthExercises(groupedStrength)
         
         // Build sections
         if !mainLifts.isEmpty {
             sections.append(WhiteboardSection(
                 title: "Strength",
-                items: mainLifts.map { formatStrengthExercise($0) }
+                items: formatStrengthExerciseGroups(mainLifts)
             ))
         }
         
         if !accessories.isEmpty {
             sections.append(WhiteboardSection(
                 title: "Accessory",
-                items: accessories.map { formatStrengthExercise($0) }
+                items: formatStrengthExerciseGroups(accessories)
             ))
         }
         
@@ -67,16 +70,55 @@ public final class WhiteboardFormatter {
         return (strength, conditioning)
     }
     
-    /// Partition strength exercises into main lifts vs accessories
-    private static func partitionStrengthExercises(_ exercises: [UnifiedExercise]) -> ([UnifiedExercise], [UnifiedExercise]) {
-        var mainLifts: [UnifiedExercise] = []
-        var accessories: [UnifiedExercise] = []
+    /// Group exercises that share a setGroupId together
+    private static func groupExercisesBySetGroup(_ exercises: [UnifiedExercise]) -> [[UnifiedExercise]] {
+        var groups: [[UnifiedExercise]] = []
+        var currentGroup: [UnifiedExercise] = []
+        var currentGroupId: String? = nil
         
         for exercise in exercises {
-            if isMainLift(exercise) {
-                mainLifts.append(exercise)
+            if let groupId = exercise.setGroupId {
+                if groupId == currentGroupId {
+                    // Continue current group
+                    currentGroup.append(exercise)
+                } else {
+                    // Start a new group
+                    if !currentGroup.isEmpty {
+                        groups.append(currentGroup)
+                    }
+                    currentGroup = [exercise]
+                    currentGroupId = groupId
+                }
             } else {
-                accessories.append(exercise)
+                // Non-grouped exercise
+                if !currentGroup.isEmpty {
+                    groups.append(currentGroup)
+                    currentGroup = []
+                    currentGroupId = nil
+                }
+                groups.append([exercise])
+            }
+        }
+        
+        // Add final group if any
+        if !currentGroup.isEmpty {
+            groups.append(currentGroup)
+        }
+        
+        return groups
+    }
+    
+    /// Partition strength exercise groups into main lifts vs accessories
+    private static func partitionStrengthExercises(_ exerciseGroups: [[UnifiedExercise]]) -> ([[UnifiedExercise]], [[UnifiedExercise]]) {
+        var mainLifts: [[UnifiedExercise]] = []
+        var accessories: [[UnifiedExercise]] = []
+        
+        for group in exerciseGroups {
+            // Classify the group based on the first exercise
+            if let firstExercise = group.first, isMainLift(firstExercise) {
+                mainLifts.append(group)
+            } else {
+                accessories.append(group)
             }
         }
         
@@ -85,7 +127,7 @@ public final class WhiteboardFormatter {
     
     /// Heuristic to determine if an exercise is a main lift
     private static func isMainLift(_ exercise: UnifiedExercise) -> Bool {
-        // Main lift categories
+        // Main lift categories (primary compound movements)
         let mainLiftCategories = ["squat", "hinge", "pressHorizontal", "pressVertical", "olympic"]
         
         if let category = exercise.category, mainLiftCategories.contains(category) {
@@ -97,19 +139,39 @@ public final class WhiteboardFormatter {
             return true
         }
         
-        // Check if grouped exercises (supersets/circuits are usually accessories)
-        if exercise.setGroupId != nil {
-            return false
-        }
-        
         return false
     }
     
     // MARK: - Strength Formatting
     
+    /// Format strength exercise groups into whiteboard items
+    private static func formatStrengthExerciseGroups(_ exerciseGroups: [[UnifiedExercise]]) -> [WhiteboardItem] {
+        var items: [WhiteboardItem] = []
+        
+        for group in exerciseGroups {
+            if group.count > 1 {
+                // This is a superset/circuit group - label them a1, a2, etc.
+                for (index, exercise) in group.enumerated() {
+                    let label = "\(Character(UnicodeScalar(97 + index)!))\(index + 1)"  // a1, a2, a3...
+                    items.append(formatStrengthExercise(exercise, label: label))
+                }
+            } else if let exercise = group.first {
+                // Single exercise
+                items.append(formatStrengthExercise(exercise))
+            }
+        }
+        
+        return items
+    }
+    
     /// Format a strength exercise into a whiteboard item
-    private static func formatStrengthExercise(_ exercise: UnifiedExercise) -> WhiteboardItem {
-        let primary = exercise.name
+    private static func formatStrengthExercise(_ exercise: UnifiedExercise, label: String? = nil) -> WhiteboardItem {
+        var primary = exercise.name
+        
+        // Add label prefix for superset exercises (a1, a2, etc.)
+        if let label = label {
+            primary = "\(label)) \(primary)"
+        }
         
         // Format secondary (prescription)
         let secondary = formatStrengthPrescription(exercise)
