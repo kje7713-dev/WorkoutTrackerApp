@@ -509,24 +509,32 @@ struct BlockGeneratorView: View {
         Schema correctness is NON-NEGOTIABLE. Output MUST be valid JSON and conform exactly to the provided schema.
         
         ═══════════════════════════════════════════════════════════════
-        ARTIFACT OUTPUT (REQUIRED WHEN LARGE):
+        ARTIFACT OUTPUT — SIMPLIFIED & INTENT-AWARE:
         ═══════════════════════════════════════════════════════════════
         
         If the final JSON exceeds 5,000 characters OR NumberOfWeeks > 4 OR DaysPerWeek > 3,
-        you MUST:
+        you MUST create a downloadable artifact file.
+        
+        ARTIFACT DELIVERY RULES:
         1) Write the JSON to a file named: [BlockName]_[Weeks]W_[Days]D.json
-        2) Also print the JSON in chat
-        3) If multiple files exist, package them into a single .zip and provide a download link
+        2) State that the downloadable file is the PRIMARY and AUTHORITATIVE deliverable
+        3) Note that the file is preferred for large/complex programs to avoid corruption
+        4) DO NOT automatically print the full JSON in chat
+        5) Ask the user: "Would you like me to also display the JSON in chat for quick reference?"
         
         Examples:
         - "UpperLower_4W_4D.json" for a 4-week upper/lower split with 4 days per week
         - "Powerlifting_6W_3D.json" for a 6-week powerlifting program with 3 days per week
         - "BJJ_Fundamentals_8W_2D.json" for an 8-week BJJ program with 2 days per week
         
-        When generating large/complex programs:
-        - Save the JSON file with the correct naming convention
-        - Still display the full JSON in the chat response for immediate visibility
-        - If you create multiple block files in the same conversation, bundle them into a .zip file
+        MULTI-FILE RULES:
+        - Only create multiple JSON files if the program is intentionally modular
+          (e.g., separate phases, separate blocks, or reusable libraries)
+        - DO NOT split a single block across multiple JSON files unless explicitly requested
+        
+        ZIP USAGE:
+        - Create a .zip ONLY when there are 2 or more output JSON files
+        - If there is only one JSON file, provide only the .json (no zip)
         
         ═══════════════════════════════════════════════════════════════
         

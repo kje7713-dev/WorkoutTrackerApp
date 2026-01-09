@@ -1,13 +1,13 @@
 # Artifact Output Implementation Summary
 
 ## Overview
-This implementation adds instructions to the AI prompt template for handling large JSON outputs when generating workout blocks through the BlockGeneratorView.
+This implementation adds instructions to the AI prompt template for handling large JSON outputs when generating workout blocks through the BlockGeneratorView. The prompt now follows a simplified, intent-aware approach that treats downloadable files as the primary deliverable.
 
 ## Problem Statement
-When users request complex training programs (many weeks, many days, or long JSON), the output can be unwieldy to manage in chat interfaces. The AI assistant needed clear guidance on when and how to save outputs as downloadable files.
+When users request complex training programs (many weeks, many days, or long JSON), the output can be unwieldy to manage in chat interfaces. The AI assistant needed clear guidance on when and how to save outputs as downloadable files. Additionally, automatically printing large JSON in chat was counterproductive when an artifact file was already generated.
 
 ## Solution
-Added an "ARTIFACT OUTPUT (REQUIRED WHEN LARGE)" section to the AI prompt template in `BlockGeneratorView.swift`.
+Added an "ARTIFACT OUTPUT — SIMPLIFIED & INTENT-AWARE" section to the AI prompt template in `BlockGeneratorView.swift`.
 
 ## Implementation Details
 
@@ -25,8 +25,18 @@ The AI assistant will create downloadable files when:
 
 **Required Actions:**
 1. Write the JSON to a file with naming convention: `[BlockName]_[Weeks]W_[Days]D.json`
-2. Also print the JSON in chat for immediate visibility
-3. If multiple files exist, package them into a single .zip and provide a download link
+2. State that the downloadable file is the PRIMARY and AUTHORITATIVE deliverable
+3. Note that the file is preferred for large/complex programs to avoid corruption
+4. DO NOT automatically print the full JSON in chat
+5. Ask the user if they would like the JSON displayed in chat for quick reference
+
+**Multi-File Rules:**
+- Only create multiple JSON files if the program is intentionally modular (e.g., separate phases, blocks, or reusable libraries)
+- DO NOT split a single block across multiple JSON files unless explicitly requested
+
+**ZIP Usage:**
+- Create a .zip ONLY when there are 2 or more output JSON files
+- If there is only one JSON file, provide only the .json (no zip)
 
 **Examples Provided:**
 - `UpperLower_4W_4D.json` - 4-week upper/lower split with 4 days per week
@@ -37,21 +47,28 @@ The AI assistant will create downloadable files when:
 
 ### For Users:
 - Large/complex programs are saved as downloadable files instead of overwhelming chat
-- Still get immediate visibility of JSON in chat
-- Multiple programs can be bundled into a .zip for easy organization
+- Downloadable file is treated as the primary deliverable, avoiding corruption
+- JSON in chat is optional and only provided when explicitly requested
+- Multiple modular programs can be bundled into a .zip for easy organization
 - Clear file naming makes it easy to identify programs
+- Single-block programs don't get unnecessarily split into multiple files
 
 ### For AI Assistants:
 - Clear threshold conditions for when to create files
+- Simplified delivery approach: file first, chat display optional
 - Explicit instructions on file naming conventions
-- Guidance on bundling multiple files
+- Clear guidance on when to create multiple files vs. a single file
+- Explicit rules on when to use .zip vs. single .json
 
 ## Testing
 Manual testing is recommended to validate that AI assistants correctly:
 1. Detect when conditions are met (JSON > 5000 chars or weeks/days thresholds)
 2. Create properly named files
-3. Display JSON in chat alongside file creation
-4. Bundle multiple files into .zip archives
+3. Treat the downloadable file as the primary deliverable
+4. DO NOT automatically display JSON in chat unless user requests it
+5. Ask user if they want the JSON displayed in chat
+6. Only create multiple JSON files when intentionally modular
+7. Only bundle into .zip when 2+ files exist
 
 ## Technical Notes
 - This is a prompt-level change only - no changes to Swift code logic
@@ -78,5 +95,6 @@ Potential improvements for future consideration:
 - `BlockGenerator.swift` - Parses JSON into Block models (unchanged)
 - AI_PROMPT_*.md files - Related documentation on prompt design
 
-## Commit Hash
-84403cd - "Add ARTIFACT OUTPUT section to AI prompt template"
+## Commit History
+- 84403cd - "Add ARTIFACT OUTPUT section to AI prompt template" (original implementation)
+- [current] - "Enhance AI prompt with simplified, intent-aware artifact output guidelines"
