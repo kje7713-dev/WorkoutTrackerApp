@@ -703,9 +703,9 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(sections[0].title, "Strength")
         XCTAssertEqual(sections[0].items.count, 2)
         
-        // Both should have proper labels (a1, a2)
-        XCTAssertEqual(sections[0].items[0].primary, "a1) Bench Press")
-        XCTAssertEqual(sections[0].items[1].primary, "a2) Barbell Row")
+        // Both should have proper labels (A1, A2)
+        XCTAssertEqual(sections[0].items[0].primary, "A1) Bench Press")
+        XCTAssertEqual(sections[0].items[1].primary, "A2) Barbell Row")
         
         // Both should have prescriptions
         XCTAssertEqual(sections[0].items[0].secondary, "3 × 8 @ 135 lbs")
@@ -760,13 +760,13 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(sections[0].title, "Strength")
         XCTAssertEqual(sections[0].items.count, 4)
         
-        // First superset group
-        XCTAssertEqual(sections[0].items[0].primary, "a1) Bench Press")
-        XCTAssertEqual(sections[0].items[1].primary, "a2) Barbell Row")
+        // First superset group (A1, A2)
+        XCTAssertEqual(sections[0].items[0].primary, "A1) Bench Press")
+        XCTAssertEqual(sections[0].items[1].primary, "A2) Barbell Row")
         
-        // Second superset group (should restart at a1)
-        XCTAssertEqual(sections[0].items[2].primary, "a1) Overhead Press")
-        XCTAssertEqual(sections[0].items[3].primary, "a2) Pull-Up")
+        // Second superset group (B1, B2)
+        XCTAssertEqual(sections[0].items[2].primary, "B1) Overhead Press")
+        XCTAssertEqual(sections[0].items[3].primary, "B2) Pull-Up")
     }
     
     func testSupersetWithAccessoryExerciseStaysUnderStrength() {
@@ -800,8 +800,8 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(sections[0].title, "Strength")
         XCTAssertEqual(sections[0].items.count, 2)
         
-        XCTAssertEqual(sections[0].items[0].primary, "a1) Squat")
-        XCTAssertEqual(sections[0].items[1].primary, "a2) Leg Curls")
+        XCTAssertEqual(sections[0].items[0].primary, "A1) Squat")
+        XCTAssertEqual(sections[0].items[1].primary, "A2) Leg Curls")
     }
     
     func testMixedSupersetAndNonSupersetExercises() {
@@ -852,8 +852,8 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(sections[0].title, "Strength")
         XCTAssertEqual(sections[0].items.count, 3)
         XCTAssertEqual(sections[0].items[0].primary, "Deadlift")
-        XCTAssertEqual(sections[0].items[1].primary, "a1) Bench Press")
-        XCTAssertEqual(sections[0].items[2].primary, "a2) Barbell Row")
+        XCTAssertEqual(sections[0].items[1].primary, "A1) Bench Press")
+        XCTAssertEqual(sections[0].items[2].primary, "A2) Barbell Row")
         
         // Accessory section: Curls
         XCTAssertEqual(sections[1].title, "Accessory")
