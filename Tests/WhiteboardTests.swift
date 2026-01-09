@@ -661,4 +661,203 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertTrue(item.bullets.contains("10 Push-ups"))
         XCTAssertTrue(item.bullets.contains("Rest remaining time each minute"))
     }
+    
+    // MARK: - Superset Tests
+    
+    func testSupersetRenderingUnderStrengthSection() {
+        // Given: A day with a superset of primary lifts
+        let supersetId = "test-superset-id"
+        let day = UnifiedDay(
+            name: "Push/Pull Supersets",
+            exercises: [
+                UnifiedExercise(
+                    name: "Bench Press",
+                    type: "strength",
+                    category: "pressHorizontal",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 8, weight: 135, restSeconds: 60),
+                        UnifiedStrengthSet(reps: 8, weight: 135, restSeconds: 60),
+                        UnifiedStrengthSet(reps: 8, weight: 135, restSeconds: 90)
+                    ],
+                    setGroupId: supersetId
+                ),
+                UnifiedExercise(
+                    name: "Barbell Row",
+                    type: "strength",
+                    category: "pullHorizontal",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 8, weight: 115, restSeconds: 60),
+                        UnifiedStrengthSet(reps: 8, weight: 115, restSeconds: 60),
+                        UnifiedStrengthSet(reps: 8, weight: 115, restSeconds: 90)
+                    ],
+                    setGroupId: supersetId
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Both exercises should be in the Strength section
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Strength")
+        XCTAssertEqual(sections[0].items.count, 2)
+        
+        // Both should have proper labels (a1, a2)
+        XCTAssertEqual(sections[0].items[0].primary, "a1) Bench Press")
+        XCTAssertEqual(sections[0].items[1].primary, "a2) Barbell Row")
+        
+        // Both should have prescriptions
+        XCTAssertEqual(sections[0].items[0].secondary, "3 × 8 @ 135 lbs")
+        XCTAssertEqual(sections[0].items[1].secondary, "3 × 8 @ 115 lbs")
+    }
+    
+    func testMultipleSupersetGroupsUnderStrengthSection() {
+        // Given: A day with multiple superset groups
+        let superset1Id = "superset-1"
+        let superset2Id = "superset-2"
+        let day = UnifiedDay(
+            name: "Upper Body Supersets",
+            exercises: [
+                // First superset: Bench + Row
+                UnifiedExercise(
+                    name: "Bench Press",
+                    type: "strength",
+                    category: "pressHorizontal",
+                    strengthSets: [UnifiedStrengthSet(reps: 8, weight: 135)],
+                    setGroupId: superset1Id
+                ),
+                UnifiedExercise(
+                    name: "Barbell Row",
+                    type: "strength",
+                    category: "pullHorizontal",
+                    strengthSets: [UnifiedStrengthSet(reps: 8, weight: 115)],
+                    setGroupId: superset1Id
+                ),
+                // Second superset: OHP + Pull-up
+                UnifiedExercise(
+                    name: "Overhead Press",
+                    type: "strength",
+                    category: "pressVertical",
+                    strengthSets: [UnifiedStrengthSet(reps: 10, weight: 95)],
+                    setGroupId: superset2Id
+                ),
+                UnifiedExercise(
+                    name: "Pull-Up",
+                    type: "strength",
+                    category: "pullVertical",
+                    strengthSets: [UnifiedStrengthSet(reps: 8)],
+                    setGroupId: superset2Id
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: All exercises should be in Strength section, properly labeled
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Strength")
+        XCTAssertEqual(sections[0].items.count, 4)
+        
+        // First superset group
+        XCTAssertEqual(sections[0].items[0].primary, "a1) Bench Press")
+        XCTAssertEqual(sections[0].items[1].primary, "a2) Barbell Row")
+        
+        // Second superset group (should restart at a1)
+        XCTAssertEqual(sections[0].items[2].primary, "a1) Overhead Press")
+        XCTAssertEqual(sections[0].items[3].primary, "a2) Pull-Up")
+    }
+    
+    func testSupersetWithAccessoryExerciseStaysUnderStrength() {
+        // Given: A superset where primary is main lift, secondary is accessory
+        let supersetId = "mixed-superset"
+        let day = UnifiedDay(
+            name: "Mixed Superset",
+            exercises: [
+                UnifiedExercise(
+                    name: "Squat",
+                    type: "strength",
+                    category: "squat",
+                    strengthSets: Array(repeating: UnifiedStrengthSet(reps: 5), count: 5),
+                    setGroupId: supersetId
+                ),
+                UnifiedExercise(
+                    name: "Leg Curls",
+                    type: "strength",
+                    category: "other",
+                    strengthSets: Array(repeating: UnifiedStrengthSet(reps: 12), count: 3),
+                    setGroupId: supersetId
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Both should be in Strength section (grouped by first exercise)
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Strength")
+        XCTAssertEqual(sections[0].items.count, 2)
+        
+        XCTAssertEqual(sections[0].items[0].primary, "a1) Squat")
+        XCTAssertEqual(sections[0].items[1].primary, "a2) Leg Curls")
+    }
+    
+    func testMixedSupersetAndNonSupersetExercises() {
+        // Given: Mix of superset and non-superset exercises
+        let supersetId = "superset-1"
+        let day = UnifiedDay(
+            name: "Mixed Day",
+            exercises: [
+                // Standalone main lift
+                UnifiedExercise(
+                    name: "Deadlift",
+                    type: "strength",
+                    category: "hinge",
+                    strengthSets: Array(repeating: UnifiedStrengthSet(reps: 5), count: 5)
+                ),
+                // Superset
+                UnifiedExercise(
+                    name: "Bench Press",
+                    type: "strength",
+                    category: "pressHorizontal",
+                    strengthSets: [UnifiedStrengthSet(reps: 8)],
+                    setGroupId: supersetId
+                ),
+                UnifiedExercise(
+                    name: "Barbell Row",
+                    type: "strength",
+                    category: "pullHorizontal",
+                    strengthSets: [UnifiedStrengthSet(reps: 8)],
+                    setGroupId: supersetId
+                ),
+                // Standalone accessory
+                UnifiedExercise(
+                    name: "Bicep Curls",
+                    type: "strength",
+                    category: "other",
+                    strengthSets: [UnifiedStrengthSet(reps: 12)]
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should have both Strength and Accessory sections
+        XCTAssertEqual(sections.count, 2)
+        
+        // Strength section: Deadlift + Superset
+        XCTAssertEqual(sections[0].title, "Strength")
+        XCTAssertEqual(sections[0].items.count, 3)
+        XCTAssertEqual(sections[0].items[0].primary, "Deadlift")
+        XCTAssertEqual(sections[0].items[1].primary, "a1) Bench Press")
+        XCTAssertEqual(sections[0].items[2].primary, "a2) Barbell Row")
+        
+        // Accessory section: Curls
+        XCTAssertEqual(sections[1].title, "Accessory")
+        XCTAssertEqual(sections[1].items.count, 1)
+        XCTAssertEqual(sections[1].items[0].primary, "Bicep Curls")
+    }
 }
