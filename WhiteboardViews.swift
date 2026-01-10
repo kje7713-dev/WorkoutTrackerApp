@@ -1415,14 +1415,14 @@ struct VideoListView: View {
                 .fontWeight(.semibold)
                 .padding(.top, 4)
             
-            ForEach(videoUrls, id: \.self) { urlString in
+            ForEach(Array(videoUrls.enumerated()), id: \.offset) { index, urlString in
                 if let url = URL(string: urlString) {
                     Link(destination: url) {
                         HStack(spacing: 8) {
                             Image(systemName: "play.rectangle.fill")
                                 .foregroundColor(.red)
                                 .font(.caption)
-                            Text(label)
+                            Text(videoUrls.count > 1 ? "\(label) \(index + 1)" : label)
                                 .font(.caption)
                                 .foregroundColor(.primary)
                             Image(systemName: "arrow.up.forward.square")
@@ -1436,6 +1436,22 @@ struct VideoListView: View {
                                 .fill(Color(.systemBackground).opacity(0.5))
                         )
                     }
+                } else {
+                    // Show error state for invalid URLs
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                        Text("Invalid video URL")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(.systemBackground).opacity(0.5))
+                    )
                 }
             }
         }
