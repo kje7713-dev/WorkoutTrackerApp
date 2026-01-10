@@ -76,7 +76,7 @@ final class SegmentEndToEndTests: XCTestCase {
         XCTAssertNotNil(segment.breathCount)
         
         // Media
-        XCTAssertNotNil(segment.mediaVideoUrl)
+        XCTAssertNotNil(segment.mediaVideoUrls)
         XCTAssertNotNil(segment.mediaImageUrl)
         XCTAssertNotNil(segment.mediaDiagramAssetId)
         
@@ -276,7 +276,7 @@ final class SegmentEndToEndTests: XCTestCase {
         XCTAssertNotNil(unifiedSegment.breathworkDurationSeconds)
         XCTAssertNotNil(unifiedSegment.breathCount)
         XCTAssertFalse(unifiedSegment.flowSequence.isEmpty)
-        XCTAssertNotNil(unifiedSegment.mediaVideoUrl)
+        XCTAssertNotNil(unifiedSegment.mediaVideoUrls)
         XCTAssertFalse(unifiedSegment.stopIf.isEmpty)
         XCTAssertNotNil(unifiedSegment.intensityCeiling)
         XCTAssertFalse(unifiedSegment.startingStateGrips.isEmpty)

@@ -153,7 +153,7 @@ public final class BlockNormalizer {
             drillItems: drillItems,
             startingStateGrips: startingStateGrips,
             startingStateRoles: startingStateRoles,
-            mediaVideoUrl: segment.media?.videoUrl,
+            mediaVideoUrls: segment.media?.videoUrls,
             mediaImageUrl: segment.media?.imageUrl,
             mediaDiagramAssetId: segment.media?.diagramAssetId
         )
@@ -338,7 +338,7 @@ public final class BlockNormalizer {
             drillItems: drillItems,
             startingStateGrips: startingStateGrips,
             startingStateRoles: startingStateRoles,
-            mediaVideoUrl: segment.media?.videoUrl,
+            mediaVideoUrls: segment.media?.videoUrls,
             mediaImageUrl: segment.media?.imageUrl,
             mediaDiagramAssetId: segment.media?.diagramAssetId
         )

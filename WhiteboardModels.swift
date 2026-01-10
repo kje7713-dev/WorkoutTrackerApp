@@ -187,7 +187,7 @@ public struct UnifiedSegment: Codable, Equatable, Identifiable {
     public var drillItems: [UnifiedDrillItem]
     public var startingStateGrips: [String]
     public var startingStateRoles: [String]
-    public var mediaVideoUrl: String?
+    public var mediaVideoUrls: [String]?
     public var mediaImageUrl: String?
     public var mediaDiagramAssetId: String?
     
@@ -235,7 +235,7 @@ public struct UnifiedSegment: Codable, Equatable, Identifiable {
         drillItems: [UnifiedDrillItem] = [],
         startingStateGrips: [String] = [],
         startingStateRoles: [String] = [],
-        mediaVideoUrl: String? = nil,
+        mediaVideoUrls: [String]? = nil,
         mediaImageUrl: String? = nil,
         mediaDiagramAssetId: String? = nil
     ) {
@@ -282,7 +282,7 @@ public struct UnifiedSegment: Codable, Equatable, Identifiable {
         self.drillItems = drillItems
         self.startingStateGrips = startingStateGrips
         self.startingStateRoles = startingStateRoles
-        self.mediaVideoUrl = mediaVideoUrl
+        self.mediaVideoUrls = mediaVideoUrls
         self.mediaImageUrl = mediaImageUrl
         self.mediaDiagramAssetId = mediaDiagramAssetId
     }
@@ -526,13 +526,64 @@ public struct AuthoringBreathwork: Codable {
 }
 
 public struct AuthoringMedia: Codable {
-    public var videoUrl: String?
+    /// Video URLs (normalized to array internally)
+    /// Supports decoding from both `videoUrl` (String) and `videoUrls` ([String])
+    public var videoUrls: [String]?
+    
     public var imageUrl: String?
     public var diagramAssetId: String?
     public var coachNotesMarkdown: String?
     public var commonFaults: [String]?
     public var keyCues: [String]?
     public var checkpoints: [String]?
+    
+    // MARK: - Custom Codable Implementation
+    
+    enum CodingKeys: String, CodingKey {
+        case videoUrl
+        case videoUrls
+        case imageUrl
+        case diagramAssetId
+        case coachNotesMarkdown
+        case commonFaults
+        case keyCues
+        case checkpoints
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // Decode video URLs - support both singular and plural
+        if let urlsArray = try? container.decode([String].self, forKey: .videoUrls) {
+            // Prefer videoUrls array if present
+            self.videoUrls = urlsArray.isEmpty ? nil : urlsArray
+        } else if let singleUrl = try? container.decode(String.self, forKey: .videoUrl) {
+            // Fall back to videoUrl string and wrap in array
+            self.videoUrls = singleUrl.isEmpty ? nil : [singleUrl]
+        } else {
+            self.videoUrls = nil
+        }
+        
+        self.imageUrl = try container.decodeIfPresent(String.self, forKey: .imageUrl)
+        self.diagramAssetId = try container.decodeIfPresent(String.self, forKey: .diagramAssetId)
+        self.coachNotesMarkdown = try container.decodeIfPresent(String.self, forKey: .coachNotesMarkdown)
+        self.commonFaults = try container.decodeIfPresent([String].self, forKey: .commonFaults)
+        self.keyCues = try container.decodeIfPresent([String].self, forKey: .keyCues)
+        self.checkpoints = try container.decodeIfPresent([String].self, forKey: .checkpoints)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        // Always encode as videoUrls array for consistency
+        try container.encodeIfPresent(videoUrls, forKey: .videoUrls)
+        try container.encodeIfPresent(imageUrl, forKey: .imageUrl)
+        try container.encodeIfPresent(diagramAssetId, forKey: .diagramAssetId)
+        try container.encodeIfPresent(coachNotesMarkdown, forKey: .coachNotesMarkdown)
+        try container.encodeIfPresent(commonFaults, forKey: .commonFaults)
+        try container.encodeIfPresent(keyCues, forKey: .keyCues)
+        try container.encodeIfPresent(checkpoints, forKey: .checkpoints)
+    }
 }
 
 public struct AuthoringSafety: Codable {
