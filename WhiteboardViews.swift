@@ -293,6 +293,41 @@ struct MobileWhiteboardDayView: View {
                                 .padding(.leading, 4)
                                 .padding(.top, 4)
                             }
+                            
+                            // Video URLs (if present)
+                            if let videoUrls = item.videoUrls, !videoUrls.isEmpty {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Videos")
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .padding(.top, 4)
+                                    
+                                    ForEach(videoUrls, id: \.self) { urlString in
+                                        if let url = URL(string: urlString) {
+                                            Link(destination: url) {
+                                                HStack(spacing: 8) {
+                                                    Image(systemName: "play.rectangle.fill")
+                                                        .foregroundColor(.red)
+                                                        .font(.caption)
+                                                    Text("Exercise demo")
+                                                        .font(.caption)
+                                                        .foregroundColor(.primary)
+                                                    Image(systemName: "arrow.up.forward.square")
+                                                        .font(.caption2)
+                                                        .foregroundColor(.secondary)
+                                                }
+                                                .padding(8)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 6)
+                                                        .fill(Color(.systemBackground).opacity(0.5))
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.top, 4)
+                            }
                         }
                         .padding(.vertical, 8)
                         .padding(.horizontal, 12)
@@ -1290,6 +1325,41 @@ struct WhiteboardItemView: View {
                     }
                 }
                 .padding(.leading, 4)
+                .padding(.top, 4)
+            }
+            
+            // Video URLs (if present)
+            if let videoUrls = item.videoUrls, !videoUrls.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Videos")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .padding(.top, 4)
+                    
+                    ForEach(videoUrls, id: \.self) { urlString in
+                        if let url = URL(string: urlString) {
+                            Link(destination: url) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "play.rectangle.fill")
+                                        .foregroundColor(.red)
+                                        .font(.caption)
+                                    Text("Exercise demo")
+                                        .font(.caption)
+                                        .foregroundColor(.primary)
+                                    Image(systemName: "arrow.up.forward.square")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(8)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color(.systemBackground).opacity(0.5))
+                                )
+                            }
+                        }
+                    }
+                }
                 .padding(.top, 4)
             }
         }

@@ -192,7 +192,8 @@ public final class WhiteboardFormatter {
             primary: primary,
             secondary: secondary,
             tertiary: tertiary,
-            bullets: []
+            bullets: [],
+            videoUrls: exercise.videoUrls
         )
     }
     
@@ -303,7 +304,8 @@ public final class WhiteboardFormatter {
             primary: primary,
             secondary: secondary,
             tertiary: tertiary,
-            bullets: bullets
+            bullets: bullets,
+            videoUrls: exercise.videoUrls
         )
     }
     

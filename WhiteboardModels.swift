@@ -60,6 +60,7 @@ public struct UnifiedExercise: Codable, Equatable {
     public var progressionType: String?
     public var progressionDeltaWeight: Double?
     public var progressionDeltaSets: Int?
+    public var videoUrls: [String]?
     
     public init(
         name: String,
@@ -73,7 +74,8 @@ public struct UnifiedExercise: Codable, Equatable {
         setGroupKind: String? = nil,
         progressionType: String? = nil,
         progressionDeltaWeight: Double? = nil,
-        progressionDeltaSets: Int? = nil
+        progressionDeltaSets: Int? = nil,
+        videoUrls: [String]? = nil
     ) {
         self.name = name
         self.type = type
@@ -87,6 +89,7 @@ public struct UnifiedExercise: Codable, Equatable {
         self.progressionType = progressionType
         self.progressionDeltaWeight = progressionDeltaWeight
         self.progressionDeltaSets = progressionDeltaSets
+        self.videoUrls = videoUrls
     }
 }
 
@@ -375,17 +378,20 @@ public struct WhiteboardItem: Identifiable, Equatable {
     public var secondary: String?
     public var tertiary: String?
     public var bullets: [String]
+    public var videoUrls: [String]?
     
     public init(
         primary: String,
         secondary: String? = nil,
         tertiary: String? = nil,
-        bullets: [String] = []
+        bullets: [String] = [],
+        videoUrls: [String]? = nil
     ) {
         self.primary = primary
         self.secondary = secondary
         self.tertiary = tertiary
         self.bullets = bullets
+        self.videoUrls = videoUrls
     }
 }
 

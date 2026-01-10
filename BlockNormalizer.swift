@@ -195,7 +195,8 @@ public final class BlockNormalizer {
             setGroupKind: nil,
             progressionType: exercise.progressionRule.type.rawValue,
             progressionDeltaWeight: exercise.progressionRule.deltaWeight,
-            progressionDeltaSets: exercise.progressionRule.deltaSets
+            progressionDeltaSets: exercise.progressionRule.deltaSets,
+            videoUrls: exercise.videoUrls
         )
     }
     
