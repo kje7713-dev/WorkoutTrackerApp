@@ -128,7 +128,8 @@ final class SegmentFieldCoverageTests: XCTestCase {
         XCTAssertTrue(segment1.coachingCues.contains("Hands inside"))
         
         // Test media fields
-        XCTAssertEqual(segment1.mediaVideoUrl, "https://example.com/video/front-headlock-snapdown")
+        XCTAssertEqual(segment1.mediaVideoUrls?.count, 1)
+        XCTAssertEqual(segment1.mediaVideoUrls?.first, "https://example.com/video/front-headlock-snapdown")
         XCTAssertEqual(segment1.mediaImageUrl, "https://example.com/image/front-headlock.png")
         XCTAssertEqual(segment1.mediaDiagramAssetId, "diagram_front_headlock_snapdown_v1")
         
@@ -233,7 +234,7 @@ final class SegmentFieldCoverageTests: XCTestCase {
             drillItems: [drillItem],
             startingStateGrips: ["inside_tie"],
             startingStateRoles: ["attacker"],
-            mediaVideoUrl: "https://example.com/video",
+            mediaVideoUrls: ["https://example.com/video"],
             mediaImageUrl: "https://example.com/image",
             mediaDiagramAssetId: "diagram_123"
         )

@@ -1,0 +1,64 @@
+{
+  "Title": "SegmentVideoUrls_DecoderTest",
+  "Goal": "mixed",
+  "TargetAthlete": "All levels",
+  "NumberOfWeeks": 1,
+  "DurationMinutes": 30,
+  "Difficulty": 3,
+  "Equipment": "Training mats",
+  "Notes": "Test file to verify that both 'videoUrl' (String) and 'videoUrls' ([String]) are properly decoded and normalized to array format.",
+  "Days": [
+    {
+      "name": "Day 1: Video URL Decoding Test",
+      "shortCode": "VID1",
+      "goal": "mixed",
+      "segments": [
+        {
+          "name": "Segment with singular videoUrl (legacy format)",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 10,
+          "objective": "Test decoding of legacy videoUrl field (singular string)",
+          "positions": ["guard"],
+          "media": {
+            "videoUrl": "https://youtube.com/watch?v=legacy-single-video"
+          }
+        },
+        {
+          "name": "Segment with plural videoUrls (correct format)",
+          "segmentType": "technique",
+          "domain": "grappling",
+          "durationMinutes": 10,
+          "objective": "Test decoding of videoUrls field (array of strings)",
+          "positions": ["side_control"],
+          "media": {
+            "videoUrls": [
+              "https://youtube.com/watch?v=video1",
+              "https://youtube.com/watch?v=video2",
+              "https://youtube.com/watch?v=video3"
+            ]
+          }
+        },
+        {
+          "name": "Segment with no video URLs",
+          "segmentType": "drill",
+          "domain": "grappling",
+          "durationMinutes": 5,
+          "objective": "Test segment without any video URLs",
+          "positions": ["standing"]
+        },
+        {
+          "name": "Segment with empty videoUrl",
+          "segmentType": "warmup",
+          "domain": "grappling",
+          "durationMinutes": 5,
+          "objective": "Test segment with empty string videoUrl (should decode to nil)",
+          "positions": ["standing"],
+          "media": {
+            "videoUrl": ""
+          }
+        }
+      ]
+    }
+  ]
+}
