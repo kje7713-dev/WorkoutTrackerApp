@@ -297,8 +297,11 @@ final class WhiteboardTests: XCTestCase {
         
         let item = sections[0].items[0]
         XCTAssertEqual(item.primary, "Back Squat")
-        XCTAssertEqual(item.secondary, "5 × 5 @ RPE 8")
+        XCTAssertEqual(item.secondary, "5 × 5")
         XCTAssertEqual(item.tertiary, "Rest: 3:00")
+        
+        // RPE should now appear in bullets, not in prescription
+        XCTAssertTrue(item.bullets.contains("@ RPE 8"))
     }
     
     func testFormatStrengthPrescriptionWithWeight() {
@@ -357,11 +360,14 @@ final class WhiteboardTests: XCTestCase {
         // When: Formatting the day
         let sections = WhiteboardFormatter.formatDay(day)
         
-        // Then: Should include both weight and RPE
+        // Then: Should include weight in prescription
         let item = sections[0].items[0]
         XCTAssertEqual(item.primary, "Deadlift")
-        XCTAssertEqual(item.secondary, "3 × 3 @ 315 lbs @ RPE 8")
+        XCTAssertEqual(item.secondary, "3 × 3 @ 315 lbs")
         XCTAssertEqual(item.tertiary, "Rest: 4:00")
+        
+        // RPE should now appear in bullets, not in prescription
+        XCTAssertTrue(item.bullets.contains("@ RPE 8"))
     }
     
     func testFormatStrengthPrescriptionWithVaryingWeights() {
@@ -1036,5 +1042,124 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertEqual(exercise.videoUrls?.count, 2)
         XCTAssertEqual(exercise.videoUrls?[0], "https://youtube.com/bench-press-setup")
         XCTAssertEqual(exercise.videoUrls?[1], "https://youtube.com/bench-press-technique")
+    }
+    
+    // MARK: - Exercise Notes Tests
+    
+    func testStrengthExerciseNotesDisplayedAsBullets() {
+        // Given: A strength exercise with notes
+        let day = UnifiedDay(
+            name: "Strength Day",
+            exercises: [
+                UnifiedExercise(
+                    name: "Back Squat",
+                    type: "strength",
+                    category: "squat",
+                    notes: "Focus on depth, Keep chest up, @ RPE 8",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 5, weight: 225, restSeconds: 180),
+                        UnifiedStrengthSet(reps: 5, weight: 225, restSeconds: 180)
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Notes should be displayed as bullets
+        XCTAssertEqual(sections.count, 1)
+        XCTAssertEqual(sections[0].title, "Strength")
+        XCTAssertEqual(sections[0].items.count, 1)
+        
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.primary, "Back Squat")
+        XCTAssertEqual(item.secondary, "2 × 5 @ 225 lbs")
+        
+        // Notes should be parsed into bullets
+        XCTAssertFalse(item.bullets.isEmpty)
+        XCTAssertTrue(item.bullets.contains("Focus on depth"))
+        XCTAssertTrue(item.bullets.contains("Keep chest up"))
+        XCTAssertTrue(item.bullets.contains("@ RPE 8"))
+    }
+    
+    func testStrengthExerciseWithSetLevelNotes() {
+        // Given: A strength exercise with set-level notes
+        let day = UnifiedDay(
+            name: "Strength Day",
+            exercises: [
+                UnifiedExercise(
+                    name: "Bench Press",
+                    type: "strength",
+                    category: "pressHorizontal",
+                    notes: "Competition pause",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 3, weight: 185, restSeconds: 180, notes: "Paused reps")
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Both exercise and set notes should be displayed
+        let item = sections[0].items[0]
+        XCTAssertFalse(item.bullets.isEmpty)
+        XCTAssertTrue(item.bullets.contains("Competition pause"))
+        XCTAssertTrue(item.bullets.contains("Paused reps"))
+    }
+    
+    func testStrengthExerciseWithoutNotesHasEmptyBullets() {
+        // Given: A strength exercise without notes
+        let day = UnifiedDay(
+            name: "Strength Day",
+            exercises: [
+                UnifiedExercise(
+                    name: "Deadlift",
+                    type: "strength",
+                    category: "hinge",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 5, weight: 315, restSeconds: 240)
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Bullets should be empty
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.bullets.isEmpty)
+    }
+    
+    func testStrengthExerciseNotesDoNotAppearInPrescription() {
+        // Given: A strength exercise with RPE notes
+        let day = UnifiedDay(
+            name: "Strength Day",
+            exercises: [
+                UnifiedExercise(
+                    name: "Squat",
+                    type: "strength",
+                    category: "squat",
+                    notes: "@ RPE 8",
+                    strengthSets: [
+                        UnifiedStrengthSet(reps: 5, weight: 225)
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting the day
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Notes should NOT appear in the prescription (secondary line)
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.secondary, "1 × 5 @ 225 lbs")
+        XCTAssertFalse(item.secondary?.contains("RPE") ?? false)
+        
+        // But should appear in bullets
+        XCTAssertTrue(item.bullets.contains("@ RPE 8"))
     }
 }
