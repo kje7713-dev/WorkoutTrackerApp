@@ -566,6 +566,60 @@ struct BlockGeneratorView: View {
         \(requirementsText)
         
         ═══════════════════════════════════════════════════════════════
+        VIDEO POLICY — ENFORCEMENT RULES (NON-NEGOTIABLE)
+        ═══════════════════════════════════════════════════════════════
+        
+        A) REQUIRED OUTPUT (BEFORE JSON)
+        Before generating the workout JSON, you MUST output a short plain-text header exactly in this format:
+        
+        VIDEO_DECISION:
+        included: YES|NO
+        mediaImpact: low|medium|high
+        requiredSkills: <comma-separated list or NONE>
+        rationale: <1–2 sentences>
+        
+        Failure to output this header = INVALID RESPONSE.
+        
+        B) VIDEO REQUIRED CONDITIONS (NO DISCRETION)
+        Set VIDEO_DECISION.included = YES and mediaImpact = high if ANY of the following are true:
+        1) The athlete is a true beginner learning the skill for the first time (e.g., "never stood up").
+        2) The program teaches a foundational motor pattern where early errors compound (pop-up, turnover, etc.).
+        3) The user describes the program as intensive/accelerated/high-frequency OR DaysPerWeek >= 4.
+        4) The program implies high-repetition exposure in a short window (>= 4 sessions/week OR >= 2 weeks with >= 4 sessions/week).
+        5) The skill has timing-dependent phases that are difficult to convey via text alone.
+        
+        If ANY condition is true and you set included = NO → INVALID RESPONSE.
+        
+        C) MINIMUM VIDEO REQUIREMENT (WHEN INCLUDED=YES)
+        When VIDEO_DECISION.included = YES:
+        - You MUST embed at least 1 video reference for EACH item in requiredSkills.
+        - Use ONLY the existing schema fields:
+          - For segments: techniques[].videoUrls[] OR media.videoUrl
+          - For exercises: videoUrls[]
+        - Do NOT add new schema fields.
+        
+        If included=YES and requiredSkills != NONE but any required skill has 0 videos → INVALID RESPONSE.
+        
+        D) MINIMALISM (ANTI-BLOAT)
+        When videos are included:
+        - Use 1 canonical video per required skill (max 2 if slow-motion/breakdown is necessary).
+        - Total videos SHOULD be <= 6 unless user explicitly requests more.
+        - Do NOT add decorative videos unrelated to requiredSkills.
+        
+        E) ANTI-LAZINESS / NO JSON-SIMPLIFICATION EXCUSE
+        You MAY NOT omit required videos or downgrade mediaImpact to:
+        - shorten JSON
+        - reduce schema complexity
+        - avoid using media/video fields
+        - make artifact generation easier
+        
+        "JSON convenience" is never a valid reason to exclude videos.
+        
+        F) OMISSION PATH (ONLY WHEN CONDITIONS NOT TRIGGERED)
+        If none of the Video Required Conditions are true, you MAY set included=NO.
+        In that case, the VIDEO_DECISION.rationale MUST explain why video is not necessary for correct execution.
+        
+        ═══════════════════════════════════════════════════════════════
         SAVAGE BY DESIGN — CLARIFICATION OVER ASSUMPTION
         ═══════════════════════════════════════════════════════════════
         
@@ -659,8 +713,10 @@ struct BlockGeneratorView: View {
         Additional clarifying questions you MAY ask if genuinely needed for program design:
         1) Detail depth: brief | moderate | detailed
         2) Structure preference: identical | progressive | rotational
-        3) Video policy (ONLY if mediaImpact = high): Ask video policy preference
-        4) Current training volume baseline (if relevant for scaling decisions)
+        3) Current training volume baseline (if relevant for scaling decisions)
+        
+        NOTE: Video inclusion is now enforced by VIDEO POLICY rules (see VIDEO_DECISION header requirements above).
+        Do NOT ask about video preferences - follow the VIDEO REQUIRED CONDITIONS automatically.
         
         DO NOT ask about:
         - Volume parameters (unit counts, exercise density) - you determine these based on context
@@ -698,7 +754,9 @@ struct BlockGeneratorView: View {
         - UnitDuration = moderate
         - DetailDepth = medium
         - StructureConsistency = progressive (for multi-week blocks)
-        - MediaPolicy = none if mediaImpact = low
+        
+        NOTE: MediaPolicy is now enforced by VIDEO POLICY rules - not a default setting.
+        Follow VIDEO_DECISION requirements based on VIDEO REQUIRED CONDITIONS.
         
         SCOPE SUMMARY (FINAL) — REQUIRED OUTPUT:
         contentType:
