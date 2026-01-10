@@ -293,6 +293,11 @@ struct MobileWhiteboardDayView: View {
                                 .padding(.leading, 4)
                                 .padding(.top, 4)
                             }
+                            
+                            // Video URLs (if present)
+                            if let videoUrls = item.videoUrls, !videoUrls.isEmpty {
+                                VideoListView(videoUrls: videoUrls, label: "Exercise demo")
+                            }
                         }
                         .padding(.vertical, 8)
                         .padding(.horizontal, 12)
@@ -1292,6 +1297,11 @@ struct WhiteboardItemView: View {
                 .padding(.leading, 4)
                 .padding(.top, 4)
             }
+            
+            // Video URLs (if present)
+            if let videoUrls = item.videoUrls, !videoUrls.isEmpty {
+                VideoListView(videoUrls: videoUrls, label: "Exercise demo")
+            }
         }
         .padding(.vertical, 6)
     }
@@ -1389,6 +1399,63 @@ enum BulletStyle {
         case .subItem, .subSubItem:
             return Color.secondary.opacity(0.8)
         }
+    }
+}
+
+// MARK: - Video List View
+
+struct VideoListView: View {
+    let videoUrls: [String]
+    let label: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Videos")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .padding(.top, 4)
+            
+            ForEach(Array(videoUrls.enumerated()), id: \.offset) { index, urlString in
+                if let url = URL(string: urlString) {
+                    Link(destination: url) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "play.rectangle.fill")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                            Text(videoUrls.count > 1 ? "\(label) \(index + 1)" : label)
+                                .font(.caption)
+                                .foregroundColor(.primary)
+                            Image(systemName: "arrow.up.forward.square")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(Color(.systemBackground).opacity(0.5))
+                        )
+                    }
+                } else {
+                    // Show error state for invalid URLs
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                            .font(.caption)
+                        Text("Invalid video URL")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(.systemBackground).opacity(0.5))
+                    )
+                }
+            }
+        }
+        .padding(.top, 4)
     }
 }
 

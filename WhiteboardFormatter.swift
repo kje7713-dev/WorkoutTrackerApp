@@ -188,11 +188,18 @@ public final class WhiteboardFormatter {
         // Format tertiary (rest)
         let tertiary = formatRest(exercise.strengthSets.first?.restSeconds)
         
+        // Combine exercise-level and set-level notes into bullets
+        let bullets = combineNotesIntoBullets(
+            exerciseNotes: exercise.notes,
+            setNotes: exercise.strengthSets.first?.notes
+        )
+        
         return WhiteboardItem(
             primary: primary,
             secondary: secondary,
             tertiary: tertiary,
-            bullets: []
+            bullets: bullets,
+            videoUrls: exercise.videoUrls
         )
     }
     
@@ -232,11 +239,6 @@ public final class WhiteboardFormatter {
                 let weightsString = weightValues.map { formatWeight($0) }.joined(separator: "/")
                 result += " @ \(weightsString) lbs"
             }
-        }
-        
-        // Add intensity cue from notes if present
-        if let notes = exercise.notes, notes.contains("RPE") {
-            result += " \(notes)"
         }
         
         return result
@@ -303,7 +305,8 @@ public final class WhiteboardFormatter {
             primary: primary,
             secondary: secondary,
             tertiary: tertiary,
-            bullets: bullets
+            bullets: bullets,
+            videoUrls: exercise.videoUrls
         )
     }
     
