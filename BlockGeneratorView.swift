@@ -83,7 +83,6 @@ struct BlockGeneratorView: View {
                 .padding()
             }
             .background(backgroundColor.ignoresSafeArea())
-            .navigationTitle("Import Block")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -157,7 +156,6 @@ struct BlockGeneratorView: View {
                 Spacer()
             }
             .background(backgroundColor.ignoresSafeArea())
-            .navigationTitle("Import Block")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -248,12 +246,26 @@ struct BlockGeneratorView: View {
     
     private var aiPromptTemplateCardSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Section Header - Centered, Home Style
-            Text("AI PROMPT TEMPLATE")
-                .font(.system(size: 18, weight: .bold))
-                .tracking(1.5)
-                .frame(maxWidth: .infinity)
-                .foregroundColor(primaryTextColor)
+            // Section Header - Purple gradient with fire icon
+            HStack(spacing: 8) {
+                Image(systemName: "flame.fill")
+                    .font(.system(size: 18))
+                Text("AI PROMPT TEMPLATE")
+                    .font(.system(size: 18, weight: .bold))
+                    .tracking(1.5)
+            }
+            .frame(maxWidth: .infinity)
+            .foregroundColor(.white)
+            .padding(.vertical, 16)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .cornerRadius(12)
+            .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
             
             Text("Fill in your specific requirements below, then copy the complete prompt to use with ChatGPT, Claude, or any AI assistant.")
                 .font(.system(size: 14))
