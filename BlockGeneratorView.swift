@@ -239,7 +239,7 @@ struct BlockGeneratorView: View {
                     .foregroundColor(.white)
                     .background(
                         pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
-                            ? Color.gray 
+                            ? LinearGradient(gradient: Gradient(colors: [Color.gray, Color.gray]), startPoint: .leading, endPoint: .trailing)
                             : LinearGradient(
                                 gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
                                 startPoint: .leading,
