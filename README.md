@@ -239,9 +239,11 @@ Manual submission through App Store Connect after TestFlight validation. See dep
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/kje7713-dev/WorkoutTrackerApp/issues)
-- **Security**: See [Security Policy](SECURITY.md)
-- **Discussions**: [GitHub Discussions](https://github.com/kje7713-dev/WorkoutTrackerApp/discussions)
+- **Email:** savagesbydesignhq@gmail.com
+- **Website:** savagesbydesign.com
+- **Issues:** [GitHub Issues](https://github.com/kje7713-dev/WorkoutTrackerApp/issues)
+- **Security:** See [Security Policy](SECURITY.md)
+- **Discussions:** [GitHub Discussions](https://github.com/kje7713-dev/WorkoutTrackerApp/discussions)
 
 ## License
 

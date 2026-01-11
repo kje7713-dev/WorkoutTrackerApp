@@ -135,6 +135,8 @@ These terms are governed by the laws of the United States.
 ## Contact
 
 For questions about these terms, contact:
+- Email: savagesbydesignhq@gmail.com
+- Website: savagesbydesign.com
 - GitHub: https://github.com/kje7713-dev/WorkoutTrackerApp
 
 ## Apple Required Terms

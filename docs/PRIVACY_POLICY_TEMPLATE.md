@@ -144,8 +144,8 @@ Since all data is stored locally on your device, you have full control over thes
 
 If you have questions about this Privacy Policy or your data:
 
-- **Email**: [Your Contact Email]
-- **Website**: https://kje7713-dev.github.io/WorkoutTrackerApp
+- **Email**: savagesbydesignhq@gmail.com
+- **Website**: savagesbydesign.com
 - **GitHub**: https://github.com/kje7713-dev/WorkoutTrackerApp/issues
 
 ## Data Retention
