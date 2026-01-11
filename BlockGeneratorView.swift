@@ -29,6 +29,7 @@ struct BlockGeneratorView: View {
     @State private var importedBlock: Block?
     @State private var errorMessage: String?
     @State private var showCopyConfirmation: Bool = false
+    @State private var showSuccessPopup: Bool = false
     @State private var hideConfirmationTask: DispatchWorkItem?
     @State private var pastedJSON: String = ""
     @State private var showingPaywall: Bool = false
@@ -61,9 +62,17 @@ struct BlockGeneratorView: View {
                     
                     headerSection
                     
+                    // MARK: - AI Prompt Template Section (Top Priority)
+                    
+                    aiPromptTemplateCardSection
+                    
                     // MARK: - Import JSON Section
                     
                     importJSONSection
+                    
+                    // MARK: - JSON Format Example
+                    
+                    jsonFormatExampleCardSection
                     
                     // MARK: - Block Preview
                     
@@ -101,24 +110,10 @@ struct BlockGeneratorView: View {
             .overlay(
                 Group {
                     if showCopyConfirmation {
-                        VStack {
-                            Spacer()
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.white)
-                                Text("Copied to clipboard!")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
-                            .background(Color.green)
-                            .cornerRadius(10)
-                            .shadow(radius: 10)
-                            .padding(.bottom, 50)
-                        }
-                        .transition(.move(edge: .bottom))
-                        .animation(.spring(), value: showCopyConfirmation)
+                        successPopup(message: "Copied to clipboard!")
+                    }
+                    if showSuccessPopup {
+                        successPopup(message: "Import successful!")
                     }
                 }
             )
@@ -197,17 +192,22 @@ struct BlockGeneratorView: View {
     
     private var importJSONSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Import JSON")
+            // Section Header - Centered, Home Style
+            Text("IMPORT FROM AI")
                 .font(.system(size: 18, weight: .bold))
+                .tracking(1.5)
+                .frame(maxWidth: .infinity)
                 .foregroundColor(primaryTextColor)
             
-            Text("The JSON should contain a training block with exercises, sets, reps, and other training parameters. You can either paste JSON directly or upload a file. After parsing or uploading, scroll to the bottom to preview the block.")
+            Text("Import your AI-generated training block from a JSON file or paste JSON directly.")
                 .font(.system(size: 14))
                 .foregroundColor(theme.mutedText)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
             
             // Paste JSON Section
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Option 1: Paste JSON")
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Paste JSON")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(primaryTextColor)
                 
@@ -222,19 +222,30 @@ struct BlockGeneratorView: View {
                             .stroke(Color(UIColor.separator), lineWidth: 1)
                     )
                 
+                // AI Import From Paste Button (Premium Style)
                 Button {
                     parseJSONFromText()
                 } label: {
-                    HStack {
+                    HStack(spacing: 8) {
                         Image(systemName: "arrow.down.doc.fill")
-                        Text("Parse JSON")
-                            .font(.system(size: 16, weight: .semibold))
+                        Text("AI IMPORT FROM PASTE")
+                            .font(.system(size: 16, weight: .bold))
+                            .tracking(1.5)
                     }
-                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray : theme.accent)
+                    .frame(height: 48)
+                    .foregroundColor(.white)
+                    .background(
+                        pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
+                            ? Color.gray 
+                            : LinearGradient(
+                                gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                    )
                     .cornerRadius(12)
+                    .shadow(color: pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.clear : theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .disabled(pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
@@ -243,46 +254,190 @@ struct BlockGeneratorView: View {
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(theme.mutedText)
                 .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 8)
+                .padding(.vertical, 4)
             
             // Upload File Section
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Option 2: Upload JSON File")
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Upload JSON File")
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(primaryTextColor)
                 
+                // AI Import From File Button (Premium Style)
                 Button {
                     showingFileImporter = true
                 } label: {
-                    HStack {
+                    HStack(spacing: 8) {
                         Image(systemName: "doc.badge.plus")
-                        Text("Choose JSON File")
-                            .font(.system(size: 16, weight: .semibold))
+                        Text("AI IMPORT FROM FILE")
+                            .font(.system(size: 16, weight: .bold))
+                            .tracking(1.5)
                     }
-                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 50)
-                    .background(theme.accent)
+                    .frame(height: 48)
+                    .foregroundColor(.white)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .cornerRadius(12)
+                    .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
             }
-            
-            Divider()
-            
-            // AI Prompt Template Section
-            aiPromptTemplateSection
-            
-            Divider()
-            
-            // JSON Format Example
-            jsonFormatExampleSection
         }
         .padding()
         .background(cardBackgroundColor)
         .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(cardBorderColor, lineWidth: 1)
+        )
     }
     
     // MARK: - AI Prompt Template Section
+    
+    private var aiPromptTemplateCardSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Section Header - Centered, Home Style
+            Text("AI PROMPT TEMPLATE")
+                .font(.system(size: 18, weight: .bold))
+                .tracking(1.5)
+                .frame(maxWidth: .infinity)
+                .foregroundColor(primaryTextColor)
+            
+            Text("Fill in your specific requirements below, then copy the complete prompt to use with ChatGPT, Claude, or any AI assistant.")
+                .font(.system(size: 14))
+                .foregroundColor(theme.mutedText)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+            
+            // Requirements input field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Your Requirements (Optional)")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(primaryTextColor)
+                
+                TextEditor(text: $userRequirements)
+                    .font(.system(size: 13))
+                    .frame(minHeight: 100, maxHeight: 150)
+                    .padding(8)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(UIColor.separator), lineWidth: 1)
+                    )
+                    .overlay(
+                        Group {
+                            if userRequirements.isEmpty {
+                                Text("Example: I want a 4-week upper/lower split for intermediate lifters, 4 days per week, focusing on strength and hypertrophy. I have access to a full gym with barbells, dumbbells, and machines.")
+                                    .font(.system(size: 13))
+                                    .foregroundColor(theme.mutedText.opacity(0.6))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 16)
+                                    .allowsHitTesting(false)
+                            }
+                        },
+                        alignment: .topLeading
+                    )
+            }
+            
+            // Copy button with prompt preview
+            Button {
+                copyToClipboard(aiPromptTemplate(withRequirements: userRequirements))
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "doc.on.doc")
+                    Text("Copy Complete Prompt")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(theme.accent)
+                .cornerRadius(8)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            
+            // Prompt preview (collapsible)
+            DisclosureGroup("Preview Full Prompt") {
+                ScrollView(.horizontal, showsIndicators: true) {
+                    Text(aiPromptTemplate(withRequirements: userRequirements))
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(theme.mutedText)
+                        .padding(12)
+                        .background(Color(UIColor.systemBackground))
+                        .cornerRadius(8)
+                }
+                .frame(maxHeight: 150)
+            }
+            .font(.system(size: 14, weight: .medium))
+            .foregroundColor(primaryTextColor)
+        }
+        .padding()
+        .background(cardBackgroundColor)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(cardBorderColor, lineWidth: 1)
+        )
+    }
+    
+    // MARK: - JSON Format Example Card Section
+    
+    private var jsonFormatExampleCardSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Section Header - Centered, Home Style
+            Text("JSON FORMAT EXAMPLE")
+                .font(.system(size: 18, weight: .bold))
+                .tracking(1.5)
+                .frame(maxWidth: .infinity)
+                .foregroundColor(primaryTextColor)
+            
+            Text("This is the expected format. All fields are required. Save as .json file.")
+                .font(.system(size: 14))
+                .foregroundColor(theme.mutedText)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+            
+            Button {
+                copyToClipboard(jsonFormatExample)
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "doc.on.doc")
+                    Text("Copy Example")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(theme.accent)
+                .cornerRadius(8)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            
+            ScrollView(.horizontal, showsIndicators: true) {
+                Text(jsonFormatExample)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(theme.mutedText)
+                    .padding(12)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(8)
+            }
+            .frame(maxHeight: 200)
+        }
+        .padding()
+        .background(cardBackgroundColor)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(cardBorderColor, lineWidth: 1)
+        )
+    }
+    
+    // MARK: - AI Prompt Template Section (Legacy - Kept for compatibility)
     
     private var aiPromptTemplateSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -489,6 +644,29 @@ struct BlockGeneratorView: View {
         .padding()
         .background(theme.error.opacity(0.1))
         .cornerRadius(12)
+    }
+    
+    // MARK: - Success Popup
+    
+    private func successPopup(message: String) -> some View {
+        VStack {
+            Spacer()
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.white)
+                Text(message)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(theme.success)
+            .cornerRadius(10)
+            .shadow(radius: 10)
+            .padding(.bottom, 50)
+        }
+        .transition(.move(edge: .bottom))
+        .animation(.spring(), value: showCopyConfirmation || showSuccessPopup)
     }
     
     // MARK: - Template Strings
@@ -1559,6 +1737,12 @@ struct BlockGeneratorView: View {
             let block = BlockGenerator.convertToBlock(imported, numberOfWeeks: 1)
             importedBlock = block
             errorMessage = nil
+            
+            // Show success popup
+            showSuccessPopup = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + confirmationDisplayDuration) {
+                showSuccessPopup = false
+            }
         } catch let decodingError as DecodingError {
             errorMessage = "Invalid JSON format: \(formatDecodingError(decodingError))"
         } catch {
@@ -1650,6 +1834,10 @@ struct BlockGeneratorView: View {
     
     private var primaryTextColor: Color {
         colorScheme == .dark ? .white : .black
+    }
+    
+    private var cardBorderColor: Color {
+        colorScheme == .dark ? theme.cardBorderDark : theme.cardBorderLight
     }
 }
 
