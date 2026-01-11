@@ -198,16 +198,8 @@ struct BlockGeneratorView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .foregroundColor(
-                        pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
-                            ? theme.mutedText
-                            : foregroundButtonColor
-                    )
-                    .background(
-                        pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
-                            ? backgroundButtonColor.opacity(0.5)
-                            : backgroundButtonColor
-                    )
+                    .foregroundColor(foregroundButtonColor)
+                    .background(backgroundButtonColor)
                     .cornerRadius(12)
                     .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                 }
