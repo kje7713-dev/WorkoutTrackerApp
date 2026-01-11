@@ -111,9 +111,11 @@ struct BlockGeneratorView: View {
                 Group {
                     if showCopyConfirmation {
                         successPopup(message: "Copied to clipboard!")
+                            .animation(.spring(), value: showCopyConfirmation)
                     }
                     if showSuccessPopup {
                         successPopup(message: "Import successful!")
+                            .animation(.spring(), value: showSuccessPopup)
                     }
                 }
             )
@@ -437,86 +439,6 @@ struct BlockGeneratorView: View {
         )
     }
     
-    // MARK: - AI Prompt Template Section (Legacy - Kept for compatibility)
-    
-    private var aiPromptTemplateSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("AI Prompt Template")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(primaryTextColor)
-            
-            Text("Fill in your specific requirements below, then copy the complete prompt to use with ChatGPT, Claude, or any AI assistant.")
-                .font(.system(size: 12))
-                .foregroundColor(theme.mutedText)
-            
-            // Requirements input field
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Your Requirements (Optional)")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(primaryTextColor)
-                
-                TextEditor(text: $userRequirements)
-                    .font(.system(size: 13))
-                    .frame(minHeight: 100, maxHeight: 150)
-                    .padding(8)
-                    .background(Color(UIColor.systemBackground))
-                    .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color(UIColor.separator), lineWidth: 1)
-                    )
-                    .overlay(
-                        Group {
-                            if userRequirements.isEmpty {
-                                Text("Example: I want a 4-week upper/lower split for intermediate lifters, 4 days per week, focusing on strength and hypertrophy. I have access to a full gym with barbells, dumbbells, and machines.")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(theme.mutedText.opacity(0.6))
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 16)
-                                    .allowsHitTesting(false)
-                            }
-                        },
-                        alignment: .topLeading
-                    )
-            }
-            
-            // Copy button with prompt preview
-            HStack {
-                Spacer()
-                
-                Button {
-                    copyToClipboard(aiPromptTemplate(withRequirements: userRequirements))
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "doc.on.doc")
-                        Text("Copy Complete Prompt")
-                    }
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(theme.accent)
-                    .cornerRadius(6)
-                }
-            }
-            
-            // Prompt preview (collapsible)
-            DisclosureGroup("Preview Full Prompt") {
-                ScrollView(.horizontal, showsIndicators: true) {
-                    Text(aiPromptTemplate(withRequirements: userRequirements))
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(theme.mutedText)
-                        .padding(12)
-                        .background(Color(UIColor.systemBackground))
-                        .cornerRadius(8)
-                }
-                .frame(maxHeight: 150)
-            }
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(primaryTextColor)
-        }
-    }
-    
     // MARK: - JSON Format Example Section
     
     private var jsonFormatExampleSection: some View {
@@ -666,7 +588,6 @@ struct BlockGeneratorView: View {
             .padding(.bottom, 50)
         }
         .transition(.move(edge: .bottom))
-        .animation(.spring(), value: showCopyConfirmation || showSuccessPopup)
     }
     
     // MARK: - Template Strings
