@@ -58,10 +58,6 @@ struct BlockGeneratorView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     
-                    // MARK: - Header
-                    
-                    headerSection
-                    
                     // MARK: - AI Prompt Template Section (Top Priority)
                     
                     aiPromptTemplateCardSection
@@ -69,10 +65,6 @@ struct BlockGeneratorView: View {
                     // MARK: - Import JSON Section
                     
                     importJSONSection
-                    
-                    // MARK: - JSON Format Example
-                    
-                    jsonFormatExampleCardSection
                     
                     // MARK: - Block Preview
                     
@@ -179,19 +171,6 @@ struct BlockGeneratorView: View {
     
     // MARK: - Sections
     
-    private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Import Workout Block")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(primaryTextColor)
-            
-            Text("Import a training block from a JSON file. You can generate JSON files using ChatGPT, Claude, or any other AI assistant. See AI prompt assistance below.")
-                .font(.system(size: 14))
-                .foregroundColor(theme.mutedText)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-    
     private var importJSONSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Section Header - Centered, Home Style
@@ -224,7 +203,7 @@ struct BlockGeneratorView: View {
                             .stroke(Color(UIColor.separator), lineWidth: 1)
                     )
                 
-                // AI Import From Paste Button (Premium Style)
+                // AI Import From Paste Button (Solid Accent Style)
                 Button {
                     parseJSONFromText()
                 } label: {
@@ -239,15 +218,10 @@ struct BlockGeneratorView: View {
                     .foregroundColor(.white)
                     .background(
                         pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
-                            ? LinearGradient(gradient: Gradient(colors: [Color.gray, Color.gray]), startPoint: .leading, endPoint: .trailing)
-                            : LinearGradient(
-                                gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                            ? Color.gray
+                            : theme.accent
                     )
                     .cornerRadius(12)
-                    .shadow(color: pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.clear : theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .disabled(pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
@@ -264,7 +238,7 @@ struct BlockGeneratorView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(primaryTextColor)
                 
-                // AI Import From File Button (Premium Style)
+                // AI Import From File Button (Solid Accent Style)
                 Button {
                     showingFileImporter = true
                 } label: {
@@ -277,15 +251,8 @@ struct BlockGeneratorView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .foregroundColor(.white)
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .background(theme.accent)
                     .cornerRadius(12)
-                    .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
             }
         }
@@ -362,73 +329,6 @@ struct BlockGeneratorView: View {
                 .cornerRadius(8)
             }
             .frame(maxWidth: .infinity, alignment: .center)
-            
-            // Prompt preview (collapsible)
-            DisclosureGroup("Preview Full Prompt") {
-                ScrollView(.horizontal, showsIndicators: true) {
-                    Text(aiPromptTemplate(withRequirements: userRequirements))
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(theme.mutedText)
-                        .padding(12)
-                        .background(Color(UIColor.systemBackground))
-                        .cornerRadius(8)
-                }
-                .frame(maxHeight: 150)
-            }
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(primaryTextColor)
-        }
-        .padding()
-        .background(cardBackgroundColor)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(cardBorderColor, lineWidth: 1)
-        )
-    }
-    
-    // MARK: - JSON Format Example Card Section
-    
-    private var jsonFormatExampleCardSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Section Header - Centered, Home Style
-            Text("JSON FORMAT EXAMPLE")
-                .font(.system(size: 18, weight: .bold))
-                .tracking(1.5)
-                .frame(maxWidth: .infinity)
-                .foregroundColor(primaryTextColor)
-            
-            Text("This is the expected format. All fields are required. Save as .json file.")
-                .font(.system(size: 14))
-                .foregroundColor(theme.mutedText)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-            
-            Button {
-                copyToClipboard(jsonFormatExample)
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "doc.on.doc")
-                    Text("Copy Example")
-                        .font(.system(size: 14, weight: .medium))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(theme.accent)
-                .cornerRadius(8)
-            }
-            .frame(maxWidth: .infinity, alignment: .center)
-            
-            ScrollView(.horizontal, showsIndicators: true) {
-                Text(jsonFormatExample)
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(theme.mutedText)
-                    .padding(12)
-                    .background(Color(UIColor.systemBackground))
-                    .cornerRadius(8)
-            }
-            .frame(maxHeight: 200)
         }
         .padding()
         .background(cardBackgroundColor)
