@@ -203,26 +203,32 @@ struct BlockGeneratorView: View {
                             .stroke(Color(UIColor.separator), lineWidth: 1)
                     )
                 
-                // AI Import From Paste Button (Solid Accent Style)
+                // AI Import From Paste Button (Home Page Style)
                 Button {
                     parseJSONFromText()
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.down.doc.fill")
                         Text("AI IMPORT FROM PASTE")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 16, weight: .semibold))
                             .tracking(1.5)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .foregroundColor(.white)
+                    .foregroundColor(
+                        pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
+                            ? theme.mutedText
+                            : foregroundButtonColor
+                    )
                     .background(
                         pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty 
-                            ? Color.gray
-                            : theme.accent
+                            ? backgroundButtonColor.opacity(0.5)
+                            : backgroundButtonColor
                     )
                     .cornerRadius(12)
+                    .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                 }
+                .buttonStyle(PlainButtonStyle())
                 .disabled(pastedJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             
@@ -238,22 +244,24 @@ struct BlockGeneratorView: View {
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(primaryTextColor)
                 
-                // AI Import From File Button (Solid Accent Style)
+                // AI Import From File Button (Home Page Style)
                 Button {
                     showingFileImporter = true
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "doc.badge.plus")
                         Text("AI IMPORT FROM FILE")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(.system(size: 16, weight: .semibold))
                             .tracking(1.5)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .foregroundColor(.white)
-                    .background(theme.accent)
+                    .foregroundColor(foregroundButtonColor)
+                    .background(backgroundButtonColor)
                     .cornerRadius(12)
+                    .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                 }
+                .buttonStyle(PlainButtonStyle())
             }
         }
         .padding()
@@ -1659,6 +1667,18 @@ struct BlockGeneratorView: View {
     
     private var cardBorderColor: Color {
         colorScheme == .dark ? theme.cardBorderDark : theme.cardBorderLight
+    }
+    
+    private var backgroundButtonColor: Color {
+        colorScheme == .dark ? theme.primaryButtonBackgroundDark : theme.primaryButtonBackgroundLight
+    }
+
+    private var foregroundButtonColor: Color {
+        colorScheme == .dark ? theme.primaryButtonForegroundDark : theme.primaryButtonForegroundLight
+    }
+    
+    private var shadowColor: Color {
+        colorScheme == .dark ? Color.clear : Color.black.opacity(0.15)
     }
 }
 
