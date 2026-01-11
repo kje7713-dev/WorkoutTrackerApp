@@ -323,6 +323,7 @@ struct ChipView: View {
         Text(text)
             .font(.caption)
             .fontWeight(.semibold)
+            .fixedSize(horizontal: false, vertical: true)
             .foregroundColor(.white)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -341,6 +342,7 @@ struct TagChipView: View {
     var body: some View {
         Text(text)
             .font(.caption2)
+            .fixedSize(horizontal: false, vertical: true)
             .foregroundColor(.primary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
@@ -740,6 +742,7 @@ struct SegmentCard: View {
                     FlowLayout(items: segment.coachingCues) { cue in
                         Text(cue)
                             .font(.caption)
+                            .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                             .background(
