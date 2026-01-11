@@ -63,6 +63,8 @@ We may update this privacy policy from time to time. We will notify you of any c
 ## Contact
 
 For questions about this privacy policy, please contact:
+- Email: savagesbydesignhq@gmail.com
+- Website: savagesbydesign.com
 - GitHub: https://github.com/kje7713-dev/WorkoutTrackerApp
 
 ## Subscription-Specific Privacy
