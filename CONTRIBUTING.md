@@ -152,6 +152,8 @@ All submissions require review before merging. Reviewers will check:
 
 ## Questions or Issues?
 
+- **Email:** savagesbydesignhq@gmail.com for general questions
+- **Website:** savagesbydesign.com
 - Open a GitHub issue for bugs or feature requests
 - Include clear steps to reproduce for bugs
 - Provide context and use cases for feature requests

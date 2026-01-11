@@ -10,8 +10,10 @@ We take the security of WorkoutTrackerApp seriously. If you discover a security 
 
 Instead, please report security issues by:
 
-1. Opening a private security advisory on GitHub
-2. Emailing the maintainers directly (see repository maintainer info)
+1. Emailing security concerns to: savagesbydesignhq@gmail.com
+2. Opening a private security advisory on GitHub
+
+For general inquiries, visit: savagesbydesign.com
 
 ### What to Include
 

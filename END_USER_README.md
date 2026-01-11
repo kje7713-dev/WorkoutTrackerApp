@@ -376,7 +376,9 @@ A: 100% accurate based on what you log. The app never estimates—it shows exact
 - **[Complete User Guide](USER_GUIDE.md)** - 1300+ line comprehensive guide covering exercises and segments
 - **[Developer README](README.md)** - Technical details for developers
 
-### **Support:**
+### **Support & Contact:**
+- **Email:** savagesbydesignhq@gmail.com
+- **Website:** savagesbydesign.com
 - **Issues/Bugs:** [GitHub Issues](https://github.com/kje7713-dev/WorkoutTrackerApp/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/kje7713-dev/WorkoutTrackerApp/discussions)
 - **In-App Support:** Pro subscribers get priority support

@@ -386,6 +386,26 @@ The app supports various segment types to match your training structure:
 
 ## Segment Use Cases
 
+Segments are incredibly versatile and can be used for **far more than just athletic training**. This section showcases how segments can structure any time-based learning or skill development activity.
+
+### Traditional Athletic Training
+- Brazilian Jiu-Jitsu (BJJ) classes
+- Yoga and mobility work
+- Wrestling practice
+- MMA striking classes
+- Hybrid athlete programs (strength + mobility)
+- Open mat / free training sessions
+
+### Non-Traditional Learning & Skill Development
+- **Technology & AI Learning:** Coding bootcamps, AI/ML classes, software development
+- **Language Learning:** Conversation practice, grammar drills, vocabulary building
+- **Music Practice:** Instrument technique, improvisation, composition
+- **Professional Development:** Public speaking, leadership training, presentation skills
+- **Academic Study:** Research sessions, exam preparation, concept mastery
+- **Creative Skills:** Writing workshops, design critique sessions, art practice
+
+The examples below demonstrate how segments provide structure for both athletic and non-athletic pursuits. **The key is recognizing that any activity with distinct time-based phases can benefit from segment structure.**
+
 ### Use Case 1: Brazilian Jiu-Jitsu (BJJ) Class
 
 **Structure:** Segment-based day representing a typical BJJ class
@@ -630,6 +650,231 @@ Open Mat Session (60 minutes)
 - Still captures time allocation
 - Notes field for personalization
 - Tracks training volume
+
+### Use Case 7: AI/Tech Class Learning
+
+**Structure:** Segment-based learning session for technology training
+
+**Example Day Structure:**
+```
+Machine Learning Fundamentals (90 minutes)
+
+1. Review / Lecture (15 min)
+   - Review previous week's concepts
+   - Introduction to neural networks
+   - Key concepts: Forward propagation, backpropagation
+   
+2. Technique (30 min)
+   - Live coding demonstration
+   - Building a simple neural network in Python
+   - Key details: Layer architecture, activation functions
+   - Common errors: Dimension mismatches, learning rate issues
+   
+3. Drill (30 min)
+   - Hands-on coding exercises
+   - Work: Implement network layer (10 min)
+   - Rest: Review solution and debug (5 min)
+   - Repeat 2x with different architectures
+   
+4. Other - Project Work (10 min)
+   - Apply concepts to personal project
+   - Notes: Tested model on custom dataset
+   
+5. Review (5 min)
+   - Key takeaways and next steps
+   - Questions for further study
+```
+
+**Why Segments Work:**
+- Time-based learning modules
+- Lecture, demonstration, and practice phases
+- Quality metrics: Concept understanding, code completion
+- Notes field for capturing insights and questions
+
+**Tracking During Session:**
+- Check off completed segments
+- Log understanding level or completion rate
+- Note challenging concepts for review
+- Record resources or documentation references
+
+### Use Case 8: Language Learning Session
+
+**Structure:** Segment-based language practice
+
+**Example Day Structure:**
+```
+Spanish Conversation Practice (60 minutes)
+
+1. Warmup (10 min)
+   - Vocabulary flashcard review
+   - Quick pronunciation drills
+   - Present tense conjugation practice
+   
+2. Technique (15 min)
+   - New grammar concept: Subjunctive mood
+   - Key details: Trigger phrases, conjugation patterns
+   - Common errors: Indicative vs. subjunctive confusion
+   - Examples with translations
+   
+3. Drill (20 min)
+   - Sentence construction exercises
+   - Work: Create 5 sentences using subjunctive (5 min)
+   - Review: Check with answer key (2 min)
+   - Repeat 3x with different contexts
+   
+4. Positional - Conversation Practice (10 min)
+   - Partner conversation or language exchange
+   - Scenario: Restaurant ordering
+   - Role: Customer, then switch to server
+   - Intensity: Moderate (some English allowed for clarification)
+   
+5. Other - Listening Comprehension (3 min)
+   - Podcast or video in target language
+   - Notes: Understood main points, struggled with idioms
+   
+6. Review (2 min)
+   - Reflection on progress
+   - Note new vocabulary learned
+```
+
+**Benefits of Segment Structure:**
+- Captures varied learning activities
+- Time allocation for each skill (reading, writing, listening, speaking)
+- Quality tracking: Vocabulary retained, grammar accuracy
+- Notes for challenging concepts
+
+### Use Case 9: Music Practice Session
+
+**Structure:** Segment-based music skill development
+
+**Example Day Structure:**
+```
+Guitar Practice: Blues Improvisation (75 minutes)
+
+1. Warmup (10 min)
+   - Finger exercises and scales
+   - Chromatic warm-up
+   - Major and minor pentatonic scales
+   
+2. Technique (20 min)
+   - New concept: Blues turnaround phrases
+   - Key details: Rhythm, bending technique, phrasing
+   - Common errors: Rushing the turnaround, poor intonation
+   - Video reference: Blues masters demonstration
+   
+3. Drill (20 min)
+   - Repetitive practice of turnaround licks
+   - Work: Play phrase 10x slow (5 min)
+   - Work: Play phrase 10x medium tempo (5 min)
+   - Work: Play phrase to backing track (5 min)
+   - Rest: Listen back to recording (5 min)
+   
+4. Other - Improvisation (20 min)
+   - Free improvisation over 12-bar blues backing track
+   - Goal: Incorporate new turnaround phrases
+   - Rounds: 4 rounds × 3 minutes / 2 min rest
+   - Notes: Successfully used turnaround in rounds 2 and 4
+   
+5. Review (5 min)
+   - Record best take for progress tracking
+   - Note areas for improvement
+   - Plan next session focus
+```
+
+**Why Segments Work Better:**
+- Time-based practice modules
+- Technique isolation before integration
+- Quality over quantity metrics
+- Recording and reflection components
+
+### Use Case 10: Professional Skill Development
+
+**Structure:** Segment-based professional training
+
+**Example Day Structure:**
+```
+Public Speaking Workshop (120 minutes)
+
+1. Lecture / Review (20 min)
+   - Theory: Vocal variety and pacing
+   - Video examples: TED Talk analysis
+   - Key concepts: Pausing for emphasis, tone modulation
+   
+2. Warmup (10 min)
+   - Vocal warm-up exercises
+   - Breathing and projection drills
+   - Tongue twisters for articulation
+   
+3. Technique (25 min)
+   - Demonstration: Effective speech opening techniques
+   - Key details: Hook attention, establish credibility, preview content
+   - Common errors: Starting with apology, monotone delivery
+   - Practice: Each participant delivers 2-minute opener
+   
+4. Drill (30 min)
+   - Timed practice rounds with specific constraints
+   - Round 1 (5 min): Focus on vocal variety only
+   - Rest (2 min): Receive peer feedback
+   - Round 2 (5 min): Focus on pacing and pauses
+   - Rest (2 min): Receive peer feedback
+   - Round 3 (5 min): Integrate all elements
+   
+5. Other - Full Presentation (25 min)
+   - Each participant: 5-minute presentation
+   - Video recorded for self-review
+   - Notes: Audience questions, feedback points
+   
+6. Review (10 min)
+   - Group discussion
+   - Personal reflection on strengths and areas to improve
+   - Action items for next session
+```
+
+**Tracking Options:**
+- Completion of each segment
+- Quality metrics: Confidence level, audience engagement
+- Feedback notes from instructor or peers
+- Self-assessment scores
+
+### Use Case 11: Study/Research Session
+
+**Structure:** Segment-based academic or research work
+
+**Example Day Structure:**
+```
+Research Methods Study Block (90 minutes)
+
+1. Lecture / Review (20 min)
+   - Reading: Chapter on experimental design
+   - Key concepts: Control variables, randomization, blinding
+   - Notes: Definitions and examples
+   
+2. Technique (25 min)
+   - Learn: How to identify confounding variables
+   - Practice examples from textbook
+   - Common errors: Missing interaction effects
+   
+3. Drill (20 min)
+   - Problem set exercises
+   - Work: Complete 5 practice problems (15 min)
+   - Review: Check answers and understand mistakes (5 min)
+   
+4. Other - Application (20 min)
+   - Apply concepts to thesis research design
+   - Draft experimental protocol
+   - Notes: Identified 3 potential confounds to control
+   
+5. Review (5 min)
+   - Summarize key learnings
+   - Create flashcards for important terms
+   - Plan next study session topics
+```
+
+**Benefits:**
+- Structured study time with clear phases
+- Active learning through application
+- Self-testing and review built in
+- Progress tracking across study sessions
 
 ---
 
@@ -1149,15 +1394,20 @@ Your workout data is stored locally on your device. Back it up to:
 - Export data backups monthly
 - Screenshot your whiteboard for quick reference
 - Use segments for skill-based training (BJJ, yoga, martial arts)
+- **Use segments for learning activities** (AI/tech classes, language learning, music practice)
+- **Use segments for professional development** (public speaking, skill workshops)
+- **Use segments for study sessions** (structured academic work, research time)
 - Mix exercises and segments when appropriate (hybrid days)
 - Track quality over quantity for segment-based work
+- Adapt segment types creatively (e.g., "Drill" for coding exercises, "Technique" for learning concepts)
 
 ❌ **DON'T:**
 - Skip logging—you lose valuable data
 - Delete blocks immediately after completion (archive first)
 - Forget to progress weight/volume across weeks
 - Ignore deload weeks—recovery is training
-- Use exercises for activities better suited to segments (e.g., yoga, BJJ classes)
+- Use exercises for activities better suited to segments (e.g., yoga, BJJ classes, learning sessions)
+- Force non-quantifiable activities into sets/reps/weight structure
 
 ### Sample Programs to Try
 
@@ -1198,6 +1448,26 @@ Your workout data is stored locally on your device. Back it up to:
 - Day 4: Wrestling Conditioning (segments)
 - Day 5: Full Body Lift (exercises) + Yoga Flow (segments)
 
+**Machine Learning Bootcamp (8 weeks, 3 days/week) - Segments:**
+- Day 1: Theory & Coding Practice
+  - Review/Lecture → Technique (live coding) → Drill (exercises) → Project Work
+- Day 2: Advanced Concepts
+  - Review → Technique → Drill → Application → Review
+- Day 3: Project Development
+  - Planning → Coding Session → Testing & Debugging → Documentation
+
+**Language Learning Program (12 weeks, 4 days/week) - Segments:**
+- Day 1: Grammar & Structure (Lecture → Technique → Drill → Review)
+- Day 2: Conversation Practice (Warmup → Drill → Positional/Role-play → Review)
+- Day 3: Listening & Reading (Warmup → Technique → Other/Comprehension → Review)
+- Day 4: Writing & Composition (Review → Technique → Drill → Other/Free writing)
+
+**Professional Development (4 weeks, 2 days/week) - Segments:**
+- Day 1: Public Speaking Skills
+  - Warmup → Lecture → Technique → Drill → Full Presentation → Review
+- Day 2: Leadership & Communication
+  - Review → Technique → Role-play scenarios → Group discussion → Action planning
+
 ---
 
 ## Troubleshooting
@@ -1237,11 +1507,13 @@ Your workout data is stored locally on your device. Back it up to:
 
 ### Getting Help
 
-**In-App Support:**
+**Contact & Support:**
+- Email: savagesbydesignhq@gmail.com
+- Website: savagesbydesign.com
 - Tap **GO PRO** → **Contact Support** (Pro users)
-- Use GitHub Issues for bugs: [github.com/kje7713-dev/WorkoutTrackerApp/issues](https://github.com/kje7713-dev/WorkoutTrackerApp/issues)
 
-**Community:**
+**Community & Development:**
+- GitHub Issues for bugs: [github.com/kje7713-dev/WorkoutTrackerApp/issues](https://github.com/kje7713-dev/WorkoutTrackerApp/issues)
 - GitHub Discussions: [github.com/kje7713-dev/WorkoutTrackerApp/discussions](https://github.com/kje7713-dev/WorkoutTrackerApp/discussions)
 - Share your programs and get feedback
 
@@ -1330,4 +1602,9 @@ Your workout data is stored locally on your device. Back it up to:
 
 ---
 
-**Need more help?** Check the [Technical README](README.md) for developers or visit our [GitHub repository](https://github.com/kje7713-dev/WorkoutTrackerApp) for updates and support.
+**Need more help?** 
+
+- Email: savagesbydesignhq@gmail.com
+- Website: savagesbydesign.com
+- Check the [Technical README](README.md) for developers
+- Visit our [GitHub repository](https://github.com/kje7713-dev/WorkoutTrackerApp) for updates
