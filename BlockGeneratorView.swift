@@ -173,25 +173,8 @@ struct BlockGeneratorView: View {
     
     private var importJSONSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Section Header - Centered, Home Style
-            Text("IMPORT FROM AI")
-                .font(.system(size: 18, weight: .bold))
-                .tracking(1.5)
-                .frame(maxWidth: .infinity)
-                .foregroundColor(primaryTextColor)
-            
-            Text("Import your AI-generated training block from a JSON file or paste JSON directly.")
-                .font(.system(size: 14))
-                .foregroundColor(theme.mutedText)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-            
             // Paste JSON Section
             VStack(alignment: .leading, spacing: 12) {
-                Text("Paste JSON")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(primaryTextColor)
-                
                 TextEditor(text: $pastedJSON)
                     .font(.system(size: 12, design: .monospaced))
                     .frame(minHeight: 150, maxHeight: 200)
@@ -240,10 +223,6 @@ struct BlockGeneratorView: View {
             
             // Upload File Section
             VStack(alignment: .leading, spacing: 12) {
-                Text("Upload JSON File")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(primaryTextColor)
-                
                 // AI Import From File Button (Home Page Style)
                 Button {
                     showingFileImporter = true
@@ -325,18 +304,20 @@ struct BlockGeneratorView: View {
             Button {
                 copyToClipboard(aiPromptTemplate(withRequirements: userRequirements))
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: 8) {
                     Image(systemName: "doc.on.doc")
-                    Text("Copy Complete Prompt")
-                        .font(.system(size: 14, weight: .medium))
+                    Text("COPY COMPLETE PROMPT")
+                        .font(.system(size: 16, weight: .semibold))
+                        .tracking(1.5)
                 }
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(theme.accent)
-                .cornerRadius(8)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .foregroundColor(foregroundButtonColor)
+                .background(backgroundButtonColor)
+                .cornerRadius(12)
+                .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
             }
-            .frame(maxWidth: .infinity, alignment: .center)
+            .buttonStyle(PlainButtonStyle())
         }
         .padding()
         .background(cardBackgroundColor)
