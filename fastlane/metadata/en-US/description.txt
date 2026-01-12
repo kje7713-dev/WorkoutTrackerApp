@@ -1,6 +1,6 @@
 Track your workouts with precision using structured block periodization.
 
-Killin' It is the ultimate workout tracking app for athletes, coaches, and fitness enthusiasts who follow structured training programs. Built for strength training and conditioning workouts, this app helps you plan, execute, and track your fitness journey.
+SBD is the ultimate workout tracking app for athletes, coaches, and fitness enthusiasts who follow structured training programs. Built for strength training and conditioning workouts, this app helps you plan, execute, and track your fitness journey.
 
 KEY FEATURES:
 
@@ -41,6 +41,6 @@ FEATURES COMING SOON:
 • HealthKit integration
 • Workout sharing with coaches and training partners
 
-Whether you're training for competition or personal fitness, Killin' It gives you the tools to plan, track, and conquer your training goals.
+Whether you're training for competition or personal fitness, SBD gives you the tools to plan, track, and conquer your training goals.
 
 Download now and start tracking your journey!
