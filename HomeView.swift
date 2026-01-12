@@ -25,7 +25,7 @@ struct HomeView: View {
                         .foregroundColor(primaryTextColor)
                         .multilineTextAlignment(.center)
 
-                    Text("WE ARE WHAT WE REPEATEDLY DO")
+                    Text("SBD")
                         .font(.system(size: 24, weight: .medium))
                         .foregroundColor(primaryTextColor.opacity(0.7))
                         .multilineTextAlignment(.center)
