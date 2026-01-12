@@ -1,4 +1,4 @@
-Welcome to Killin' It!
+Welcome to SBD!
 
 This is the initial release of your ultimate workout tracking companion.
 

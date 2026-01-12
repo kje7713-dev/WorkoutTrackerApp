@@ -57,7 +57,7 @@ This document summarizes all production readiness improvements made to WorkoutTr
 ### ✅ App Store Preparation (Complete)
 
 **Fastlane Metadata**
-- ✅ App name: "Killin' It"
+- ✅ App name: "SBD"
 - ✅ Subtitle: "Workout Tracker & Training"
 - ✅ Description: Comprehensive 2000+ character description
 - ✅ Keywords: workout, fitness, training, gym, strength, etc.

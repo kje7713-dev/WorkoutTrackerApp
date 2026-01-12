@@ -69,7 +69,7 @@ When you first run the app:
 
 1. Open `SavageByDesignApp.swift`
 2. Find the `HomeView()` line
-3. The app uses "Killin' It" as the display name (set in Info.plist)
+3. The app uses "SBD" as the display name (set in Info.plist)
 4. Make a change, press `⌘R` to rebuild
 
 ### Example: Add a New View
