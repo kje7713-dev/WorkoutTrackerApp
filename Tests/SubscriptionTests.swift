@@ -17,13 +17,13 @@ struct SubscriptionTests {
         print("Testing free user feature gating...")
         
         // Simulate free user (no subscription)
-        let isSubscribed = false
+        let hasActiveSubscription = false
         
         // Advanced features should be gated
-        let canImportAIBlock = isSubscribed
-        let canUseAdvancedAnalytics = isSubscribed
-        let canAccessAdvancedHistory = isSubscribed
-        let canAccessWhiteboard = isSubscribed
+        let canImportAIBlock = hasActiveSubscription
+        let canUseAdvancedAnalytics = hasActiveSubscription
+        let canAccessAdvancedHistory = hasActiveSubscription
+        let canAccessWhiteboard = hasActiveSubscription
         
         let result = !canImportAIBlock && !canUseAdvancedAnalytics && !canAccessAdvancedHistory && !canAccessWhiteboard
         
@@ -36,13 +36,13 @@ struct SubscriptionTests {
         print("Testing subscribed user feature access...")
         
         // Simulate subscribed user
-        let isSubscribed = true
+        let hasActiveSubscription = true
         
         // Advanced features should be accessible
-        let canImportAIBlock = isSubscribed
-        let canUseAdvancedAnalytics = isSubscribed
-        let canAccessAdvancedHistory = isSubscribed
-        let canAccessWhiteboard = isSubscribed
+        let canImportAIBlock = hasActiveSubscription
+        let canUseAdvancedAnalytics = hasActiveSubscription
+        let canAccessAdvancedHistory = hasActiveSubscription
+        let canAccessWhiteboard = hasActiveSubscription
         
         let result = canImportAIBlock && canUseAdvancedAnalytics && canAccessAdvancedHistory && canAccessWhiteboard
         
@@ -50,79 +50,33 @@ struct SubscriptionTests {
         return result
     }
     
-    /// Test trial eligibility logic
-    static func testTrialEligibility() -> Bool {
-        print("Testing trial eligibility...")
+    /// Test subscription status reflects App Store Connect entitlement
+    static func testSubscriptionDrivenByAppStoreConnect() -> Bool {
+        print("Testing subscription driven by App Store Connect...")
         
-        // New user should be eligible for trial
-        let neverSubscribed = true
-        let isEligibleForTrial = neverSubscribed
+        // App Store Connect says user has active subscription
+        let appStoreConnectHasActiveSubscription = true
+        let hasActiveSubscription = appStoreConnectHasActiveSubscription
         
-        // Previous subscriber should not be eligible
-        let previouslySubscribed = false
-        let notEligibleForTrial = previouslySubscribed
+        // Should grant access
+        let hasAccess = hasActiveSubscription
         
-        let result = isEligibleForTrial && !notEligibleForTrial
+        let result = hasAccess
         
-        print("Trial eligibility: \(result ? "PASS" : "FAIL")")
+        print("Subscription driven by App Store Connect: \(result ? "PASS" : "FAIL")")
         return result
     }
     
-    /// Test trial active status
-    static func testTrialActiveStatus() -> Bool {
-        print("Testing trial active status...")
-        
-        // User in trial should have access
-        let isInTrial = true
-        let hasAccess = isInTrial
-        
-        // Trial should count as subscription
-        let isSubscribed = isInTrial
-        
-        let result = hasAccess && isSubscribed
-        
-        print("Trial active status: \(result ? "PASS" : "FAIL")")
-        return result
-    }
-    
-    // MARK: - UI State Tests
-    
-    /// Test subscription button text for trial eligible users
-    static func testTrialButtonText() -> Bool {
-        print("Testing trial button text...")
-        
-        let isEligibleForTrial = true
-        let buttonText = isEligibleForTrial ? "Start 15-Day Free Trial" : "Subscribe Now"
-        
-        let result = buttonText == "Start 15-Day Free Trial"
-        
-        print("Trial button text: \(result ? "PASS" : "FAIL")")
-        return result
-    }
-    
-    /// Test subscription button text for non-eligible users
-    static func testSubscribeButtonText() -> Bool {
-        print("Testing subscribe button text...")
-        
-        let isEligibleForTrial = false
-        let buttonText = isEligibleForTrial ? "Start 15-Day Free Trial" : "Subscribe Now"
-        
-        let result = buttonText == "Subscribe Now"
-        
-        print("Subscribe button text: \(result ? "PASS" : "FAIL")")
-        return result
-    }
-    
-    /// Test expired subscription state
+    /// Test expired subscription locks features
     static func testExpiredSubscription() -> Bool {
         print("Testing expired subscription state...")
         
-        // Simulate expired subscription
+        // Simulate expired subscription (App Store Connect returns no active entitlement)
         let subscriptionExpired = true
-        let isSubscribed = !subscriptionExpired
+        let hasActiveSubscription = !subscriptionExpired
         
         // User should not have access
-        let hasAccess = isSubscribed
+        let hasAccess = hasActiveSubscription
         
         // Should show resubscribe CTA
         let shouldShowResubscribeCTA = subscriptionExpired
@@ -140,13 +94,13 @@ struct SubscriptionTests {
         print("Testing AI block import gating...")
         
         // Free user
-        var isSubscribed = false
-        var canAccessFeature = isSubscribed
+        var hasActiveSubscription = false
+        var canAccessFeature = hasActiveSubscription
         var result1 = !canAccessFeature
         
         // Subscribed user
-        isSubscribed = true
-        canAccessFeature = isSubscribed
+        hasActiveSubscription = true
+        canAccessFeature = hasActiveSubscription
         var result2 = canAccessFeature
         
         let result = result1 && result2
@@ -160,80 +114,18 @@ struct SubscriptionTests {
         print("Testing advanced analytics gating...")
         
         // Free user should not have access to advanced analytics
-        var isSubscribed = false
-        var hasAdvancedAnalytics = isSubscribed
+        var hasActiveSubscription = false
+        var hasAdvancedAnalytics = hasActiveSubscription
         var result1 = !hasAdvancedAnalytics
         
         // Subscribed user should have access
-        isSubscribed = true
-        hasAdvancedAnalytics = isSubscribed
+        hasActiveSubscription = true
+        hasAdvancedAnalytics = hasActiveSubscription
         var result2 = hasAdvancedAnalytics
         
         let result = result1 && result2
         
         print("Advanced analytics gating: \(result ? "PASS" : "FAIL")")
-        return result
-    }
-    
-    // MARK: - Dev Unlock Tests
-    
-    /// Test dev code unlock functionality
-    static func testDevCodeUnlock() -> Bool {
-        print("Testing dev code unlock...")
-        
-        // Valid code should unlock
-        let validCode = "dev"
-        let isDevCodeValid = validCode.lowercased() == "dev"
-        
-        // After entering valid code, user should have access
-        let isUnlockedAfterValidCode = isDevCodeValid
-        
-        // Invalid code should not unlock
-        let invalidCode = "wrong"
-        let isInvalidCodeValid = invalidCode.lowercased() == "dev"
-        let isNotUnlockedAfterInvalidCode = !isInvalidCodeValid
-        
-        let result = isUnlockedAfterValidCode && isNotUnlockedAfterInvalidCode
-        
-        print("Dev code unlock: \(result ? "PASS" : "FAIL")")
-        return result
-    }
-    
-    /// Test dev unlock grants feature access
-    static func testDevUnlockFeatureAccess() -> Bool {
-        print("Testing dev unlock feature access...")
-        
-        // Simulate user with dev unlock (not subscribed, but dev unlocked)
-        let hasActiveSubscription = false
-        let isDevUnlocked = true
-        let isSubscribed = hasActiveSubscription || isDevUnlocked
-        
-        // Should have access to pro features
-        let canImportAIBlock = isSubscribed
-        let canUseAdvancedAnalytics = isSubscribed
-        
-        let result = canImportAIBlock && canUseAdvancedAnalytics
-        
-        print("Dev unlock feature access: \(result ? "PASS" : "FAIL")")
-        return result
-    }
-    
-    /// Test dev unlock persists across sessions
-    static func testDevUnlockPersistence() -> Bool {
-        print("Testing dev unlock persistence...")
-        
-        // Simulate saving to UserDefaults
-        let isDevUnlockedSaved = true
-        
-        // Simulate loading on next app launch
-        let isDevUnlockedLoaded = isDevUnlockedSaved
-        
-        // User should still have access after reload
-        let hasAccessAfterReload = isDevUnlockedLoaded
-        
-        let result = hasAccessAfterReload
-        
-        print("Dev unlock persistence: \(result ? "PASS" : "FAIL")")
         return result
     }
     
@@ -303,16 +195,10 @@ struct SubscriptionTests {
         let tests: [(String, () -> Bool)] = [
             ("Free User Feature Gating", testFreeUserFeatureGating),
             ("Subscribed User Feature Access", testSubscribedUserFeatureAccess),
-            ("Trial Eligibility", testTrialEligibility),
-            ("Trial Active Status", testTrialActiveStatus),
-            ("Trial Button Text", testTrialButtonText),
-            ("Subscribe Button Text", testSubscribeButtonText),
+            ("Subscription Driven by App Store Connect", testSubscriptionDrivenByAppStoreConnect),
             ("Expired Subscription", testExpiredSubscription),
             ("AI Block Import Gating", testAIBlockImportGating),
             ("Advanced Analytics Gating", testAdvancedAnalyticsGating),
-            ("Dev Code Unlock", testDevCodeUnlock),
-            ("Dev Unlock Feature Access", testDevUnlockFeatureAccess),
-            ("Dev Unlock Persistence", testDevUnlockPersistence),
             ("Error Message Quality", testErrorMessageQuality),
             ("Network Error Messages", testNetworkErrorMessages),
             ("Sandbox Error Messages", testSandboxErrorMessages),

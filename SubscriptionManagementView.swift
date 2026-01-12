@@ -16,13 +16,14 @@ struct SubscriptionManagementView: View {
     @Environment(\.sbdTheme) private var theme
     
     @State private var showingPaywall = false
+    @State private var isEligibleForTrial = true
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
                     
-                    if subscriptionManager.isSubscribed {
+                    if subscriptionManager.hasActiveSubscription {
                         activeSubscriptionSection
                     } else {
                         inactiveSubscriptionSection
@@ -47,6 +48,10 @@ struct SubscriptionManagementView: View {
                 PaywallView()
                     .environmentObject(subscriptionManager)
             }
+            .task {
+                // Check trial eligibility when view appears
+                isEligibleForTrial = await subscriptionManager.isEligibleForIntroOffer
+            }
         }
     }
     
@@ -60,7 +65,7 @@ struct SubscriptionManagementView: View {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
                 
-                Text(subscriptionManager.isInTrial ? "Free Trial Active" : "Pro Subscription Active")
+                Text("Pro Subscription Active")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.green)
             }
@@ -133,15 +138,13 @@ struct SubscriptionManagementView: View {
                 }
             }
             
-            // Info text
-            if subscriptionManager.isInTrial {
-                if let price = subscriptionManager.formattedPrice {
-                    Text("Your free trial will automatically convert to a \(price) subscription unless cancelled.")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(theme.mutedText)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 8)
-                }
+            // Info text about subscription
+            if let price = subscriptionManager.formattedPrice {
+                Text("Subscription renews at \(price) per month unless cancelled.")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(theme.mutedText)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 8)
             }
         }
     }
@@ -185,7 +188,7 @@ struct SubscriptionManagementView: View {
             Button {
                 showingPaywall = true
             } label: {
-                Text(subscriptionManager.isEligibleForTrial ? "Start 15-Day Free Trial" : "Subscribe Now")
+                Text(isEligibleForTrial ? "Start 15-Day Free Trial" : "Subscribe Now")
                     .font(.system(size: 18, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
