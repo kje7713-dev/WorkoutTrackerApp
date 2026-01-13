@@ -178,8 +178,8 @@ jobs:
         with:
           name: WorkoutTrackerApp-IPA
           path: |
-            *.ipa
-            *.app.dSYM.zip
+            WorkoutTrackerApp.ipa
+            WorkoutTrackerApp.app.dSYM.zip
           if-no-files-found: ignore
 
       # ---------- Always upload logs as artifact ----------

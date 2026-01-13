@@ -109,8 +109,14 @@ platform :ios do
         # - "required agreement" (specific agreement needed)
         # - "terms" or "conditions" (terms of service)
         error_message = upload_error.message.to_s
-        error_keywords = ["agreement", "expired", "terms", "conditions"]
-        is_agreement_error = error_keywords.any? { |keyword| error_message.downcase.include?(keyword) }
+        # Use word boundary regex for more precise matching
+        error_keywords = [
+          /\bagreement\b/i,
+          /\bexpired\b/i,
+          /\bterms\b/i,
+          /\bconditions\b/i
+        ]
+        is_agreement_error = error_keywords.any? { |pattern| error_message =~ pattern }
 
         if is_agreement_error
           UI.important("⚠️  TestFlight upload failed due to App Store Connect agreement issue")
