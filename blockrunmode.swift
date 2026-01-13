@@ -285,7 +285,13 @@ struct BlockRunModeView: View {
     
     /// Find the index of the first incomplete week, or the last week if all are complete
     /// This is the "active" week where the user should resume training
+    /// - Returns: 0-based index of the active week, or 0 if weeks array is empty
     private func findActiveWeekIndex() -> Int {
+        // Handle empty weeks array
+        guard !weeks.isEmpty else {
+            return 0
+        }
+        
         // Find the first week that is not completed
         if let firstIncompleteIndex = weeks.firstIndex(where: { !$0.isCompleted }) {
             return firstIncompleteIndex
@@ -293,7 +299,7 @@ struct BlockRunModeView: View {
         
         // If all weeks are completed, return the last week
         // This allows users to review their completed work
-        return max(0, weeks.count - 1)
+        return weeks.count - 1
     }
     
     // MARK: - Save Helpers
