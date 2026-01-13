@@ -113,7 +113,7 @@ platform :ios do
           UI.important("")
           UI.important("💡 The IPA was built successfully and is available as a workflow artifact")
           UI.important("   You can download it and upload manually if needed")
-          
+
           # Don't fail the entire workflow - the build succeeded
           append_err(errors_log, "========= TESTFLIGHT UPLOAD SKIPPED =========")
           append_err(errors_log, "Reason: App Store Connect agreement needs acceptance")
