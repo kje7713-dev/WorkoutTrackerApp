@@ -215,6 +215,44 @@ struct BlockRunModeCompletionTests {
         return passed
     }
     
+    /// Test that manually completing a week triggers the completion modal
+    static func testManualWeekCompletion() -> Bool {
+        print("🧪 Testing: Manual week completion triggers modal")
+        
+        // Setup: 4 weeks, none completed, but some sets incomplete
+        let previousWeeks = [
+            MockRunWeekState(index: 0, isCompleted: false),
+            MockRunWeekState(index: 1, isCompleted: false),
+            MockRunWeekState(index: 2, isCompleted: false),
+            MockRunWeekState(index: 3, isCompleted: false)
+        ]
+        
+        // Act: Manually complete first week (even with incomplete sets)
+        let currentWeeks = [
+            MockRunWeekState(index: 0, isCompleted: true),  // Manually marked complete
+            MockRunWeekState(index: 1, isCompleted: false),
+            MockRunWeekState(index: 2, isCompleted: false),
+            MockRunWeekState(index: 3, isCompleted: false)
+        ]
+        
+        let result = simulateCompletionCheck(
+            previousWeeks: previousWeeks,
+            currentWeeks: currentWeeks
+        )
+        
+        // Assert: Week modal should show
+        let passed = result.showWeekModal && !result.showBlockModal
+        
+        if passed {
+            print("  ✅ PASS: Week modal triggered for manual completion")
+        } else {
+            print("  ❌ FAIL: Expected week modal for manual completion")
+            print("     Got: week modal=\(result.showWeekModal), block modal=\(result.showBlockModal)")
+        }
+        
+        return passed
+    }
+    
     // MARK: - Test Runner
     
     /// Runs all tests and reports results
@@ -230,7 +268,8 @@ struct BlockRunModeCompletionTests {
             ("Week Completion Modal", testWeekCompletionModalTriggersOnSingleWeekCompletion),
             ("Block Completion Modal", testBlockCompletionModalTriggersOnFinalWeekCompletion),
             ("No Modal When No Completion", testNoModalWhenNoWeekCompletes),
-            ("Single Week Block", testSingleWeekBlockCompletion)
+            ("Single Week Block", testSingleWeekBlockCompletion),
+            ("Manual Week Completion", testManualWeekCompletion)
         ]
         
         for (_, test) in tests {

@@ -685,10 +685,52 @@ struct WeekRunView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // Week completion toggle banner
+            weekCompletionBanner
+            
             DayTabBar(days: week.days, currentDayIndex: $currentDayIndex)
             Divider()
             content
         }
+    }
+    
+    private var weekCompletionBanner: some View {
+        HStack {
+            Text("Week \(week.index + 1)")
+                .font(.headline)
+                .fontWeight(.bold)
+            
+            Spacer()
+            
+            Button(action: {
+                if week.weekCompletedAt != nil {
+                    // Uncomplete the week
+                    week.weekCompletedAt = nil
+                } else {
+                    // Complete the week
+                    week.weekCompletedAt = Date()
+                }
+                onSave()
+            }) {
+                HStack(spacing: 6) {
+                    Image(systemName: week.weekCompletedAt != nil ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundColor(week.weekCompletedAt != nil ? .green : .gray)
+                    
+                    Text(week.weekCompletedAt != nil ? "Week Complete" : "Mark Week Complete")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+            }
+            .accessibilityLabel(week.weekCompletedAt != nil ? "Unmark week as complete" : "Mark week as complete")
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            week.weekCompletedAt != nil
+                ? Color.green.opacity(0.1)
+                : Color(.systemBackground)
+        )
     }
 
     @ViewBuilder
@@ -1776,8 +1818,17 @@ struct RunWeekState: Identifiable, Codable {
     var id = UUID()
     let index: Int
     var days: [RunDayState]
+    
+    /// Timestamp when the week was manually marked as complete
+    var weekCompletedAt: Date?
 
     var isCompleted: Bool {
+        // If manually marked complete, return true
+        if weekCompletedAt != nil {
+            return true
+        }
+        
+        // Otherwise check if all sets and segments are completed
         for day in days {
             // Check exercises
             for exercise in day.exercises {

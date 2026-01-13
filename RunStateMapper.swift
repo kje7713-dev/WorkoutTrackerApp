@@ -41,9 +41,13 @@ struct RunStateMapper {
                 weekIndex: weekIndex
             )
             
+            // Extract weekCompletedAt from any session in this week (they should all have the same value)
+            let weekCompletedAt = weekSessions.first?.weekCompletedAt
+            
             return RunWeekState(
                 index: weekIndex - 1, // Convert 1-based storage to 0-based UI index
-                days: dayStates
+                days: dayStates,
+                weekCompletedAt: weekCompletedAt
             )
         }
     }
@@ -286,11 +290,14 @@ struct RunStateMapper {
                 }
                 
                 // Update the session with logged values from run state
-                let updatedSession = updateSession(
+                var updatedSession = updateSession(
                     originalSession,
                     with: runDay,
                     dayTemplate: dayTemplate
                 )
+                
+                // Apply weekCompletedAt to all sessions in this week
+                updatedSession.weekCompletedAt = week.weekCompletedAt
                 
                 updatedSessions.append(updatedSession)
             }
