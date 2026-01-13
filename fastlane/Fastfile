@@ -103,8 +103,18 @@ platform :ios do
         UI.success("✅ Successfully uploaded to TestFlight!")
       rescue => upload_error
         # Check if this is an agreement error
-        error_message = upload_error.message.to_s
-        if error_message.include?("agreement") || error_message.include?("expired")
+        # Common error message patterns from App Store Connect API:
+        # - "agreement" (missing/expired agreements)
+        # - "expired" (expired agreements)
+        # - "required agreement" (specific agreement needed)
+        # - "terms" or "conditions" (terms of service)
+        error_message = upload_error.message.to_s.downcase
+        is_agreement_error = error_message.include?("agreement") ||
+                             error_message.include?("expired") ||
+                             error_message.include?("terms") ||
+                             error_message.include?("conditions")
+
+        if is_agreement_error
           UI.important("⚠️  TestFlight upload failed due to App Store Connect agreement issue")
           UI.important("📋 Action Required:")
           UI.important("   1. Log into App Store Connect: https://appstoreconnect.apple.com")
