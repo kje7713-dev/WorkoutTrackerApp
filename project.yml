@@ -40,7 +40,7 @@ targets:
         UIDeviceFamily:
           - 1
 
-        # ✅ REQUIRED FOR APP STORE / iPAD MULTITASKING
+        # ✅ REQUIRED FOR APP STORE
         UILaunchStoryboardName: LaunchScreen
 
         # ✅ iPhone orientations (all supported)
