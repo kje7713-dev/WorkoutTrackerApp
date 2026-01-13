@@ -846,8 +846,9 @@ struct DayRunView: View {
                             supersetLabels[index] = String(Character(UnicodeScalar(65 + supersetIndex)!))
                         } else {
                             // For more than 26 groups, use AA, AB, AC pattern
-                            let firstLetter = Character(UnicodeScalar(65 + (supersetIndex / 26) - 1)!)
-                            let secondLetter = Character(UnicodeScalar(65 + (supersetIndex % 26))!)
+                            // supersetIndex 26 -> AA (0, 0), 27 -> AB (0, 1), etc.
+                            let firstLetter = Character(UnicodeScalar(65 + ((supersetIndex - 26) / 26))!)
+                            let secondLetter = Character(UnicodeScalar(65 + ((supersetIndex - 26) % 26))!)
                             supersetLabels[index] = "\(firstLetter)\(secondLetter)"
                         }
                         supersetIndex += 1
@@ -1202,7 +1203,7 @@ struct SupersetGroupView: View {
             
             // Exercises in the group with labels
             VStack(spacing: 12) {
-                ForEach(Array(exercises.enumerated()), id: \.offset) { index, exercise in
+                ForEach(Array(exercises.enumerated()), id: \.offset) { index, _ in
                     VStack(alignment: .leading, spacing: 4) {
                         // Exercise label (A1, A2, etc.)
                         Text("\(groupLabel)\(index + 1)")
@@ -1212,7 +1213,7 @@ struct SupersetGroupView: View {
                             .padding(.horizontal, 12)
                             .padding(.top, 8)
                         
-                        ExerciseRunCard(exercise: exercise, onSave: onSave)
+                        ExerciseRunCard(exercise: exercises[index], onSave: onSave)
                     }
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
