@@ -835,12 +835,24 @@ struct DayRunView: View {
                 // Group exercises by setGroupId and render them
                 let groups = groupExercises(day.exercises)
                 
+                // Calculate superset group labels upfront
+                var supersetLabels: [Int: String] = [:]
+                var supersetIndex = 0
+                for (index, group) in groups.enumerated() {
+                    if group.groupId != nil {
+                        // This is a superset group, assign it a letter (A, B, C, etc.)
+                        supersetLabels[index] = String(Character(UnicodeScalar(65 + supersetIndex)!))
+                        supersetIndex += 1
+                    }
+                }
+                
                 ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
-                    if let groupId = group.groupId {
+                    if let groupId = group.groupId, let groupLabel = supersetLabels[index] {
                         // Superset/Circuit group
                         SupersetGroupView(
                             exercises: bindingsForExercises(group.exercises),
                             groupId: groupId,
+                            groupLabel: groupLabel,
                             onSave: onSave,
                             backgroundOpacity: supersetBackgroundOpacityDark,
                             backgroundOpacityLight: supersetBackgroundOpacityLight
@@ -1138,6 +1150,7 @@ struct DayRunView: View {
 struct SupersetGroupView: View {
     let exercises: [Binding<RunExerciseState>]
     let groupId: SetGroupID
+    let groupLabel: String  // e.g., "A", "B", "C"
     let onSave: () -> Void
     let backgroundOpacity: Double
     let backgroundOpacityLight: Double
@@ -1147,21 +1160,23 @@ struct SupersetGroupView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Group header
-            HStack {
-                Image(systemName: "link.circle.fill")
-                    .foregroundColor(.blue)
-                    .font(.system(size: 16))
-                Text("Superset Group")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.blue)
-                Spacer()
-                Image(systemName: "arrow.up.arrow.down.circle")
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Image(systemName: "link.circle.fill")
+                        .foregroundColor(.blue)
+                        .font(.system(size: 16))
+                    Text("Superset \(groupLabel)")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                    Spacer()
+                }
+                
+                // Execution instructions
+                Text("Complete \(groupLabel)1 → \(groupLabel)2\(exercises.count > 2 ? " → \(groupLabel)3" : ""), then rest")
+                    .font(.caption2)
                     .foregroundColor(.secondary)
-                    .font(.system(size: 14))
-                Text("Alternate")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .fontWeight(.medium)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -1170,16 +1185,43 @@ struct SupersetGroupView: View {
                     .fill(Color.blue.opacity(0.1))
             )
             
-            // Exercises in the group
+            // Exercises in the group with labels
             VStack(spacing: 12) {
-                ForEach(exercises) { $exercise in
-                    ExerciseRunCard(exercise: $exercise, onSave: onSave)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .strokeBorder(Color.blue.opacity(0.3), lineWidth: 2)
-                        )
+                ForEach(Array(exercises.enumerated()), id: \.offset) { index, exercise in
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Exercise label (A1, A2, etc.)
+                        Text("\(groupLabel)\(index + 1)")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 12)
+                            .padding(.top, 8)
+                        
+                        ExerciseRunCard(exercise: exercise, onSave: onSave)
+                    }
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(Color.blue.opacity(0.3), lineWidth: 2)
+                    )
                 }
             }
+            
+            // Rest instruction at the bottom
+            HStack {
+                Image(systemName: "pause.circle.fill")
+                    .foregroundColor(.orange)
+                    .font(.system(size: 14))
+                Text("Rest after completing all exercises in this superset")
+                    .font(.caption2)
+                    .foregroundColor(.orange)
+                    .fontWeight(.medium)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.orange.opacity(0.1))
+            )
         }
         .padding(8)
         .background(
