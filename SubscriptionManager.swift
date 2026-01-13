@@ -296,7 +296,11 @@ class SubscriptionManager: ObservableObject {
     }
     
     /// Check if user is eligible for introductory offer (trial)
-    /// This is provided by StoreKit based on App Store Connect configuration
+    /// 
+    /// This function queries StoreKit's native intro offer eligibility API which is managed by
+    /// App Store Connect. Returns true if the product hasn't loaded yet to provide a better UX.
+    ///
+    /// - Returns: True if user is eligible for the introductory offer, false otherwise
     func checkIntroOfferEligibility() async -> Bool {
         guard let product = subscriptionProduct else {
             return true // Assume eligible if product not loaded yet

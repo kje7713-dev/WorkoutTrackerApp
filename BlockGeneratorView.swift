@@ -34,7 +34,7 @@ struct BlockGeneratorView: View {
     @State private var pastedJSON: String = ""
     @State private var showingPaywall: Bool = false
     @State private var userRequirements: String = ""
-    @State private var isEligibleForTrial: Bool = true
+    @State private var isEligibleForTrial: Bool = false
     
     // MARK: - Body
     

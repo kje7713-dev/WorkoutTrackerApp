@@ -15,7 +15,7 @@ struct PaywallView: View {
     @Environment(\.sbdTheme) private var theme
     
     @State private var isPurchasing = false
-    @State private var isEligibleForTrial = true
+    @State private var isEligibleForTrial = false
     
     var body: some View {
         NavigationView {
