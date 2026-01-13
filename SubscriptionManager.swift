@@ -297,13 +297,11 @@ class SubscriptionManager: ObservableObject {
     
     /// Check if user is eligible for introductory offer (trial)
     /// This is provided by StoreKit based on App Store Connect configuration
-    var isEligibleForIntroOffer: Bool {
-        get async {
-            guard let product = subscriptionProduct else {
-                return true // Assume eligible if product not loaded yet
-            }
-            return await product.subscription?.isEligibleForIntroOffer ?? true
+    func checkIntroOfferEligibility() async -> Bool {
+        guard let product = subscriptionProduct else {
+            return true // Assume eligible if product not loaded yet
         }
+        return await product.subscription?.isEligibleForIntroOffer ?? true
     }
 }
 

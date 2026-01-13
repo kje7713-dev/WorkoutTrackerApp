@@ -50,7 +50,7 @@ struct SubscriptionManagementView: View {
             }
             .task {
                 // Check trial eligibility when view appears
-                isEligibleForTrial = await subscriptionManager.isEligibleForIntroOffer
+                isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility()
             }
         }
     }
