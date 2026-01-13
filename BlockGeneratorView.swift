@@ -34,12 +34,13 @@ struct BlockGeneratorView: View {
     @State private var pastedJSON: String = ""
     @State private var showingPaywall: Bool = false
     @State private var userRequirements: String = ""
+    @State private var isEligibleForTrial: Bool = false
     
     // MARK: - Body
     
     var body: some View {
         Group {
-            if subscriptionManager.isSubscribed {
+            if subscriptionManager.hasActiveSubscription {
                 mainContent
             } else {
                 lockedContent
@@ -48,6 +49,10 @@ struct BlockGeneratorView: View {
         .sheet(isPresented: $showingPaywall) {
             PaywallView()
                 .environmentObject(subscriptionManager)
+        }
+        .task {
+            // Check trial eligibility when view appears
+            isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility()
         }
     }
     
@@ -136,7 +141,7 @@ struct BlockGeneratorView: View {
                 Button {
                     showingPaywall = true
                 } label: {
-                    Text(subscriptionManager.isEligibleForTrial ? "Start 15-Day Free Trial" : "Subscribe Now")
+                    Text(isEligibleForTrial ? "Start 15-Day Free Trial" : "Subscribe Now")
                         .font(.system(size: 18, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)

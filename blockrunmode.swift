@@ -132,14 +132,14 @@ struct BlockRunModeView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    if subscriptionManager.isSubscribed {
+                    if subscriptionManager.hasActiveSubscription {
                         showWhiteboard = true
                     } else {
                         showingPaywall = true
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        if !subscriptionManager.isSubscribed {
+                        if !subscriptionManager.hasActiveSubscription {
                             Image(systemName: "lock.fill")
                                 .font(.system(size: 14, weight: .semibold))
                         }
@@ -150,7 +150,7 @@ struct BlockRunModeView: View {
                     }
                     .foregroundColor(.accentColor)
                 }
-                .accessibilityLabel(subscriptionManager.isSubscribed ? "View Whiteboard" : "View Whiteboard (Pro Feature)")
+                .accessibilityLabel(subscriptionManager.hasActiveSubscription ? "View Whiteboard" : "View Whiteboard (Pro Feature)")
                 .accessibilityHint("Open full-screen whiteboard view for current day")
             }
         }

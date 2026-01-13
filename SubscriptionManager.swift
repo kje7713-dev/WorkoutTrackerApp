@@ -15,23 +15,14 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Published Properties
     
-    /// Whether the user has an active subscription or trial (includes dev unlock)
-    @Published private(set) var isSubscribed: Bool = false
-    
-    /// Whether the user is in a free trial period
-    @Published private(set) var isInTrial: Bool = false
-    
-    /// Whether the user is eligible for a free trial
-    @Published private(set) var isEligibleForTrial: Bool = true
+    /// Whether the user has an active subscription (driven by App Store Connect via StoreKit)
+    @Published private(set) var hasActiveSubscription: Bool = false
     
     /// Current subscription product (if loaded)
     @Published private(set) var subscriptionProduct: Product?
     
     /// Error message for UI display
     @Published var errorMessage: String?
-    
-    /// Whether the user has unlocked pro features with dev code
-    @Published private(set) var isDevUnlocked: Bool = false
     
     // MARK: - Private Properties
     
@@ -40,20 +31,9 @@ class SubscriptionManager: ObservableObject {
     // Product identifier from constants
     private let productID = SubscriptionConstants.monthlyProductID
     
-    // UserDefaults key for dev unlock persistence
-    private let devUnlockKey = "com.savagebydesign.devUnlocked"
-    
     // MARK: - Initialization
     
     init() {
-        // Load dev unlock status from UserDefaults
-        isDevUnlocked = UserDefaults.standard.bool(forKey: devUnlockKey)
-        
-        // If dev unlocked, set subscription status immediately
-        if isDevUnlocked {
-            isSubscribed = true
-        }
-        
         // Start listening for transaction updates
         updateListenerTask = listenForTransactionUpdates()
         
@@ -155,27 +135,22 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Entitlement Status
     
-    /// Check current entitlement status
+    /// Check current entitlement status from App Store Connect
     func checkEntitlementStatus() async {
-        var hasActiveSubscription = false
-        var isCurrentlyInTrial = false
+        var activeSubscription = false
         
-        // Check for active subscriptions
+        // Check for active subscriptions via StoreKit
         for await result in Transaction.currentEntitlements {
             do {
                 let transaction = try checkVerified(result)
                 
                 // Check if this is our subscription product
                 if transaction.productID == productID {
-                    // Check if subscription is active
+                    // Check if subscription is active (not expired)
                     if let expirationDate = transaction.expirationDate {
                         if expirationDate > Date() {
-                            hasActiveSubscription = true
-                            
-                            // Check if in trial period
-                            if let offerType = transaction.offerType {
-                                isCurrentlyInTrial = (offerType == .introductory)
-                            }
+                            activeSubscription = true
+                            break // Found active subscription, no need to continue
                         }
                     }
                 }
@@ -184,25 +159,10 @@ class SubscriptionManager: ObservableObject {
             }
         }
         
-        // Update subscription status (includes dev unlock)
-        isSubscribed = hasActiveSubscription || isDevUnlocked
-        isInTrial = isCurrentlyInTrial
+        // Update subscription status from App Store Connect
+        hasActiveSubscription = activeSubscription
         
-        // Check trial eligibility
-        await checkTrialEligibility()
-        
-        AppLogger.info("Subscription status - subscribed: \(hasActiveSubscription), trial: \(isCurrentlyInTrial), devUnlocked: \(isDevUnlocked)", subsystem: .general, category: "Subscription")
-    }
-    
-    /// Check if user is eligible for free trial
-    private func checkTrialEligibility() async {
-        guard let product = subscriptionProduct else {
-            isEligibleForTrial = true
-            return
-        }
-        
-        // Check if user has ever subscribed
-        isEligibleForTrial = await product.subscription?.isEligibleForIntroOffer ?? true
+        AppLogger.info("Subscription status - hasActiveSubscription: \(activeSubscription)", subsystem: .general, category: "Subscription")
     }
     
     // MARK: - Transaction Updates
@@ -335,39 +295,17 @@ class SubscriptionManager: ObservableObject {
         return product.description
     }
     
-    // MARK: - Dev Unlock
-    
-    /// Unlock pro features with dev code
-    /// - Parameter code: The unlock code to validate
-    /// - Returns: True if code is valid and unlock was successful
-    func unlockWithDevCode(_ code: String) -> Bool {
-        let validCode = "dev"
-        
-        guard code.lowercased() == validCode else {
-            AppLogger.info("Invalid dev code entered: \(code)", subsystem: .general, category: "Subscription")
-            return false
+    /// Check if user is eligible for introductory offer (trial)
+    /// 
+    /// This function queries StoreKit's native intro offer eligibility API which is managed by
+    /// App Store Connect. Returns true if the product hasn't loaded yet to provide a better UX.
+    ///
+    /// - Returns: True if user is eligible for the introductory offer, false otherwise
+    func checkIntroOfferEligibility() async -> Bool {
+        guard let product = subscriptionProduct else {
+            return true // Assume eligible if product not loaded yet
         }
-        
-        // Save to UserDefaults
-        UserDefaults.standard.set(true, forKey: devUnlockKey)
-        isDevUnlocked = true
-        isSubscribed = true
-        
-        AppLogger.info("Pro features unlocked with dev code", subsystem: .general, category: "Subscription")
-        return true
-    }
-    
-    /// Remove dev unlock (for testing purposes)
-    func removeDevUnlock() {
-        UserDefaults.standard.set(false, forKey: devUnlockKey)
-        isDevUnlocked = false
-        
-        // Recalculate subscription status
-        Task {
-            await checkEntitlementStatus()
-        }
-        
-        AppLogger.info("Dev unlock removed", subsystem: .general, category: "Subscription")
+        return await product.subscription?.isEligibleForIntroOffer ?? true
     }
 }
 
