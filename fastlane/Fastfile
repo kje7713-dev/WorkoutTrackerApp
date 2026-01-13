@@ -102,19 +102,16 @@ platform :ios do
         upload_to_testflight(api_key: api_key)
         UI.success("✅ Successfully uploaded to TestFlight!")
       rescue => upload_error
-        # Check if this is an agreement error
-        # Common error message patterns from App Store Connect API:
-        # - "agreement" (missing/expired agreements)
-        # - "expired" (expired agreements)
-        # - "required agreement" (specific agreement needed)
-        # - "terms" or "conditions" (terms of service)
+        # Check if this is an agreement error from Apple's API
+        # These patterns are specific to App Store Connect API error messages
+        # and are unlikely to change. Kept inline for clarity in error handling context.
         error_message = upload_error.message.to_s
-        # Use word boundary regex for more precise matching
+        # Use word boundary regex for precise matching (prevents false positives)
         error_keywords = [
-          /\bagreement\b/i,
-          /\bexpired\b/i,
-          /\bterms\b/i,
-          /\bconditions\b/i
+          /\bagreement\b/i,  # Missing/expired agreements
+          /\bexpired\b/i,    # Expired agreements
+          /\bterms\b/i,      # Terms of service
+          /\bconditions\b/i  # Conditions/terms
         ]
         is_agreement_error = error_keywords.any? { |pattern| error_message =~ pattern }
 
