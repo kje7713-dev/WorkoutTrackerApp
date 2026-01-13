@@ -1049,6 +1049,10 @@ public struct WorkoutSession: Identifiable, Codable, Equatable {
     /// Optional segments for non-traditional sessions
     /// When present, represents the segment-based structure of the session
     public var segments: [SessionSegment]?
+    
+    /// Timestamp when the week was manually marked as complete
+    /// Used for manual week completion feature (one timestamp per week, duplicated across all sessions in that week)
+    public var weekCompletedAt: Date?
 
     public init(
         id: WorkoutSessionID = WorkoutSessionID(),
@@ -1058,7 +1062,8 @@ public struct WorkoutSession: Identifiable, Codable, Equatable {
         date: Date? = nil,
         status: SessionStatus = .notStarted,
         exercises: [SessionExercise],
-        segments: [SessionSegment]? = nil
+        segments: [SessionSegment]? = nil,
+        weekCompletedAt: Date? = nil
     ) {
         self.id = id
         self.blockId = blockId
@@ -1068,6 +1073,7 @@ public struct WorkoutSession: Identifiable, Codable, Equatable {
         self.status = status
         self.exercises = exercises
         self.segments = segments
+        self.weekCompletedAt = weekCompletedAt
     }
 }
 
