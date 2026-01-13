@@ -17,21 +17,18 @@
   <key>CFBundleVersion</key>
   <string>1</string>
 
+  <!-- iPhone-only app -->
+  <key>UIDeviceFamily</key>
+  <array>
+    <integer>1</integer>
+  </array>
+
   <!-- REQUIRED: storyboard launch screen -->
   <key>UILaunchStoryboardName</key>
   <string>LaunchScreen</string>
 
   <!-- iPhone orientations -->
   <key>UISupportedInterfaceOrientations</key>
-  <array>
-    <string>UIInterfaceOrientationPortrait</string>
-    <string>UIInterfaceOrientationPortraitUpsideDown</string>
-    <string>UIInterfaceOrientationLandscapeLeft</string>
-    <string>UIInterfaceOrientationLandscapeRight</string>
-  </array>
-
-  <!-- iPad orientations -->
-  <key>UISupportedInterfaceOrientations~ipad</key>
   <array>
     <string>UIInterfaceOrientationPortrait</string>
     <string>UIInterfaceOrientationPortraitUpsideDown</string>
