@@ -171,6 +171,17 @@ jobs:
             echo ""
           done
 
+      # ---------- Upload IPA artifact if build succeeded ----------
+      - name: Upload IPA artifact
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkoutTrackerApp-IPA
+          path: |
+            *.ipa
+            *.app.dSYM.zip
+          if-no-files-found: ignore
+
       # ---------- Always upload logs as artifact ----------
       - name: Upload build logs artifact
         if: always()
