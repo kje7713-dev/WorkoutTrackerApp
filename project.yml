@@ -36,17 +36,15 @@ targets:
         CFBundleIdentifier: ${APP_IDENTIFIER}
         CFBundleDisplayName: "SBD"
 
-        # ✅ REQUIRED FOR APP STORE / iPAD MULTITASKING
+        # ✅ iPhone-only app (UIDeviceFamily: 1 = iPhone only)
+        UIDeviceFamily:
+          - 1
+
+        # ✅ REQUIRED FOR APP STORE
         UILaunchStoryboardName: LaunchScreen
 
-        # ✅ LOCK ORIENTATIONS so XcodeGen can't strip them
+        # ✅ iPhone orientations (all supported)
         UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
-
-        UISupportedInterfaceOrientations~ipad:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
