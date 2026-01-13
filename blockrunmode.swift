@@ -841,7 +841,15 @@ struct DayRunView: View {
                 for (index, group) in groups.enumerated() {
                     if group.groupId != nil {
                         // This is a superset group, assign it a letter (A, B, C, etc.)
-                        supersetLabels[index] = String(Character(UnicodeScalar(65 + supersetIndex)!))
+                        // If we exceed 26 groups (A-Z), wrap to AA, AB, AC...
+                        if supersetIndex < 26 {
+                            supersetLabels[index] = String(Character(UnicodeScalar(65 + supersetIndex)!))
+                        } else {
+                            // For more than 26 groups, use AA, AB, AC pattern
+                            let firstLetter = Character(UnicodeScalar(65 + (supersetIndex / 26) - 1)!)
+                            let secondLetter = Character(UnicodeScalar(65 + (supersetIndex % 26))!)
+                            supersetLabels[index] = "\(firstLetter)\(secondLetter)"
+                        }
                         supersetIndex += 1
                     }
                 }
@@ -1157,6 +1165,13 @@ struct SupersetGroupView: View {
     
     @Environment(\.colorScheme) private var colorScheme
     
+    /// Generate execution instruction text based on number of exercises
+    private var executionInstruction: String {
+        let exerciseLabels = (1...exercises.count).map { "\(groupLabel)\($0)" }
+        let sequence = exerciseLabels.joined(separator: " → ")
+        return "Complete \(sequence), then rest"
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Group header
@@ -1173,7 +1188,7 @@ struct SupersetGroupView: View {
                 }
                 
                 // Execution instructions
-                Text("Complete \(groupLabel)1 → \(groupLabel)2\(exercises.count > 2 ? " → \(groupLabel)3" : ""), then rest")
+                Text(executionInstruction)
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .fontWeight(.medium)
