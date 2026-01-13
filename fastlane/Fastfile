@@ -97,7 +97,43 @@ platform :ios do
       build_app(**build_opts)
 
       # --- Upload to TestFlight ---
-      upload_to_testflight(api_key: api_key)
+      # Wrapped in begin/rescue to handle agreement errors gracefully
+      begin
+        upload_to_testflight(api_key: api_key)
+        UI.success("✅ Successfully uploaded to TestFlight!")
+      rescue => upload_error
+        # Check if this is an agreement error from Apple's API
+        # These patterns are specific to App Store Connect API error messages
+        # and are unlikely to change. Kept inline for clarity in error handling context.
+        error_message = upload_error.message.to_s
+        # Use word boundary regex for precise matching (prevents false positives)
+        error_keywords = [
+          /\bagreement\b/i,  # Missing/expired agreements
+          /\bexpired\b/i,    # Expired agreements
+          /\bterms\b/i,      # Terms of service
+          /\bconditions\b/i  # Conditions/terms
+        ]
+        is_agreement_error = error_keywords.any? { |pattern| error_message =~ pattern }
+
+        if is_agreement_error
+          UI.important("⚠️  TestFlight upload failed due to App Store Connect agreement issue")
+          UI.important("📋 Action Required:")
+          UI.important("   1. Log into App Store Connect: https://appstoreconnect.apple.com")
+          UI.important("   2. Accept any pending agreements shown on the main page")
+          UI.important("   3. Re-run this workflow, or manually upload the IPA")
+          UI.important("")
+          UI.important("💡 The IPA was built successfully and is available as a workflow artifact")
+          UI.important("   You can download it and upload manually if needed")
+
+          # Don't fail the entire workflow - the build succeeded
+          append_err(errors_log, "========= TESTFLIGHT UPLOAD SKIPPED =========")
+          append_err(errors_log, "Reason: App Store Connect agreement needs acceptance")
+          append_err(errors_log, error_message)
+        else
+          # Re-raise other upload errors
+          raise upload_error
+        end
+      end
 
     rescue => e
       # ---------- write tight failure summary ----------
