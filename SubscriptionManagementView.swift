@@ -23,7 +23,7 @@ struct SubscriptionManagementView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     
-                    if subscriptionManager.hasActiveSubscription {
+                    if subscriptionManager.hasAccess {
                         activeSubscriptionSection
                     } else {
                         inactiveSubscriptionSection
