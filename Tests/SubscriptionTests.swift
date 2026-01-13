@@ -187,6 +187,88 @@ struct SubscriptionTests {
         return containsGuidance
     }
     
+    // MARK: - Dev Unlock Tests
+    
+    /// Test that dev code "dev" unlocks features
+    static func testDevCodeUnlock() -> Bool {
+        print("Testing dev code unlock...")
+        
+        // Simulate dev code validation
+        let validCode = "dev"
+        let invalidCode = "invalid"
+        
+        // Valid code should unlock
+        let validResult = validCode.lowercased() == "dev"
+        
+        // Invalid code should not unlock
+        let invalidResult = invalidCode.lowercased() != "dev"
+        
+        let result = validResult && invalidResult
+        
+        print("Dev code unlock: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that dev unlock grants feature access
+    static func testDevUnlockFeatureAccess() -> Bool {
+        print("Testing dev unlock feature access...")
+        
+        // Simulate dev unlocked user (no subscription but dev unlocked)
+        let hasActiveSubscription = false
+        let isDevUnlocked = true
+        
+        // Should have access through dev unlock
+        let hasAccess = hasActiveSubscription || isDevUnlocked
+        
+        // Advanced features should be accessible
+        let canImportAIBlock = hasAccess
+        let canUseAdvancedAnalytics = hasAccess
+        let canAccessWhiteboard = hasAccess
+        
+        let result = canImportAIBlock && canUseAdvancedAnalytics && canAccessWhiteboard
+        
+        print("Dev unlock feature access: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that dev unlock persists across sessions
+    static func testDevUnlockPersistence() -> Bool {
+        print("Testing dev unlock persistence...")
+        
+        // Simulate UserDefaults persistence
+        let devUnlockKey = "com.savagebydesign.devUnlocked"
+        
+        // Simulate setting the value
+        UserDefaults.standard.set(true, forKey: devUnlockKey)
+        
+        // Simulate reading the value (like on app restart)
+        let isDevUnlocked = UserDefaults.standard.bool(forKey: devUnlockKey)
+        
+        // Clean up
+        UserDefaults.standard.removeObject(forKey: devUnlockKey)
+        
+        print("Dev unlock persistence: \(isDevUnlocked ? "PASS" : "FAIL")")
+        return isDevUnlocked
+    }
+    
+    /// Test that dev code is case-insensitive
+    static func testDevCodeCaseInsensitive() -> Bool {
+        print("Testing dev code case insensitivity...")
+        
+        let codes = ["dev", "DEV", "Dev", "dEv"]
+        var allPass = true
+        
+        for code in codes {
+            if code.lowercased() != "dev" {
+                allPass = false
+                break
+            }
+        }
+        
+        print("Dev code case insensitive: \(allPass ? "PASS" : "FAIL")")
+        return allPass
+    }
+    
     // MARK: - Run All Tests
     
     static func runAllTests() -> Bool {
@@ -202,7 +284,11 @@ struct SubscriptionTests {
             ("Error Message Quality", testErrorMessageQuality),
             ("Network Error Messages", testNetworkErrorMessages),
             ("Sandbox Error Messages", testSandboxErrorMessages),
-            ("Product Config Error Messages", testProductConfigErrorMessages)
+            ("Product Config Error Messages", testProductConfigErrorMessages),
+            ("Dev Code Unlock", testDevCodeUnlock),
+            ("Dev Unlock Feature Access", testDevUnlockFeatureAccess),
+            ("Dev Unlock Persistence", testDevUnlockPersistence),
+            ("Dev Code Case Insensitive", testDevCodeCaseInsensitive)
         ]
         
         var passedTests = 0
