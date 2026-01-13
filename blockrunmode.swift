@@ -841,14 +841,15 @@ struct DayRunView: View {
                 for (index, group) in groups.enumerated() {
                     if group.groupId != nil {
                         // This is a superset group, assign it a letter (A, B, C, etc.)
-                        // If we exceed 26 groups (A-Z), wrap to AA, AB, AC...
+                        // Supports A-Z (26 groups), then AA-AZ (27-52), BA-BZ (53-78), etc.
                         if supersetIndex < 26 {
+                            // Single letter: A-Z
                             supersetLabels[index] = String(Character(UnicodeScalar(65 + supersetIndex)!))
                         } else {
-                            // For more than 26 groups, use AA, AB, AC pattern
-                            // supersetIndex 26 -> AA (0, 0), 27 -> AB (0, 1), etc.
-                            let firstLetter = Character(UnicodeScalar(65 + ((supersetIndex - 26) / 26))!)
-                            let secondLetter = Character(UnicodeScalar(65 + ((supersetIndex - 26) % 26))!)
+                            // Double letter: AA, AB, AC... (Excel-style column naming)
+                            let offset = supersetIndex - 26
+                            let firstLetter = Character(UnicodeScalar(65 + (offset / 26))!)
+                            let secondLetter = Character(UnicodeScalar(65 + (offset % 26))!)
                             supersetLabels[index] = "\(firstLetter)\(secondLetter)"
                         }
                         supersetIndex += 1
