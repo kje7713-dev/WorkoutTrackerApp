@@ -29,7 +29,7 @@
 
 **Issues with Original:**
 - No clear entry point for new users
-- Subscription/dev unlock buried in Pro Features section
+- Subscription information buried in Pro Features section
 - AI Block Generation mentioned late and briefly
 - Users had to read extensively before getting started
 - "Ingest" terminology not explained upfront
@@ -44,9 +44,8 @@
 ├── Welcome message
 ├── 🚀 QUICK START GUIDE (NEW - 180+ lines)
 │   │
-│   ├── Step 1: Unlock Pro Features ⭐
-│   │   ├── Option A: Development Unlock (dev code)
-│   │   └── Option B: Subscribe to Pro
+│   ├── Step 1: Subscribe to Pro Features ⭐
+│   │   └── How to Subscribe
 │   │
 │   ├── Step 2: Create Your First Block Using AI ⭐
 │   │   ├── 2.1: Generate JSON with AI Assistant
@@ -78,7 +77,7 @@
 │   10. Using the Whiteboard
 │   11. Tracking Your Progress
 │   12. AI Block Generation (EXPANDED - 180+ lines)
-│   13. Pro Features (EXPANDED with dev unlock)
+│   13. Pro Features (EXPANDED)
 │   14. Data Management
 │   15. Tips & Best Practices
 │   16. Troubleshooting
@@ -88,9 +87,9 @@
 
 **Improvements:**
 ✅ Clear "Start here!" entry point at top  
-✅ Subscription and dev unlock explained first  
+✅ Subscription explained first  
 ✅ AI workflow front and center  
-✅ Complete workflow from unlock → generate → run  
+✅ Complete workflow from subscription → generate → run  
 ✅ Can get started in 3 steps  
 ✅ Consistent "AI Block Import" terminology  
 ✅ Cross-references throughout  
@@ -108,7 +107,7 @@
 5. Reads "Creating Your First Block" (manual builder)
 6. Eventually finds "AI Block Generation" (section 11)
 7. Eventually finds "Pro Features" (section 12)
-8. Maybe discovers dev unlock
+8. Maybe discovers subscription options
 9. Returns to "Running Workout Sessions" (section 8)
 10. Starts first workout after extensive reading
 
@@ -119,7 +118,7 @@ Time to first workout: 20-30+ minutes of reading
 ```
 1. User opens guide
 2. Sees "🚀 Quick Start Guide" prominently
-3. Step 1: Unlocks Pro (dev code in 30 seconds)
+3. Step 1: Subscribes to Pro (or uses free version)
 4. Step 2: Generates block with AI (2 minutes)
 5. Step 3: Runs block and logs workout (5 minutes)
 6. DONE - First workout logged!
@@ -153,11 +152,10 @@ Time to first workout: 5-10 minutes total
 - **Before:** ~50 lines, basic subscription info
 - **After:** ~160 lines, comprehensive feature details
 - **Added:**
-  - Development unlock documentation
   - Detailed subscription management
   - Pro feature breakdowns
   - Why upgrade section
-  - Option comparison
+  - Subscription process
 - **Lines:** ~1592-1750
 
 ### 4. Creating Segment-Based Days
@@ -185,13 +183,13 @@ Time to first workout: 5-10 minutes total
 ### BEFORE
 - Mixed terms: "AI-assisted", "AI generation", "JSON import"
 - "Ingest" not clearly defined
-- Subscription vs dev unlock not distinguished
+- Subscription information basic
 
 ### AFTER
 - Consistent: "AI Block Import" everywhere
 - "AI Prompt Template" for the built-in feature
 - "Import" instead of "ingest" (clearer)
-- Dev unlock vs subscription clearly separated
+- Subscription process clearly documented
 
 ---
 
@@ -237,9 +235,9 @@ Time to first workout: 5-10 minutes total
 **BEFORE:** Had to search for AI features  
 **AFTER:** AI workflow is front and center
 
-### For Testers/Developers
-**BEFORE:** Dev unlock barely mentioned  
-**AFTER:** Dev unlock documented prominently in Step 1
+### For Subscribers
+**BEFORE:** Subscription information basic  
+**AFTER:** Complete subscription workflow documented
 
 ### For Existing Users
 **BEFORE:** Had to explain workflow verbally  
@@ -251,7 +249,7 @@ Time to first workout: 5-10 minutes total
 
 ✅ Quick Start section covers:
    - Getting to subscription ✓ (Step 1)
-   - Using AI prompt and ingest ✓ (Step 2)
+   - Using AI prompt and import ✓ (Step 2)
    - Running a block ✓ (Step 3)
 
 ✅ Terminology updated and consistent throughout

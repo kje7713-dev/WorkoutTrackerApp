@@ -10,21 +10,12 @@
 
 New to Savage By Design? Follow these three essential steps to get up and running in minutes:
 
-### Step 1: Unlock Pro Features (Optional but Recommended)
+### Step 1: Subscribe to Pro Features (Optional but Recommended)
 
-Pro features include **AI Block Import**, **Whiteboard View**, and **Unlimited Blocks**. You have two options:
+Pro features include **AI Block Import**, **Whiteboard View**, and **Unlimited Blocks**.
 
-#### Option A: Development Unlock (For Testing)
-1. From the Home Screen, tap **GO PRO**
-2. On the subscription screen, look for **"Enter Code"** button
-3. Tap **"Enter Code"**
-4. Type: **dev** (case-insensitive)
-5. Tap **"Unlock"**
-6. ✅ You now have full Pro access!
+#### How to Subscribe
 
-**Note:** The dev unlock is perfect for testing and development. It persists across app restarts and doesn't interfere with StoreKit.
-
-#### Option B: Subscribe to Pro
 1. From the Home Screen, tap **GO PRO**
 2. Review available plans (Monthly or Annual)
 3. Check if you're eligible for a **Free Trial**
@@ -37,6 +28,8 @@ Pro features include **AI Block Import**, **Whiteboard View**, and **Unlimited B
 - ✅ **Whiteboard View** – Clean, printable workout display
 - ✅ **Unlimited Blocks** – Create as many training programs as you need
 - ✅ **Priority Support** – Get help faster
+
+**Note:** You can also use the free version to create blocks manually through the Block Builder interface.
 
 ---
 
@@ -170,7 +163,7 @@ During your workout, you can view a clean, gym-friendly display:
 ## 📊 Quick Start Summary
 
 **In just 3 steps, you've:**
-1. ✅ Unlocked Pro features (dev code or subscription)
+1. ✅ Subscribed to Pro features (or started with the free version)
 2. ✅ Generated and imported a complete AI training block
 3. ✅ Started tracking your workouts with live logging
 
@@ -1641,29 +1634,9 @@ You can do a lot without Pro! The free version includes:
 
 ### Getting Pro Access
 
-**🚀 Quick Start:** See [Step 1: Unlock Pro Features](#step-1-unlock-pro-features-optional-but-recommended) for detailed instructions.
+**🚀 Quick Start:** See [Step 1: Subscribe to Pro Features](#step-1-subscribe-to-pro-features-optional-but-recommended) for detailed instructions.
 
-#### Option 1: Development Unlock (Testing)
-
-For development, testing, or evaluation:
-
-1. From Home Screen, tap **GO PRO**
-2. Tap **"Enter Code"** button
-3. Type: **dev** (case-insensitive)
-4. Tap **"Unlock"**
-5. ✅ Full Pro access activated!
-
-**Development Unlock Details:**
-- Code: **dev** (works with Dev, DEV, dev)
-- Persists across app restarts
-- No expiration
-- Does not interfere with StoreKit or real subscriptions
-- Perfect for testing Pro features
-- Can be removed anytime for testing subscription flows
-
-#### Option 2: Subscribe via App Store
-
-For production use:
+#### How to Subscribe
 
 1. From Home Screen, tap **GO PRO**
 2. View your current subscription status
@@ -2042,7 +2015,7 @@ Your workout data is stored locally on your device. Back it up to:
 ### Quick Start Checklist
 
 **Essential (Follow the Quick Start Guide):**
-- [ ] Unlock Pro features (dev code or subscription) – [Step 1](#step-1-unlock-pro-features-optional-but-recommended)
+- [ ] Subscribe to Pro features (or start with free version) – [Step 1](#step-1-subscribe-to-pro-features-optional-but-recommended)
 - [ ] Generate your first block with AI – [Step 2](#step-2-create-your-first-block-using-ai)
 - [ ] Import the JSON block into the app
 - [ ] Run your block and log your first workout – [Step 3](#step-3-run-your-block)

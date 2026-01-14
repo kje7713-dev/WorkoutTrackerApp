@@ -3,8 +3,8 @@
 ## Overview
 
 Updated the USER_GUIDE.md to meet the requirements in the problem statement by adding a comprehensive Quick Start section at the beginning that covers:
-1. Getting to the subscription (dev unlock or Pro subscription)
-2. Using basic AI prompt and ingest
+1. Getting to the subscription
+2. Using basic AI prompt and import
 3. Running a block
 
 ## Changes Made
@@ -14,10 +14,10 @@ Updated the USER_GUIDE.md to meet the requirements in the problem statement by a
 **Location:** Lines 9-187 (immediately after the welcome message)
 
 **Structure:**
-- **Step 1: Unlock Pro Features** (Optional but Recommended)
-  - Option A: Development Unlock (using "dev" code)
-  - Option B: Subscribe to Pro via App Store
+- **Step 1: Subscribe to Pro Features** (Optional but Recommended)
+  - How to subscribe via App Store
   - Lists all Pro benefits upfront
+  - Note about free version availability
 
 - **Step 2: Create Your First Block Using AI**
   - 2.1: Generate JSON with AI Assistant (describes prompt template usage)
@@ -59,7 +59,6 @@ Updated the USER_GUIDE.md to meet the requirements in the problem statement by a
 
 **Improvements:**
 - Referenced Quick Start guide for quick access
-- Expanded Development Unlock documentation
 - Detailed subscription management instructions
 - Added "Pro Feature Details" subsections
 - Clarified "Why Upgrade to Pro?" section
@@ -106,12 +105,12 @@ Throughout the document:
 ## Key Features of the Quick Start
 
 1. **Immediately actionable** - Users can follow step-by-step from first launch
-2. **Pro features upfront** - Explains both dev unlock and subscription early
+2. **Pro features upfront** - Explains subscription option early
 3. **AI-first approach** - Positions AI Block Import as the primary method for beginners
 4. **Visual clarity** - Uses emoji markers, subsections, and clear formatting
 5. **Multiple pathways** - Shows both paste-JSON and file-import options
 6. **Context-aware** - Explains exercise vs segment logging differences
-7. **Completion-focused** - Guides through entire workflow from unlock to workout logging
+7. **Completion-focused** - Guides through entire workflow from subscription to workout logging
 
 ## Benefits
 
@@ -119,7 +118,7 @@ Throughout the document:
 - Clear entry point: "Start here!" in Table of Contents
 - Fastest path to working app: 3 steps to first workout
 - No need to read entire guide before starting
-- Reduces confusion about Pro features and dev unlock
+- Clear path to Pro features via subscription
 
 ### For Existing Users
 - Quick reference for AI Block Generation workflow
@@ -127,11 +126,10 @@ Throughout the document:
 - Enhanced Pro features documentation
 - Better cross-referencing throughout guide
 
-### For Developers/Testers
-- Dev unlock documented prominently
-- Clear distinction between dev and production paths
-- Testing workflows explained
-- StoreKit non-interference noted
+### For Coaches and Athletes
+- Clear subscription process documented
+- Pro features and their benefits explained upfront
+- AI workflow for program creation prominently featured
 
 ## Validation
 
@@ -146,7 +144,7 @@ Throughout the document:
 ## Next Steps for Users
 
 After reading the Quick Start:
-1. Unlock Pro features (dev or subscription)
+1. Subscribe to Pro features (or use free version)
 2. Generate first block with AI
 3. Log first workout
 4. Explore detailed sections as needed
@@ -155,6 +153,5 @@ After reading the Quick Start:
 ## Related Documentation
 
 - `AI_PROMPT_EXAMPLES_V3.md` - Details on AI prompt structure
-- `DEV_BYPASS_README.md` - Development unlock feature
 - `END_USER_README.md` - Shorter introductory guide
 - `README.md` - Technical documentation for developers
