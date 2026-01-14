@@ -60,6 +60,10 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Product Loading
     
     /// Load subscription products from App Store
+    /// 
+    /// This method treats StoreKit failures as state, not blocking errors.
+    /// The UI remains accessible regardless of whether products load successfully.
+    /// Any errors are captured in `errorMessage` for display to the user.
     func loadProducts() async {
         do {
             let products = try await Product.products(for: [productID])
@@ -82,6 +86,10 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Purchase Flow
     
     /// Purchase subscription with 15-day free trial
+    /// 
+    /// This method treats all purchase failures as state, not blocking errors.
+    /// Returns false and sets errorMessage for any failure scenario.
+    /// The paywall UI remains accessible even when purchases cannot be completed.
     func purchase() async -> Bool {
         guard let product = subscriptionProduct else {
             errorMessage = "Subscription not available. Please ensure the product is loaded before attempting purchase."
