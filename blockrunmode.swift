@@ -816,6 +816,32 @@ struct DayRunView: View {
     // Constants for superset group styling
     private let supersetBackgroundOpacityDark: Double = 0.3
     private let supersetBackgroundOpacityLight: Double = 0.5
+    
+    // Helper function to calculate superset labels
+    private func calculateSupersetLabels(for groups: [ExerciseGroup]) -> [Int: String] {
+        var supersetLabels: [Int: String] = [:]
+        var supersetIndex = 0
+        
+        for (index, group) in groups.enumerated() {
+            if group.groupId != nil {
+                // This is a superset group, assign it a letter (A, B, C, etc.)
+                // Supports A-Z (26 groups), then AA-AZ (27-52), BA-BZ (53-78), etc.
+                if supersetIndex < 26 {
+                    // Single letter: A-Z
+                    supersetLabels[index] = String(Character(UnicodeScalar(65 + supersetIndex)!))
+                } else {
+                    // Double letter: AA, AB, AC... (Excel-style column naming)
+                    let offset = supersetIndex - 26
+                    let firstLetter = Character(UnicodeScalar(65 + (offset / 26))!)
+                    let secondLetter = Character(UnicodeScalar(65 + (offset % 26))!)
+                    supersetLabels[index] = "\(firstLetter)\(secondLetter)"
+                }
+                supersetIndex += 1
+            }
+        }
+        
+        return supersetLabels
+    }
 
     var body: some View {
         ScrollView {
@@ -836,25 +862,7 @@ struct DayRunView: View {
                 let groups = groupExercises(day.exercises)
                 
                 // Calculate superset group labels upfront
-                var supersetLabels: [Int: String] = [:]
-                var supersetIndex = 0
-                for (index, group) in groups.enumerated() {
-                    if group.groupId != nil {
-                        // This is a superset group, assign it a letter (A, B, C, etc.)
-                        // Supports A-Z (26 groups), then AA-AZ (27-52), BA-BZ (53-78), etc.
-                        if supersetIndex < 26 {
-                            // Single letter: A-Z
-                            supersetLabels[index] = String(Character(UnicodeScalar(65 + supersetIndex)!))
-                        } else {
-                            // Double letter: AA, AB, AC... (Excel-style column naming)
-                            let offset = supersetIndex - 26
-                            let firstLetter = Character(UnicodeScalar(65 + (offset / 26))!)
-                            let secondLetter = Character(UnicodeScalar(65 + (offset % 26))!)
-                            supersetLabels[index] = "\(firstLetter)\(secondLetter)"
-                        }
-                        supersetIndex += 1
-                    }
-                }
+                let supersetLabels = calculateSupersetLabels(for: groups)
                 
                 ForEach(Array(groups.enumerated()), id: \.offset) { index, group in
                     if let groupId = group.groupId, let groupLabel = supersetLabels[index] {
