@@ -6,23 +6,205 @@
 
 ---
 
+## 🚀 Quick Start Guide
+
+New to Savage By Design? Follow these three essential steps to get up and running in minutes:
+
+### Step 1: Unlock Pro Features (Optional but Recommended)
+
+Pro features include **AI Block Import**, **Whiteboard View**, and **Unlimited Blocks**. You have two options:
+
+#### Option A: Development Unlock (For Testing)
+1. From the Home Screen, tap **GO PRO**
+2. On the subscription screen, look for **"Enter Code"** button
+3. Tap **"Enter Code"**
+4. Type: **dev** (case-insensitive)
+5. Tap **"Unlock"**
+6. ✅ You now have full Pro access!
+
+**Note:** The dev unlock is perfect for testing and development. It persists across app restarts and doesn't interfere with StoreKit.
+
+#### Option B: Subscribe to Pro
+1. From the Home Screen, tap **GO PRO**
+2. Review available plans (Monthly or Annual)
+3. Check if you're eligible for a **Free Trial**
+4. Tap **Subscribe** to start
+5. Complete purchase through Apple App Store
+6. ✅ Pro features unlocked!
+
+**Pro Benefits:**
+- ✅ **AI Block Import** – Generate workout programs using ChatGPT/Claude and import them
+- ✅ **Whiteboard View** – Clean, printable workout display
+- ✅ **Unlimited Blocks** – Create as many training programs as you need
+- ✅ **Priority Support** – Get help faster
+
+---
+
+### Step 2: Create Your First Block Using AI
+
+The fastest way to get started is by using **AI Block Import** to generate a complete training program:
+
+#### 2.1: Generate JSON with AI Assistant
+
+1. From Home Screen, tap **BLOCKS**
+2. Tap **AI BLOCK GENERATOR** button
+3. You'll see the **AI Prompt Template** section at the top
+4. In the text field, describe your training goals. For example:
+   ```
+   4-week strength program for intermediate lifter
+   3 days per week: Upper Push, Lower Body, Upper Pull
+   Focus on compound movements
+   ```
+5. Tap **COPY COMPLETE PROMPT** 
+6. The app copies a comprehensive prompt to your clipboard
+
+#### 2.2: Get JSON from Your AI Assistant
+
+1. Open **ChatGPT**, **Claude**, or your preferred AI assistant
+2. Paste the prompt you just copied
+3. Send the message
+4. The AI will analyze your requirements and generate a structured JSON training block
+5. **Copy the JSON output** (just the JSON, starting with `{` and ending with `}`)
+
+#### 2.3: Import the Block
+
+1. Return to the **AI Block Generator** screen in Savage By Design
+2. Scroll to the **"Import JSON"** section
+3. **Option A - Paste JSON:**
+   - Tap in the large text area
+   - Paste the JSON from your AI assistant
+   - Tap **IMPORT FROM TEXT**
+4. **Option B - Import File:**
+   - Save the JSON as a `.json` file
+   - Tap **IMPORT FROM FILE**
+   - Select your JSON file
+5. ✅ Your block is imported and ready!
+
+**What the AI Prompt Template Includes:**
+- Complete JSON schema specification
+- Examples for strength and conditioning exercises
+- Segment-based training options (BJJ, yoga, martial arts, learning sessions)
+- Hybrid day structures (exercises + segments)
+- Progressive overload configuration
+- Detailed field descriptions
+
+**Pro Tip:** The AI prompt is designed to produce coach-grade training programs. It includes entropy classification, goal stimulus analysis, and smart defaults to ensure your block is properly structured.
+
+---
+
+### Step 3: Run Your Block
+
+Now that you have a training block, it's time to start your workout:
+
+#### 3.1: Start a Session
+
+1. From **BLOCKS** screen, find your imported block
+2. Tap the **RUN** button
+3. The app creates workout sessions for all weeks based on your template
+4. You're now in **Session Run View** – your workout tracking interface
+
+#### 3.2: Navigate Your Workout
+
+**Week Navigation:**
+- **Swipe left/right** to change weeks
+- Current week is highlighted at the top
+- See your full training block timeline
+
+**Day Navigation:**
+- **Tap day tabs** at the top to switch between workout days
+- Each day shows all exercises or segments for that session
+
+#### 3.3: Log Your Work
+
+**For Exercise-Based Days:**
+1. Each exercise shows **expected values** (sets, reps, weight) from your template
+2. **Tap a set** to expand and log actual performance
+3. Use **+ / -** buttons to adjust weight, reps, or other metrics
+4. Mark RPE (Rate of Perceived Exertion) or RIR (Reps in Reserve) if desired
+5. Check the **✓ box** when you complete the set
+6. Completed sets turn **green**
+
+**For Segment-Based Days (BJJ, Yoga, Learning, etc.):**
+1. Each segment shows its type, duration, and objective
+2. **Tap the segment card** to expand and view full details
+3. Check the **✓ box** when you complete the segment
+4. For timed rounds (sparring, drilling):
+   - Use **+ / -** buttons to log rounds completed
+   - Track quality metrics (success rate, clean reps) if specified
+5. Add notes about technique, feedback, or observations
+
+**Status Indicators:**
+- **Gray** – Not started
+- **Green with checkmark** – Completed
+- **Progress bar** – Shows overall completion percentage
+
+#### 3.4: Use the Whiteboard (Pro Feature)
+
+During your workout, you can view a clean, gym-friendly display:
+
+1. Tap **Whiteboard** in the top-right corner
+2. Select the week you want to view
+3. See all exercises/segments in an easy-to-read format
+4. Perfect for referencing between sets or sharing with coaches
+5. Tap any day card for full-screen view
+
+#### 3.5: Complete Your Workout
+
+1. Finish all the sets or segments you plan to do
+2. Tap **Close Session** in the top-left
+3. The app **auto-saves** all your data
+4. Progress is recorded in your block history
+
+**Week Completion:**
+- When you finish all days in a week, you'll see a completion modal
+- Review your stats (sets completed, exercises done)
+- Tap **Continue to Next Week** to advance
+
+**Block Completion:**
+- When you finish the final week, you'll see a celebration screen
+- The block is automatically archived to **Block History**
+- Review it anytime from the History screen
+
+---
+
+## 📊 Quick Start Summary
+
+**In just 3 steps, you've:**
+1. ✅ Unlocked Pro features (dev code or subscription)
+2. ✅ Generated and imported a complete AI training block
+3. ✅ Started tracking your workouts with live logging
+
+**Next Steps:**
+- Explore [Understanding Training Blocks](#understanding-training-blocks) to learn program design
+- Check out [Segment Use Cases](#segment-use-cases) for non-traditional training (BJJ, yoga, learning)
+- Review [Tips & Best Practices](#tips--best-practices) for optimal results
+- Set up [Data Management](#data-management) backups to protect your progress
+
+**Need Help?**
+- Jump to [Troubleshooting](#troubleshooting) for common issues
+- Email: savagesbydesignhq@gmail.com
+- Check [GitHub Discussions](https://github.com/kje7713-dev/WorkoutTrackerApp/discussions)
+
+---
+
 ## Table of Contents
 
-1. [Getting Started](#getting-started)
-2. [Understanding Training Blocks](#understanding-training-blocks)
-3. [Creating Your First Block](#creating-your-first-block)
-4. [Understanding Exercises](#understanding-exercises)
-5. [Understanding Segments](#understanding-segments)
-6. [Segment Use Cases](#segment-use-cases)
-7. [Creating Segment-Based Days](#creating-segment-based-days)
-8. [Running Workout Sessions](#running-workout-sessions)
-9. [Using the Whiteboard](#using-the-whiteboard)
-10. [Tracking Your Progress](#tracking-your-progress)
-11. [AI Block Generation](#ai-block-generation)
-12. [Pro Features](#pro-features)
-13. [Data Management](#data-management)
-14. [Tips & Best Practices](#tips--best-practices)
-15. [Troubleshooting](#troubleshooting)
+1. [🚀 Quick Start Guide](#-quick-start-guide) ⬅️ **Start here!**
+2. [Getting Started](#getting-started)
+3. [Understanding Training Blocks](#understanding-training-blocks)
+4. [Creating Your First Block](#creating-your-first-block)
+5. [Understanding Exercises](#understanding-exercises)
+6. [Understanding Segments](#understanding-segments)
+7. [Segment Use Cases](#segment-use-cases)
+8. [Creating Segment-Based Days](#creating-segment-based-days)
+9. [Running Workout Sessions](#running-workout-sessions)
+10. [Using the Whiteboard](#using-the-whiteboard)
+11. [Tracking Your Progress](#tracking-your-progress)
+12. [AI Block Generation](#ai-block-generation)
+13. [Pro Features](#pro-features)
+14. [Data Management](#data-management)
+15. [Tips & Best Practices](#tips--best-practices)
+16. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -880,9 +1062,38 @@ Research Methods Study Block (90 minutes)
 
 ## Creating Segment-Based Days
 
-### Method 1: JSON Import (Pro Feature)
+Segment-based days are ideal for skill-based training like martial arts, yoga, or learning sessions. The recommended way to create them is through **AI Block Import**.
 
-Segment-based days are currently created by importing JSON files. This allows for detailed specification of all segment properties.
+**🚀 Quick Start:** Follow [Step 2: Create Your First Block Using AI](#step-2-create-your-first-block-using-ai) for the fastest way to create segment-based blocks.
+
+### Method 1: AI Block Generation (Recommended - Pro Feature)
+
+The easiest and fastest way to create segment-based days:
+
+1. From **BLOCKS** screen, tap **AI BLOCK GENERATOR**
+2. In the **"Your Training Requirements"** field, describe your segment-based training
+3. **Example prompts:**
+   ```
+   4-week BJJ training block with warmup, technique, drilling, 
+   and live rolling segments. Focus on guard retention concepts.
+   ```
+   ```
+   6-week yoga program with breathwork, flow sequences, 
+   deep stretches, and savasana. Mix power and restorative sessions.
+   ```
+   ```
+   8-week language learning plan with vocabulary warmup, 
+   grammar technique sessions, conversation drills, and review.
+   ```
+4. Tap **COPY COMPLETE PROMPT**
+5. Use ChatGPT, Claude, or another AI to generate the JSON
+6. Import the JSON back into the app
+
+The AI prompt template includes complete segment field documentation, ensuring proper structure automatically.
+
+### Method 2: JSON Import (Manual - Pro Feature)
+
+For more control or when working with pre-made templates:
 
 **Basic JSON Structure:**
 ```json
@@ -941,19 +1152,13 @@ Segment-based days are currently created by importing JSON files. This allows fo
 }
 ```
 
-### Method 2: Using AI Block Generator (Pro Feature)
+**Import Options:**
+- **Paste JSON:** Copy JSON and paste directly in the app
+- **Import File:** Save as `.json` file and import from Files app
 
-1. From **BLOCKS** screen, tap **AI BLOCK GENERATOR**
-2. Use AI tools (ChatGPT, Claude, etc.) to generate segment-based blocks
-3. Prompt example: 
-   ```
-   "Create a 4-week BJJ training block in JSON format with segments 
-   for warmup, technique, drilling, and live training. Focus on 
-   guard passing concepts."
-   ```
-4. Import the generated JSON file or paste directly
+See [AI Block Generation](#ai-block-generation) for complete JSON format documentation.
 
-### Method 3: Hybrid Days (Exercises + Segments)
+### Method 2: Hybrid Days (Exercises + Segments)
 
 You can combine traditional exercises with segments in the same day:
 
@@ -1227,33 +1432,185 @@ Each workout session records:
 
 ### What is AI Block Generation? (Pro Feature)
 
-The app can **import training blocks from JSON files** that are generated by AI or other tools. This allows coaches, programmers, or AI assistants to create structured blocks that you can import directly.
+**AI Block Generation** allows you to create sophisticated training blocks by using AI assistants like ChatGPT or Claude. The app provides a comprehensive **AI Prompt Template** that guides AI assistants to generate properly formatted training programs in JSON format, which you can then import directly into the app.
 
-### How to Use AI Block Generator
+**🚀 Quick Start:** Already covered in the [Quick Start Guide](#step-2-create-your-first-block-using-ai) – jump there for step-by-step instructions!
+
+### The AI Prompt Template
+
+The app includes a built-in prompt template that ensures AI assistants generate training blocks with:
+- **Coach-grade structure** – Entropy classification and goal stimulus analysis
+- **Proper JSON format** – All required fields and valid data types
+- **Smart defaults** – Sensible progression, rest periods, and intensity
+- **Comprehensive options** – Support for exercises, segments, and hybrid days
+
+**How the Prompt Works:**
+1. You describe your training requirements in natural language
+2. The app combines your requirements with its technical prompt template
+3. You copy the complete prompt and send it to an AI assistant
+4. The AI analyzes your needs and generates valid JSON
+5. You import the JSON back into the app
+
+### Using AI Block Generator - Detailed Steps
+
+#### Step 1: Access the Generator
 
 1. From **BLOCKS** screen, tap **AI BLOCK GENERATOR**
-2. You have two options:
-   - **Import from File** – Select a `.json` file from your device
-   - **Paste JSON** – Copy and paste JSON directly into the app
+2. You'll see two main sections:
+   - **AI Prompt Template** (top) – Generate JSON with AI
+   - **Import JSON** (bottom) – Import generated blocks
+
+#### Step 2: Describe Your Training Needs
+
+In the **"Your Training Requirements"** text field, describe what you want. Be specific!
+
+**Good Examples:**
+```
+8-week powerlifting peaking program
+4 days per week focusing on squat, bench, deadlift
+Include accessory work and a deload on week 7
+```
+
+```
+4-week BJJ training block
+3 classes per week focusing on guard retention
+Include warmup, technique, drilling, and live rolling segments
+```
+
+```
+6-week conditioning program
+Mix of running, rowing, and bodyweight circuits
+Progressive volume increase with HIIT and steady-state work
+```
+
+**What to Include:**
+- Duration (number of weeks)
+- Frequency (days per week)
+- Training goals (strength, hypertrophy, conditioning, skills)
+- Specific exercises or movements
+- Any constraints (equipment, time, injuries)
+
+#### Step 3: Copy the Complete Prompt
+
+1. Review your requirements
+2. Tap **COPY COMPLETE PROMPT**
+3. The app generates a full prompt combining:
+   - Your specific requirements
+   - Complete JSON schema documentation
+   - AI coaching instructions for proper program design
+   - Examples and formatting rules
+
+#### Step 4: Generate JSON with AI
+
+1. Open **ChatGPT**, **Claude**, or another AI assistant
+2. Paste the copied prompt
+3. Send the message
+4. The AI will:
+   - Analyze your training requirements
+   - Apply exercise science principles
+   - Generate a complete JSON block
+   - Include progression, exercises/segments, and scheduling
+5. **Copy the JSON response** (just the JSON code, not explanatory text)
+
+**Pro Tip:** The AI will often explain its reasoning before providing JSON. Look for the code block and copy only that part.
+
+#### Step 5: Import the JSON
+
+Back in the **AI Block Generator** screen:
+
+**Option A: Paste JSON Directly**
+1. Scroll to **"Import JSON"** section
+2. Tap in the large text input area
+3. Paste your JSON
+4. Tap **IMPORT FROM TEXT**
+5. If valid, you'll see a block preview
+6. Review the block details
+7. The block is automatically saved to your blocks list
+
+**Option B: Import from File**
+1. Save your JSON as a `.json` file (e.g., from email or cloud storage)
+2. Tap **IMPORT FROM FILE**
+3. Select your JSON file from Files app
+4. The block is parsed and imported
+
+### What the AI Generates
+
+The AI assistant creates a complete training block with:
+
+**For Exercise-Based Training:**
+- Exercise names, types, and categories
+- Sets, reps, and starting weights
+- Progression rules (Delta Weight, Delta Sets)
+- RPE/RIR targets
+- Rest periods
+- Tempo specifications
+- Notes and coaching cues
+
+**For Segment-Based Training:**
+- Segment types (warmup, technique, drill, sparring, etc.)
+- Duration and objectives
+- Round plans with work/rest intervals
+- Technique details and key coaching points
+- Partner plans and resistance levels
+- Quality targets (success rate, clean reps)
+- Safety notes and contraindications
+
+**For Hybrid Days:**
+- Mix of traditional exercises and segment modules
+- Proper sequencing (e.g., strength work before skill work)
+- Appropriate rest and recovery
 
 ### JSON Format Requirements
 
-The JSON must follow the Block structure:
-- Block name, description, number of weeks
-- Day templates with exercises and/or segments
-- Exercise details (sets, reps, progression) for traditional training
-- Segment details (type, duration, techniques, round plans) for skill-based training
-- Strength or conditioning parameters
+The JSON must follow the Block structure specified in the prompt template:
+- **Block metadata:** Name, description, number of weeks, goals
+- **Day templates:** Individual workout days with exercises and/or segments
+- **Exercise details:** Sets, reps, weight, progression for strength/conditioning
+- **Segment details:** Type, duration, techniques, round plans for skill-based training
+- **Progression settings:** How exercises advance week-over-week
 
-**Example Use Cases:**
-- Import programs from online coaches
-- Use ChatGPT or other AI to generate training blocks
-- Share blocks between devices via JSON files
-- Backup and transfer blocks
-- Import BJJ class templates, yoga sequences, or martial arts training plans
-- Create hybrid programs with both exercises and segments
+**The prompt template includes complete schema documentation**, so AI assistants generate valid JSON automatically.
 
-**Note:** This feature is for **importing** blocks only. The app doesn't generate AI content itself—it imports blocks created externally.
+### Advanced Use Cases
+
+**Beyond AI Generation:**
+- **Coach-Created Programs:** Coaches can write JSON manually and share with athletes
+- **Team Sharing:** Share blocks between training partners via JSON files
+- **Program Libraries:** Build a collection of proven training blocks
+- **Backup/Restore:** Export individual blocks for safekeeping
+- **Cross-Platform:** Generate blocks on desktop, import on mobile
+- **Custom Templates:** Create your own JSON templates for recurring programs
+
+**Content Types:**
+- Traditional strength training programs
+- Conditioning and cardio blocks
+- Sport-specific training (BJJ, wrestling, martial arts)
+- Yoga and mobility programs
+- Hybrid athlete training (strength + skills)
+- Learning and skill development (coding, language, music)
+- Professional development sessions
+
+### Error Handling
+
+If import fails, check:
+- ✅ JSON syntax is valid (no missing braces, commas, quotes)
+- ✅ All required fields are present (name, weeks, days)
+- ✅ Data types match (numbers for sets/reps, strings for names)
+- ✅ Exercise types are "strength" or "conditioning"
+- ✅ Segment types are valid (warmup, technique, drill, etc.)
+
+**Pro Tip:** The AI prompt template is designed to minimize errors. If you get an error, try regenerating with the AI or ask it to validate the JSON.
+
+### Why Use AI Generation?
+
+**Benefits:**
+- ⚡ **Fast:** Generate a complete 12-week program in seconds
+- 🧠 **Smart:** AI applies periodization and exercise science principles
+- 🎯 **Customized:** Tailored to your exact requirements
+- 📚 **Educational:** See how programs are structured
+- 🔄 **Iterative:** Easily regenerate and refine
+
+**Note:** This feature is for **importing** blocks. The app doesn't connect to AI services directly—you use external AI assistants and import their output.
 
 ---
 
@@ -1261,40 +1618,134 @@ The JSON must follow the Block structure:
 
 ### Subscription Benefits
 
-**Go Pro** unlocks:
-- ✅ **Whiteboard View** – Clean, printable workout display
-- ✅ **AI Block Import** – Import JSON blocks from external sources
-- ✅ **Unlimited Blocks** – Create as many blocks as you want
-- ✅ **Priority Support** – Get help faster
-- ✅ **Future Features** – Early access to new capabilities
+**Go Pro** unlocks premium features that enhance your training experience:
 
-### Free Version Includes:
+- ✅ **AI Block Import** – Use ChatGPT, Claude, or other AI assistants to generate complete training programs in JSON format, then import them instantly
+- ✅ **AI Prompt Template** – Built-in comprehensive prompt that guides AI to create coach-grade programs
+- ✅ **Whiteboard View** – Clean, printable workout display perfect for gyms, coaches, and athletes
+- ✅ **Unlimited Blocks** – Create as many training programs as you need
+- ✅ **Priority Support** – Get help faster when you need it
+- ✅ **Future Features** – Early access to new capabilities as they're released
 
-- Create and run training blocks
-- Track all workouts with full logging
-- Block history and progress tracking
-- Exercise library
-- Data backup and restore
-- All core features
+### Free Version Includes
 
-### Managing Your Subscription
+You can do a lot without Pro! The free version includes:
+
+- ✅ Create and run training blocks
+- ✅ Track all workouts with full logging (exercises and segments)
+- ✅ Block history and progress tracking
+- ✅ Exercise library management
+- ✅ Data backup and restore
+- ✅ All core workout tracking features
+- ✅ Manual block building with full customization
+
+### Getting Pro Access
+
+**🚀 Quick Start:** See [Step 1: Unlock Pro Features](#step-1-unlock-pro-features-optional-but-recommended) for detailed instructions.
+
+#### Option 1: Development Unlock (Testing)
+
+For development, testing, or evaluation:
+
+1. From Home Screen, tap **GO PRO**
+2. Tap **"Enter Code"** button
+3. Type: **dev** (case-insensitive)
+4. Tap **"Unlock"**
+5. ✅ Full Pro access activated!
+
+**Development Unlock Details:**
+- Code: **dev** (works with Dev, DEV, dev)
+- Persists across app restarts
+- No expiration
+- Does not interfere with StoreKit or real subscriptions
+- Perfect for testing Pro features
+- Can be removed anytime for testing subscription flows
+
+#### Option 2: Subscribe via App Store
+
+For production use:
 
 1. From Home Screen, tap **GO PRO**
 2. View your current subscription status
 3. **If not subscribed:**
-   - View available plans
-   - Select monthly or annual
-   - Start free trial or subscribe
+   - View available plans (Monthly or Annual)
+   - Check for free trial eligibility
+   - Select your preferred plan
+   - Complete purchase through Apple App Store
 4. **If subscribed:**
-   - See renewal date
-   - Manage subscription via Apple
+   - See renewal date and plan details
+   - Manage subscription via Apple settings
    - Cancel anytime (access continues until period ends)
 
 **Subscription Details:**
 - Billed through Apple App Store
-- Cancel anytime with no fees
+- Supports Family Sharing (where applicable)
+- Cancel anytime with no fees or penalties
 - Free trial available (check current offer)
-- Auto-renews unless cancelled
+- Auto-renews unless cancelled before period ends
+- Manage via Apple ID Settings > Subscriptions
+
+### Managing Your Subscription
+
+**View Subscription Status:**
+- Tap **GO PRO** from Home Screen
+- See active status, renewal date, and plan type
+- Check trial eligibility
+
+**Change or Cancel:**
+1. Open iOS **Settings** app
+2. Tap your **Apple ID** at the top
+3. Select **Subscriptions**
+4. Find **Savage By Design**
+5. Modify or cancel as needed
+
+**Access After Cancellation:**
+- Pro features remain active until the end of your paid period
+- Block history and data are preserved
+- You can resubscribe anytime to restore Pro access
+
+### Pro Feature Details
+
+#### AI Block Import
+
+- Generate training programs using AI assistants (ChatGPT, Claude, etc.)
+- Built-in prompt template ensures proper JSON format
+- Supports exercises, segments, and hybrid days
+- Import from text or file
+- See [AI Block Generation](#ai-block-generation) for full details
+- Quick reference: [Quick Start Step 2](#step-2-create-your-first-block-using-ai)
+
+#### Whiteboard View
+
+- Clean, gym-friendly display of workout plans
+- View any week from current or archived blocks
+- Full-screen mode for individual days
+- Perfect for screenshots, printing, or sharing with coaches
+- No clutter, just your workout data
+- See [Using the Whiteboard](#using-the-whiteboard) for details
+
+#### Unlimited Blocks
+
+- Create as many training programs as needed
+- No artificial limits on block creation
+- Archive completed blocks without counting against limit
+- Build libraries of specialized programs (strength, conditioning, skills)
+
+### Why Upgrade to Pro?
+
+**Perfect if you:**
+- Want the fastest way to create training programs (AI generation)
+- Work with a coach who shares JSON programs
+- Need clean workout displays for gym reference
+- Plan multiple training cycles in advance
+- Value time saved in program creation
+- Want to experiment with different training approaches
+
+**Consider staying free if:**
+- You prefer manually building every block
+- You only train one program at a time
+- You don't need printable workout views
+- You're comfortable with the free tier features
 
 ---
 
@@ -1590,21 +2041,33 @@ Your workout data is stored locally on your device. Back it up to:
 
 ### Quick Start Checklist
 
-- [ ] Create your first training block (BLOCKS → CREATE NEW BLOCK)
-- [ ] Add 3-4 workout days with exercises
-- [ ] Set your progression (Delta Weight or Delta Sets)
-- [ ] Tap RUN to start your first session
-- [ ] Log at least one complete workout
-- [ ] Review your history (BLOCK HISTORY)
-- [ ] Export a backup (DATA MANAGEMENT)
-- [ ] Consider upgrading to Pro for Whiteboard access
-- [ ] **Advanced:** Import a segment-based block (BJJ, yoga, etc.) via AI Block Generator
+**Essential (Follow the Quick Start Guide):**
+- [ ] Unlock Pro features (dev code or subscription) – [Step 1](#step-1-unlock-pro-features-optional-but-recommended)
+- [ ] Generate your first block with AI – [Step 2](#step-2-create-your-first-block-using-ai)
+- [ ] Import the JSON block into the app
+- [ ] Run your block and log your first workout – [Step 3](#step-3-run-your-block)
+- [ ] Explore the Whiteboard view
+
+**Recommended Next Steps:**
+- [ ] Review your session in Block History
+- [ ] Export a data backup (DATA MANAGEMENT → EXPORT ALL DATA)
+- [ ] Try creating a manual block to understand the builder interface
+- [ ] Experiment with segment-based days (BJJ, yoga, learning)
+- [ ] Set up recurring backups to iCloud or Files app
+
+**Advanced:**
+- [ ] Create a hybrid day (exercises + segments)
+- [ ] Import a segment-based block for skill training
+- [ ] Build a multi-phase periodized program (12+ weeks)
+- [ ] Share a block with training partners via JSON export
 
 ---
 
 **Need more help?** 
 
-- Email: savagesbydesignhq@gmail.com
-- Website: savagesbydesign.com
-- Check the [Technical README](README.md) for developers
-- Visit our [GitHub repository](https://github.com/kje7713-dev/WorkoutTrackerApp) for updates
+- 📧 Email: savagesbydesignhq@gmail.com
+- 🌐 Website: savagesbydesign.com
+- 📖 Full Guide: You're reading it! Use the [Table of Contents](#table-of-contents)
+- 💻 Technical Info: Check the [Technical README](README.md) for developers
+- 🐛 Report Issues: [GitHub Issues](https://github.com/kje7713-dev/WorkoutTrackerApp/issues)
+- 💬 Community: [GitHub Discussions](https://github.com/kje7713-dev/WorkoutTrackerApp/discussions)
