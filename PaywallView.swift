@@ -8,6 +8,14 @@
 import SwiftUI
 
 /// Paywall view for presenting subscription offer
+/// 
+/// This view is always reachable and renders regardless of StoreKit state:
+/// - Product fetch failures: Shows shell with error message + disabled CTA
+/// - Empty StoreKit response: Shows shell with loading/error state
+/// - Pending approval: Shows shell with appropriate messaging
+/// 
+/// Navigation to this view is never blocked. StoreKit failures are treated
+/// as state to display, not errors that prevent UI rendering.
 struct PaywallView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @Environment(\.dismiss) private var dismiss
@@ -174,8 +182,14 @@ struct PaywallView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text(isEligibleForTrial ? "Start Free Trial" : "Subscribe Now")
-                            .font(.system(size: 18, weight: .bold))
+                        // Show different text based on product availability
+                        if subscriptionManager.subscriptionProduct == nil {
+                            Text("Subscription Unavailable")
+                                .font(.system(size: 18, weight: .bold))
+                        } else {
+                            Text(isEligibleForTrial ? "Start Free Trial" : "Subscribe Now")
+                                .font(.system(size: 18, weight: .bold))
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -184,7 +198,7 @@ struct PaywallView: View {
                 .background(
                     Group {
                         if subscriptionManager.subscriptionProduct == nil {
-                            Color.gray
+                            Color.gray.opacity(0.5)
                         } else {
                             LinearGradient(
                                 gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
@@ -206,23 +220,32 @@ struct PaywallView: View {
             }
             .disabled(isPurchasing || subscriptionManager.subscriptionProduct == nil)
             
-            // Error message display
-            if let error = subscriptionManager.errorMessage {
-                Text(error)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.red)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 16)
-            }
-            
-            // Loading indicator when product is being loaded
-            if subscriptionManager.subscriptionProduct == nil && subscriptionManager.errorMessage == nil {
-                HStack(spacing: 8) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
-                    Text("Loading subscription information...")
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundColor(theme.mutedText)
+            // Status messaging: Show appropriate message based on state
+            Group {
+                if let error = subscriptionManager.errorMessage {
+                    // Error state: Show error message
+                    VStack(spacing: 8) {
+                        Text(error)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.red)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                        
+                        Text("The paywall is still accessible. You can restore purchases or try again later.")
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundColor(theme.mutedText)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                    }
+                } else if subscriptionManager.subscriptionProduct == nil {
+                    // Loading state: Products not yet loaded
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                        Text("Loading subscription information...")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(theme.mutedText)
+                    }
                 }
             }
             
