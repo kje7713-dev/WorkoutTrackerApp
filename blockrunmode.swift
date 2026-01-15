@@ -1866,18 +1866,18 @@ private struct SetRunRowChangeTracker: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .onChange(of: runSet.actualReps) { _, _ in onSave() }
-            .onChange(of: runSet.actualWeight) { _, _ in onSave() }
-            .onChange(of: runSet.actualTimeSeconds) { _, _ in onSave() }
-            .onChange(of: runSet.actualDistanceMeters) { _, _ in onSave() }
-            .onChange(of: runSet.actualCalories) { _, _ in onSave() }
-            .onChange(of: runSet.actualRounds) { _, _ in onSave() }
-            .onChange(of: runSet.rpe) { _, _ in onSave() }
-            .onChange(of: runSet.rir) { _, _ in onSave() }
-            .onChange(of: runSet.tempo) { _, _ in onSave() }
-            .onChange(of: runSet.restSeconds) { _, _ in onSave() }
-            .onChange(of: runSet.notes) { _, _ in onSave() }
-            .onChange(of: runSet.isCompleted) { _, _ in
+            .onChange(of: runSet.actualReps) { _ in onSave() }
+            .onChange(of: runSet.actualWeight) { _ in onSave() }
+            .onChange(of: runSet.actualTimeSeconds) { _ in onSave() }
+            .onChange(of: runSet.actualDistanceMeters) { _ in onSave() }
+            .onChange(of: runSet.actualCalories) { _ in onSave() }
+            .onChange(of: runSet.actualRounds) { _ in onSave() }
+            .onChange(of: runSet.rpe) { _ in onSave() }
+            .onChange(of: runSet.rir) { _ in onSave() }
+            .onChange(of: runSet.tempo) { _ in onSave() }
+            .onChange(of: runSet.restSeconds) { _ in onSave() }
+            .onChange(of: runSet.notes) { _ in onSave() }
+            .onChange(of: runSet.isCompleted) { _ in
                 print("🔵 Set isCompleted changed - triggering save")
                 onSave()
             }
@@ -2148,7 +2148,7 @@ struct AddExerciseSheet: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-                .onChange(of: selectedType) {
+                .onChange(of: selectedType) { _ in
                     // Reset exercise name when type changes
                     exerciseName = ""
                 }
