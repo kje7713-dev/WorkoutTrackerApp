@@ -52,7 +52,7 @@ struct BlockGeneratorView: View {
         }
         .task {
             // Check trial eligibility when view appears
-            isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility()
+            isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility() ?? false
         }
     }
     
