@@ -23,7 +23,7 @@ struct PaywallView: View {
     @Environment(\.sbdTheme) private var theme
     
     @State private var isPurchasing = false
-    @State private var isEligibleForTrial = false
+    @State private var isEligibleForTrial: Bool? = nil // nil = unknown, true = eligible, false = not eligible
     @State private var showingCodeEntry = false
     @State private var enteredCode = ""
     @State private var showInvalidCodeError = false
@@ -136,8 +136,8 @@ struct PaywallView: View {
             VStack(spacing: 12) {
                 if let price = subscriptionManager.formattedPrice {
                     
-                    // Trial badge - only show here, once
-                    if isEligibleForTrial {
+                    // Trial badge - only show if confirmed eligible
+                    if isEligibleForTrial == true {
                         Text("START FREE TRIAL")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
@@ -150,7 +150,7 @@ struct PaywallView: View {
                     Text(price)
                         .font(.system(size: 48, weight: .bold))
                     
-                    if isEligibleForTrial {
+                    if isEligibleForTrial == true {
                         Text("Free trial, then \(price)")
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(theme.mutedText)
@@ -187,8 +187,17 @@ struct PaywallView: View {
                         if subscriptionManager.subscriptionProduct == nil {
                             Text("Subscription Unavailable")
                                 .font(.system(size: 18, weight: .bold))
+                        } else if isEligibleForTrial == true {
+                            // Confirmed eligible for trial
+                            Text("Start Free Trial")
+                                .font(.system(size: 18, weight: .bold))
+                        } else if isEligibleForTrial == false {
+                            // Confirmed not eligible for trial
+                            Text("Subscribe Now")
+                                .font(.system(size: 18, weight: .bold))
                         } else {
-                            Text(isEligibleForTrial ? "Start Free Trial" : "Subscribe Now")
+                            // Eligibility unknown (still checking)
+                            Text("Subscribe")
                                 .font(.system(size: 18, weight: .bold))
                         }
                     }
@@ -273,12 +282,14 @@ struct PaywallView: View {
             }
             .padding(.top, 4)
             
-            // Auto-renew disclosure
-            Text("Subscription automatically renews unless cancelled at least 24 hours before the end of the current period.")
-                .font(.system(size: 12, weight: .regular))
-                .foregroundColor(theme.mutedText)
-                .multilineTextAlignment(.center)
-                .padding(.top, 8)
+            // Auto-renewal disclosure with complete terms
+            VStack(spacing: 8) {
+                Text("Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless cancelled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in App Store account settings.")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(theme.mutedText)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.top, 8)
         }
         .alert("Enter Unlock Code", isPresented: $showingCodeEntry) {
             TextField("Code", text: $enteredCode)

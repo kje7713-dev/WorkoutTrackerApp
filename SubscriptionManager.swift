@@ -152,34 +152,116 @@ class SubscriptionManager: ObservableObject {
     
     // MARK: - Entitlement Status
     
-    /// Check current entitlement status from App Store Connect
+    /// Check current entitlement status from App Store Connect using subscription status APIs
+    /// 
+    /// This method uses Product.SubscriptionInfo.Status to properly account for:
+    /// - Grace period (user has temporary access during payment issues)
+    /// - Billing retry (user retains access while Apple retries payment)
+    /// - Revoked state (subscription was refunded/revoked)
+    /// - Auto-renewal intent (whether user has cancelled for end of period)
     func checkEntitlementStatus() async {
         var activeSubscription = false
         
-        // Check for active subscriptions via StoreKit
-        for await result in Transaction.currentEntitlements {
-            do {
-                let transaction = try checkVerified(result)
-                
-                // Check if this is our subscription product
-                if transaction.productID == productID {
-                    // Check if subscription is active (not expired)
-                    if let expirationDate = transaction.expirationDate {
-                        if expirationDate > Date() {
-                            activeSubscription = true
-                            break // Found active subscription, no need to continue
+        // Use subscription status API if product is loaded
+        if let product = subscriptionProduct,
+           let subscription = product.subscription {
+            
+            // Get subscription status from StoreKit 2
+            if let statuses = try? await subscription.status {
+                for status in statuses {
+                    // Verify the renewal info
+                    guard case .verified(let renewalInfo) = status.renewalInfo else {
+                        continue
+                    }
+                    
+                    // Verify the transaction
+                    guard case .verified(let transaction) = status.transaction else {
+                        continue
+                    }
+                    
+                    // Check if this is our product
+                    guard transaction.productID == productID else {
+                        continue
+                    }
+                    
+                    // Determine if user has active entitlement based on state
+                    switch status.state {
+                    case .subscribed:
+                        // User has active subscription
+                        activeSubscription = true
+                        AppLogger.info("Subscription state: subscribed", subsystem: .general, category: "Subscription")
+                        break
+                        
+                    case .inGracePeriod:
+                        // User has temporary access during payment issue resolution
+                        activeSubscription = true
+                        AppLogger.info("Subscription state: in grace period - user retains access", subsystem: .general, category: "Subscription")
+                        break
+                        
+                    case .inBillingRetryPeriod:
+                        // Apple is retrying payment - user retains access
+                        activeSubscription = true
+                        AppLogger.info("Subscription state: billing retry - user retains access", subsystem: .general, category: "Subscription")
+                        break
+                        
+                    case .revoked:
+                        // Subscription was refunded/revoked - no access
+                        activeSubscription = false
+                        AppLogger.info("Subscription state: revoked - no access", subsystem: .general, category: "Subscription")
+                        break
+                        
+                    case .expired:
+                        // Subscription has expired - no access
+                        activeSubscription = false
+                        AppLogger.info("Subscription state: expired - no access", subsystem: .general, category: "Subscription")
+                        break
+                        
+                    @unknown default:
+                        // Unknown state - treat as no access for safety
+                        activeSubscription = false
+                        AppLogger.warning("Subscription state: unknown - treating as no access", subsystem: .general, category: "Subscription")
+                        break
+                    }
+                    
+                    // Log auto-renewal intent for debugging (doesn't affect entitlement)
+                    if renewalInfo.willAutoRenew {
+                        AppLogger.info("Auto-renewal: enabled", subsystem: .general, category: "Subscription")
+                    } else {
+                        AppLogger.info("Auto-renewal: disabled (user cancelled)", subsystem: .general, category: "Subscription")
+                    }
+                    
+                    // We found our subscription status, stop checking
+                    break
+                }
+            }
+        } else {
+            // Fallback: Check for active subscriptions via Transaction.currentEntitlements
+            // This is used when product hasn't loaded yet
+            for await result in Transaction.currentEntitlements {
+                do {
+                    let transaction = try checkVerified(result)
+                    
+                    // Check if this is our subscription product
+                    if transaction.productID == productID {
+                        // Check if subscription is active (not expired)
+                        if let expirationDate = transaction.expirationDate {
+                            if expirationDate > Date() {
+                                activeSubscription = true
+                                AppLogger.info("Subscription active via entitlement check (fallback)", subsystem: .general, category: "Subscription")
+                                break // Found active subscription, no need to continue
+                            }
                         }
                     }
+                } catch {
+                    AppLogger.error("Failed to verify transaction: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
                 }
-            } catch {
-                AppLogger.error("Failed to verify transaction: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
             }
         }
         
         // Update subscription status from App Store Connect
         hasActiveSubscription = activeSubscription
         
-        AppLogger.info("Subscription status - hasActiveSubscription: \(activeSubscription)", subsystem: .general, category: "Subscription")
+        AppLogger.info("Final subscription status - hasActiveSubscription: \(activeSubscription)", subsystem: .general, category: "Subscription")
     }
     
     // MARK: - Transaction Updates
@@ -315,14 +397,14 @@ class SubscriptionManager: ObservableObject {
     /// Check if user is eligible for introductory offer (trial)
     /// 
     /// This function queries StoreKit's native intro offer eligibility API which is managed by
-    /// App Store Connect. Returns true if the product hasn't loaded yet to provide a better UX.
+    /// App Store Connect. Returns nil if eligibility cannot be determined (product not loaded).
     ///
-    /// - Returns: True if user is eligible for the introductory offer, false otherwise
-    func checkIntroOfferEligibility() async -> Bool {
+    /// - Returns: True if eligible, false if not eligible, nil if unknown (product not loaded)
+    func checkIntroOfferEligibility() async -> Bool? {
         guard let product = subscriptionProduct else {
-            return true // Assume eligible if product not loaded yet
+            return nil // Unknown eligibility - product not loaded
         }
-        return await product.subscription?.isEligibleForIntroOffer ?? true
+        return await product.subscription?.isEligibleForIntroOffer
     }
     
     // MARK: - Dev Unlock

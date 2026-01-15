@@ -16,7 +16,7 @@ struct SubscriptionManagementView: View {
     @Environment(\.sbdTheme) private var theme
     
     @State private var showingPaywall = false
-    @State private var isEligibleForTrial = false
+    @State private var isEligibleForTrial: Bool? = nil // nil = unknown, true = eligible, false = not eligible
     
     var body: some View {
         NavigationView {
@@ -188,7 +188,12 @@ struct SubscriptionManagementView: View {
             Button {
                 showingPaywall = true
             } label: {
-                Text(isEligibleForTrial ? "Start 15-Day Free Trial" : "Subscribe Now")
+                // Show different text based on eligibility status
+                Text(
+                    isEligibleForTrial == true ? "Start 15-Day Free Trial" :
+                    isEligibleForTrial == false ? "Subscribe Now" :
+                    "Subscribe" // Default neutral text when eligibility is unknown
+                )
                     .font(.system(size: 18, weight: .bold))
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
