@@ -284,7 +284,7 @@ struct PaywallView: View {
             
             // Auto-renewal disclosure with complete terms
             VStack(spacing: 8) {
-                Text("Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless cancelled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in App Store account settings.")
+                Text(SubscriptionConstants.autoRenewalDisclosure)
                     .font(.system(size: 12, weight: .regular))
                     .foregroundColor(theme.mutedText)
                     .multilineTextAlignment(.center)

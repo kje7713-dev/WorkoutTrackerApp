@@ -403,7 +403,8 @@ struct SubscriptionTests {
     static func testAutoRenewalDisclosureCompleteness() -> Bool {
         print("Testing auto-renewal disclosure completeness...")
         
-        let disclosure = "Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless cancelled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in App Store account settings."
+        // Use the actual disclosure constant from SubscriptionConstants
+        let disclosure = SubscriptionConstants.autoRenewalDisclosure
         
         // Check for all required terms
         let hasAppleID = disclosure.contains("Apple ID")
