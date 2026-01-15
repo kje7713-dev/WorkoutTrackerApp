@@ -262,16 +262,16 @@ public struct TimePickerControl: View {
         .onAppear {
             loadFromTotalSeconds()
         }
-        .onChange(of: totalSeconds) { _, _ in
+        .onChange(of: totalSeconds) { _ in
             loadFromTotalSeconds()
         }
-        .onChange(of: hours) { _, _ in
+        .onChange(of: hours) { _ in
             updateTotalSeconds()
         }
-        .onChange(of: minutes) { _, _ in
+        .onChange(of: minutes) { _ in
             updateTotalSeconds()
         }
-        .onChange(of: seconds) { _, _ in
+        .onChange(of: seconds) { _ in
             updateTotalSeconds()
         }
     }
@@ -389,16 +389,16 @@ public struct TimePickerControlDouble: View {
         .onAppear {
             loadFromTotalSeconds()
         }
-        .onChange(of: totalSeconds) { _, _ in
+        .onChange(of: totalSeconds) { _ in
             loadFromTotalSeconds()
         }
-        .onChange(of: hours) { _, _ in
+        .onChange(of: hours) { _ in
             updateTotalSeconds()
         }
-        .onChange(of: minutes) { _, _ in
+        .onChange(of: minutes) { _ in
             updateTotalSeconds()
         }
-        .onChange(of: seconds) { _, _ in
+        .onChange(of: seconds) { _ in
             updateTotalSeconds()
         }
     }

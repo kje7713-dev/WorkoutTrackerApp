@@ -78,7 +78,7 @@ struct BlockRunModeView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .onChange(of: currentWeekIndex) { _, newValue in
+                .onChange(of: currentWeekIndex) { newValue in
                     handleWeekChange(newWeekIndex: newValue)
                 }
                 .onChange(of: weeks.map { week in
@@ -87,7 +87,7 @@ struct BlockRunModeView: View {
                             exercise.sets.map(\.isCompleted)
                         }
                     }
-                }) { _, _ in
+                }) { _ in
                     print("🔵 Set completion changed - auto-saving")
                     saveWeeks()
                 }
@@ -1283,7 +1283,7 @@ struct ExerciseRunCard: View {
                     .font(.headline)
                     .textFieldStyle(.roundedBorder)
                     .disableAutocorrection(true)
-                    .onChange(of: exercise.name) { _, _ in
+                    .onChange(of: exercise.name) { _ in
                         onSave()
                     }
             }
@@ -1337,7 +1337,7 @@ struct ExerciseRunCard: View {
                     .lineLimit(1...3)
                     .font(.footnote)
                     .textFieldStyle(.roundedBorder)
-                    .onChange(of: exercise.notes) { _, _ in
+                    .onChange(of: exercise.notes) { _ in
                         onSave()
                     }
 
@@ -2257,6 +2257,9 @@ struct AddExerciseSheet: View {
         .presentationDetents([.medium, .large])
     }
 }
+
+
+// MARK: - Week Completion Modal
 
 // MARK: - Segment Run Card
 

@@ -216,7 +216,7 @@ class SubscriptionManager: ObservableObject {
                         AppLogger.info("Subscription state: expired - no access", subsystem: .general, category: "Subscription")
                         break
                         
-                    @unknown default:
+                    default:
                         // Unknown state - treat as no access for safety
                         activeSubscription = false
                         AppLogger.warning("Subscription state: unknown - treating as no access", subsystem: .general, category: "Subscription")
