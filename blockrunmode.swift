@@ -1629,6 +1629,13 @@ struct SetRunRow: View {
 
 
     var body: some View {
+        mainContent
+            .modifier(SetRunRowStyleModifier(isCompleted: runSet.isCompleted))
+            .modifier(SetRunRowChangeTracker(runSet: runSet, onSave: onSave))
+    }
+    
+    // Extract main content to reduce Swift type-checker complexity and avoid compilation timeouts
+    private var mainContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Header
             Text("Set \(runSet.indexInExercise + 1)")
@@ -1689,64 +1696,6 @@ struct SetRunRow: View {
                     )
                 }
             }
-        }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(uiColor: .secondarySystemBackground))
-        )
-        // Completed ribbon overlay
-        .overlay(
-            Group {
-                if runSet.isCompleted {
-                    Text("COMPLETED")
-                        .font(.caption2).bold()
-                        .padding(6)
-                        .background(Color.black)
-                        .foregroundColor(.white)
-                        .rotationEffect(.degrees(22))
-                        .offset(x: 8, y: -8)
-                }
-            },
-            alignment: .topTrailing
-        )
-        .padding(.vertical, 2)
-        .onChange(of: runSet.actualReps) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.actualWeight) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.actualTimeSeconds) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.actualDistanceMeters) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.actualCalories) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.actualRounds) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.rpe) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.rir) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.tempo) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.restSeconds) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.notes) { _, _ in
-            onSave()
-        }
-        .onChange(of: runSet.isCompleted) { _, _ in
-            print("🔵 Set isCompleted changed - triggering save")
-            onSave()
         }
     }
 
@@ -1876,6 +1825,62 @@ struct SetRunRow: View {
         formatter.dateStyle = .short
         formatter.timeStyle = .none
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - SetRunRow View Modifiers (to reduce type-checking complexity)
+
+/// Applies styling to SetRunRow including padding, background, overlay, and vertical padding
+private struct SetRunRowStyleModifier: ViewModifier {
+    let isCompleted: Bool
+    
+    func body(content: Content) -> some View {
+        content
+            .padding(10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(uiColor: .secondarySystemBackground))
+            )
+            .overlay(
+                Group {
+                    if isCompleted {
+                        Text("COMPLETED")
+                            .font(.caption2).bold()
+                            .padding(6)
+                            .background(Color.black)
+                            .foregroundColor(.white)
+                            .rotationEffect(.degrees(22))
+                            .offset(x: 8, y: -8)
+                    }
+                },
+                alignment: .topTrailing
+            )
+            .padding(.vertical, 2)
+    }
+}
+
+/// Tracks changes to RunSetState properties and triggers save callback
+private struct SetRunRowChangeTracker: ViewModifier {
+    let runSet: RunSetState
+    let onSave: () -> Void
+    
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: runSet.actualReps) { _, _ in onSave() }
+            .onChange(of: runSet.actualWeight) { _, _ in onSave() }
+            .onChange(of: runSet.actualTimeSeconds) { _, _ in onSave() }
+            .onChange(of: runSet.actualDistanceMeters) { _, _ in onSave() }
+            .onChange(of: runSet.actualCalories) { _, _ in onSave() }
+            .onChange(of: runSet.actualRounds) { _, _ in onSave() }
+            .onChange(of: runSet.rpe) { _, _ in onSave() }
+            .onChange(of: runSet.rir) { _, _ in onSave() }
+            .onChange(of: runSet.tempo) { _, _ in onSave() }
+            .onChange(of: runSet.restSeconds) { _, _ in onSave() }
+            .onChange(of: runSet.notes) { _, _ in onSave() }
+            .onChange(of: runSet.isCompleted) { _, _ in
+                print("🔵 Set isCompleted changed - triggering save")
+                onSave()
+            }
     }
 }
 
@@ -2246,15 +2251,18 @@ struct AddExerciseSheet: View {
                 
                 Spacer()
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
+            .toolbar(content: toolbarContent)
         }
         .presentationDetents([.medium, .large])
+    }
+    
+    @ToolbarContentBuilder
+    private func toolbarContent() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button("Cancel") {
+                dismiss()
+            }
+        }
     }
 }
 
