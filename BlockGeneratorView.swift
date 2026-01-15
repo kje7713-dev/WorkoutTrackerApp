@@ -528,7 +528,7 @@ struct BlockGeneratorView: View {
         
         If an activity is not physical, it MUST be represented using:
         - Segments
-        - Appropriate segmentType values (e.g., plan, review, discussion, practice, other)
+        - Appropriate segmentType values (e.g., lecture, review, discussion, practice, presentation, assessment, other)
         - domain set to education, business, analytics, or other
         
         Schema compliance takes priority over perceived app intent.
@@ -1232,7 +1232,7 @@ struct BlockGeneratorView: View {
         FOR NON-PHYSICAL ACTIVITIES (SEGMENTS) - EDUCATION, SKILLS, EXPERIENCES:
         1. SKILL DEVELOPMENT: Use technique, drill, practice segments with appropriate domain
         2. EDUCATIONAL: Use lecture, presentation, discussion, review, assessment segments with domain=education
-        3. BUSINESS: Use plan, review, discussion segments with domain=business
+        3. BUSINESS: Use discussion, review, presentation segments with domain=business
         4. EXPERIENTIAL: Use practice, other segments with domain=other for itineraries/plans
         5. STRUCTURED SESSIONS: Organize by segment phases (warmup/intro → main → review/cooldown)
         6. QUALITY TRACKING: Use qualityTargets for skill-based or learning progression
