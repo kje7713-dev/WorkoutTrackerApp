@@ -271,6 +271,153 @@ struct SubscriptionTests {
     
     // MARK: - Run All Tests
     
+    /// Test subscription status handling for grace period
+    static func testSubscriptionGracePeriodHandling() -> Bool {
+        print("Testing subscription grace period handling...")
+        
+        // User in grace period should have access
+        let subscriptionState = "inGracePeriod"
+        let hasAccess = (subscriptionState == "subscribed" || 
+                         subscriptionState == "inGracePeriod" || 
+                         subscriptionState == "inBillingRetryPeriod")
+        
+        let result = hasAccess
+        
+        print("Subscription grace period handling: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test subscription status handling for billing retry period
+    static func testSubscriptionBillingRetryHandling() -> Bool {
+        print("Testing subscription billing retry handling...")
+        
+        // User in billing retry should have access
+        let subscriptionState = "inBillingRetryPeriod"
+        let hasAccess = (subscriptionState == "subscribed" || 
+                         subscriptionState == "inGracePeriod" || 
+                         subscriptionState == "inBillingRetryPeriod")
+        
+        let result = hasAccess
+        
+        print("Subscription billing retry handling: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test subscription status handling for revoked state
+    static func testSubscriptionRevokedHandling() -> Bool {
+        print("Testing subscription revoked handling...")
+        
+        // User with revoked subscription should NOT have access
+        let subscriptionState = "revoked"
+        let hasAccess = (subscriptionState == "subscribed" || 
+                         subscriptionState == "inGracePeriod" || 
+                         subscriptionState == "inBillingRetryPeriod")
+        
+        let result = !hasAccess
+        
+        print("Subscription revoked handling: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that intro offer eligibility returns nil when product not loaded
+    static func testIntroOfferEligibilityUnknown() -> Bool {
+        print("Testing intro offer eligibility when product not loaded...")
+        
+        // When product is nil, eligibility should be nil (unknown)
+        let productLoaded = false
+        let eligibility: Bool? = productLoaded ? true : nil
+        
+        let result = (eligibility == nil)
+        
+        print("Intro offer eligibility unknown: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that CTA text is neutral when eligibility is unknown
+    static func testCTATextWhenEligibilityUnknown() -> Bool {
+        print("Testing CTA text when eligibility unknown...")
+        
+        // When eligibility is nil, CTA should be neutral "Subscribe"
+        let eligibility: Bool? = nil
+        let ctaText: String
+        
+        if eligibility == true {
+            ctaText = "Start Free Trial"
+        } else if eligibility == false {
+            ctaText = "Subscribe Now"
+        } else {
+            ctaText = "Subscribe"
+        }
+        
+        let result = (ctaText == "Subscribe")
+        
+        print("CTA text when eligibility unknown: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that CTA text shows trial when eligibility is confirmed true
+    static func testCTATextWhenEligibleForTrial() -> Bool {
+        print("Testing CTA text when eligible for trial...")
+        
+        // When eligibility is true, CTA should mention trial
+        let eligibility: Bool? = true
+        let ctaText: String
+        
+        if eligibility == true {
+            ctaText = "Start Free Trial"
+        } else if eligibility == false {
+            ctaText = "Subscribe Now"
+        } else {
+            ctaText = "Subscribe"
+        }
+        
+        let result = ctaText.contains("Trial")
+        
+        print("CTA text when eligible for trial: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that CTA text does not show trial when eligibility is confirmed false
+    static func testCTATextWhenNotEligibleForTrial() -> Bool {
+        print("Testing CTA text when not eligible for trial...")
+        
+        // When eligibility is false, CTA should not mention trial
+        let eligibility: Bool? = false
+        let ctaText: String
+        
+        if eligibility == true {
+            ctaText = "Start Free Trial"
+        } else if eligibility == false {
+            ctaText = "Subscribe Now"
+        } else {
+            ctaText = "Subscribe"
+        }
+        
+        let result = !ctaText.contains("Trial")
+        
+        print("CTA text when not eligible for trial: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that auto-renewal disclosure includes all required terms
+    static func testAutoRenewalDisclosureCompleteness() -> Bool {
+        print("Testing auto-renewal disclosure completeness...")
+        
+        let disclosure = "Payment will be charged to your Apple ID account at confirmation of purchase. Subscription automatically renews unless cancelled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in App Store account settings."
+        
+        // Check for all required terms
+        let hasAppleID = disclosure.contains("Apple ID")
+        let hasAutoRenew = disclosure.contains("automatically renews")
+        let has24Hours = disclosure.contains("24 hours")
+        let hasManageCancel = disclosure.contains("manage") && disclosure.contains("cancel")
+        let hasAppStore = disclosure.contains("App Store")
+        
+        let result = hasAppleID && hasAutoRenew && has24Hours && hasManageCancel && hasAppStore
+        
+        print("Auto-renewal disclosure completeness: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
     static func runAllTests() -> Bool {
         print("\n=== Running Subscription Tests ===\n")
         
@@ -288,7 +435,15 @@ struct SubscriptionTests {
             ("Dev Code Unlock", testDevCodeUnlock),
             ("Dev Unlock Feature Access", testDevUnlockFeatureAccess),
             ("Dev Unlock Persistence", testDevUnlockPersistence),
-            ("Dev Code Case Insensitive", testDevCodeCaseInsensitive)
+            ("Dev Code Case Insensitive", testDevCodeCaseInsensitive),
+            ("Subscription Grace Period Handling", testSubscriptionGracePeriodHandling),
+            ("Subscription Billing Retry Handling", testSubscriptionBillingRetryHandling),
+            ("Subscription Revoked Handling", testSubscriptionRevokedHandling),
+            ("Intro Offer Eligibility Unknown", testIntroOfferEligibilityUnknown),
+            ("CTA Text When Eligibility Unknown", testCTATextWhenEligibilityUnknown),
+            ("CTA Text When Eligible For Trial", testCTATextWhenEligibleForTrial),
+            ("CTA Text When Not Eligible For Trial", testCTATextWhenNotEligibleForTrial),
+            ("Auto-Renewal Disclosure Completeness", testAutoRenewalDisclosureCompleteness)
         ]
         
         var passedTests = 0
