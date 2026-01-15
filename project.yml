@@ -3,7 +3,7 @@ name: WorkoutTrackerApp
 options:
   bundleIdPrefix: com.kje7713
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "16.0"
 
 settings:
   base:
