@@ -1634,7 +1634,7 @@ struct SetRunRow: View {
             .modifier(SetRunRowChangeTracker(runSet: runSet, onSave: onSave))
     }
     
-    // Extract main content to reduce complexity
+    // Extract main content to reduce Swift type-checker complexity and avoid compilation timeouts
     private var mainContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Header

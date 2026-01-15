@@ -4,7 +4,7 @@
 **Workflow Run:** #594 (iOS TestFlight)  
 **Date:** January 15, 2026 at 18:36 UTC  
 **Branch:** main  
-**Commit:** d58ef0c2d99d3138cac2b6f072cb4381e9bae6aa  
+**Commit SHA:** `d58ef0c` (full hash in git history)
 **Status:** ❌ Failed
 
 ## Error Catalogue
