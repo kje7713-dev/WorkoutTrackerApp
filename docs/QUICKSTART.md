@@ -7,7 +7,7 @@ Get up and running with WorkoutTrackerApp development in 10 minutes.
 Before you start, ensure you have:
 
 - ✅ macOS (required for iOS development)
-- ✅ Xcode 16.0 or later
+- ✅ Xcode 26.0 or later
 - ✅ Homebrew (for installing dependencies)
 - ✅ Ruby 3.2+ (usually pre-installed on macOS)
 

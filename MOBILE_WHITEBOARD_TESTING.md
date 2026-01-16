@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Xcode 16.0+
+- Xcode 26.0+
 - iOS 17.0+ simulator or device
 - Valid subscription (or dev unlock for testing)
 

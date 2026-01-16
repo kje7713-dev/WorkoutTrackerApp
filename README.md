@@ -50,7 +50,7 @@ WorkoutTrackerApp helps athletes, coaches, and fitness enthusiasts create, manag
 
 ### Prerequisites
 
-- macOS with Xcode 16.0 or later
+- macOS with Xcode 26.0 or later
 - Ruby 3.2 or later
 - Homebrew (for installing dependencies)
 
