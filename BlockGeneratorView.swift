@@ -644,6 +644,16 @@ struct BlockGeneratorView: View {
         If none of the Video Required Conditions are true, you MAY set included=NO.
         In that case, the VIDEO_DECISION.rationale MUST explain why video is not necessary for correct execution.
         
+        G) VIDEO VERIFICATION CONTRACT (NON-NEGOTIABLE)
+        - ALL video URLs MUST be real, publicly accessible, and verified to exist.
+        - Placeholder, fabricated, shortened, or "example-style" URLs are STRICTLY FORBIDDEN.
+        - You MUST verify each video URL before inserting it into JSON.
+        - If verification requires browsing and browsing is not available:
+          - STOP
+          - State that verified videos cannot be provided without browsing
+          - ASK for permission to browse
+        - DO NOT proceed with unverified video URLs under any circumstance.
+        
         ═══════════════════════════════════════════════════════════════
         SAVAGE BY DESIGN — CLARIFICATION OVER ASSUMPTION
         ═══════════════════════════════════════════════════════════════
