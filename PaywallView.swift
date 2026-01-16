@@ -24,9 +24,6 @@ struct PaywallView: View {
     
     @State private var isPurchasing = false
     @State private var isEligibleForTrial: Bool? = nil // nil = unknown, true = eligible, false = not eligible
-    @State private var showingCodeEntry = false
-    @State private var enteredCode = ""
-    @State private var showInvalidCodeError = false
     
     var body: some View {
         NavigationView {
@@ -236,8 +233,8 @@ struct PaywallView: View {
                     // Error state: Show error message
                     VStack(spacing: 8) {
                         Text(error)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.red)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(theme.mutedText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 16)
                         
@@ -271,17 +268,6 @@ struct PaywallView: View {
             }
             .padding(.top, 8)
             
-            // Dev unlock button
-            Button {
-                showingCodeEntry = true
-                enteredCode = ""
-            } label: {
-                Text("Enter Code")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(theme.accent)
-            }
-            .padding(.top, 4)
-            
             // Auto-renewal disclosure with complete terms
             VStack(spacing: 8) {
                 Text(SubscriptionConstants.autoRenewalDisclosure)
@@ -290,28 +276,6 @@ struct PaywallView: View {
                     .multilineTextAlignment(.center)
             }
             .padding(.top, 8)
-        }
-        .alert("Enter Unlock Code", isPresented: $showingCodeEntry) {
-            TextField("Code", text: $enteredCode)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-            
-            Button("Cancel", role: .cancel) {
-                enteredCode = ""
-            }
-            
-            Button("Unlock") {
-                handleCodeEntry()
-            }
-        } message: {
-            Text("Enter the unlock code to access Pro features")
-        }
-        .alert("Invalid Code", isPresented: $showInvalidCodeError) {
-            Button("OK") {
-                showingCodeEntry = true
-            }
-        } message: {
-            Text("The code you entered is not valid. Please try again.")
         }
     }
     
@@ -336,18 +300,6 @@ struct PaywallView: View {
     
     private var backgroundColor: Color {
         colorScheme == .dark ? theme.backgroundDark : theme.backgroundLight
-    }
-    
-    // MARK: - Code Entry Handler
-    
-    private func handleCodeEntry() {
-        let success = subscriptionManager.unlockWithDevCode(enteredCode)
-        if success {
-            dismiss()
-        } else {
-            showInvalidCodeError = true
-        }
-        enteredCode = ""
     }
 }
 

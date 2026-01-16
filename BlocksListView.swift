@@ -287,7 +287,7 @@ struct BlocksListView: View {
         SBDPremiumButton(
             "IMPORT AI BLOCK",
             icon: "flame.fill",
-            isLocked: !subscriptionManager.hasAccess
+            isLocked: !subscriptionManager.hasActiveSubscription
         ) {
             showingAIGenerator = true
         }
