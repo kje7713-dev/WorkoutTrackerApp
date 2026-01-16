@@ -233,8 +233,8 @@ struct PaywallView: View {
                     // Error state: Show error message
                     VStack(spacing: 8) {
                         Text(error)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.red)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(theme.mutedText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 16)
                         

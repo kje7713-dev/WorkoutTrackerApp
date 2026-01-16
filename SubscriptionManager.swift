@@ -63,14 +63,12 @@ class SubscriptionManager: ObservableObject {
                 subscriptionProduct = product
                 AppLogger.info("Loaded subscription product: \(product.displayName)", subsystem: .general, category: "Subscription")
             } else {
-                let errorDetail = "Product ID '\(productID)' not found in App Store Connect. Verify the product is configured correctly and active."
                 AppLogger.error("Subscription product not found: \(productID)", subsystem: .general, category: "Subscription")
-                errorMessage = "Unable to load subscription: \(errorDetail)"
+                errorMessage = "Subscription not available yet. Check back after App Review."
             }
         } catch {
-            let errorDetail = getDetailedStoreKitError(error)
             AppLogger.error("Failed to load products: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
-            errorMessage = "Failed to load subscription: \(errorDetail)"
+            errorMessage = "Subscription not available yet. Check back after App Review."
         }
     }
     
