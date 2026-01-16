@@ -40,7 +40,7 @@ struct BlockGeneratorView: View {
     
     var body: some View {
         Group {
-            if subscriptionManager.hasAccess {
+            if subscriptionManager.hasActiveSubscription {
                 mainContent
             } else {
                 lockedContent

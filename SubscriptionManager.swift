@@ -18,9 +18,6 @@ class SubscriptionManager: ObservableObject {
     /// Whether the user has an active subscription (driven by App Store Connect via StoreKit)
     @Published private(set) var hasActiveSubscription: Bool = false
     
-    /// Whether the user has unlocked dev mode (for development/testing)
-    @Published private(set) var isDevUnlocked: Bool = false
-    
     /// Current subscription product (if loaded)
     @Published private(set) var subscriptionProduct: Product?
     
@@ -34,15 +31,9 @@ class SubscriptionManager: ObservableObject {
     // Product identifier from constants
     private let productID = SubscriptionConstants.monthlyProductID
     
-    // UserDefaults key for dev unlock persistence
-    private let devUnlockKey = "com.savagebydesign.devUnlocked"
-    
     // MARK: - Initialization
     
     init() {
-        // Load dev unlock state from UserDefaults
-        isDevUnlocked = UserDefaults.standard.bool(forKey: devUnlockKey)
-        
         // Start listening for transaction updates
         updateListenerTask = listenForTransactionUpdates()
         
@@ -407,35 +398,6 @@ class SubscriptionManager: ObservableObject {
         return await product.subscription?.isEligibleForIntroOffer
     }
     
-    // MARK: - Dev Unlock
-    
-    /// Unlock dev mode with code (for development/testing purposes)
-    /// - Parameter code: The unlock code to validate
-    /// - Returns: True if code is valid and unlock successful, false otherwise
-    func unlockWithDevCode(_ code: String) -> Bool {
-        guard code.lowercased() == "dev" else {
-            return false
-        }
-        
-        UserDefaults.standard.set(true, forKey: devUnlockKey)
-        isDevUnlocked = true
-        
-        AppLogger.info("Dev unlock activated", subsystem: .general, category: "Subscription")
-        return true
-    }
-    
-    /// Remove dev unlock (for testing purposes)
-    func removeDevUnlock() {
-        UserDefaults.standard.removeObject(forKey: devUnlockKey)
-        isDevUnlocked = false
-        
-        AppLogger.info("Dev unlock removed", subsystem: .general, category: "Subscription")
-    }
-    
-    /// Check if user has access (either via subscription or dev unlock)
-    var hasAccess: Bool {
-        return hasActiveSubscription || isDevUnlocked
-    }
 }
 
 // MARK: - Subscription Error
