@@ -39,10 +39,10 @@ enum SubscriptionConstants {
     // MARK: - URLs
     
     /// Privacy Policy URL
-    static let privacyPolicyURL = "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/docs/PRIVACY_POLICY.md"
+    static let privacyPolicyURL = "https://savagesbydesign.com/privacy/"
     
     /// Terms of Service URL
-    static let termsOfServiceURL = "https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/docs/TERMS_OF_SERVICE.md"
+    static let termsOfServiceURL = "https://savagesbydesign.com/terms/"
     
     /// Apple Subscription Management URL
     static let appleSubscriptionManagementURL = "https://apps.apple.com/account/subscriptions"
