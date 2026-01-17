@@ -83,7 +83,7 @@ Future additions will be carefully vetted for security.
 
 ## Privacy
 
-See our [Privacy Policy](https://kje7713-dev.github.io/WorkoutTrackerApp/privacy) for details on data collection and usage.
+See our [Privacy Policy](https://savagesbydesign.com/privacy/) for details on data collection and usage.
 
 ## Acknowledgments
 

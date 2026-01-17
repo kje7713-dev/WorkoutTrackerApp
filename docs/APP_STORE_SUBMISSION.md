@@ -173,7 +173,7 @@ Declare in App Store Connect:
 - Purchase History (handled by Apple)
 
 **Privacy Policy URL:**
-- https://github.com/kje7713-dev/WorkoutTrackerApp/blob/main/docs/PRIVACY_POLICY.md
+- https://savagesbydesign.com/privacy/
 
 ## Submission Process
 
