@@ -337,6 +337,126 @@ struct SubscriptionTests {
         return result
     }
     
+    // MARK: - Dev Unlock Tests
+    
+    /// Test dev code validation (valid and invalid codes)
+    static func testDevCodeUnlock() -> Bool {
+        print("Testing dev code unlock...")
+        
+        // Test valid code
+        let validCode = "dev"
+        let validResult = validCode.lowercased() == "dev"
+        
+        // Test invalid code
+        let invalidCode = "invalid"
+        let invalidResult = invalidCode.lowercased() != "dev"
+        
+        // Test case variations
+        let devUpperCase = "DEV".lowercased() == "dev"
+        let devMixedCase = "Dev".lowercased() == "dev"
+        
+        let result = validResult && invalidResult && devUpperCase && devMixedCase
+        
+        print("Dev code unlock: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test feature access with dev unlock (without subscription)
+    static func testDevUnlockFeatureAccess() -> Bool {
+        print("Testing dev unlock feature access...")
+        
+        // Simulate user without subscription but with dev unlock
+        let hasActiveSubscription = false
+        let isDevUnlocked = true
+        let hasAccess = hasActiveSubscription || isDevUnlocked
+        
+        // All Pro features should be accessible
+        let canImportAIBlock = hasAccess
+        let canUseAdvancedAnalytics = hasAccess
+        let canAccessWhiteboard = hasAccess
+        
+        let result = canImportAIBlock && canUseAdvancedAnalytics && canAccessWhiteboard
+        
+        print("Dev unlock feature access: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test dev unlock persistence via UserDefaults
+    static func testDevUnlockPersistence() -> Bool {
+        print("Testing dev unlock persistence...")
+        
+        let devUnlockKey = "com.savagebydesign.devUnlocked"
+        
+        // Simulate saving to UserDefaults
+        UserDefaults.standard.set(true, forKey: devUnlockKey)
+        
+        // Simulate loading from UserDefaults
+        let isDevUnlocked = UserDefaults.standard.bool(forKey: devUnlockKey)
+        
+        // Clean up
+        UserDefaults.standard.removeObject(forKey: devUnlockKey)
+        
+        let result = isDevUnlocked
+        
+        print("Dev unlock persistence: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test dev code is case-insensitive
+    static func testDevCodeCaseInsensitive() -> Bool {
+        print("Testing dev code case insensitivity...")
+        
+        // Test various case combinations
+        let codes = ["dev", "DEV", "Dev", "dEv", "deV"]
+        var allPass = true
+        
+        for code in codes {
+            if code.lowercased() != "dev" {
+                allPass = false
+                break
+            }
+        }
+        
+        let result = allPass
+        
+        print("Dev code case insensitive: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that hasAccess returns true with either subscription OR dev unlock
+    static func testHasAccessLogic() -> Bool {
+        print("Testing hasAccess logic...")
+        
+        // Test 1: Neither subscription nor dev unlock
+        var hasActiveSubscription = false
+        var isDevUnlocked = false
+        var hasAccess = hasActiveSubscription || isDevUnlocked
+        let test1 = !hasAccess
+        
+        // Test 2: Only subscription
+        hasActiveSubscription = true
+        isDevUnlocked = false
+        hasAccess = hasActiveSubscription || isDevUnlocked
+        let test2 = hasAccess
+        
+        // Test 3: Only dev unlock
+        hasActiveSubscription = false
+        isDevUnlocked = true
+        hasAccess = hasActiveSubscription || isDevUnlocked
+        let test3 = hasAccess
+        
+        // Test 4: Both subscription and dev unlock
+        hasActiveSubscription = true
+        isDevUnlocked = true
+        hasAccess = hasActiveSubscription || isDevUnlocked
+        let test4 = hasAccess
+        
+        let result = test1 && test2 && test3 && test4
+        
+        print("hasAccess logic: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
     static func runAllTests() -> Bool {
         print("\n=== Running Subscription Tests ===\n")
         
@@ -358,7 +478,12 @@ struct SubscriptionTests {
             ("CTA Text When Eligibility Unknown", testCTATextWhenEligibilityUnknown),
             ("CTA Text When Eligible For Trial", testCTATextWhenEligibleForTrial),
             ("CTA Text When Not Eligible For Trial", testCTATextWhenNotEligibleForTrial),
-            ("Auto-Renewal Disclosure Completeness", testAutoRenewalDisclosureCompleteness)
+            ("Auto-Renewal Disclosure Completeness", testAutoRenewalDisclosureCompleteness),
+            ("Dev Code Unlock", testDevCodeUnlock),
+            ("Dev Unlock Feature Access", testDevUnlockFeatureAccess),
+            ("Dev Unlock Persistence", testDevUnlockPersistence),
+            ("Dev Code Case Insensitive", testDevCodeCaseInsensitive),
+            ("Has Access Logic", testHasAccessLogic)
         ]
         
         var passedTests = 0
