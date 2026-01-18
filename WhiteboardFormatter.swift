@@ -276,7 +276,7 @@ public final class WhiteboardFormatter {
             
         case "intervals":
             secondary = formatIntervals(firstSet)
-            bullets = formatIntervalBullets(firstSet)
+            bullets = formatIntervalBullets(firstSet, exerciseNotes: exercise.notes)
             
         case "roundsfortime":
             secondary = formatRoundsForTime(firstSet)
@@ -337,9 +337,15 @@ public final class WhiteboardFormatter {
     }
     
     /// Format interval bullets (work/rest)
-    private static func formatIntervalBullets(_ set: UnifiedConditioningSet) -> [String] {
+    private static func formatIntervalBullets(_ set: UnifiedConditioningSet, exerciseNotes: String? = nil) -> [String] {
         var bullets: [String] = []
         
+        // Add exercise-level notes first (if any)
+        if let exerciseNotes = exerciseNotes, !exerciseNotes.isEmpty {
+            bullets.append(contentsOf: parseNotesIntoBullets(exerciseNotes))
+        }
+        
+        // Add interval-specific details
         if let duration = set.durationSeconds {
             let effort = set.effortDescriptor ?? ""
             bullets.append(":\(formatSeconds(duration)) \(effort)".trimmingCharacters(in: .whitespaces))
@@ -349,8 +355,14 @@ public final class WhiteboardFormatter {
             bullets.append(":\(formatSeconds(rest)) rest")
         }
         
+        // Add set-level notes (if not duplicate)
         if let notes = set.notes, !notes.isEmpty {
-            bullets.append(notes)
+            let setParsedNotes = parseNotesIntoBullets(notes)
+            for note in setParsedNotes {
+                if !bullets.contains(note) {
+                    bullets.append(note)
+                }
+            }
         }
         
         return bullets
