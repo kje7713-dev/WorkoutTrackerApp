@@ -18,6 +18,9 @@ class SubscriptionManager: ObservableObject {
     /// Whether the user has an active subscription (driven by App Store Connect via StoreKit)
     @Published private(set) var hasActiveSubscription: Bool = false
     
+    /// Whether the user has unlocked Pro features via dev code
+    @Published private(set) var isDevUnlocked: Bool = false
+    
     /// Current subscription product (if loaded)
     @Published private(set) var subscriptionProduct: Product?
     
@@ -31,9 +34,15 @@ class SubscriptionManager: ObservableObject {
     // Product identifier from constants
     private let productID = SubscriptionConstants.monthlyProductID
     
+    // UserDefaults key for dev unlock persistence
+    private let devUnlockKey = "com.savagebydesign.devUnlocked"
+    
     // MARK: - Initialization
     
     init() {
+        // Load dev unlock state from UserDefaults
+        isDevUnlocked = UserDefaults.standard.bool(forKey: devUnlockKey)
+        
         // Start listening for transaction updates
         updateListenerTask = listenForTransactionUpdates()
         
@@ -394,6 +403,46 @@ class SubscriptionManager: ObservableObject {
             return nil // Unknown eligibility - product not loaded
         }
         return await product.subscription?.isEligibleForIntroOffer
+    }
+    
+    // MARK: - Dev Unlock
+    
+    /// Unlock Pro features with dev code
+    /// 
+    /// Validates the provided code and unlocks Pro features if valid.
+    /// The unlock persists across app restarts via UserDefaults.
+    ///
+    /// - Parameter code: The unlock code to validate (case-insensitive)
+    /// - Returns: True if code is valid and unlock succeeded, false otherwise
+    func unlockWithDevCode(_ code: String) -> Bool {
+        guard code.lowercased() == "dev" else {
+            return false
+        }
+        
+        UserDefaults.standard.set(true, forKey: devUnlockKey)
+        isDevUnlocked = true
+        
+        AppLogger.info("Dev unlock activated", subsystem: .general, category: "Subscription")
+        return true
+    }
+    
+    /// Remove dev unlock (for testing)
+    /// 
+    /// Clears the dev unlock state, requiring the user to unlock again or subscribe.
+    /// Useful for testing the paywall and subscription flow.
+    func removeDevUnlock() {
+        UserDefaults.standard.removeObject(forKey: devUnlockKey)
+        isDevUnlocked = false
+        
+        AppLogger.info("Dev unlock removed", subsystem: .general, category: "Subscription")
+    }
+    
+    /// Whether the user has access to Pro features
+    /// 
+    /// Returns true if the user has either an active subscription OR dev unlock.
+    /// This is the primary access check used throughout the app.
+    var hasAccess: Bool {
+        return hasActiveSubscription || isDevUnlocked
     }
     
 }
