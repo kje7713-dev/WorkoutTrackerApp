@@ -259,14 +259,12 @@ struct PaywallView: View {
             if let product = subscriptionManager.subscriptionProduct,
                let price = subscriptionManager.formattedPrice,
                let period = subscriptionManager.subscriptionPeriodUnit {
-                VStack(spacing: 8) {
-                    Text("Subscription: \(product.displayName). \(period.capitalized). \(price).")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(theme.mutedText)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 12)
-                .padding(.horizontal, 16)
+                Text("Subscription: \(product.displayName). \(period.capitalized). \(price).")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(theme.mutedText)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 12)
+                    .padding(.horizontal, 16)
             }
             
             // Status messaging: Show appropriate message based on state
