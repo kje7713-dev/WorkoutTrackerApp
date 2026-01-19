@@ -254,6 +254,21 @@ struct PaywallView: View {
             }
             .disabled(isPurchasing || subscriptionManager.subscriptionProduct == nil)
             
+            // MARK: - Subscription Disclosure (Required by App Review)
+            // Shows subscription name, duration, and price as required by Guideline 3.1.2
+            if let product = subscriptionManager.subscriptionProduct,
+               let price = subscriptionManager.formattedPrice,
+               let period = subscriptionManager.subscriptionPeriodUnit {
+                VStack(spacing: 8) {
+                    Text("Subscription: \(product.displayName). \(period.capitalized). \(price).")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(theme.mutedText)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 12)
+                .padding(.horizontal, 16)
+            }
+            
             // Status messaging: Show appropriate message based on state
             Group {
                 if let error = subscriptionManager.errorMessage {
@@ -328,7 +343,7 @@ struct PaywallView: View {
             Text("•")
                 .foregroundColor(theme.mutedText)
             
-            Link("Terms of Service", destination: URL(string: SubscriptionConstants.termsOfServiceURL)!)
+            Link("Terms of Use", destination: URL(string: SubscriptionConstants.termsOfServiceURL)!)
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(theme.accent)
         }
