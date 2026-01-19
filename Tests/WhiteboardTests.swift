@@ -668,6 +668,85 @@ final class WhiteboardTests: XCTestCase {
         XCTAssertTrue(item.bullets.contains("Rest remaining time each minute"))
     }
     
+    func testConditioningIntervalsWithExerciseNotes() {
+        // Given: Intervals exercise with exercise-level notes
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Bike Intervals",
+                    type: "conditioning",
+                    notes: "Maintain cadence above 90 RPM, Focus on smooth transitions",
+                    conditioningType: "intervals",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 90,
+                            rounds: 10,
+                            effortDescriptor: "hard",
+                            restSeconds: 30
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should include both exercise notes and interval details
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.primary, "Bike Intervals")
+        XCTAssertEqual(item.secondary, "10 rounds")
+        
+        // Should include exercise-level notes
+        XCTAssertTrue(item.bullets.contains("Maintain cadence above 90 RPM"))
+        XCTAssertTrue(item.bullets.contains("Focus on smooth transitions"))
+        
+        // Should also include interval-specific details
+        XCTAssertTrue(item.bullets.contains(":1:30 hard"))
+        XCTAssertTrue(item.bullets.contains(":0:30 rest"))
+    }
+    
+    func testConditioningIntervalsWithExerciseAndSetNotes() {
+        // Given: Intervals exercise with both exercise and set-level notes
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Running Intervals",
+                    type: "conditioning",
+                    notes: "Start easy, build intensity",
+                    conditioningType: "intervals",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 120,
+                            rounds: 6,
+                            effortDescriptor: "hard",
+                            restSeconds: 60,
+                            notes: "Target pace: 8:00/mile"
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Should include exercise notes, set notes, and interval details
+        let item = sections[0].items[0]
+        
+        // Exercise-level notes
+        XCTAssertTrue(item.bullets.contains("Start easy, build intensity"))
+        
+        // Interval-specific details
+        XCTAssertTrue(item.bullets.contains(":2:00 hard"))
+        XCTAssertTrue(item.bullets.contains(":1:00 rest"))
+        
+        // Set-level notes
+        XCTAssertTrue(item.bullets.contains("Target pace: 8:00/mile"))
+    }
+    
     // MARK: - Superset Tests
     
     func testSupersetRenderingUnderStrengthSection() {
