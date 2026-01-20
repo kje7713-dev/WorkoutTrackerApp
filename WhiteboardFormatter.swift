@@ -323,12 +323,12 @@ public final class WhiteboardFormatter {
         
         // Add distance if present
         if let distance = set.distanceMeters {
-            parts.append("\(Int(distance))m")
+            parts.append(formatDistanceMeters(distance))
         }
         
         // Add calories if present
         if let calories = set.calories {
-            parts.append("\(Int(calories)) cal")
+            parts.append(formatCalories(calories))
         }
         
         return parts.joined(separator: " — ")
@@ -347,12 +347,12 @@ public final class WhiteboardFormatter {
         
         // Add distance if present
         if let distance = set.distanceMeters {
-            parts.append("\(Int(distance))m")
+            parts.append(formatDistanceMeters(distance))
         }
         
         // Add calories if present
         if let calories = set.calories {
-            parts.append("\(Int(calories)) cal")
+            parts.append(formatCalories(calories))
         }
         
         return parts.joined(separator: " — ")
@@ -370,12 +370,12 @@ public final class WhiteboardFormatter {
         
         // Add distance if present
         if let distance = set.distanceMeters {
-            parts.append("\(Int(distance))m")
+            parts.append(formatDistanceMeters(distance))
         }
         
         // Add calories if present
         if let calories = set.calories {
-            parts.append("\(Int(calories)) cal")
+            parts.append(formatCalories(calories))
         }
         
         return parts.joined(separator: " — ")
@@ -425,12 +425,12 @@ public final class WhiteboardFormatter {
         
         // Add distance if present
         if let distance = set.distanceMeters {
-            parts.append("\(Int(distance))m")
+            parts.append(formatDistanceMeters(distance))
         }
         
         // Add calories if present
         if let calories = set.calories {
-            parts.append("\(Int(calories)) cal")
+            parts.append(formatCalories(calories))
         }
         
         return parts.joined(separator: " — ")
@@ -441,7 +441,7 @@ public final class WhiteboardFormatter {
         var parts: [String] = []
         
         if let distance = set.distanceMeters {
-            parts.append("\(Int(distance))m")
+            parts.append(formatDistanceMeters(distance))
         }
         
         if let duration = set.durationSeconds {
@@ -458,7 +458,7 @@ public final class WhiteboardFormatter {
     /// Format for distance
     private static func formatForDistance(_ set: UnifiedConditioningSet) -> String {
         if let distance = set.distanceMeters {
-            return "For Distance — \(Int(distance))m"
+            return "For Distance — \(formatDistanceMeters(distance))"
         }
         return "For Distance"
     }
@@ -468,14 +468,14 @@ public final class WhiteboardFormatter {
         var parts: [String] = []
         
         if let calories = set.calories {
-            parts.append("For Calories — \(Int(calories)) cal")
+            parts.append("For Calories — \(formatCalories(calories))")
         } else {
             parts.append("For Calories")
         }
         
         // Add distance if present (e.g., row for calories over X meters)
         if let distance = set.distanceMeters {
-            parts.append("\(Int(distance))m")
+            parts.append(formatDistanceMeters(distance))
         }
         
         return parts.joined(separator: " • ")
@@ -490,11 +490,11 @@ public final class WhiteboardFormatter {
         }
         
         if let distance = set.distanceMeters {
-            parts.append("\(Int(distance))m")
+            parts.append(formatDistanceMeters(distance))
         }
         
         if let calories = set.calories {
-            parts.append("\(Int(calories)) cal")
+            parts.append(formatCalories(calories))
         }
         
         if let rounds = set.rounds {
@@ -527,6 +527,16 @@ public final class WhiteboardFormatter {
         } else {
             return String(format: "%d:%02d", minutes, secs)
         }
+    }
+    
+    /// Format distance meters into string (e.g., "5000m")
+    private static func formatDistanceMeters(_ distance: Double) -> String {
+        return "\(Int(distance))m"
+    }
+    
+    /// Format calories into string (e.g., "150 cal")
+    private static func formatCalories(_ calories: Double) -> String {
+        return "\(Int(calories)) cal"
     }
     
     /// Combine exercise-level and set-level notes into bullet points
