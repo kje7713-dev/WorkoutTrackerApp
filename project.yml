@@ -93,6 +93,8 @@ schemes:
         WorkoutTrackerApp: all
     run:
       config: Debug
+      # Note: No storeKitConfiguration setting - app uses App Store Connect sandbox for testing
+      # See docs/STOREKIT_TESTING_GUIDE.md for testing setup
     test:
       config: Debug
       gatherCoverageData: false
