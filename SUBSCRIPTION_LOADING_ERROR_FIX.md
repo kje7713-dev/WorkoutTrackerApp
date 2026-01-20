@@ -1,5 +1,10 @@
 # Subscription Loading Error - Fix Summary
 
+> **📝 Historical Document Note:**
+> This document references Configuration.storekit which was never actually created.
+> The app uses **App Store Connect sandbox directly** (no local StoreKit configuration).
+> See [docs/STOREKIT_TESTING_GUIDE.md](docs/STOREKIT_TESTING_GUIDE.md) for current setup.
+
 ## Problem Reported
 When attempting to test the Go Pro subscription, the app displayed:
 - ❌ Error: "Unable to load subscription information"

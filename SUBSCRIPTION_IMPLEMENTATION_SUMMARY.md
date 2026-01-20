@@ -101,13 +101,15 @@ if subscriptionManager.isSubscribed {
 
 ### 5. StoreKit Configuration
 
-**Configuration.storekit**
+**App Store Connect Integration**
 - Product ID: `com.savagebydesign.pro.monthly`
 - Price: Configured in App Store Connect
 - Trial: 15 days free
 - Auto-renewable monthly subscription
 - Subscription group: "SBD - PRO"
 - Localization: English (US)
+
+> **Note**: The app connects directly to App Store Connect sandbox for testing (no local Configuration.storekit file is used). See docs/STOREKIT_TESTING_GUIDE.md for setup.
 
 ### 6. Legal & Compliance
 
@@ -215,7 +217,7 @@ if subscriptionManager.isSubscribed {
 - SubscriptionManagementView.swift (8,917 bytes)
 
 **Configuration:**
-- Configuration.storekit (2,496 bytes)
+- ~~Configuration.storekit~~ (not used - app connects to App Store Connect sandbox directly)
 
 **Tests:**
 - Tests/SubscriptionTests.swift (6,946 bytes)
@@ -262,9 +264,10 @@ if subscriptionManager.isSubscribed {
    - Test resubscribe flow
 
 ### Sandbox Testing
-- Use Configuration.storekit for local testing
-- Create sandbox test account for device testing
-- Test all flows in sandbox environment
+- See docs/STOREKIT_TESTING_GUIDE.md for complete testing setup
+- Create sandbox test account in App Store Connect
+- Sign in to sandbox account on device/simulator (Settings > App Store > Sandbox Account)
+- Test all flows in App Store Connect sandbox environment
 - Verify transaction verification works
 
 ## Compliance with Requirements
