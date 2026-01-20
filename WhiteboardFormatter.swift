@@ -312,28 +312,73 @@ public final class WhiteboardFormatter {
     
     /// Format AMRAP prescription
     private static func formatAMRAP(_ set: UnifiedConditioningSet) -> String {
+        var parts: [String] = []
+        
         if let duration = set.durationSeconds {
             let minutes = duration / 60
-            return "\(minutes) min AMRAP"
+            parts.append("\(minutes) min AMRAP")
+        } else {
+            parts.append("AMRAP")
         }
-        return "AMRAP"
+        
+        // Add distance if present
+        if let distance = set.distanceMeters {
+            parts.append("\(Int(distance))m")
+        }
+        
+        // Add calories if present
+        if let calories = set.calories {
+            parts.append("\(Int(calories)) cal")
+        }
+        
+        return parts.joined(separator: " — ")
     }
     
     /// Format EMOM prescription
     private static func formatEMOM(_ set: UnifiedConditioningSet) -> String {
+        var parts: [String] = []
+        
         if let duration = set.durationSeconds {
             let minutes = duration / 60
-            return "EMOM \(minutes) min"
+            parts.append("EMOM \(minutes) min")
+        } else {
+            parts.append("EMOM")
         }
-        return "EMOM"
+        
+        // Add distance if present
+        if let distance = set.distanceMeters {
+            parts.append("\(Int(distance))m")
+        }
+        
+        // Add calories if present
+        if let calories = set.calories {
+            parts.append("\(Int(calories)) cal")
+        }
+        
+        return parts.joined(separator: " — ")
     }
     
     /// Format intervals prescription
     private static func formatIntervals(_ set: UnifiedConditioningSet) -> String {
+        var parts: [String] = []
+        
         if let rounds = set.rounds {
-            return "\(rounds) rounds"
+            parts.append("\(rounds) rounds")
+        } else {
+            parts.append("Intervals")
         }
-        return "Intervals"
+        
+        // Add distance if present
+        if let distance = set.distanceMeters {
+            parts.append("\(Int(distance))m")
+        }
+        
+        // Add calories if present
+        if let calories = set.calories {
+            parts.append("\(Int(calories)) cal")
+        }
+        
+        return parts.joined(separator: " — ")
     }
     
     /// Format interval bullets (work/rest)
@@ -370,10 +415,25 @@ public final class WhiteboardFormatter {
     
     /// Format rounds for time
     private static func formatRoundsForTime(_ set: UnifiedConditioningSet) -> String {
+        var parts: [String] = []
+        
         if let rounds = set.rounds {
-            return "\(rounds) Rounds For Time"
+            parts.append("\(rounds) Rounds For Time")
+        } else {
+            parts.append("For Time")
         }
-        return "For Time"
+        
+        // Add distance if present
+        if let distance = set.distanceMeters {
+            parts.append("\(Int(distance))m")
+        }
+        
+        // Add calories if present
+        if let calories = set.calories {
+            parts.append("\(Int(calories)) cal")
+        }
+        
+        return parts.joined(separator: " — ")
     }
     
     /// Format for time
@@ -405,10 +465,20 @@ public final class WhiteboardFormatter {
     
     /// Format for calories
     private static func formatForCalories(_ set: UnifiedConditioningSet) -> String {
+        var parts: [String] = []
+        
         if let calories = set.calories {
-            return "For Calories — \(Int(calories)) cal"
+            parts.append("For Calories — \(Int(calories)) cal")
+        } else {
+            parts.append("For Calories")
         }
-        return "For Calories"
+        
+        // Add distance if present (e.g., row for calories over X meters)
+        if let distance = set.distanceMeters {
+            parts.append("\(Int(distance))m")
+        }
+        
+        return parts.joined(separator: " • ")
     }
     
     /// Format generic conditioning
