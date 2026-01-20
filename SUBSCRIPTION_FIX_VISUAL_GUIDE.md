@@ -1,5 +1,10 @@
 # Visual Guide: Subscription Loading Fix
 
+> **📝 Historical Document Note:**
+> This document references Configuration.storekit which was never actually created.
+> The app uses **App Store Connect sandbox directly** (no local StoreKit configuration).
+> See [docs/STOREKIT_TESTING_GUIDE.md](docs/STOREKIT_TESTING_GUIDE.md) for current setup.
+
 ## Before Fix - Error State
 
 ```

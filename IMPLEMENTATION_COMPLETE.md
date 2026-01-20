@@ -1,5 +1,10 @@
 # Implementation Complete: Subscription Feature
 
+> **📝 Note on StoreKit Configuration (Updated 2026):**
+> This document references Configuration.storekit, but this file was never created in the repository.
+> The app uses **App Store Connect sandbox directly** (no local StoreKit configuration file).
+> See [docs/STOREKIT_TESTING_GUIDE.md](docs/STOREKIT_TESTING_GUIDE.md) for current testing setup.
+
 ## ✅ Status: READY FOR TESTING
 
 The subscription feature has been fully implemented and is ready for sandbox testing and App Store Connect configuration.
@@ -40,11 +45,7 @@ The subscription feature has been fully implemented and is ready for sandbox tes
    - Feature flags
    - Fallback values
 
-5. **Configuration.storekit** (2,496 bytes)
-   - StoreKit testing configuration
-   - Product definition
-   - Trial configuration
-   - Sandbox testing setup
+~~5. **Configuration.storekit** (2,496 bytes) - Not created; app uses App Store Connect sandbox directly~~
 
 ### Integration (4 Modified Files)
 
@@ -205,7 +206,7 @@ The subscription feature has been fully implemented and is ready for sandbox tes
 - PaywallView.swift
 - SubscriptionManagementView.swift
 - SubscriptionConstants.swift
-- Configuration.storekit
+- ~~Configuration.storekit~~ (not created - uses App Store Connect sandbox)
 - Tests/SubscriptionTests.swift
 - SUBSCRIPTION_IMPLEMENTATION_SUMMARY.md
 - docs/SUBSCRIPTION_IMPLEMENTATION.md
@@ -260,7 +261,7 @@ The subscription feature has been fully implemented and is ready for sandbox tes
 
 ### Configuration Points
 - `SubscriptionConstants.swift`: All configurable values
-- `Configuration.storekit`: Test product definitions
+- ~~`Configuration.storekit`~~: Not used - app connects to App Store Connect sandbox directly
 - Feature flags for enabling/disabling features
 
 ## Support Resources
@@ -277,7 +278,7 @@ The subscription feature has been fully implemented and is ready for sandbox tes
 
 ### For Testing
 - **Test Suite**: Tests/SubscriptionTests.swift
-- **StoreKit Config**: Configuration.storekit
+- **StoreKit Testing**: See docs/STOREKIT_TESTING_GUIDE.md (uses App Store Connect sandbox)
 - **Test Runner**: TestRunner.swift
 
 ## Known Limitations
