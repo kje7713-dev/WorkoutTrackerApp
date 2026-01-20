@@ -56,7 +56,7 @@ The app is configured to use **App Store Connect sandbox** (no local StoreKit co
 4. Build and run the app (⌘R)
 5. The app will connect to App Store Connect sandbox
 
-**Note**: While simulators can sometimes work without a sandbox account for basic testing, signing in with a sandbox account ensures you're testing the real App Store Connect integration.
+**Important**: When using App Store Connect sandbox (no local StoreKit configuration), the simulator requires a sandbox account to load actual products. Sign in with your sandbox account in Settings > App Store before launching the app.
 
 #### Option B: Using a Physical Device with Sandbox Account
 
@@ -133,8 +133,9 @@ All subscription management is done through the App Store sandbox environment:
 2. You can view and manage subscriptions associated with your sandbox account
 
 **In Xcode (Debug > StoreKit > Manage Transactions):**
-- This menu is only available when using a local StoreKit configuration file
-- Since this app uses App Store Connect sandbox, use Settings on the device instead
+- This menu shows transactions from the current session
+- Works with both local configurations and sandbox environments
+- For comprehensive subscription management in sandbox mode, use Settings on the device for full control
 
 ### On Physical Device with Sandbox
 
