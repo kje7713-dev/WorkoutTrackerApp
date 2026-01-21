@@ -79,11 +79,11 @@ class SubscriptionManager: ObservableObject {
                 AppLogger.info("Loaded subscription product: \(product.displayName)", subsystem: .general, category: "Subscription")
             } else {
                 AppLogger.error("Subscription product not found: \(productID)", subsystem: .general, category: "Subscription")
-                errorMessage = "Failed to load subscription. Please check your internet connection and try again."
+                errorMessage = "Subscription options could not be loaded at this time."
             }
         } catch {
             AppLogger.error("Failed to load products: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
-            errorMessage = "Failed to load subscription. Please check your internet connection and try again."
+            errorMessage = "Subscription options could not be loaded at this time."
         }
         
         isLoadingProducts = false
