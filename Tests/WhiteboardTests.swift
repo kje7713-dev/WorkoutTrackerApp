@@ -1241,4 +1241,297 @@ final class WhiteboardTests: XCTestCase {
         // But should appear in bullets
         XCTAssertTrue(item.bullets.contains("@ RPE 8"))
     }
+    
+    // MARK: - Conditioning Fields Display Tests
+    
+    func testAMRAPWithDistanceMetersDisplayed() {
+        // Given: An AMRAP with distance meters
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Row AMRAP",
+                    type: "conditioning",
+                    notes: "Row as far as possible",
+                    conditioningType: "amrap",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 1200,
+                            distanceMeters: 5000
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Distance meters should be displayed
+        let item = sections[0].items[0]
+        XCTAssertEqual(item.primary, "Row AMRAP")
+        XCTAssertTrue(item.secondary?.contains("20 min AMRAP") ?? false, "Should contain AMRAP duration")
+        XCTAssertTrue(item.secondary?.contains("5000m") ?? false, "Should contain distance meters")
+    }
+    
+    func testAMRAPWithCaloriesDisplayed() {
+        // Given: An AMRAP with calories
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Bike AMRAP",
+                    type: "conditioning",
+                    conditioningType: "amrap",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 600,
+                            calories: 150
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Calories should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("10 min AMRAP") ?? false)
+        XCTAssertTrue(item.secondary?.contains("150 cal") ?? false, "Should contain calories")
+    }
+    
+    func testEMOMWithDistanceMetersDisplayed() {
+        // Given: An EMOM with distance meters
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Row EMOM",
+                    type: "conditioning",
+                    notes: "100m every minute",
+                    conditioningType: "emom",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 600,
+                            distanceMeters: 100
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Distance meters should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("EMOM 10 min") ?? false)
+        XCTAssertTrue(item.secondary?.contains("100m") ?? false, "Should contain distance meters")
+    }
+    
+    func testEMOMWithCaloriesDisplayed() {
+        // Given: An EMOM with calories
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Bike EMOM",
+                    type: "conditioning",
+                    conditioningType: "emom",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 900,
+                            calories: 15
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Calories should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("EMOM 15 min") ?? false)
+        XCTAssertTrue(item.secondary?.contains("15 cal") ?? false, "Should contain calories")
+    }
+    
+    func testIntervalsWithDistanceMetersDisplayed() {
+        // Given: Intervals with distance meters
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Running Intervals",
+                    type: "conditioning",
+                    conditioningType: "intervals",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 120,
+                            distanceMeters: 400,
+                            rounds: 8,
+                            restSeconds: 60
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Distance meters should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("8 rounds") ?? false)
+        XCTAssertTrue(item.secondary?.contains("400m") ?? false, "Should contain distance meters")
+    }
+    
+    func testIntervalsWithCaloriesDisplayed() {
+        // Given: Intervals with calories
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Bike Intervals",
+                    type: "conditioning",
+                    conditioningType: "intervals",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 90,
+                            calories: 20,
+                            rounds: 10,
+                            restSeconds: 30
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Calories should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("10 rounds") ?? false)
+        XCTAssertTrue(item.secondary?.contains("20 cal") ?? false, "Should contain calories")
+    }
+    
+    func testRoundsForTimeWithDistanceMetersDisplayed() {
+        // Given: Rounds for time with distance meters
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Hero WOD",
+                    type: "conditioning",
+                    notes: "400m run, 50 squats, 400m run",
+                    conditioningType: "roundsfortime",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            distanceMeters: 800,
+                            rounds: 5
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Distance meters should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("5 Rounds For Time") ?? false)
+        XCTAssertTrue(item.secondary?.contains("800m") ?? false, "Should contain distance meters")
+    }
+    
+    func testRoundsForTimeWithCaloriesDisplayed() {
+        // Given: Rounds for time with calories
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Bike WOD",
+                    type: "conditioning",
+                    conditioningType: "roundsfortime",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            calories: 50,
+                            rounds: 3
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Calories should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("3 Rounds For Time") ?? false)
+        XCTAssertTrue(item.secondary?.contains("50 cal") ?? false, "Should contain calories")
+    }
+    
+    func testForCaloriesWithDistanceMetersDisplayed() {
+        // Given: For calories with distance meters (e.g., row for calories over X meters)
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Row",
+                    type: "conditioning",
+                    conditioningType: "forcalories",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            distanceMeters: 2000,
+                            calories: 100
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Both calories and distance should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("For Calories") ?? false)
+        XCTAssertTrue(item.secondary?.contains("100 cal") ?? false, "Should contain calories")
+        XCTAssertTrue(item.secondary?.contains("2000m") ?? false, "Should contain distance meters")
+    }
+    
+    func testAMRAPWithBothDistanceAndCalories() {
+        // Given: An AMRAP with both distance and calories
+        let day = UnifiedDay(
+            name: "Conditioning",
+            exercises: [
+                UnifiedExercise(
+                    name: "Mixed AMRAP",
+                    type: "conditioning",
+                    conditioningType: "amrap",
+                    conditioningSets: [
+                        UnifiedConditioningSet(
+                            durationSeconds: 1200,
+                            distanceMeters: 5000,
+                            calories: 200
+                        )
+                    ]
+                )
+            ]
+        )
+        
+        // When: Formatting
+        let sections = WhiteboardFormatter.formatDay(day)
+        
+        // Then: Both distance and calories should be displayed
+        let item = sections[0].items[0]
+        XCTAssertTrue(item.secondary?.contains("20 min AMRAP") ?? false)
+        XCTAssertTrue(item.secondary?.contains("5000m") ?? false, "Should contain distance")
+        XCTAssertTrue(item.secondary?.contains("200 cal") ?? false, "Should contain calories")
+    }
 }
