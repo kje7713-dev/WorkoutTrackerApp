@@ -30,6 +30,9 @@ struct PaywallView: View {
     @State private var enteredCode = ""
     @State private var showInvalidCodeError = false
     
+    // App review popup state
+    @State private var showAppReviewPopup = false
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -91,6 +94,15 @@ struct PaywallView: View {
                 }
             } message: {
                 Text("The code you entered is not valid. Please try again.")
+            }
+            .alert("Opening Paywall for App Review", isPresented: $showAppReviewPopup) {
+                Button("OK") {
+                    // Grant premium access by activating dev unlock
+                    _ = subscriptionManager.unlockWithDevCode("dev")
+                    dismiss()
+                }
+            } message: {
+                Text("opening paywall for app review")
             }
         }
     }
@@ -332,7 +344,7 @@ struct PaywallView: View {
             // Continue (Free) button - only show when products unavailable and not loading
             if subscriptionManager.subscriptionProduct == nil && !subscriptionManager.isLoadingProducts {
                 Button {
-                    dismiss()
+                    showAppReviewPopup = true
                 } label: {
                     Text("Continue (Free)")
                         .font(.system(size: 16, weight: .medium))
