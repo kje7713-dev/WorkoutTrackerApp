@@ -32,9 +32,7 @@ struct BlockGeneratorView: View {
     @State private var showSuccessPopup: Bool = false
     @State private var hideConfirmationTask: DispatchWorkItem?
     @State private var pastedJSON: String = ""
-    @State private var showingPaywall: Bool = false
     @State private var userRequirements: String = ""
-    @State private var isEligibleForTrial: Bool = false
     
     // MARK: - Body
     
@@ -43,16 +41,10 @@ struct BlockGeneratorView: View {
             if subscriptionManager.hasAccess {
                 mainContent
             } else {
-                lockedContent
+                // Show PaywallView directly instead of intermediate locked screen
+                PaywallView()
+                    .environmentObject(subscriptionManager)
             }
-        }
-        .sheet(isPresented: $showingPaywall) {
-            PaywallView()
-                .environmentObject(subscriptionManager)
-        }
-        .task {
-            // Check trial eligibility when view appears
-            isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility() ?? false
         }
     }
     
@@ -115,60 +107,6 @@ struct BlockGeneratorView: View {
                     }
                 }
             )
-        }
-    }
-    
-    // MARK: - Locked Content (Free Users)
-    
-    private var lockedContent: some View {
-        NavigationView {
-            VStack(spacing: 24) {
-                Spacer()
-                
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(theme.mutedText)
-                
-                Text("Pro Feature")
-                    .font(.system(size: 28, weight: .bold))
-                
-                Text("AI-assisted plan ingestion is a Pro feature. Subscribe to import and parse workout plans from JSON.")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(theme.mutedText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                
-                Button {
-                    showingPaywall = true
-                } label: {
-                    Text(isEligibleForTrial ? "Start 15-Day Free Trial" : "Subscribe Now")
-                        .font(.system(size: 18, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .foregroundColor(.white)
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [theme.premiumGradientStart, theme.premiumGradientEnd]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(28)
-                        .shadow(color: theme.premiumGradientStart.opacity(0.3), radius: 8, x: 0, y: 4)
-                }
-                .padding(.horizontal, 32)
-                
-                Spacer()
-            }
-            .background(backgroundColor.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Close") {
-                        dismiss()
-                    }
-                }
-            }
         }
     }
     
