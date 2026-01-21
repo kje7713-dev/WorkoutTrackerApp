@@ -26,9 +26,10 @@ struct PaywallView: View {
     @State private var isEligibleForTrial: Bool? = nil // nil = unknown, true = eligible, false = not eligible
     
     // Dev unlock code entry state
-    @State private var showingCodeEntry = false
-    @State private var enteredCode = ""
-    @State private var showInvalidCodeError = false
+    // Hidden per product requirements
+    // @State private var showingCodeEntry = false
+    // @State private var enteredCode = ""
+    // @State private var showInvalidCodeError = false
     
     // App review popup state
     @State private var showAppReviewPopup = false
@@ -73,28 +74,29 @@ struct PaywallView: View {
                 // Check trial eligibility when view appears
                 isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility()
             }
-            .alert("Enter Unlock Code", isPresented: $showingCodeEntry) {
-                TextField("Code", text: $enteredCode)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                
-                Button("Cancel", role: .cancel) {
-                    enteredCode = ""
-                }
-                
-                Button("Unlock") {
-                    handleCodeEntry()
-                }
-            } message: {
-                Text("Enter the unlock code to access Pro features")
-            }
-            .alert("Invalid Code", isPresented: $showInvalidCodeError) {
-                Button("OK") {
-                    showingCodeEntry = true
-                }
-            } message: {
-                Text("The code you entered is not valid. Please try again.")
-            }
+            // Hidden per product requirements
+            // .alert("Enter Unlock Code", isPresented: $showingCodeEntry) {
+            //     TextField("Code", text: $enteredCode)
+            //         .textInputAutocapitalization(.never)
+            //         .autocorrectionDisabled()
+            //     
+            //     Button("Cancel", role: .cancel) {
+            //         enteredCode = ""
+            //     }
+            //     
+            //     Button("Unlock") {
+            //         handleCodeEntry()
+            //     }
+            // } message: {
+            //     Text("Enter the unlock code to access Pro features")
+            // }
+            // .alert("Invalid Code", isPresented: $showInvalidCodeError) {
+            //     Button("OK") {
+            //         showingCodeEntry = true
+            //     }
+            // } message: {
+            //     Text("The code you entered is not valid. Please try again.")
+            // }
             .alert("Opening Paywall for App Review", isPresented: $showAppReviewPopup) {
                 Button("OK") {
                     // Grant premium access by activating dev unlock
@@ -353,16 +355,16 @@ struct PaywallView: View {
                 .padding(.top, 4)
             }
             
-            // Dev unlock code entry button
-            Button {
-                showingCodeEntry = true
-                enteredCode = ""
-            } label: {
-                Text("Enter Code")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(theme.accent)
-            }
-            .padding(.top, 4)
+            // Dev unlock code entry button - Hidden per product requirements
+            // Button {
+            //     showingCodeEntry = true
+            //     enteredCode = ""
+            // } label: {
+            //     Text("Enter Code")
+            //         .font(.system(size: 16, weight: .medium))
+            //         .foregroundColor(theme.accent)
+            // }
+            // .padding(.top, 4)
             
             // Auto-renewal disclosure with complete terms
             VStack(spacing: 8) {
@@ -399,17 +401,17 @@ struct PaywallView: View {
     }
     
     // MARK: - Code Entry Handler
-    
-    /// Handle dev unlock code entry
-    private func handleCodeEntry() {
-        let success = subscriptionManager.unlockWithDevCode(enteredCode)
-        if success {
-            dismiss()
-        } else {
-            showInvalidCodeError = true
-        }
-        enteredCode = ""
-    }
+    // Hidden per product requirements
+    // /// Handle dev unlock code entry
+    // private func handleCodeEntry() {
+    //     let success = subscriptionManager.unlockWithDevCode(enteredCode)
+    //     if success {
+    //         dismiss()
+    //     } else {
+    //         showInvalidCodeError = true
+    //     }
+    //     enteredCode = ""
+    // }
 }
 
 // MARK: - Feature Button
