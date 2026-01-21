@@ -27,6 +27,9 @@ class SubscriptionManager: ObservableObject {
     /// Error message for UI display
     @Published var errorMessage: String?
     
+    /// Whether products are currently being loaded
+    @Published private(set) var isLoadingProducts: Bool = false
+    
     // MARK: - Private Properties
     
     private var updateListenerTask: Task<Void, Never>?
@@ -65,6 +68,9 @@ class SubscriptionManager: ObservableObject {
     /// The UI remains accessible regardless of whether products load successfully.
     /// Any errors are captured in `errorMessage` for display to the user.
     func loadProducts() async {
+        isLoadingProducts = true
+        errorMessage = nil // Clear previous error
+        
         do {
             let products = try await Product.products(for: [productID])
             
@@ -73,12 +79,21 @@ class SubscriptionManager: ObservableObject {
                 AppLogger.info("Loaded subscription product: \(product.displayName)", subsystem: .general, category: "Subscription")
             } else {
                 AppLogger.error("Subscription product not found: \(productID)", subsystem: .general, category: "Subscription")
-                errorMessage = "Subscription not available yet. Check back after App Review."
+                errorMessage = "Failed to load subscription. Please check your internet connection and try again."
             }
         } catch {
             AppLogger.error("Failed to load products: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
-            errorMessage = "Subscription not available yet. Check back after App Review."
+            errorMessage = "Failed to load subscription. Please check your internet connection and try again."
         }
+        
+        isLoadingProducts = false
+    }
+    
+    /// Retry loading products (for UI retry button)
+    func retryLoadProducts() async {
+        await loadProducts()
+        // Also check entitlement status in case user has a subscription but products failed to load
+        await checkEntitlementStatus()
     }
     
     // MARK: - Purchase Flow
