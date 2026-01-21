@@ -462,19 +462,19 @@ struct SubscriptionTests {
         print("Testing zero products handling...")
         
         // Simulate StoreKit returning 0 products
-        let subscriptionProduct: String? = nil
+        let hasProduct = false  // Represents subscriptionProduct == nil
         let isLoadingProducts = false
-        let errorMessage: String? = "Failed to load subscription. Please check your internet connection and try again."
+        let hasErrorMessage = true
         
         // UI should show:
-        // 1. Retry button (when not loading)
-        let shouldShowRetryButton = (subscriptionProduct == nil && errorMessage != nil)
+        // 1. Retry button (when not loading and has error)
+        let shouldShowRetryButton = (!hasProduct && hasErrorMessage)
         
         // 2. Restore Purchases button (always visible)
         let shouldShowRestoreButton = true
         
         // 3. Continue (Free) button (when not loading and no products)
-        let shouldShowContinueFreeButton = (subscriptionProduct == nil && !isLoadingProducts)
+        let shouldShowContinueFreeButton = (!hasProduct && !isLoadingProducts)
         
         let result = shouldShowRetryButton && shouldShowRestoreButton && shouldShowContinueFreeButton
         
@@ -487,15 +487,15 @@ struct SubscriptionTests {
         print("Testing loading products state...")
         
         // Simulate products currently being loaded
-        let subscriptionProduct: String? = nil
+        let hasProduct = false  // Represents subscriptionProduct == nil
         let isLoadingProducts = true
-        let errorMessage: String? = nil
+        let hasErrorMessage = false
         
         // UI should show loading spinner
-        let shouldShowLoadingSpinner = (subscriptionProduct == nil && isLoadingProducts)
+        let shouldShowLoadingSpinner = (!hasProduct && isLoadingProducts)
         
         // Continue (Free) button should NOT be shown during loading
-        let shouldShowContinueFreeButton = (subscriptionProduct == nil && !isLoadingProducts)
+        let shouldShowContinueFreeButton = (!hasProduct && !isLoadingProducts)
         
         let result = shouldShowLoadingSpinner && !shouldShowContinueFreeButton
         

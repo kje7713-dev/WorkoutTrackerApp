@@ -76,11 +76,10 @@ class SubscriptionManager: ObservableObject {
             
             if let product = products.first {
                 subscriptionProduct = product
-                errorMessage = nil // Clear error on success
                 AppLogger.info("Loaded subscription product: \(product.displayName)", subsystem: .general, category: "Subscription")
             } else {
                 AppLogger.error("Subscription product not found: \(productID)", subsystem: .general, category: "Subscription")
-                errorMessage = "Subscription not available yet. Check back after App Review."
+                errorMessage = "Failed to load subscription. Please check your internet connection and try again."
             }
         } catch {
             AppLogger.error("Failed to load products: \(error.localizedDescription)", subsystem: .general, category: "Subscription")
