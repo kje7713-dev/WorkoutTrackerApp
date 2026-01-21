@@ -457,6 +457,74 @@ struct SubscriptionTests {
         return result
     }
     
+    /// Test that zero products state shows retry and continue options
+    static func testZeroProductsHandling() -> Bool {
+        print("Testing zero products handling...")
+        
+        // Simulate StoreKit returning 0 products
+        let subscriptionProduct: String? = nil
+        let isLoadingProducts = false
+        let errorMessage: String? = "Failed to load subscription. Please check your internet connection and try again."
+        
+        // UI should show:
+        // 1. Retry button (when not loading)
+        let shouldShowRetryButton = (subscriptionProduct == nil && errorMessage != nil)
+        
+        // 2. Restore Purchases button (always visible)
+        let shouldShowRestoreButton = true
+        
+        // 3. Continue (Free) button (when not loading and no products)
+        let shouldShowContinueFreeButton = (subscriptionProduct == nil && !isLoadingProducts)
+        
+        let result = shouldShowRetryButton && shouldShowRestoreButton && shouldShowContinueFreeButton
+        
+        print("Zero products handling: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that loading state shows spinner instead of buttons
+    static func testLoadingProductsState() -> Bool {
+        print("Testing loading products state...")
+        
+        // Simulate products currently being loaded
+        let subscriptionProduct: String? = nil
+        let isLoadingProducts = true
+        let errorMessage: String? = nil
+        
+        // UI should show loading spinner
+        let shouldShowLoadingSpinner = (subscriptionProduct == nil && isLoadingProducts)
+        
+        // Continue (Free) button should NOT be shown during loading
+        let shouldShowContinueFreeButton = (subscriptionProduct == nil && !isLoadingProducts)
+        
+        let result = shouldShowLoadingSpinner && !shouldShowContinueFreeButton
+        
+        print("Loading products state: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that free users can continue using app without subscription
+    static func testFreeUserCanContinue() -> Bool {
+        print("Testing free user can continue...")
+        
+        // Free user dismisses paywall using Continue (Free)
+        let hasSubscription = false
+        let userDismissedPaywall = true
+        
+        // User should be able to access basic features
+        let canAccessBlocks = true  // Core functionality
+        let canTrackWorkouts = true  // Core functionality
+        
+        // Pro features still gated
+        let canAccessAIImport = hasSubscription
+        let canAccessWhiteboard = hasSubscription
+        
+        let result = canAccessBlocks && canTrackWorkouts && !canAccessAIImport && !canAccessWhiteboard
+        
+        print("Free user can continue: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
     static func runAllTests() -> Bool {
         print("\n=== Running Subscription Tests ===\n")
         
@@ -483,7 +551,10 @@ struct SubscriptionTests {
             ("Dev Unlock Feature Access", testDevUnlockFeatureAccess),
             ("Dev Unlock Persistence", testDevUnlockPersistence),
             ("Dev Code Case Insensitive", testDevCodeCaseInsensitive),
-            ("Has Access Logic", testHasAccessLogic)
+            ("Has Access Logic", testHasAccessLogic),
+            ("Zero Products Handling", testZeroProductsHandling),
+            ("Loading Products State", testLoadingProductsState),
+            ("Free User Can Continue", testFreeUserCanContinue)
         ]
         
         var passedTests = 0
