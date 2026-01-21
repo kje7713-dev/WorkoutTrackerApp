@@ -271,21 +271,42 @@ struct PaywallView: View {
             Group {
                 if let error = subscriptionManager.errorMessage {
                     // Error state: Show error message
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         Text(error)
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(theme.mutedText)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 16)
                         
-                        Text("The paywall is still accessible. You can restore purchases or try again later.")
-                            .font(.system(size: 12, weight: .regular))
-                            .foregroundColor(theme.mutedText)
-                            .multilineTextAlignment(.center)
+                        // When products fail to load, show Retry button
+                        if subscriptionManager.subscriptionProduct == nil {
+                            Button {
+                                Task {
+                                    await subscriptionManager.retryLoadProducts()
+                                }
+                            } label: {
+                                HStack(spacing: 8) {
+                                    if subscriptionManager.isLoadingProducts {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle())
+                                    } else {
+                                        Image(systemName: "arrow.clockwise")
+                                        Text("Retry")
+                                    }
+                                }
+                                .font(.system(size: 16, weight: .semibold))
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 48)
+                                .foregroundColor(.white)
+                                .background(theme.accent)
+                                .cornerRadius(24)
+                            }
+                            .disabled(subscriptionManager.isLoadingProducts)
                             .padding(.horizontal, 16)
+                        }
                     }
-                } else if subscriptionManager.subscriptionProduct == nil {
-                    // Loading state: Products not yet loaded
+                } else if subscriptionManager.subscriptionProduct == nil && subscriptionManager.isLoadingProducts {
+                    // Loading state: Products currently being loaded
                     HStack(spacing: 8) {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle())
@@ -296,7 +317,7 @@ struct PaywallView: View {
                 }
             }
             
-            // Restore button
+            // Restore button - always visible
             Button {
                 Task {
                     await subscriptionManager.restorePurchases()
@@ -307,6 +328,18 @@ struct PaywallView: View {
                     .foregroundColor(theme.accent)
             }
             .padding(.top, 8)
+            
+            // Continue (Free) button - only show when products unavailable and not loading
+            if subscriptionManager.subscriptionProduct == nil && !subscriptionManager.isLoadingProducts {
+                Button {
+                    dismiss()
+                } label: {
+                    Text("Continue (Free)")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(theme.accent)
+                }
+                .padding(.top, 4)
+            }
             
             // Dev unlock code entry button
             Button {
