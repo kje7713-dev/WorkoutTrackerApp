@@ -34,6 +34,15 @@ struct PaywallView: View {
     // App review popup state
     @State private var showAppReviewPopup = false
     
+    // StoreKit diagnostics panel state (temporary, for debugging)
+    @State private var showDiagnostics = false
+    @State private var diagnosticsTapCount = 0
+    @State private var diagnosticsResetTask: Task<Void, Never>?
+    
+    // Constants for diagnostics tap gesture
+    private let diagnosticsResetDelay: UInt64 = 2_000_000_000 // 2 seconds in nanoseconds
+    private let diagnosticsRequiredTaps = 5
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -55,6 +64,13 @@ struct PaywallView: View {
                     
                     legalSection
                     
+                    // MARK: - Diagnostics Panel (Hidden by default)
+                    
+                    if showDiagnostics {
+                        StoreKitDiagnosticsView()
+                            .transition(.opacity.combined(with: .scale))
+                    }
+                    
                     Spacer(minLength: 20)
                 }
                 .padding(.horizontal, 24)
@@ -69,10 +85,43 @@ struct PaywallView: View {
                         dismiss()
                     }
                 }
+                
+                // Hidden diagnostics toggle (5 taps on title)
+                ToolbarItem(placement: .principal) {
+                    Text("Go Pro")
+                        .font(.headline)
+                        .onTapGesture {
+                            diagnosticsTapCount += 1
+                            
+                            // Cancel previous reset task to prevent race conditions
+                            diagnosticsResetTask?.cancel()
+                            
+                            // Reset counter after configured delay
+                            diagnosticsResetTask = Task { @MainActor in
+                                try? await Task.sleep(nanoseconds: diagnosticsResetDelay)
+                                if !Task.isCancelled {
+                                    diagnosticsTapCount = 0
+                                }
+                            }
+                            
+                            // Toggle diagnostics after required taps
+                            if diagnosticsTapCount >= diagnosticsRequiredTaps {
+                                withAnimation(.spring()) {
+                                    showDiagnostics.toggle()
+                                }
+                                diagnosticsTapCount = 0
+                                diagnosticsResetTask?.cancel()
+                            }
+                        }
+                }
             }
             .task {
                 // Check trial eligibility when view appears
                 isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility()
+            }
+            .onDisappear {
+                // Clean up diagnostics reset task to prevent memory leaks
+                diagnosticsResetTask?.cancel()
             }
             // Hidden per product requirements
             // .alert("Enter Unlock Code", isPresented: $showingCodeEntry) {
