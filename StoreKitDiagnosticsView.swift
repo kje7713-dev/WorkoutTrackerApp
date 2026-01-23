@@ -204,10 +204,10 @@ struct StoreKitDiagnosticsView: View {
             }
             
             if products.isEmpty {
-                // No error thrown, but no products returned
+                // No error thrown, but no products returned - synthetic diagnostic error
                 diagnosticsError = StoreKitDiagnosticsData.StoreKitDiagnosticsError(
-                    domain: "StoreKit",
-                    code: 0,
+                    domain: "SBDDiagnostics",
+                    code: 1001,
                     localizedDescription: "No products returned from StoreKit (empty array)"
                 )
             }

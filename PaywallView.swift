@@ -37,6 +37,7 @@ struct PaywallView: View {
     // StoreKit diagnostics panel state (temporary, for debugging)
     @State private var showDiagnostics = false
     @State private var diagnosticsTapCount = 0
+    @State private var diagnosticsResetTask: Task<Void, Never>?
     
     var body: some View {
         NavigationView {
@@ -88,9 +89,15 @@ struct PaywallView: View {
                         .onTapGesture {
                             diagnosticsTapCount += 1
                             
+                            // Cancel previous reset task to prevent race conditions
+                            diagnosticsResetTask?.cancel()
+                            
                             // Reset counter after 2 seconds of no taps
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                diagnosticsTapCount = 0
+                            diagnosticsResetTask = Task { @MainActor in
+                                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                                if !Task.isCancelled {
+                                    diagnosticsTapCount = 0
+                                }
                             }
                             
                             // Toggle diagnostics after 5 taps
@@ -99,6 +106,7 @@ struct PaywallView: View {
                                     showDiagnostics.toggle()
                                 }
                                 diagnosticsTapCount = 0
+                                diagnosticsResetTask?.cancel()
                             }
                         }
                 }
