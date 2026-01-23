@@ -39,6 +39,10 @@ struct PaywallView: View {
     @State private var diagnosticsTapCount = 0
     @State private var diagnosticsResetTask: Task<Void, Never>?
     
+    // Constants for diagnostics tap gesture
+    private let diagnosticsResetDelay: UInt64 = 2_000_000_000 // 2 seconds in nanoseconds
+    private let diagnosticsRequiredTaps = 5
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -92,16 +96,16 @@ struct PaywallView: View {
                             // Cancel previous reset task to prevent race conditions
                             diagnosticsResetTask?.cancel()
                             
-                            // Reset counter after 2 seconds of no taps
+                            // Reset counter after configured delay
                             diagnosticsResetTask = Task { @MainActor in
-                                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                                try? await Task.sleep(nanoseconds: diagnosticsResetDelay)
                                 if !Task.isCancelled {
                                     diagnosticsTapCount = 0
                                 }
                             }
                             
-                            // Toggle diagnostics after 5 taps
-                            if diagnosticsTapCount >= 5 {
+                            // Toggle diagnostics after required taps
+                            if diagnosticsTapCount >= diagnosticsRequiredTaps {
                                 withAnimation(.spring()) {
                                     showDiagnostics.toggle()
                                 }

@@ -42,6 +42,7 @@ struct StoreKitDiagnosticsView: View {
     
     @State private var diagnosticsData: StoreKitDiagnosticsData?
     @State private var isLoading = false
+    @State private var fetchTask: Task<Void, Never>?
     
     var body: some View {
         VStack(spacing: 16) {
@@ -143,7 +144,9 @@ struct StoreKitDiagnosticsView: View {
             
             // Refresh Button
             Button {
-                Task {
+                // Cancel previous fetch to prevent concurrent requests
+                fetchTask?.cancel()
+                fetchTask = Task {
                     await fetchDiagnostics()
                 }
             } label: {
@@ -175,8 +178,14 @@ struct StoreKitDiagnosticsView: View {
                 .stroke(Color.orange.opacity(0.5), lineWidth: 2)
         )
         .task {
-            // Auto-fetch on appear
-            await fetchDiagnostics()
+            // Auto-fetch on appear, store task for cancellation
+            fetchTask = Task {
+                await fetchDiagnostics()
+            }
+        }
+        .onDisappear {
+            // Cancel fetch task to prevent race conditions
+            fetchTask?.cancel()
         }
     }
     
