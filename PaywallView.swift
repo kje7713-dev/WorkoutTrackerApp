@@ -115,6 +115,10 @@ struct PaywallView: View {
                 // Check trial eligibility when view appears
                 isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility()
             }
+            .onDisappear {
+                // Clean up diagnostics reset task to prevent memory leaks
+                diagnosticsResetTask?.cancel()
+            }
             // Hidden per product requirements
             // .alert("Enter Unlock Code", isPresented: $showingCodeEntry) {
             //     TextField("Code", text: $enteredCode)

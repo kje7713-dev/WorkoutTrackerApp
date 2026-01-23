@@ -37,7 +37,6 @@ struct StoreKitDiagnosticsData {
 /// It displays read-only information about StoreKit state without interfering
 /// with normal app behavior.
 struct StoreKitDiagnosticsView: View {
-    @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.sbdTheme) private var theme
     
@@ -267,7 +266,6 @@ struct DiagnosticSection<Content: View>: View {
 struct StoreKitDiagnosticsView_Previews: PreviewProvider {
     static var previews: some View {
         StoreKitDiagnosticsView()
-            .environmentObject(SubscriptionManager())
             .padding()
     }
 }

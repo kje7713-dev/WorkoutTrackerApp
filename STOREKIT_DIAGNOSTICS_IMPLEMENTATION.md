@@ -106,8 +106,8 @@ Requested Product IDs:
 Returned Product Count: 0
 
 StoreKit Error:
-Domain: SKErrorDomain
-Code: 0
+Domain: SBDDiagnostics
+Code: 1001
 Description: No products returned from StoreKit (empty array)
 ```
 

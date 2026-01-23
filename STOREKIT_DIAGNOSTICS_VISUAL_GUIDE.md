@@ -67,8 +67,8 @@ The diagnostics panel appears at the bottom of the paywall content.
 │                                                 │
 │  StoreKit Error                                 │
 │  ┌──────────────────────────────────────────┐  │
-│  │ Domain: SKErrorDomain                    │  │
-│  │ Code: 0                                  │  │
+│  │ Domain: SBDDiagnostics                   │  │
+│  │ Code: 1001                               │  │
 │  │ Description: No products returned from   │  │
 │  │ StoreKit (empty array)                   │  │
 │  └──────────────────────────────────────────┘  │
