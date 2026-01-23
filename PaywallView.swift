@@ -34,6 +34,10 @@ struct PaywallView: View {
     // App review popup state
     @State private var showAppReviewPopup = false
     
+    // StoreKit diagnostics panel state (temporary, for debugging)
+    @State private var showDiagnostics = false
+    @State private var diagnosticsTapCount = 0
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -55,6 +59,13 @@ struct PaywallView: View {
                     
                     legalSection
                     
+                    // MARK: - Diagnostics Panel (Hidden by default)
+                    
+                    if showDiagnostics {
+                        StoreKitDiagnosticsView()
+                            .transition(.opacity.combined(with: .scale))
+                    }
+                    
                     Spacer(minLength: 20)
                 }
                 .padding(.horizontal, 24)
@@ -68,6 +79,28 @@ struct PaywallView: View {
                     Button("Close") {
                         dismiss()
                     }
+                }
+                
+                // Hidden diagnostics toggle (5 taps on title)
+                ToolbarItem(placement: .principal) {
+                    Text("Go Pro")
+                        .font(.headline)
+                        .onTapGesture {
+                            diagnosticsTapCount += 1
+                            
+                            // Reset counter after 2 seconds of no taps
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                diagnosticsTapCount = 0
+                            }
+                            
+                            // Toggle diagnostics after 5 taps
+                            if diagnosticsTapCount >= 5 {
+                                withAnimation(.spring()) {
+                                    showDiagnostics.toggle()
+                                }
+                                diagnosticsTapCount = 0
+                            }
+                        }
                 }
             }
             .task {
