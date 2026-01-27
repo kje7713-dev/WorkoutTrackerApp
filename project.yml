@@ -10,7 +10,7 @@ settings:
     DEVELOPMENT_TEAM: ${APPLE_TEAM_ID}
     CODE_SIGN_STYLE: Manual
     CURRENT_PROJECT_VERSION: "1"
-    MARKETING_VERSION: "1.1"
+    MARKETING_VERSION: "1.2"
 
 targets:
   WorkoutTrackerApp:
@@ -35,6 +35,7 @@ targets:
       properties:
         CFBundleIdentifier: ${APP_IDENTIFIER}
         CFBundleDisplayName: "SBD"
+        CFBundleShortVersionString: $(MARKETING_VERSION)
 
         # ✅ iPhone-only app (UIDeviceFamily: 1 = iPhone only)
         UIDeviceFamily:
