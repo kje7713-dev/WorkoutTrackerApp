@@ -12,7 +12,7 @@ enum SubscriptionConstants {
     
     // MARK: - Product Identifiers
     
-    /// Monthly Pro subscription product ID
+    /// Monthly Pro subscription with introductory offer product ID
     static let monthlyProductID = "com.savagebydesign.pro.intro"
     
     // MARK: - Future Product IDs (for reference)
