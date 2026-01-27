@@ -94,7 +94,7 @@ struct HomeView: View {
                 Spacer(minLength: 0)
                 
                 // MARK: - User Guide Button
-                Link(destination: URL(string: "https://savagesbydesign.com/user-guide/")!) {
+                Link(destination: URL(string: "https://savagesbydesign.com/app/")!) {
                     Text("USER GUIDE")
                         .font(.system(size: 16, weight: .semibold))
                         .tracking(1.5)
