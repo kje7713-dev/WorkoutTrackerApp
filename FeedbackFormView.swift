@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MessageUI
 
 struct FeedbackFormView: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -15,12 +16,9 @@ struct FeedbackFormView: View {
     @State private var feedbackType: FeedbackType = .featureRequest
     @State private var title: String = ""
     @State private var description: String = ""
-    @State private var isSubmitting = false
-    @State private var showingSuccess = false
+    @State private var showingMailComposer = false
     @State private var showingError = false
     @State private var errorMessage = ""
-    
-    private let githubService = GitHubService()
     
     var body: some View {
         ZStack {
@@ -99,24 +97,17 @@ struct FeedbackFormView: View {
                     
                     // MARK: - Submit Button
                     Button(action: submitFeedback) {
-                        HStack {
-                            if isSubmitting {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: foregroundButtonColor))
-                                    .scaleEffect(0.8)
-                            }
-                            Text(isSubmitting ? "SUBMITTING..." : "SUBMIT")
-                                .font(.system(size: 16, weight: .semibold))
-                                .tracking(1.5)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .foregroundColor(foregroundButtonColor)
-                        .background(submitButtonEnabled ? backgroundButtonColor : disabledButtonColor)
-                        .cornerRadius(12)
-                        .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
+                        Text("SUBMIT")
+                            .font(.system(size: 16, weight: .semibold))
+                            .tracking(1.5)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .foregroundColor(foregroundButtonColor)
+                            .background(submitButtonEnabled ? backgroundButtonColor : disabledButtonColor)
+                            .cornerRadius(12)
+                            .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                     }
-                    .disabled(!submitButtonEnabled || isSubmitting)
+                    .disabled(!submitButtonEnabled)
                     .buttonStyle(PlainButtonStyle())
                     .padding(.top, 8)
                     
@@ -127,12 +118,24 @@ struct FeedbackFormView: View {
         }
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Success!", isPresented: $showingSuccess) {
-            Button("OK") {
-                dismiss()
-            }
-        } message: {
-            Text("Thank you for your feedback! We've received your submission.")
+        .sheet(isPresented: $showingMailComposer) {
+            MailComposeView(
+                recipients: [FeedbackService.feedbackEmail],
+                subject: FeedbackService.emailSubject(for: feedbackType, title: title),
+                body: FeedbackService.emailBody(
+                    type: feedbackType,
+                    title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+                    description: description.trimmingCharacters(in: .whitespacesAndNewlines)
+                ),
+                onComplete: { result in
+                    showingMailComposer = false
+                    if result == .sent {
+                        // Reset form on successful send
+                        title = ""
+                        description = ""
+                    }
+                }
+            )
         }
         .alert("Error", isPresented: $showingError) {
             Button("OK", role: .cancel) { }
@@ -146,41 +149,13 @@ struct FeedbackFormView: View {
     private func submitFeedback() {
         guard submitButtonEnabled else { return }
         
-        isSubmitting = true
-        
-        Task {
-            do {
-                // SECURITY NOTE: In production, this should use a backend proxy service
-                // to keep the GitHub token secure. The current implementation uses an
-                // environment variable which is acceptable for development but should
-                // not be used in production releases.
-                // TODO: Implement backend service for secure GitHub API calls
-                guard let token = ProcessInfo.processInfo.environment["GITHUB_TOKEN"] else {
-                    throw FeedbackError.missingToken
-                }
-                
-                _ = try await githubService.submitFeedback(
-                    type: feedbackType,
-                    title: title.trimmingCharacters(in: .whitespacesAndNewlines),
-                    description: description.trimmingCharacters(in: .whitespacesAndNewlines),
-                    token: token
-                )
-                
-                await MainActor.run {
-                    isSubmitting = false
-                    showingSuccess = true
-                    // Reset form
-                    title = ""
-                    description = ""
-                }
-            } catch {
-                await MainActor.run {
-                    isSubmitting = false
-                    errorMessage = error.localizedDescription
-                    showingError = true
-                }
-            }
+        if !FeedbackService.canSendMail() {
+            errorMessage = FeedbackError.emailNotAvailable.localizedDescription
+            showingError = true
+            return
         }
+        
+        showingMailComposer = true
     }
     
     // MARK: - Computed Properties
@@ -224,6 +199,42 @@ struct FeedbackFormView: View {
     
     private var shadowColor: Color {
         colorScheme == .dark ? Color.clear : Color.black.opacity(0.15)
+    }
+}
+
+// MARK: - Mail Compose View Wrapper
+
+struct MailComposeView: UIViewControllerRepresentable {
+    let recipients: [String]
+    let subject: String
+    let body: String
+    let onComplete: (MFMailComposeResult) -> Void
+    
+    func makeUIViewController(context: Context) -> MFMailComposeViewController {
+        let composer = MFMailComposeViewController()
+        composer.mailComposeDelegate = context.coordinator
+        composer.setToRecipients(recipients)
+        composer.setSubject(subject)
+        composer.setMessageBody(body, isHTML: false)
+        return composer
+    }
+    
+    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onComplete: onComplete)
+    }
+    
+    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+        let onComplete: (MFMailComposeResult) -> Void
+        
+        init(onComplete: @escaping (MFMailComposeResult) -> Void) {
+            self.onComplete = onComplete
+        }
+        
+        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+            onComplete(result)
+        }
     }
 }
 

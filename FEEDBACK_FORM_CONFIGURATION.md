@@ -1,86 +1,81 @@
 # Feedback Form Configuration
 
 ## Overview
-The app includes a feedback form that allows users to submit feature requests and bug reports. The form submissions are sent to the GitHub repository's issue tracker.
+The app includes a feedback form that allows users to submit feature requests and bug reports. The form submissions are sent via email to savagesbydesignhq@gmail.com using the device's native mail client.
 
 ## Configuration
 
-### GitHub Token Setup
+### Email Setup
 
-To enable the feedback form to create issues, you need to set up a GitHub Personal Access Token:
+The feedback form uses iOS's native `MFMailComposeViewController` to send emails. No additional configuration is required.
 
-1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-2. Generate a new token with the `public_repo` scope
-3. Set the token as an environment variable or build configuration:
+#### Requirements:
+- Device must have Mail app configured with at least one email account
+- User must have email sending capability enabled
 
-#### For Development:
-```bash
-export GITHUB_TOKEN="your_token_here"
-# Then run the app from the command line
+#### User Experience:
+1. User fills out feedback form
+2. Taps "SUBMIT" button
+3. Native iOS mail composer appears with pre-filled content
+4. User reviews and sends email
+5. Form resets after successful send
+
+## Email Format
+
+Feedback emails are automatically formatted with:
+
+**Subject:** `[Feature Request]` or `[Bug Report]` followed by the user's title
+
+**Body:**
+```
+Type: Feature Request (or Bug Report)
+Title: [User's title]
+
+Description:
+[User's description]
+
+---
+Submitted from Savage By Design iOS App
 ```
 
-#### For Production (Xcode):
-1. Edit scheme in Xcode
-2. Go to Run → Arguments → Environment Variables
-3. Add `GITHUB_TOKEN` with your token value
+**Recipient:** savagesbydesignhq@gmail.com
 
-#### For CI/CD:
-Add `GITHUB_TOKEN` to your GitHub Secrets and configure it in your workflow files.
+## Error Handling
 
-## Security Considerations
+The app handles the following scenarios:
 
-**IMPORTANT - Production Security**: The current implementation uses an environment variable for the GitHub token. This approach has significant security limitations:
+1. **Email Not Available**: If the device cannot send email (no Mail app configured), the user sees an error message asking them to check their email settings.
 
-### Current Implementation (Development Only)
-- Uses `GITHUB_TOKEN` environment variable
-- Suitable for development and testing
-- **NOT recommended for production releases**
+2. **User Cancels**: If the user cancels the mail composer, the form data is retained so they can try again.
 
-### Production Recommendations
+3. **Send Successful**: Form is reset after successful send.
 
-1. **Use a backend proxy service (RECOMMENDED)**: 
-   - Create a backend API endpoint that accepts feedback submissions
-   - Backend service handles GitHub API authentication securely
-   - Mobile app only communicates with your backend, never directly with GitHub
-   - Enables additional features like rate limiting, spam detection, and analytics
+## Privacy & Security
 
-2. **GitHub Apps (Alternative)**:
-   - Use GitHub Apps for more secure and scalable authentication
-   - Apps can be installed on specific repositories
-   - Better audit trail and permission management
-
-3. **Never commit tokens**: 
-   - Ensure tokens are never committed to source control
-   - Use `.gitignore` for any files containing secrets
-   - Regularly rotate tokens
-
-4. **Rate limiting**: 
-   - Implement rate limiting to prevent abuse
-   - Consider user authentication before allowing feedback submission
-
-5. **Input validation**:
-   - Validate and sanitize all user input
-   - Implement spam detection mechanisms
-   - Consider CAPTCHA for anonymous submissions
-
-### Migration Path to Production
-
-To prepare for production:
-1. Create a backend service (e.g., using AWS Lambda, Cloud Functions, or a dedicated server)
-2. Implement POST endpoint `/api/feedback` that accepts feedback data
-3. Backend authenticates to GitHub using secure token storage
-4. Update `GitHubService.swift` to call your backend instead of GitHub directly
-5. Remove `GITHUB_TOKEN` environment variable requirement
-
-## User Experience
-
-The feedback form:
-- Does not reveal to users that submissions go to GitHub
-- Uses generic language like "submit feedback" and "your submission"
-- Provides a clean, branded interface matching the app's design
-- Categorizes feedback as either "Feature Request" or "Bug Report"
-- Automatically labels GitHub issues based on feedback type
+- No data is stored on the device beyond the user's active session
+- Email is sent through the device's native mail app
+- User can review email content before sending
+- No backend service or API required
+- No authentication tokens needed
 
 ## Testing
 
-To test the feedback form without a valid token, the app will show a configuration error message to the user.
+To test the feedback form:
+1. Ensure device/simulator has Mail app configured
+2. Navigate to Home Screen → FEEDBACK
+3. Fill out the form
+4. Tap SUBMIT
+5. Verify mail composer appears with correct content
+6. Send or cancel to test both flows
+
+## Troubleshooting
+
+**Problem:** "Email is not available on this device"
+- **Solution:** Configure Mail app with an email account in iOS Settings
+
+**Problem:** Mail composer doesn't appear
+- **Solution:** Check that device has email sending capability enabled
+
+**Problem:** Form doesn't reset after sending
+- **Solution:** This is the expected behavior if mail was cancelled; only resets on successful send
+

@@ -40,20 +40,50 @@ struct FeedbackFormTests {
         return result
     }
     
-    // MARK: - GitHub Service Tests
+    // MARK: - Feedback Service Tests
     
-    /// Test that GitHub service submitFeedback throws on invalid URL construction
-    static func testGitHubServiceURLConstruction() -> Bool {
-        print("Testing GitHub service URL construction...")
+    /// Test that email subject is properly formatted
+    static func testEmailSubjectFormatting() -> Bool {
+        print("Testing email subject formatting...")
         
-        // Service should be instantiable and ready to use
-        let service = GitHubService()
+        let featureSubject = FeedbackService.emailSubject(for: .featureRequest, title: "Add timer")
+        let bugSubject = FeedbackService.emailSubject(for: .bugReport, title: "App crashes")
         
-        // The service exists and can be used - we can't test the actual API call
-        // without a valid token and network, but we verify the service is properly initialized
-        let result = true
+        let result = featureSubject == "[Feature Request] Add timer" &&
+                     bugSubject == "[Bug Report] App crashes"
         
-        print("GitHub service URL construction: \(result ? "PASS" : "FAIL")")
+        print("Email subject formatting: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that email body is properly formatted
+    static func testEmailBodyFormatting() -> Bool {
+        print("Testing email body formatting...")
+        
+        let body = FeedbackService.emailBody(
+            type: .featureRequest,
+            title: "Test Title",
+            description: "Test Description"
+        )
+        
+        let hasType = body.contains("Type: Feature Request")
+        let hasTitle = body.contains("Title: Test Title")
+        let hasDescription = body.contains("Description:\nTest Description")
+        
+        let result = hasType && hasTitle && hasDescription
+        
+        print("Email body formatting: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that feedback email address is correct
+    static func testFeedbackEmailAddress() -> Bool {
+        print("Testing feedback email address...")
+        
+        let email = FeedbackService.feedbackEmail
+        let result = email == "savagesbydesignhq@gmail.com"
+        
+        print("Feedback email address: \(result ? "PASS" : "FAIL")")
         return result
     }
     
@@ -61,13 +91,11 @@ struct FeedbackFormTests {
     static func testFeedbackErrorDescriptions() -> Bool {
         print("Testing feedback error descriptions...")
         
-        let invalidResponseError = FeedbackError.invalidResponse
-        let serverError = FeedbackError.serverError(404)
-        let missingTokenError = FeedbackError.missingToken
+        let emailNotAvailable = FeedbackError.emailNotAvailable
+        let emailNotSent = FeedbackError.emailNotSent
         
-        let result = invalidResponseError.errorDescription != nil &&
-                     serverError.errorDescription != nil &&
-                     missingTokenError.errorDescription != nil
+        let result = emailNotAvailable.errorDescription != nil &&
+                     emailNotSent.errorDescription != nil
         
         print("Feedback error descriptions: \(result ? "PASS" : "FAIL")")
         return result
@@ -81,7 +109,9 @@ struct FeedbackFormTests {
         let results = [
             testFeedbackTypes(),
             testFeedbackTypeDisplayNames(),
-            testGitHubServiceURLConstruction(),
+            testEmailSubjectFormatting(),
+            testEmailBodyFormatting(),
+            testFeedbackEmailAddress(),
             testFeedbackErrorDescriptions()
         ]
         
