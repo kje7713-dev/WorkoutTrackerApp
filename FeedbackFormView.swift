@@ -168,25 +168,21 @@ struct FeedbackFormView: View {
                 return
             }
             
-            // Check if any email client can handle mailto: URLs
-            if UIApplication.shared.canOpenURL(mailtoURL) {
-                UIApplication.shared.open(mailtoURL) { success in
-                    if success {
-                        // Reset form on successful open
-                        DispatchQueue.main.async {
-                            self.title = ""
-                            self.description = ""
-                        }
-                    } else {
-                        DispatchQueue.main.async {
-                            self.errorMessage = "Failed to launch email client. Please try again or check your email app settings."
-                            self.showingError = true
-                        }
+            // Open mailto URL - iOS will show app chooser if multiple email apps available
+            // or open the default email app, or show error if no email apps installed
+            UIApplication.shared.open(mailtoURL) { success in
+                if success {
+                    // Reset form on successful open
+                    DispatchQueue.main.async {
+                        self.title = ""
+                        self.description = ""
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Failed to launch email client. Please install an email app (Mail, Gmail, Outlook, etc.) to send feedback."
+                        self.showingError = true
                     }
                 }
-            } else {
-                errorMessage = "No email app installed. Please install an email app (Mail, Gmail, Outlook, etc.) to send feedback."
-                showingError = true
             }
         }
     }
