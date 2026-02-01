@@ -179,13 +179,13 @@ struct FeedbackFormView: View {
                         }
                     } else {
                         DispatchQueue.main.async {
-                            self.errorMessage = "Could not open email client. Please install an email app (Mail, Gmail, Outlook, etc.)."
+                            self.errorMessage = "Failed to launch email client. Please try again or check your email app settings."
                             self.showingError = true
                         }
                     }
                 }
             } else {
-                errorMessage = "No email app available. Please install an email app (Mail, Gmail, Outlook, etc.)."
+                errorMessage = "No email app installed. Please install an email app (Mail, Gmail, Outlook, etc.) to send feedback."
                 showingError = true
             }
         }

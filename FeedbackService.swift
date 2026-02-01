@@ -43,6 +43,8 @@ class FeedbackService {
         let body = emailBody(type: type, title: title, description: description)
         
         // Create custom character set that excludes & to avoid URL parsing ambiguity
+        // The & character is used as a separator between query parameters (subject= and body=)
+        // so literal & in the text content must be encoded as %26
         let allowedCharacters = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&"))
         
         // URL encode the subject and body
