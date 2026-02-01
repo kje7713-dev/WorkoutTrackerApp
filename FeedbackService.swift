@@ -42,9 +42,12 @@ class FeedbackService {
         let subject = emailSubject(for: type, title: title)
         let body = emailBody(type: type, title: title, description: description)
         
+        // Create custom character set that excludes & to avoid URL parsing ambiguity
+        let allowedCharacters = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&"))
+        
         // URL encode the subject and body
-        guard let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        guard let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: allowedCharacters),
+              let encodedBody = body.addingPercentEncoding(withAllowedCharacters: allowedCharacters) else {
             return nil
         }
         

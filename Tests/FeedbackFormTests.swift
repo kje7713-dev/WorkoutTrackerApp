@@ -146,11 +146,20 @@ struct FeedbackFormTests {
         let urlString = url.absoluteString
         // Check that spaces are encoded
         let hasNoSpaces = !urlString.contains(" ")
-        // Check that ampersand is encoded
-        let hasEncodedAmpersand = urlString.contains("%26") || !urlString.dropFirst(7).contains("&") // Skip mailto: part which has &
         
+        // Check that ampersand in the title/body is encoded (not the & in URL params)
+        // Extract just the query parameters portion (after the ?)
+        if let queryStart = urlString.firstIndex(of: "?") {
+            let queryString = String(urlString[queryStart...])
+            let hasEncodedAmpersand = queryString.contains("%26") // & in title should be %26
+            
+            let result = hasNoSpaces && hasEncodedAmpersand
+            print("Mailto URL encoding: \(result ? "PASS" : "FAIL")")
+            return result
+        }
+        
+        // Fallback: at minimum check no spaces
         let result = hasNoSpaces
-        
         print("Mailto URL encoding: \(result ? "PASS" : "FAIL")")
         return result
     }
