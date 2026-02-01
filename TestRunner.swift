@@ -57,6 +57,11 @@ struct TestRunner {
         if !ActiveBlockTests.runAll() {
             allTestsPassed = false
         }
+        
+        // Run Feedback Form Tests
+        if !FeedbackFormTests.runAllTests() {
+            allTestsPassed = false
+        }
         #endif
         
         print("\n========================================")
