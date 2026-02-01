@@ -25,7 +25,9 @@ class GitHubService {
         description: String,
         token: String
     ) async throws -> String {
-        let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues")!
+        guard let url = URL(string: "https://api.github.com/repos/\(owner)/\(repo)/issues") else {
+            throw FeedbackError.invalidResponse
+        }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

@@ -150,8 +150,11 @@ struct FeedbackFormView: View {
         
         Task {
             do {
-                // Get GitHub token from environment or configuration
-                // In production, this would come from a secure backend
+                // SECURITY NOTE: In production, this should use a backend proxy service
+                // to keep the GitHub token secure. The current implementation uses an
+                // environment variable which is acceptable for development but should
+                // not be used in production releases.
+                // TODO: Implement backend service for secure GitHub API calls
                 guard let token = ProcessInfo.processInfo.environment["GITHUB_TOKEN"] else {
                     throw FeedbackError.missingToken
                 }
