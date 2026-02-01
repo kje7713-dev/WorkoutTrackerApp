@@ -89,6 +89,22 @@ struct HomeView: View {
                             .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    
+                    // Feedback (Secondary)
+                    NavigationLink {
+                        FeedbackFormView()
+                    } label: {
+                        Text("FEEDBACK")
+                            .font(.system(size: 16, weight: .semibold))
+                            .tracking(1.5)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .foregroundColor(foregroundButtonColor)
+                            .background(backgroundButtonColor)
+                            .cornerRadius(12)
+                            .shadow(color: shadowColor, radius: 4, x: 0, y: 2)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
 
                 Spacer(minLength: 0)
