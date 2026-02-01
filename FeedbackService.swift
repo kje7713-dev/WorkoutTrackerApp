@@ -36,6 +36,21 @@ class FeedbackService {
         Submitted from Savage By Design iOS App
         """
     }
+    
+    /// Create mailto URL for feedback (fallback when Mail app is not available)
+    static func mailtoURL(for type: FeedbackType, title: String, description: String) -> URL? {
+        let subject = emailSubject(for: type, title: title)
+        let body = emailBody(type: type, title: title, description: description)
+        
+        // URL encode the subject and body
+        guard let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let encodedBody = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return nil
+        }
+        
+        let urlString = "mailto:\(feedbackEmail)?subject=\(encodedSubject)&body=\(encodedBody)"
+        return URL(string: urlString)
+    }
 }
 
 /// Type of feedback submission
