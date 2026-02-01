@@ -559,6 +559,25 @@ public struct DrillPlan: Codable, Equatable {
     public init(items: [DrillItem] = []) {
         self.items = items
     }
+    
+    // MARK: - Custom Codable for backward compatibility
+    
+    enum CodingKeys: String, CodingKey {
+        case items
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.items = (try? container.decode([DrillItem].self, forKey: .items)) ?? []
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        // Only encode non-empty arrays
+        if !items.isEmpty {
+            try container.encode(items, forKey: .items)
+        }
+    }
 }
 
 /// Partner drill plan
@@ -664,6 +683,37 @@ public struct ExerciseDefinition: Identifiable, Codable, Equatable {
         self.defaultConditioningType = defaultConditioningType
         self.tags = tags
         self.videoUrls = videoUrls
+    }
+    
+    // MARK: - Custom Codable for backward compatibility
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, type, category, defaultConditioningType, tags, videoUrls
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(ExerciseDefinitionID.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.type = try container.decode(ExerciseType.self, forKey: .type)
+        self.category = try container.decodeIfPresent(ExerciseCategory.self, forKey: .category)
+        self.defaultConditioningType = try container.decodeIfPresent(ConditioningType.self, forKey: .defaultConditioningType)
+        self.tags = (try? container.decode([String].self, forKey: .tags)) ?? []
+        self.videoUrls = try container.decodeIfPresent([String].self, forKey: .videoUrls)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(type, forKey: .type)
+        try container.encodeIfPresent(category, forKey: .category)
+        try container.encodeIfPresent(defaultConditioningType, forKey: .defaultConditioningType)
+        // Only encode non-empty arrays
+        if !tags.isEmpty {
+            try container.encode(tags, forKey: .tags)
+        }
+        try container.encodeIfPresent(videoUrls, forKey: .videoUrls)
     }
 }
 
