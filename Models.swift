@@ -222,6 +222,43 @@ public struct Technique: Codable, Equatable {
         self.followUps = followUps
         self.videoUrls = videoUrls
     }
+    
+    // MARK: - Custom Codable for backward compatibility
+    
+    enum CodingKeys: String, CodingKey {
+        case name, variant, keyDetails, commonErrors, counters, followUps, videoUrls
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.variant = try container.decodeIfPresent(String.self, forKey: .variant)
+        self.keyDetails = (try? container.decode([String].self, forKey: .keyDetails)) ?? []
+        self.commonErrors = (try? container.decode([String].self, forKey: .commonErrors)) ?? []
+        self.counters = (try? container.decode([String].self, forKey: .counters)) ?? []
+        self.followUps = (try? container.decode([String].self, forKey: .followUps)) ?? []
+        self.videoUrls = try container.decodeIfPresent([String].self, forKey: .videoUrls)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(variant, forKey: .variant)
+        // Only encode non-empty arrays for cleaner JSON
+        if !keyDetails.isEmpty {
+            try container.encode(keyDetails, forKey: .keyDetails)
+        }
+        if !commonErrors.isEmpty {
+            try container.encode(commonErrors, forKey: .commonErrors)
+        }
+        if !counters.isEmpty {
+            try container.encode(counters, forKey: .counters)
+        }
+        if !followUps.isEmpty {
+            try container.encode(followUps, forKey: .followUps)
+        }
+        try container.encodeIfPresent(videoUrls, forKey: .videoUrls)
+    }
 }
 
 /// Round structure for sparring/drills
@@ -251,6 +288,37 @@ public struct RoundPlan: Codable, Equatable {
         self.startingState = startingState
         self.winConditions = winConditions
     }
+    
+    // MARK: - Custom Codable for backward compatibility
+    
+    enum CodingKeys: String, CodingKey {
+        case rounds, roundDurationSeconds, restSeconds, intensityCue, resetRule, startingState, winConditions
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.rounds = try container.decode(Int.self, forKey: .rounds)
+        self.roundDurationSeconds = try container.decode(Int.self, forKey: .roundDurationSeconds)
+        self.restSeconds = try container.decode(Int.self, forKey: .restSeconds)
+        self.intensityCue = try container.decodeIfPresent(String.self, forKey: .intensityCue)
+        self.resetRule = try container.decodeIfPresent(String.self, forKey: .resetRule)
+        self.startingState = try container.decodeIfPresent(StartingState.self, forKey: .startingState)
+        self.winConditions = (try? container.decode([String].self, forKey: .winConditions)) ?? []
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(rounds, forKey: .rounds)
+        try container.encode(roundDurationSeconds, forKey: .roundDurationSeconds)
+        try container.encode(restSeconds, forKey: .restSeconds)
+        try container.encodeIfPresent(intensityCue, forKey: .intensityCue)
+        try container.encodeIfPresent(resetRule, forKey: .resetRule)
+        try container.encodeIfPresent(startingState, forKey: .startingState)
+        // Only encode non-empty arrays
+        if !winConditions.isEmpty {
+            try container.encode(winConditions, forKey: .winConditions)
+        }
+    }
 }
 
 /// Starting state for positional work
@@ -261,6 +329,29 @@ public struct StartingState: Codable, Equatable {
     public init(grips: [String] = [], roles: [String] = []) {
         self.grips = grips
         self.roles = roles
+    }
+    
+    // MARK: - Custom Codable for backward compatibility
+    
+    enum CodingKeys: String, CodingKey {
+        case grips, roles
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.grips = (try? container.decode([String].self, forKey: .grips)) ?? []
+        self.roles = (try? container.decode([String].self, forKey: .roles)) ?? []
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        // Only encode non-empty arrays
+        if !grips.isEmpty {
+            try container.encode(grips, forKey: .grips)
+        }
+        if !roles.isEmpty {
+            try container.encode(roles, forKey: .roles)
+        }
     }
 }
 
@@ -318,6 +409,31 @@ public struct Safety: Codable, Equatable {
         self.contraindications = contraindications
         self.stopIf = stopIf
         self.intensityCeiling = intensityCeiling
+    }
+    
+    // MARK: - Custom Codable for backward compatibility
+    
+    enum CodingKeys: String, CodingKey {
+        case contraindications, stopIf, intensityCeiling
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.contraindications = (try? container.decode([String].self, forKey: .contraindications)) ?? []
+        self.stopIf = (try? container.decode([String].self, forKey: .stopIf)) ?? []
+        self.intensityCeiling = try container.decodeIfPresent(String.self, forKey: .intensityCeiling)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        // Only encode non-empty arrays
+        if !contraindications.isEmpty {
+            try container.encode(contraindications, forKey: .contraindications)
+        }
+        if !stopIf.isEmpty {
+            try container.encode(stopIf, forKey: .stopIf)
+        }
+        try container.encodeIfPresent(intensityCeiling, forKey: .intensityCeiling)
     }
 }
 
@@ -482,6 +598,29 @@ public struct Scoring: Codable, Equatable {
     public init(attackerScoresIf: [String] = [], defenderScoresIf: [String] = []) {
         self.attackerScoresIf = attackerScoresIf
         self.defenderScoresIf = defenderScoresIf
+    }
+    
+    // MARK: - Custom Codable for backward compatibility
+    
+    enum CodingKeys: String, CodingKey {
+        case attackerScoresIf, defenderScoresIf
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.attackerScoresIf = (try? container.decode([String].self, forKey: .attackerScoresIf)) ?? []
+        self.defenderScoresIf = (try? container.decode([String].self, forKey: .defenderScoresIf)) ?? []
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        // Only encode non-empty arrays
+        if !attackerScoresIf.isEmpty {
+            try container.encode(attackerScoresIf, forKey: .attackerScoresIf)
+        }
+        if !defenderScoresIf.isEmpty {
+            try container.encode(defenderScoresIf, forKey: .defenderScoresIf)
+        }
     }
 }
 
@@ -705,6 +844,101 @@ public struct Segment: Identifiable, Codable, Equatable {
         self.media = media
         self.safety = safety
         self.notes = notes
+    }
+    
+    // MARK: - Custom Codable for backward compatibility
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, segmentType, domain, durationMinutes, objective
+        case constraints, coachingCues, positions, techniques
+        case roundPlan, drillPlan, partnerPlan, roles, resistance
+        case qualityTargets, scoring, startPosition, endCondition, startingState
+        case holdSeconds, breathCount, flowSequence, intensityScale, props
+        case breathwork, media, safety, notes
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decode(SegmentID.self, forKey: .id)
+        self.name = try container.decode(String.self, forKey: .name)
+        self.segmentType = try container.decode(SegmentType.self, forKey: .segmentType)
+        self.domain = try container.decodeIfPresent(Domain.self, forKey: .domain)
+        self.durationMinutes = try container.decodeIfPresent(Int.self, forKey: .durationMinutes)
+        self.objective = try container.decodeIfPresent(String.self, forKey: .objective)
+        
+        // Decode arrays with fallback to empty
+        self.constraints = (try? container.decode([String].self, forKey: .constraints)) ?? []
+        self.coachingCues = (try? container.decode([String].self, forKey: .coachingCues)) ?? []
+        self.positions = (try? container.decode([String].self, forKey: .positions)) ?? []
+        self.techniques = (try? container.decode([Technique].self, forKey: .techniques)) ?? []
+        self.flowSequence = (try? container.decode([FlowStep].self, forKey: .flowSequence)) ?? []
+        self.props = (try? container.decode([String].self, forKey: .props)) ?? []
+        
+        self.roundPlan = try container.decodeIfPresent(RoundPlan.self, forKey: .roundPlan)
+        self.drillPlan = try container.decodeIfPresent(DrillPlan.self, forKey: .drillPlan)
+        self.partnerPlan = try container.decodeIfPresent(PartnerPlan.self, forKey: .partnerPlan)
+        self.roles = try container.decodeIfPresent(Roles.self, forKey: .roles)
+        self.resistance = try container.decodeIfPresent(Int.self, forKey: .resistance)
+        self.qualityTargets = try container.decodeIfPresent(QualityTargets.self, forKey: .qualityTargets)
+        self.scoring = try container.decodeIfPresent(Scoring.self, forKey: .scoring)
+        self.startPosition = try container.decodeIfPresent(String.self, forKey: .startPosition)
+        self.endCondition = try container.decodeIfPresent(String.self, forKey: .endCondition)
+        self.startingState = try container.decodeIfPresent(StartingState.self, forKey: .startingState)
+        self.holdSeconds = try container.decodeIfPresent(Int.self, forKey: .holdSeconds)
+        self.breathCount = try container.decodeIfPresent(Int.self, forKey: .breathCount)
+        self.intensityScale = try container.decodeIfPresent(IntensityScale.self, forKey: .intensityScale)
+        self.breathwork = try container.decodeIfPresent(BreathworkPlan.self, forKey: .breathwork)
+        self.media = try container.decodeIfPresent(Media.self, forKey: .media)
+        self.safety = try container.decodeIfPresent(Safety.self, forKey: .safety)
+        self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(segmentType, forKey: .segmentType)
+        try container.encodeIfPresent(domain, forKey: .domain)
+        try container.encodeIfPresent(durationMinutes, forKey: .durationMinutes)
+        try container.encodeIfPresent(objective, forKey: .objective)
+        
+        // Only encode non-empty arrays
+        if !constraints.isEmpty {
+            try container.encode(constraints, forKey: .constraints)
+        }
+        if !coachingCues.isEmpty {
+            try container.encode(coachingCues, forKey: .coachingCues)
+        }
+        if !positions.isEmpty {
+            try container.encode(positions, forKey: .positions)
+        }
+        if !techniques.isEmpty {
+            try container.encode(techniques, forKey: .techniques)
+        }
+        if !flowSequence.isEmpty {
+            try container.encode(flowSequence, forKey: .flowSequence)
+        }
+        if !props.isEmpty {
+            try container.encode(props, forKey: .props)
+        }
+        
+        try container.encodeIfPresent(roundPlan, forKey: .roundPlan)
+        try container.encodeIfPresent(drillPlan, forKey: .drillPlan)
+        try container.encodeIfPresent(partnerPlan, forKey: .partnerPlan)
+        try container.encodeIfPresent(roles, forKey: .roles)
+        try container.encodeIfPresent(resistance, forKey: .resistance)
+        try container.encodeIfPresent(qualityTargets, forKey: .qualityTargets)
+        try container.encodeIfPresent(scoring, forKey: .scoring)
+        try container.encodeIfPresent(startPosition, forKey: .startPosition)
+        try container.encodeIfPresent(endCondition, forKey: .endCondition)
+        try container.encodeIfPresent(startingState, forKey: .startingState)
+        try container.encodeIfPresent(holdSeconds, forKey: .holdSeconds)
+        try container.encodeIfPresent(breathCount, forKey: .breathCount)
+        try container.encodeIfPresent(intensityScale, forKey: .intensityScale)
+        try container.encodeIfPresent(breathwork, forKey: .breathwork)
+        try container.encodeIfPresent(media, forKey: .media)
+        try container.encodeIfPresent(safety, forKey: .safety)
+        try container.encodeIfPresent(notes, forKey: .notes)
     }
 }
 
