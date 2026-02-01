@@ -808,4 +808,137 @@ extension DataManagementTests {
         let importedExerciseDef = freshExerciseRepo.all()[0]
         XCTAssertEqual(importedExerciseDef.videoUrls?.count, 1)
     }
+    
+    /// Test that Media struct encoding/decoding is schema-compliant for export/import
+    func testMediaStructSchemaCompliance() throws {
+        // Test case 1: Media with empty arrays should encode without those fields
+        let emptyMedia = Media(
+            videoUrls: nil,
+            imageUrl: nil,
+            diagramAssetId: nil,
+            coachNotesMarkdown: nil,
+            commonFaults: [],
+            keyCues: [],
+            checkpoints: []
+        )
+        
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let emptyMediaData = try encoder.encode(emptyMedia)
+        let emptyMediaJSON = String(data: emptyMediaData, encoding: .utf8)!
+        
+        // Empty arrays should NOT be in the JSON to keep it clean
+        XCTAssertFalse(emptyMediaJSON.contains("commonFaults"), "Empty commonFaults should not be encoded")
+        XCTAssertFalse(emptyMediaJSON.contains("keyCues"), "Empty keyCues should not be encoded")
+        XCTAssertFalse(emptyMediaJSON.contains("checkpoints"), "Empty checkpoints should not be encoded")
+        
+        // Should decode back to same empty arrays
+        let decoder = JSONDecoder()
+        let decodedEmptyMedia = try decoder.decode(Media.self, from: emptyMediaData)
+        XCTAssertEqual(decodedEmptyMedia.commonFaults, [])
+        XCTAssertEqual(decodedEmptyMedia.keyCues, [])
+        XCTAssertEqual(decodedEmptyMedia.checkpoints, [])
+        
+        // Test case 2: Media with populated arrays should encode with those fields
+        let populatedMedia = Media(
+            videoUrls: ["https://youtube.com/video1"],
+            imageUrl: "https://example.com/image.png",
+            diagramAssetId: "diagram-123",
+            coachNotesMarkdown: "# Coaching Notes",
+            commonFaults: ["Fault 1", "Fault 2"],
+            keyCues: ["Cue 1"],
+            checkpoints: ["Checkpoint 1", "Checkpoint 2"]
+        )
+        
+        let populatedMediaData = try encoder.encode(populatedMedia)
+        let populatedMediaJSON = String(data: populatedMediaData, encoding: .utf8)!
+        
+        // Populated arrays SHOULD be in the JSON
+        XCTAssertTrue(populatedMediaJSON.contains("commonFaults"), "Non-empty commonFaults should be encoded")
+        XCTAssertTrue(populatedMediaJSON.contains("keyCues"), "Non-empty keyCues should be encoded")
+        XCTAssertTrue(populatedMediaJSON.contains("checkpoints"), "Non-empty checkpoints should be encoded")
+        
+        // Should decode back with same values
+        let decodedPopulatedMedia = try decoder.decode(Media.self, from: populatedMediaData)
+        XCTAssertEqual(decodedPopulatedMedia.videoUrls, ["https://youtube.com/video1"])
+        XCTAssertEqual(decodedPopulatedMedia.commonFaults, ["Fault 1", "Fault 2"])
+        XCTAssertEqual(decodedPopulatedMedia.keyCues, ["Cue 1"])
+        XCTAssertEqual(decodedPopulatedMedia.checkpoints, ["Checkpoint 1", "Checkpoint 2"])
+        
+        // Test case 3: Old JSON format without array fields should decode successfully
+        let oldFormatJSON = """
+        {
+            "videoUrls": ["https://youtube.com/old-video"],
+            "imageUrl": "https://example.com/old-image.png"
+        }
+        """
+        
+        let oldFormatData = oldFormatJSON.data(using: .utf8)!
+        let decodedOldFormat = try decoder.decode(Media.self, from: oldFormatData)
+        XCTAssertEqual(decodedOldFormat.videoUrls, ["https://youtube.com/old-video"])
+        XCTAssertEqual(decodedOldFormat.commonFaults, [], "Missing commonFaults should default to empty array")
+        XCTAssertEqual(decodedOldFormat.keyCues, [], "Missing keyCues should default to empty array")
+        XCTAssertEqual(decodedOldFormat.checkpoints, [], "Missing checkpoints should default to empty array")
+        
+        // Test case 4: Export/import round-trip with Media-containing block
+        let technique = Technique(
+            name: "Test Technique",
+            variant: "Standard",
+            keyDetails: ["Detail 1"],
+            commonErrors: ["Error 1"],
+            counters: ["Counter 1"],
+            followUps: ["Follow-up 1"],
+            videoUrls: ["https://youtube.com/technique"]
+        )
+        
+        let segment = Segment(
+            name: "Test Segment",
+            segmentType: .technique,
+            domain: .grappling,
+            durationMinutes: 10,
+            techniques: [technique]
+        )
+        
+        let day = DayTemplate(
+            name: "Test Day",
+            exercises: [],
+            segments: [segment]
+        )
+        
+        let block = Block(
+            name: "Media Test Block",
+            numberOfWeeks: 1,
+            days: [day]
+        )
+        
+        blocksRepository.add(block)
+        
+        // Export
+        let exportData = try dataService.exportAllDataAsJSON()
+        
+        // Verify export is valid JSON
+        let exportJSON = String(data: exportData, encoding: .utf8)!
+        XCTAssertFalse(exportJSON.isEmpty)
+        
+        // Import into fresh repository
+        let freshBlocksRepo = BlocksRepository(blocks: [])
+        let freshSessionsRepo = SessionsRepository(sessions: [])
+        let freshExerciseRepo = ExerciseLibraryRepository(exercises: [])
+        
+        let importService = DataManagementService(
+            blocksRepository: freshBlocksRepo,
+            sessionsRepository: freshSessionsRepo,
+            exerciseRepository: freshExerciseRepo
+        )
+        
+        // Should import successfully
+        try importService.importDataFromJSON(exportData, strategy: .replace)
+        
+        // Verify imported data
+        XCTAssertEqual(freshBlocksRepo.allBlocks().count, 1)
+        let importedBlock = freshBlocksRepo.allBlocks()[0]
+        XCTAssertEqual(importedBlock.name, "Media Test Block")
+        XCTAssertEqual(importedBlock.days[0].segments?.count, 1)
+        XCTAssertEqual(importedBlock.days[0].segments?[0].techniques.count, 1)
+    }
 }

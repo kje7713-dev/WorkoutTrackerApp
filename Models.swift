@@ -408,9 +408,16 @@ public struct Media: Codable, Equatable {
         try container.encodeIfPresent(imageUrl, forKey: .imageUrl)
         try container.encodeIfPresent(diagramAssetId, forKey: .diagramAssetId)
         try container.encodeIfPresent(coachNotesMarkdown, forKey: .coachNotesMarkdown)
-        try container.encode(commonFaults, forKey: .commonFaults)
-        try container.encode(keyCues, forKey: .keyCues)
-        try container.encode(checkpoints, forKey: .checkpoints)
+        // Use encodeIfPresent for arrays to allow schema flexibility - only encode non-empty arrays
+        if !commonFaults.isEmpty {
+            try container.encode(commonFaults, forKey: .commonFaults)
+        }
+        if !keyCues.isEmpty {
+            try container.encode(keyCues, forKey: .keyCues)
+        }
+        if !checkpoints.isEmpty {
+            try container.encode(checkpoints, forKey: .checkpoints)
+        }
     }
 }
 
