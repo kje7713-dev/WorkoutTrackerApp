@@ -101,6 +101,69 @@ struct FeedbackFormTests {
         return result
     }
     
+    /// Test that mailto URL is properly generated
+    static func testMailtoURLGeneration() -> Bool {
+        print("Testing mailto URL generation...")
+        
+        let mailtoURL = FeedbackService.mailtoURL(
+            for: .featureRequest,
+            title: "Test Feature",
+            description: "Test Description"
+        )
+        
+        guard let url = mailtoURL else {
+            print("Mailto URL generation: FAIL (URL is nil)")
+            return false
+        }
+        
+        let urlString = url.absoluteString
+        let hasMailto = urlString.starts(with: "mailto:")
+        let hasEmail = urlString.contains(FeedbackService.feedbackEmail)
+        let hasSubject = urlString.contains("subject=")
+        let hasBody = urlString.contains("body=")
+        
+        let result = hasMailto && hasEmail && hasSubject && hasBody
+        
+        print("Mailto URL generation: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
+    /// Test that mailto URL properly encodes special characters
+    static func testMailtoURLEncoding() -> Bool {
+        print("Testing mailto URL encoding...")
+        
+        let mailtoURL = FeedbackService.mailtoURL(
+            for: .bugReport,
+            title: "Test & Special",
+            description: "Description with spaces and special chars: @#$%"
+        )
+        
+        guard let url = mailtoURL else {
+            print("Mailto URL encoding: FAIL (URL is nil)")
+            return false
+        }
+        
+        let urlString = url.absoluteString
+        // Check that spaces are encoded
+        let hasNoSpaces = !urlString.contains(" ")
+        
+        // Check that ampersand in the title/body is encoded (not the & in URL params)
+        // Extract just the query parameters portion (after the ?)
+        if let queryStart = urlString.firstIndex(of: "?") {
+            let queryString = String(urlString[queryStart...])
+            let hasEncodedAmpersand = queryString.contains("%26") // & in title should be %26
+            
+            let result = hasNoSpaces && hasEncodedAmpersand
+            print("Mailto URL encoding: \(result ? "PASS" : "FAIL")")
+            return result
+        }
+        
+        // Fallback: at minimum check no spaces
+        let result = hasNoSpaces
+        print("Mailto URL encoding: \(result ? "PASS" : "FAIL")")
+        return result
+    }
+    
     // MARK: - Run All Tests
     
     static func runAllTests() -> Bool {
@@ -112,7 +175,9 @@ struct FeedbackFormTests {
             testEmailSubjectFormatting(),
             testEmailBodyFormatting(),
             testFeedbackEmailAddress(),
-            testFeedbackErrorDescriptions()
+            testFeedbackErrorDescriptions(),
+            testMailtoURLGeneration(),
+            testMailtoURLEncoding()
         ]
         
         let passedTests = results.filter { $0 }.count

@@ -36,6 +36,26 @@ class FeedbackService {
         Submitted from Savage By Design iOS App
         """
     }
+    
+    /// Create mailto URL for feedback (fallback when Mail app is not available)
+    static func mailtoURL(for type: FeedbackType, title: String, description: String) -> URL? {
+        let subject = emailSubject(for: type, title: title)
+        let body = emailBody(type: type, title: title, description: description)
+        
+        // Create custom character set that excludes & to avoid URL parsing ambiguity
+        // The & character is used as a separator between query parameters (subject= and body=)
+        // so literal & in the text content must be encoded as %26
+        let allowedCharacters = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&"))
+        
+        // URL encode the subject and body
+        guard let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: allowedCharacters),
+              let encodedBody = body.addingPercentEncoding(withAllowedCharacters: allowedCharacters) else {
+            return nil
+        }
+        
+        let urlString = "mailto:\(feedbackEmail)?subject=\(encodedSubject)&body=\(encodedBody)"
+        return URL(string: urlString)
+    }
 }
 
 /// Type of feedback submission

@@ -149,13 +149,46 @@ struct FeedbackFormView: View {
     private func submitFeedback() {
         guard submitButtonEnabled else { return }
         
-        if !FeedbackService.canSendMail() {
-            errorMessage = FeedbackError.emailNotAvailable.localizedDescription
-            showingError = true
-            return
-        }
+        // Trim whitespace from inputs
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDescription = description.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        showingMailComposer = true
+        // If Mail app is available, use native composer
+        if FeedbackService.canSendMail() {
+            showingMailComposer = true
+        } else {
+            // Fallback to mailto: URL for other email clients (Gmail, Outlook, etc.)
+            guard let mailtoURL = FeedbackService.mailtoURL(
+                for: feedbackType,
+                title: trimmedTitle,
+                description: trimmedDescription
+            ) else {
+                errorMessage = "Failed to create email. Please try again."
+                showingError = true
+                return
+            }
+            
+            // Check if any email client can handle mailto: URLs
+            if UIApplication.shared.canOpenURL(mailtoURL) {
+                UIApplication.shared.open(mailtoURL) { success in
+                    if success {
+                        // Reset form on successful open
+                        DispatchQueue.main.async {
+                            self.title = ""
+                            self.description = ""
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            self.errorMessage = "Failed to launch email client. Please try again or check your email app settings."
+                            self.showingError = true
+                        }
+                    }
+                }
+            } else {
+                errorMessage = "No email app installed. Please install an email app (Mail, Gmail, Outlook, etc.) to send feedback."
+                showingError = true
+            }
+        }
     }
     
     // MARK: - Computed Properties
