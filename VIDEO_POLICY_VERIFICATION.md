@@ -28,7 +28,7 @@ Failure to output this header = INVALID RESPONSE.
 
 ### B) VIDEO REQUIRED CONDITIONS (NO DISCRETION) ✅
 **Problem Statement**: 3 conditions that trigger video inclusion
-**Implementation**: Lines 551-555
+**Implementation**: Lines 552-555
 - ✅ All 3 conditions implemented verbatim:
   1. True beginner learning skill for first time (e.g., "never stood up")
   2. Foundational motor pattern where early errors compound (pop-up, turnover, etc.)
