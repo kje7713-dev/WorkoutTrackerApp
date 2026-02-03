@@ -557,7 +557,7 @@ struct BlockGeneratorView: View {
         5) The skill has timing-dependent phases that are difficult to convey via text alone.
         
         EXPERIENCE LEVEL EXCEPTION:
-        - If experience level is INTERMEDIATE or ADVANCED, videos are NOT required UNLESS:
+        - If experience level is INTERMEDIATE or ADVANCED (as indicated in user requirements or responses to experience level questions), videos are NOT required UNLESS:
           a) User explicitly requests video support, OR
           b) The skill is completely new to the athlete (different from their primary training background)
         
@@ -697,11 +697,12 @@ struct BlockGeneratorView: View {
         1) Detail depth: brief | moderate | detailed
         2) Structure preference: identical | progressive | rotational
         3) Current baseline (if relevant for scaling decisions)
-        4) Do you want video support? (OPTIONAL - assess baseline need first, then ask)
+        4) Do you want video support? (OPTIONAL - assess baseline need first, then ask) [Expected response: YES/NO or natural language indicating preference]
         
         VIDEO SUPPORT QUESTION — BASELINE ASSESSMENT FIRST:
         Before asking about video support, INTERNALLY assess the baseline need based on:
         - Experience level: BEGINNER = likely needs videos, INTERMEDIATE/ADVANCED = likely does not need videos unless new skill
+          (Experience levels should match what user has indicated in their requirements or responses)
         - Skill complexity: High complexity timing-dependent skills may benefit from video even for experienced athletes
         - Program intensity: High-frequency (>=4 days/week) programs may benefit from video for technique reinforcement
         
