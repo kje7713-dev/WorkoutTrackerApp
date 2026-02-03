@@ -589,7 +589,7 @@ public struct Block: Identifiable, Codable, Equatable {
     /// - If weekTemplates is populated, returns the count from the first week
     /// - Otherwise, returns the count from the standard days array
     public var daysPerWeek: Int {
-        if let weekTemplates = weekTemplates, !weekTemplates.isEmpty, let firstWeek = weekTemplates.first {
+        if let weekTemplates = weekTemplates, let firstWeek = weekTemplates.first {
             return firstWeek.count
         }
         return days.count
