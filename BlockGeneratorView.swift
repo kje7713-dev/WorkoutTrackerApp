@@ -702,7 +702,6 @@ struct BlockGeneratorView: View {
         - Experience level: BEGINNER = likely needs videos, INTERMEDIATE/ADVANCED = likely does not need videos unless new skill
           (Experience levels should match what user has indicated in their requirements or responses)
         - Skill complexity: High complexity timing-dependent skills may benefit from video even for experienced athletes
-        - Program intensity: High-frequency (>=4 days/week) programs may benefit from video for technique reinforcement
         
         THEN, if the baseline assessment suggests video support would be optional/borderline:
         - ASK: "Do you want video support included for exercise demonstrations?"
