@@ -552,9 +552,7 @@ struct BlockGeneratorView: View {
         Set VIDEO_DECISION.included = YES and mediaImpact = high if ANY of the following are true:
         1) The athlete is a TRUE BEGINNER learning the skill for the first time (e.g., "never stood up").
         2) The program teaches a foundational motor pattern where early errors compound (pop-up, turnover, etc.).
-        3) The user describes the program as intensive/accelerated/high-frequency OR DaysPerWeek >= 4.
-        4) The program implies high-repetition exposure in a short window (>= 4 sessions/week OR >= 2 weeks with >= 4 sessions/week).
-        5) The skill has timing-dependent phases that are difficult to convey via text alone.
+        3) The skill has timing-dependent phases that are difficult to convey via text alone.
         
         EXPERIENCE LEVEL EXCEPTION:
         - If experience level is INTERMEDIATE or ADVANCED (as indicated in user requirements or responses to experience level questions), videos are NOT required UNLESS:
@@ -704,7 +702,6 @@ struct BlockGeneratorView: View {
         - Experience level: BEGINNER = likely needs videos, INTERMEDIATE/ADVANCED = likely does not need videos unless new skill
           (Experience levels should match what user has indicated in their requirements or responses)
         - Skill complexity: High complexity timing-dependent skills may benefit from video even for experienced athletes
-        - Program intensity: High-frequency (>=4 days/week) programs may benefit from video for technique reinforcement
         
         THEN, if the baseline assessment suggests video support would be optional/borderline:
         - ASK: "Do you want video support included for exercise demonstrations?"

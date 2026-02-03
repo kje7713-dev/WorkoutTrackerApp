@@ -22,12 +22,10 @@ Added a new major section titled "VIDEO POLICY — ENFORCEMENT RULES (NON-NEGOTI
   ```
 
 #### B) VIDEO REQUIRED CONDITIONS (NO DISCRETION)
-Five specific conditions that automatically trigger video inclusion:
+Three specific conditions that automatically trigger video inclusion:
 1. True beginner learning skill for the first time
 2. Foundational motor pattern where early errors compound
-3. Intensive/accelerated/high-frequency programs (DaysPerWeek >= 4)
-4. High-repetition exposure in short window (>= 4 sessions/week OR >= 2 weeks with >= 4 sessions/week)
-5. Timing-dependent phases difficult to convey via text alone
+3. Timing-dependent phases difficult to convey via text alone
 
 **Critical**: If ANY condition is true and AI sets included = NO → INVALID RESPONSE
 
@@ -112,15 +110,7 @@ The VIDEO POLICY creates three validation checkpoints:
 - "Teach deadlift to new lifters"
 - Must include videos for hip hinge pattern
 
-### Condition 3 - Intensive Program
-- "4-week program training 5 days per week"
-- High frequency triggers video requirement
-
-### Condition 4 - High-Repetition Exposure
-- "2-week intensive with 4 sessions per week"
-- Short window + high frequency triggers video requirement
-
-### Condition 5 - Timing-Dependent
+### Condition 3 - Timing-Dependent
 - "Teach Olympic lifts (snatch, clean & jerk)"
 - Complex timing phases require video demonstration
 
