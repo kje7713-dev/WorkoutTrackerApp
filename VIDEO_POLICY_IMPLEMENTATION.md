@@ -22,12 +22,10 @@ Added a new major section titled "VIDEO POLICY — ENFORCEMENT RULES (NON-NEGOTI
   ```
 
 #### B) VIDEO REQUIRED CONDITIONS (NO DISCRETION)
-Five specific conditions that automatically trigger video inclusion:
+Three specific conditions that automatically trigger video inclusion:
 1. True beginner learning skill for the first time
 2. Foundational motor pattern where early errors compound
-3. Intensive/accelerated/high-frequency programs (DaysPerWeek >= 4)
-4. High-repetition exposure in short window (>= 4 sessions/week OR >= 2 weeks with >= 4 sessions/week)
-5. Timing-dependent phases difficult to convey via text alone
+3. Timing-dependent phases difficult to convey via text alone
 
 **Critical**: If ANY condition is true and AI sets included = NO → INVALID RESPONSE
 
@@ -112,15 +110,7 @@ The VIDEO POLICY creates three validation checkpoints:
 - "Teach deadlift to new lifters"
 - Must include videos for hip hinge pattern
 
-### Condition 3 - Intensive Program
-- "4-week program training 5 days per week"
-- High frequency triggers video requirement
-
-### Condition 4 - High-Repetition Exposure
-- "2-week intensive with 4 sessions per week"
-- Short window + high frequency triggers video requirement
-
-### Condition 5 - Timing-Dependent
+### Condition 3 - Timing-Dependent
 - "Teach Olympic lifts (snatch, clean & jerk)"
 - Complex timing phases require video demonstration
 
@@ -129,10 +119,9 @@ The VIDEO POLICY creates three validation checkpoints:
 To validate the implementation:
 
 1. **Test with beginner programs**: Verify VIDEO_DECISION header appears and videos are included
-2. **Test with high-frequency programs**: Verify 4+ days/week triggers video inclusion
-3. **Test with standard programs**: Verify videos can be omitted when conditions not met
-4. **Test video count**: Verify minimalism (1-2 videos per skill, total <= 6)
-5. **Verify schema compliance**: Ensure videos use only existing schema fields
+2. **Test with standard programs**: Verify videos can be omitted when conditions not met
+3. **Test video count**: Verify minimalism (1-2 videos per skill, total <= 6)
+4. **Verify schema compliance**: Ensure videos use only existing schema fields
 
 ## Impact on User Experience
 

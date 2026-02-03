@@ -27,14 +27,12 @@ Failure to output this header = INVALID RESPONSE.
 - ✅ Failure condition stated
 
 ### B) VIDEO REQUIRED CONDITIONS (NO DISCRETION) ✅
-**Problem Statement**: 5 conditions that trigger video inclusion
-**Implementation**: Lines 583-591
-- ✅ All 5 conditions implemented verbatim:
+**Problem Statement**: 3 conditions that trigger video inclusion
+**Implementation**: Lines 551-555
+- ✅ All 3 conditions implemented verbatim:
   1. True beginner learning skill for first time (e.g., "never stood up")
   2. Foundational motor pattern where early errors compound (pop-up, turnover, etc.)
-  3. Intensive/accelerated/high-frequency OR DaysPerWeek >= 4
-  4. High-repetition exposure (>= 4 sessions/week OR >= 2 weeks with >= 4 sessions/week)
-  5. Timing-dependent phases difficult to convey via text alone
+  3. Timing-dependent phases difficult to convey via text alone
 - ✅ Validation rule: "If ANY condition is true and you set included = NO → INVALID RESPONSE"
 
 ### C) MINIMUM VIDEO REQUIREMENT (WHEN INCLUDED=YES) ✅

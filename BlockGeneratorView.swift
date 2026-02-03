@@ -552,9 +552,7 @@ struct BlockGeneratorView: View {
         Set VIDEO_DECISION.included = YES and mediaImpact = high if ANY of the following are true:
         1) The athlete is a TRUE BEGINNER learning the skill for the first time (e.g., "never stood up").
         2) The program teaches a foundational motor pattern where early errors compound (pop-up, turnover, etc.).
-        3) The user describes the program as intensive/accelerated/high-frequency OR DaysPerWeek >= 4.
-        4) The program implies high-repetition exposure in a short window (>= 4 sessions/week OR >= 2 weeks with >= 4 sessions/week).
-        5) The skill has timing-dependent phases that are difficult to convey via text alone.
+        3) The skill has timing-dependent phases that are difficult to convey via text alone.
         
         EXPERIENCE LEVEL EXCEPTION:
         - If experience level is INTERMEDIATE or ADVANCED (as indicated in user requirements or responses to experience level questions), videos are NOT required UNLESS:
