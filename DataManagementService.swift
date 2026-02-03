@@ -122,7 +122,7 @@ public final class DataManagementService {
             let source = block.source.rawValue
             let archived = block.isArchived ? "Yes" : "No"
             
-            csv += "\(escapeCSVField(block.name)),\(block.numberOfWeeks),\(block.days.count),\(totalExercises),\(escapeCSVField(goal)),\(escapeCSVField(source)),\(archived)\n"
+            csv += "\(escapeCSVField(block.name)),\(block.numberOfWeeks),\(block.daysPerWeek),\(totalExercises),\(escapeCSVField(goal)),\(escapeCSVField(source)),\(archived)\n"
         }
         
         return csv

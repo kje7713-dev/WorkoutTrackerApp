@@ -1,0 +1,197 @@
+{
+  "Title": "4-Day Upper/Lower Split",
+  "Goal": "hypertrophy",
+  "TargetAthlete": "Intermediate",
+  "NumberOfWeeks": 4,
+  "DurationMinutes": 60,
+  "Difficulty": 3,
+  "Equipment": "Full gym",
+  "WarmUp": "5 min cardio + dynamic stretching",
+  "Weeks": [
+    [
+      {
+        "name": "Week 1 - Upper Push",
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "type": "strength",
+            "category": "pressHorizontal",
+            "setsReps": "4x8"
+          }
+        ]
+      },
+      {
+        "name": "Week 1 - Lower Body",
+        "exercises": [
+          {
+            "name": "Squat",
+            "type": "strength",
+            "category": "squat",
+            "setsReps": "4x8"
+          }
+        ]
+      },
+      {
+        "name": "Week 1 - Upper Pull",
+        "exercises": [
+          {
+            "name": "Pull-ups",
+            "type": "strength",
+            "category": "pullVertical",
+            "setsReps": "4x8"
+          }
+        ]
+      },
+      {
+        "name": "Week 1 - Lower Body 2",
+        "exercises": [
+          {
+            "name": "Deadlift",
+            "type": "strength",
+            "category": "hinge",
+            "setsReps": "4x6"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "name": "Week 2 - Upper Push",
+        "exercises": [
+          {
+            "name": "Incline Bench Press",
+            "type": "strength",
+            "category": "pressHorizontal",
+            "setsReps": "4x10"
+          }
+        ]
+      },
+      {
+        "name": "Week 2 - Lower Body",
+        "exercises": [
+          {
+            "name": "Front Squat",
+            "type": "strength",
+            "category": "squat",
+            "setsReps": "4x10"
+          }
+        ]
+      },
+      {
+        "name": "Week 2 - Upper Pull",
+        "exercises": [
+          {
+            "name": "Barbell Rows",
+            "type": "strength",
+            "category": "pullHorizontal",
+            "setsReps": "4x10"
+          }
+        ]
+      },
+      {
+        "name": "Week 2 - Lower Body 2",
+        "exercises": [
+          {
+            "name": "Romanian Deadlift",
+            "type": "strength",
+            "category": "hinge",
+            "setsReps": "4x8"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "name": "Week 3 - Upper Push",
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "type": "strength",
+            "category": "pressHorizontal",
+            "setsReps": "5x6"
+          }
+        ]
+      },
+      {
+        "name": "Week 3 - Lower Body",
+        "exercises": [
+          {
+            "name": "Squat",
+            "type": "strength",
+            "category": "squat",
+            "setsReps": "5x6"
+          }
+        ]
+      },
+      {
+        "name": "Week 3 - Upper Pull",
+        "exercises": [
+          {
+            "name": "Pull-ups",
+            "type": "strength",
+            "category": "pullVertical",
+            "setsReps": "5x6"
+          }
+        ]
+      },
+      {
+        "name": "Week 3 - Lower Body 2",
+        "exercises": [
+          {
+            "name": "Deadlift",
+            "type": "strength",
+            "category": "hinge",
+            "setsReps": "5x4"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "name": "Week 4 - Deload Upper Push",
+        "exercises": [
+          {
+            "name": "Bench Press",
+            "type": "strength",
+            "category": "pressHorizontal",
+            "setsReps": "3x8"
+          }
+        ]
+      },
+      {
+        "name": "Week 4 - Deload Lower Body",
+        "exercises": [
+          {
+            "name": "Squat",
+            "type": "strength",
+            "category": "squat",
+            "setsReps": "3x8"
+          }
+        ]
+      },
+      {
+        "name": "Week 4 - Deload Upper Pull",
+        "exercises": [
+          {
+            "name": "Pull-ups",
+            "type": "strength",
+            "category": "pullVertical",
+            "setsReps": "3x8"
+          }
+        ]
+      },
+      {
+        "name": "Week 4 - Deload Lower Body 2",
+        "exercises": [
+          {
+            "name": "Deadlift",
+            "type": "strength",
+            "category": "hinge",
+            "setsReps": "3x5"
+          }
+        ]
+      }
+    ]
+  ],
+  "Notes": "4-day per week upper/lower split with progressive overload"
+}

@@ -344,7 +344,7 @@ struct BlockGeneratorView: View {
                 
                 // Stats
                 HStack(spacing: 16) {
-                    Label("\(block.days.count) day(s)", systemImage: "calendar")
+                    Label("\(block.daysPerWeek) day(s)", systemImage: "calendar")
                         .font(.system(size: 14))
                         .foregroundColor(theme.mutedText)
                     

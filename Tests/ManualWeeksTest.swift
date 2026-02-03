@@ -63,12 +63,22 @@ struct ManualWeeksTest {
                 print("✅ Block created: '\(block.name)'")
                 print("   numberOfWeeks: \(block.numberOfWeeks)")
                 print("   days.count: \(block.days.count)")
+                print("   daysPerWeek: \(block.daysPerWeek)")
                 
                 if let weekTemplates = block.weekTemplates {
                     print("   ✅ weekTemplates: \(weekTemplates.count) weeks")
                     
                     for (weekIndex, weekDays) in weekTemplates.enumerated() {
                         print("      Week \(weekIndex + 1): \(weekDays.count) days")
+                    }
+                    
+                    // Verify daysPerWeek matches first week's day count
+                    let expectedDaysPerWeek = weekTemplates.first?.count ?? 0
+                    if block.daysPerWeek == expectedDaysPerWeek {
+                        print("   ✅ daysPerWeek (\(block.daysPerWeek)) correctly matches first week's day count")
+                    } else {
+                        print("   ❌ daysPerWeek mismatch: got \(block.daysPerWeek), expected \(expectedDaysPerWeek)")
+                        return false
                     }
                 } else {
                     print("   ❌ weekTemplates is nil")

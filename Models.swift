@@ -584,6 +584,16 @@ public struct Block: Identifiable, Codable, Equatable {
         self.attire = attire
         self.classType = classType
     }
+    
+    /// Returns the number of days per week for this block.
+    /// - If weekTemplates is populated, returns the count from the first week
+    /// - Otherwise, returns the count from the standard days array
+    public var daysPerWeek: Int {
+        if let weekTemplates = weekTemplates, !weekTemplates.isEmpty, let firstWeek = weekTemplates.first {
+            return firstWeek.count
+        }
+        return days.count
+    }
 }
 
 // MARK: - Segment (Non-Traditional Session Unit)
