@@ -532,6 +532,11 @@ struct BlockGeneratorView: View {
         VIDEO POLICY — ENFORCEMENT RULES (NON-NEGOTIABLE)
         ═══════════════════════════════════════════════════════════════
         
+        YOUTUBE ASSUMPTIONS:
+        - Assume NO rate limits on YouTube
+        - YouTube is the FIRST PREFERENCE for all video sources
+        - Use YouTube URLs whenever possible for consistency and reliability
+        
         A) REQUIRED OUTPUT (BEFORE JSON)
         Before generating the activity JSON, you MUST output a short plain-text header exactly in this format:
         
@@ -545,13 +550,18 @@ struct BlockGeneratorView: View {
         
         B) VIDEO REQUIRED CONDITIONS (NO DISCRETION)
         Set VIDEO_DECISION.included = YES and mediaImpact = high if ANY of the following are true:
-        1) The athlete is a true beginner learning the skill for the first time (e.g., "never stood up").
+        1) The athlete is a TRUE BEGINNER learning the skill for the first time (e.g., "never stood up").
         2) The program teaches a foundational motor pattern where early errors compound (pop-up, turnover, etc.).
         3) The user describes the program as intensive/accelerated/high-frequency OR DaysPerWeek >= 4.
         4) The program implies high-repetition exposure in a short window (>= 4 sessions/week OR >= 2 weeks with >= 4 sessions/week).
         5) The skill has timing-dependent phases that are difficult to convey via text alone.
         
-        If ANY condition is true and you set included = NO → INVALID RESPONSE.
+        EXPERIENCE LEVEL EXCEPTION:
+        - If experience level is INTERMEDIATE or ADVANCED (as indicated in user requirements or responses to experience level questions), videos are NOT required UNLESS:
+          a) User explicitly requests video support, OR
+          b) The skill is completely new to the athlete (different from their primary training background)
+        
+        If ANY condition is true AND experience level exception does not apply, and you set included = NO → INVALID RESPONSE.
         
         C) MINIMUM VIDEO REQUIREMENT (WHEN INCLUDED=YES)
         When VIDEO_DECISION.included = YES:
@@ -687,9 +697,25 @@ struct BlockGeneratorView: View {
         1) Detail depth: brief | moderate | detailed
         2) Structure preference: identical | progressive | rotational
         3) Current baseline (if relevant for scaling decisions)
+        4) Do you want video support? (OPTIONAL - assess baseline need first, then ask) [Expected response: YES/NO or natural language indicating preference]
         
-        NOTE: Video inclusion is now enforced by VIDEO POLICY rules (see VIDEO_DECISION header requirements above).
-        Do NOT ask about video preferences - follow the VIDEO REQUIRED CONDITIONS automatically.
+        VIDEO SUPPORT QUESTION — BASELINE ASSESSMENT FIRST:
+        Before asking about video support, INTERNALLY assess the baseline need based on:
+        - Experience level: BEGINNER = likely needs videos, INTERMEDIATE/ADVANCED = likely does not need videos unless new skill
+          (Experience levels should match what user has indicated in their requirements or responses)
+        - Skill complexity: High complexity timing-dependent skills may benefit from video even for experienced athletes
+        - Program intensity: High-frequency (>=4 days/week) programs may benefit from video for technique reinforcement
+        
+        THEN, if the baseline assessment suggests video support would be optional/borderline:
+        - ASK: "Do you want video support included for exercise demonstrations?"
+        - If user says YES, include videos (set VIDEO_DECISION.included = YES)
+        - If user says NO or does not respond to the question, follow VIDEO REQUIRED CONDITIONS
+        
+        If baseline assessment clearly indicates videos are REQUIRED (true beginner + foundational motor patterns):
+        - DO NOT ask the question - automatically include videos per VIDEO REQUIRED CONDITIONS
+        
+        If baseline assessment clearly indicates videos are NOT needed (intermediate/advanced + familiar exercises):
+        - DO NOT ask the question - follow VIDEO REQUIRED CONDITIONS (which will set included = NO)
         
         DO NOT ask about:
         - Volume parameters (unit counts, activity density) - you determine these based on context
@@ -729,7 +755,8 @@ struct BlockGeneratorView: View {
         - StructureConsistency = progressive (for multi-week blocks)
         
         NOTE: MediaPolicy is now enforced by VIDEO POLICY rules - not a default setting.
-        Follow VIDEO_DECISION requirements based on VIDEO REQUIRED CONDITIONS.
+        Follow VIDEO_DECISION requirements based on VIDEO REQUIRED CONDITIONS and the experience level exception.
+        Video support question (question 4) should only be asked when baseline assessment is borderline.
         
         SCOPE SUMMARY (FINAL) — REQUIRED OUTPUT:
         contentType:
