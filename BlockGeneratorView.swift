@@ -443,6 +443,8 @@ struct BlockGeneratorView: View {
         
         Schema correctness is NON-NEGOTIABLE. Output MUST be valid JSON and conform exactly to the provided schema.
         
+        CRITICAL: If generating output in segments or streaming responses, every segmented JSON output MUST be a complete, valid instance of the schema. Do NOT output partial JSON that only becomes valid when all segments are combined.
+        
         ═══════════════════════════════════════════════════════════════
         DOMAIN DECLARATION — NON-NEGOTIABLE
         ═══════════════════════════════════════════════════════════════
