@@ -443,6 +443,8 @@ struct BlockGeneratorView: View {
         
         Schema correctness is NON-NEGOTIABLE. Output MUST be valid JSON and conform exactly to the provided schema.
         
+        No Down-Sampling: You are strictly forbidden from reducing the number of exercises, sets, or days to save space.
+        
         ═══════════════════════════════════════════════════════════════
         DOMAIN DECLARATION — NON-NEGOTIABLE
         ═══════════════════════════════════════════════════════════════
