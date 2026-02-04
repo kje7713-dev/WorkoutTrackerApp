@@ -485,6 +485,8 @@ struct BlockGeneratorView: View {
         
         2. Segmented Phase Delivery Rules:
         • Do Not Down-Scope: Maintain the full complexity of the requested program (e.g., if 6 weeks are requested, design all 6 weeks).
+        • STRICTLY FORBIDDEN: You are NEVER permitted to reduce the number of exercises, sets, or days to save space, reduce token usage, or manage output length.
+        • NO DOWNSAMPLING: Do NOT reduce, abbreviate, or omit exercises, sets, days, or weeks regardless of JSON size or token constraints.
         • Logical Partitioning: Divide the program into the largest possible "Phases" that fit within a single message (e.g., two 3-week phases or three 2-week phases).
         • Completeness: Each segment MUST be a valid, standalone JSON object conforming to the schema.
         • Sequence: Provide Phase 1 immediately. At the end of the response, provide a brief summary of what Phase 2 entails and ask the user for permission to output the next segment.
@@ -505,6 +507,32 @@ struct BlockGeneratorView: View {
         ZIP USAGE:
         - Create a .zip ONLY when there are 2 or more output JSON files
         - If there is only one JSON file, provide only the .json (no zip)
+        
+        3. NO DOWN-SAMPLING RULE (ABSOLUTE - NON-NEGOTIABLE):
+        
+        You are STRICTLY FORBIDDEN from reducing the number of exercises, sets, or days to save space.
+        
+        NEVER reduce content because of:
+        - JSON file size or length
+        - Token limits or output constraints  
+        - Perceived complexity or verbosity
+        - Desire to simplify or abbreviate
+        - Transmission or parsing concerns
+        
+        If the full program cannot fit in a single response:
+        - Use Segmented Phase Delivery (divide into phases)
+        - Maintain ALL exercises, sets, and days across all segments
+        - NEVER omit or reduce programming content
+        
+        This rule applies to:
+        - Number of exercises per session
+        - Number of sets per exercise
+        - Number of days per week
+        - Number of weeks in the program
+        - Exercise details, notes, and progression parameters
+        - Segment details, techniques, and drilling instructions
+        
+        "Saving space" or "reducing output length" are NEVER valid reasons to modify programming content.
         
         ═══════════════════════════════════════════════════════════════
         
@@ -599,6 +627,16 @@ struct BlockGeneratorView: View {
         - make artifact generation easier
         
         "JSON convenience" is never a valid reason to exclude videos.
+        
+        EXTENDED TO ALL CONTENT:
+        You MAY NOT reduce exercises, sets, days, or weeks to:
+        - shorten JSON or reduce output length
+        - manage token limits or output constraints
+        - simplify the programming structure
+        - make artifact generation easier
+        - reduce perceived complexity
+        
+        "Output length", "token limits", or "JSON size" are NEVER valid reasons to reduce programming content.
         
         F) OMISSION PATH (ONLY WHEN CONDITIONS NOT TRIGGERED)
         If none of the Video Required Conditions are true, you MAY set included=NO.
