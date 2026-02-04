@@ -472,23 +472,28 @@ struct BlockGeneratorView: View {
         Schema compliance takes priority over perceived app intent.
         
         ═══════════════════════════════════════════════════════════════
-        ARTIFACT OUTPUT — SIMPLIFIED & INTENT-AWARE:
+        III. CAPACITY-AWARE TRANSMISSION PROTOCOL (AI-AGNOSTIC)
         ═══════════════════════════════════════════════════════════════
         
-        If the final JSON exceeds 5,000 characters OR NumberOfWeeks > 4 OR DaysPerWeek > 3,
-        you MUST create a downloadable artifact file.
+        1. Environmental Assessment:
+        • IF the environment supports code execution and direct file downloads (e.g., Python sandbox, Code Interpreter):
+          Generate the full multi-week JSON as a single .json or .zip file.
+        • IF the environment is text-only OR if the predicted JSON length exceeds the model's output token limit (approx. 5,000 characters):
+          Transition to Segmented Phase Delivery.
         
-        ARTIFACT DELIVERY RULES:
-        1) Write the JSON to a file named: [BlockName]_[Weeks]W_[Days]D.json
-        2) State that the downloadable file is the PRIMARY and AUTHORITATIVE deliverable
-        3) Note that the file is preferred for large/complex programs to avoid corruption
-        4) DO NOT automatically print the full JSON in chat
-        5) Ask the user: "Would you like me to also display the JSON in chat for quick reference?"
+        2. Segmented Phase Delivery Rules:
+        • Do Not Down-Scope: Maintain the full complexity of the requested program (e.g., if 6 weeks are requested, design all 6 weeks).
+        • Logical Partitioning: Divide the program into the largest possible "Phases" that fit within a single message (e.g., two 3-week phases or three 2-week phases).
+        • Completeness: Each segment MUST be a valid, standalone JSON object conforming to the schema.
+        • Sequence: Provide Phase 1 immediately. At the end of the response, provide a brief summary of what Phase 2 entails and ask the user for permission to output the next segment.
+        • Anti-Hallucination: If file generation is not supported, do not provide a "download link." Instead, state: "This environment is text-optimized; providing Phase 1 of [X] in raw JSON below."
         
-        Examples:
-        - "UpperLower_4W_4D.json" for a 4-week upper/lower split with 4 days per week
-        - "Powerlifting_6W_3D.json" for a 6-week powerlifting program with 3 days per week
-        - "BJJ_Fundamentals_8W_2D.json" for an 8-week BJJ program with 2 days per week
+        FILE NAMING CONVENTION (when file generation is supported):
+        - Use format: [BlockName]_[Weeks]W_[Days]D.json
+        - Examples:
+          * "UpperLower_4W_4D.json" for a 4-week upper/lower split with 4 days per week
+          * "Powerlifting_6W_3D.json" for a 6-week powerlifting program with 3 days per week
+          * "BJJ_Fundamentals_8W_2D.json" for an 8-week BJJ program with 2 days per week
         
         MULTI-FILE RULES:
         - Only create multiple JSON files if the program is intentionally modular
