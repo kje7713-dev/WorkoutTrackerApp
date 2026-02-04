@@ -541,12 +541,19 @@ struct BlockGeneratorView: View {
         Before generating the activity JSON, you MUST output a short plain-text header exactly in this format:
         
         VIDEO_DECISION:
-        included: YES|NO
+        included: YES|NO|provisional
         mediaImpact: low|medium|high
         requiredSkills: <comma-separated list or NONE>
         rationale: <1–2 sentences>
         
         Failure to output this header = INVALID RESPONSE.
+        
+        EXCEPTION — QUESTION GATE TRIGGERS:
+        If the question gate triggers (critical information is missing and you need to ask clarifying questions):
+        - You may output VIDEO_DECISION with included = 'provisional'
+        - Do NOT generate the JSON output
+        - Ask your clarifying questions instead
+        - After receiving answers, generate a complete response with a final VIDEO_DECISION and JSON
         
         B) VIDEO REQUIRED CONDITIONS (NO DISCRETION)
         Set VIDEO_DECISION.included = YES and mediaImpact = high if ANY of the following are true:
@@ -690,6 +697,11 @@ struct BlockGeneratorView: View {
         - Experience level with the specific activity
         
         You MUST ask clarifying questions. DO NOT proceed with conservative assumptions.
+        
+        When question gate triggers:
+        - Output VIDEO_DECISION with included = 'provisional'
+        - Do NOT generate JSON
+        - Ask clarifying questions instead
         
         Additional clarifying questions you MAY ask if genuinely needed for activity design:
         1) Detail depth: brief | moderate | detailed
