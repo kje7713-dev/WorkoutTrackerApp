@@ -120,7 +120,7 @@ This will:
 
 ### Environment Variables
 
-For CI/CD builds, configure the following secrets in GitHub:
+For CI/CD builds, the following secrets must be configured in GitHub:
 
 - `ASC_KEY_ID`: App Store Connect API Key ID
 - `ASC_ISSUER_ID`: App Store Connect Issuer ID
@@ -132,6 +132,10 @@ For CI/CD builds, configure the following secrets in GitHub:
 - `MATCH_GIT_TOKEN`: GitHub token for certificate repository access
 - `MATCH_PASSWORD`: Password for encrypting certificates
 - `IOS_SCHEME`: Xcode scheme name (WorkoutTrackerApp)
+
+**📋 For complete details on all secrets, how to obtain them, and setup instructions, see:**
+- **[Secrets Reference](SECRETS_REFERENCE.md)** - Detailed secret descriptions and formats
+- **[Pipeline Setup Guide](PIPELINE_SETUP_GUIDE.md)** - Step-by-step configuration guide
 
 ### Version Management
 
@@ -208,6 +212,12 @@ For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) a
 - **[CODE_OF_CONDUCT](CODE_OF_CONDUCT.md)** - Community guidelines
 - **[LICENSE](LICENSE)** - Proprietary License (versions > v0.9-open)
 
+### CI/CD & Pipeline Documentation
+
+- **[Pipeline Setup Guide](PIPELINE_SETUP_GUIDE.md)** - 🚀 **Complete CI/CD setup with step-by-step porting guide**
+- **[Secrets Reference](SECRETS_REFERENCE.md)** - 🔐 **All secrets, environment variables, and how to obtain them**
+- **[Pipeline Architecture](PIPELINE_ARCHITECTURE.md)** - 📊 **Visual diagrams and architecture overview**
+
 ### Additional Developer Docs
 
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - How to deploy to TestFlight and App Store
@@ -230,10 +240,13 @@ For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) a
 ### TestFlight
 
 Automatic deployment to TestFlight occurs via:
-- **GitHub Actions**: Manual workflow dispatch
-- **Codemagic**: Automated on branch triggers
+- **GitHub Actions**: Manual workflow dispatch (`.github/workflows/ios-testflight.yml`)
+- **Codemagic**: Automated on triggers (`codemagic.yaml`)
 
-See the [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
+For complete pipeline documentation and setup instructions, see:
+- **[Pipeline Setup Guide](PIPELINE_SETUP_GUIDE.md)** - Complete CI/CD setup and porting guide
+- **[Pipeline Architecture](PIPELINE_ARCHITECTURE.md)** - Visual flow diagrams
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment procedures
 
 ### App Store
 
