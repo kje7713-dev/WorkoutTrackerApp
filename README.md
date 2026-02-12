@@ -214,6 +214,7 @@ For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) a
 
 ### CI/CD & Pipeline Documentation
 
+- **[Quick Start: Porting Pipeline](QUICK_START_PIPELINE.md)** - ⚡ **Fast 10-step checklist for new apps** (Start here!)
 - **[Pipeline Setup Guide](PIPELINE_SETUP_GUIDE.md)** - 🚀 **Complete CI/CD setup with step-by-step porting guide**
 - **[Secrets Reference](SECRETS_REFERENCE.md)** - 🔐 **All secrets, environment variables, and how to obtain them**
 - **[Pipeline Architecture](PIPELINE_ARCHITECTURE.md)** - 📊 **Visual diagrams and architecture overview**
