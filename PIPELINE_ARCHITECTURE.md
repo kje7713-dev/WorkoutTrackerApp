@@ -11,15 +11,13 @@ Visual overview of the WorkoutTrackerApp CI/CD pipeline.
                          │
                          │ Push / Manual Trigger
                          │
-         ┌───────────────┴────────────────┐
-         │                                │
-         ▼                                ▼
-┌────────────────┐              ┌────────────────┐
-│ GitHub Actions │              │   Codemagic    │
-│  (Primary CI)  │              │ (Alternative)  │
-└────────┬───────┘              └────────┬───────┘
-         │                               │
-         │                               │
+                         ▼
+                ┌────────────────┐
+                │ GitHub Actions │
+                │   (CI/CD)      │
+                └────────┬───────┘
+                         │
+                         │
     ┌────▼────────────────────────────┬──▼────┐
     │                                 │       │
     ▼                                 ▼       ▼
@@ -153,72 +151,6 @@ Visual overview of the WorkoutTrackerApp CI/CD pipeline.
 
 ---
 
-## Detailed Codemagic Workflow
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│ Codemagic Workflow: codemagic.yaml                           │
-└──────────────────────────────────────────────────────────────┘
-
-1. Environment
-   ├─→ Xcode: 26.0
-   ├─→ Group: asc_api_key
-   └─→ Variables:
-       ├─→ SCHEME: WorkoutTrackerApp
-       ├─→ BUNDLE_ID: com.kje7713.WorkoutTrackerApp
-       └─→ APPLE_TEAM_ID: 3W77JDM5X2
-
-2. Code Signing Setup
-   ├─→ keychain initialize
-   ├─→ Generate private key & CSR
-   │   ├─→ openssl genrsa -out distribution.key 2048
-   │   └─→ openssl req -new (create CSR)
-   ├─→ Create/fetch certificate
-   │   └─→ app-store-connect certificates create
-   ├─→ Import to keychain
-   │   ├─→ security import distribution.key
-   │   └─→ security import certificate.cer
-   ├─→ Fetch/create provisioning profile
-   │   └─→ app-store-connect fetch-signing-files
-   └─→ Configure Xcode
-       ├─→ keychain add-certificates
-       └─→ xcode-project use-profiles
-
-3. Install XcodeGen
-   └─→ brew install xcodegen
-
-4. Generate Xcode Project
-   └─→ xcodegen generate
-
-5. Build & Archive
-   └─→ xcodebuild
-       ├─→ Project: WorkoutTrackerApp.xcodeproj
-       ├─→ Scheme: SCHEME
-       ├─→ SDK: iphoneos
-       ├─→ Configuration: Release
-       ├─→ Code Sign Style: Automatic
-       ├─→ Team: APPLE_TEAM_ID
-       └─→ Output: App.xcarchive
-
-6. Export IPA
-   ├─→ Create ExportOptions.plist
-   │   ├─→ method: app-store
-   │   ├─→ signingStyle: automatic
-   │   └─→ teamID: APPLE_TEAM_ID
-   └─→ xcodebuild -exportArchive
-       └─→ Output: *.ipa
-
-7. Publish to App Store Connect
-   └─→ Publishing config:
-       ├─→ API Key: APP_STORE_CONNECT_PRIVATE_KEY
-       ├─→ Key ID: APP_STORE_CONNECT_KEY_IDENTIFIER
-       ├─→ Issuer ID: APP_STORE_CONNECT_ISSUER_ID
-       ├─→ Submit to TestFlight: true
-       └─→ Beta Groups: ["Internal Testers"]
-```
-
----
-
 ## Code Signing Flow with Match
 
 ```
@@ -320,12 +252,6 @@ CONFIGURATION SOURCE
 │   ├─→ MATCH_GIT_TOKEN
 │   ├─→ MATCH_PASSWORD
 │   └─→ IOS_SCHEME
-│
-└─→ Codemagic Environment Variables
-    └─→ Group: asc_api_key
-        ├─→ APP_STORE_CONNECT_PRIVATE_KEY
-        ├─→ APP_STORE_CONNECT_KEY_IDENTIFIER
-        └─→ APP_STORE_CONNECT_ISSUER_ID
 
 RUNTIME USAGE
 ├─→ App Store Connect API Authentication
@@ -453,14 +379,9 @@ EXTERNAL DEPENDENCIES
 
 RUNTIME ENVIRONMENT
 │
-├─→ GitHub Actions Runner (macos-26)
-│   ├─→ macOS latest
-│   ├─→ Xcode latest
-│   └─→ Build tools
-│
-└─→ Codemagic Builder
-    ├─→ macOS
-    ├─→ Xcode 26.0
+└─→ GitHub Actions Runner (macos-26)
+    ├─→ macOS latest
+    ├─→ Xcode latest
     └─→ Build tools
 ```
 

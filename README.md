@@ -44,7 +44,7 @@ WorkoutTrackerApp helps athletes, coaches, and fitness enthusiasts create, manag
 - **Architecture**: MVVM with Repository pattern
 - **Project Generation**: XcodeGen
 - **Build Automation**: Fastlane
-- **CI/CD**: GitHub Actions, Codemagic
+- **CI/CD**: GitHub Actions
 
 ## Getting Started
 
@@ -242,7 +242,6 @@ For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) a
 
 Automatic deployment to TestFlight occurs via:
 - **GitHub Actions**: Manual workflow dispatch (`.github/workflows/ios-testflight.yml`)
-- **Codemagic**: Automated on triggers (`codemagic.yaml`)
 
 For complete pipeline documentation and setup instructions, see:
 - **[Pipeline Setup Guide](PIPELINE_SETUP_GUIDE.md)** - Complete CI/CD setup and porting guide

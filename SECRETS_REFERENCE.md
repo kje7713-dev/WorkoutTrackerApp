@@ -98,32 +98,6 @@ WorkoutTrackerApp
 
 ---
 
-## Codemagic Environment Variables
-
-**Location**: Codemagic → App Settings → Environment variables → Groups
-
-### Group: `asc_api_key`
-
-| Variable Name | Description | Equivalent GitHub Secret |
-|--------------|-------------|--------------------------|
-| `APP_STORE_CONNECT_PRIVATE_KEY` | Base64-encoded P8 key | `ASC_KEY` |
-| `APP_STORE_CONNECT_KEY_IDENTIFIER` | API Key ID | `ASC_KEY_ID` |
-| `APP_STORE_CONNECT_ISSUER_ID` | Issuer UUID | `ASC_ISSUER_ID` |
-
-### Inline Variables in `codemagic.yaml`
-
-```yaml
-environment:
-  vars:
-    SCHEME: WorkoutTrackerApp
-    BUNDLE_ID: com.kje7713.WorkoutTrackerApp
-    APPLE_TEAM_ID: 3W77JDM5X2
-```
-
-*These can be moved to environment variables if needed*
-
----
-
 ## How to Create Required Items
 
 ### 1. App Store Connect API Key
@@ -418,10 +392,6 @@ When setting up a new project, use this template to track secrets:
 - URL: [MATCH_REPO_URL]
 - Password: ✅ Stored in [PASSWORD_MANAGER]
 - Last Updated: [DATE]
-
-## Codemagic
-- App: [CODEMAGIC_APP]
-- Environment Variables: ✅ Configured [DATE]
 
 ## Notes
 - [Any special configuration or exceptions]

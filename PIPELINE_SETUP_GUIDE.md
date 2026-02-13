@@ -8,12 +8,11 @@ This guide documents the complete CI/CD pipeline setup for WorkoutTrackerApp, in
 2. [CI/CD Platforms](#cicd-platforms)
 3. [Required Secrets & Environment Variables](#required-secrets--environment-variables)
 4. [GitHub Actions Setup](#github-actions-setup)
-5. [Codemagic Setup](#codemagic-setup)
-6. [Fastlane Configuration](#fastlane-configuration)
-7. [Code Signing with Match](#code-signing-with-match)
-8. [Project Generation with XcodeGen](#project-generation-with-xcodegen)
-9. [Porting to a New App](#porting-to-a-new-app)
-10. [Troubleshooting](#troubleshooting)
+5. [Fastlane Configuration](#fastlane-configuration)
+6. [Code Signing with Match](#code-signing-with-match)
+7. [Project Generation with XcodeGen](#project-generation-with-xcodegen)
+8. [Porting to a New App](#porting-to-a-new-app)
+9. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -24,8 +23,7 @@ The WorkoutTrackerApp uses a multi-layered build and deployment system:
 - **XcodeGen**: Generates Xcode project from YAML configuration
 - **Fastlane**: Automates build, code signing, and TestFlight upload
 - **Fastlane Match**: Manages iOS certificates and provisioning profiles via Git
-- **GitHub Actions**: Primary CI/CD pipeline (manual trigger)
-- **Codemagic**: Alternative CI/CD platform
+- **GitHub Actions**: CI/CD pipeline (manual trigger)
 - **TestFlight**: Beta distribution via App Store Connect
 
 ### Build Flow
@@ -42,12 +40,7 @@ XcodeGen → Xcode Project → Fastlane Match → Code Signing → Build → Upl
 - **File**: `.github/workflows/ios-testflight.yml`
 - **Trigger**: Manual (`workflow_dispatch`)
 - **Runner**: `macos-26` (latest macOS with Xcode)
-- **Purpose**: Primary automated TestFlight deployment
-
-### Codemagic
-- **File**: `codemagic.yaml`
-- **Trigger**: Manual or configured triggers
-- **Purpose**: Alternative CI/CD with native iOS signing support
+- **Purpose**: Automated TestFlight deployment
 
 ---
 
@@ -69,23 +62,6 @@ Configure these in: **GitHub Repo → Settings → Secrets and variables → Act
 | `MATCH_GIT_TOKEN` | GitHub Personal Access Token (PAT) for certificates repo | GitHub → Settings → Developer settings → Personal access tokens | `ghp_xxxxxxxxxxxxxxxxxxxx` |
 | `MATCH_PASSWORD` | Encryption password for Match certificates | Create a strong password and save securely | Any secure password |
 | `IOS_SCHEME` | Xcode scheme name | From `project.yml` schemes section | `WorkoutTrackerApp` |
-
-### Codemagic Environment Variables
-
-Configure these in: **Codemagic → App Settings → Environment variables → Groups**
-
-Create a group named `asc_api_key` with:
-
-| Variable Name | Description | Same as GitHub Secret |
-|---------------|-------------|----------------------|
-| `APP_STORE_CONNECT_PRIVATE_KEY` | Base64-encoded P8 key content | `ASC_KEY` |
-| `APP_STORE_CONNECT_KEY_IDENTIFIER` | API Key ID | `ASC_KEY_ID` |
-| `APP_STORE_CONNECT_ISSUER_ID` | Issuer ID | `ASC_ISSUER_ID` |
-
-**Additional variables in `codemagic.yaml`:**
-- `SCHEME`: `WorkoutTrackerApp`
-- `BUNDLE_ID`: `com.kje7713.WorkoutTrackerApp`
-- `APPLE_TEAM_ID`: `3W77JDM5X2`
 
 ---
 
@@ -134,45 +110,6 @@ Create a group named `asc_api_key` with:
 # Via GitHub CLI
 gh workflow run ios-testflight.yml
 ```
-
----
-
-## Codemagic Setup
-
-### File: `codemagic.yaml`
-
-#### Key Features
-
-- Native iOS code signing using `app-store-connect` commands
-- Certificate and provisioning profile management
-- Direct XcodeGen integration
-- Automatic TestFlight submission
-
-#### Workflow Steps
-
-1. **Code Signing Setup**
-   - Initializes keychain
-   - Creates/fetches distribution certificate with CSR
-   - Imports certificate and private key
-   - Fetches/creates App Store provisioning profile
-
-2. **Install XcodeGen**
-   - Installs via Homebrew
-
-3. **Generate Xcode Project**
-   - Runs `xcodegen generate`
-
-4. **Build & Archive**
-   - Uses `xcodebuild` with automatic code signing
-   - Creates `.xcarchive`
-
-5. **Export IPA**
-   - Exports with App Store export method
-   - Uses automatic signing style
-
-6. **Publish to TestFlight**
-   - Automatically submits to TestFlight
-   - Adds to "Internal Testers" beta group
 
 ---
 
@@ -420,7 +357,6 @@ Follow these steps to port this pipeline setup to a new iOS app:
 ```bash
 # Copy pipeline files
 cp -r .github/workflows/ios-testflight.yml <new-repo>/.github/workflows/
-cp codemagic.yaml <new-repo>/
 cp -r fastlane/ <new-repo>/
 cp Gemfile <new-repo>/
 cp project.yml <new-repo>/
@@ -446,14 +382,7 @@ Update:
 - `app_identifier`: Your bundle ID (e.g., `["com.yourcompany.NewApp"]`)
 - Keep other settings (will use environment variables)
 
-**3. `codemagic.yaml`**
-
-Update:
-- `SCHEME`: Your Xcode scheme name
-- `BUNDLE_ID`: Your bundle ID
-- `APPLE_TEAM_ID`: Your team ID (or use environment variable)
-
-**4. `.github/workflows/ios-testflight.yml`**
+**3. `.github/workflows/ios-testflight.yml`**
 
 Update (if needed):
 - Runner version (`macos-26` is recommended for latest)
@@ -544,18 +473,7 @@ bundle exec fastlane ios beta
 4. Click **Run workflow**
 5. Monitor the run - first run may take 10-15 minutes
 
-### 8. Codemagic Setup (Optional)
-
-1. Sign up at [codemagic.io](https://codemagic.io)
-2. Connect your GitHub repository
-3. Create environment variable group `asc_api_key`:
-   - `APP_STORE_CONNECT_PRIVATE_KEY`: Base64-encoded P8 content
-   - `APP_STORE_CONNECT_KEY_IDENTIFIER`: Your Key ID
-   - `APP_STORE_CONNECT_ISSUER_ID`: Your Issuer ID
-4. Configure workflow to use `codemagic.yaml`
-5. Start a build
-
-### 9. Verify TestFlight Upload
+### 8. Verify TestFlight Upload
 
 1. Log into [App Store Connect](https://appstoreconnect.apple.com)
 2. Go to your app → **TestFlight** tab
@@ -705,7 +623,6 @@ xcodegen generate --verbose
 - [XcodeGen Documentation](https://github.com/yonaskolb/XcodeGen)
 - [App Store Connect API](https://developer.apple.com/documentation/appstoreconnectapi)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Codemagic Documentation](https://docs.codemagic.io/)
 
 ---
 
@@ -722,7 +639,6 @@ Use this checklist when porting to a new app:
 - [ ] Copy pipeline files to new repository
 - [ ] Update `project.yml` with new app details
 - [ ] Update `fastlane/Matchfile` with new bundle ID
-- [ ] Update `codemagic.yaml` with new app details
 - [ ] Configure all GitHub Secrets (10 secrets)
 - [ ] Run `bundle install` locally
 - [ ] Initialize Match: `bundle exec fastlane match appstore`
@@ -730,7 +646,6 @@ Use this checklist when porting to a new app:
 - [ ] Test build locally (optional): `bundle exec fastlane beta`
 - [ ] Trigger GitHub Actions workflow
 - [ ] Verify build in App Store Connect → TestFlight
-- [ ] Configure Codemagic (optional)
 - [ ] Document any custom modifications
 
 ---

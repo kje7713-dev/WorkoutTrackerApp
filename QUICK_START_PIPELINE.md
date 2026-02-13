@@ -63,7 +63,6 @@ This is a condensed checklist for porting the CI/CD pipeline to a new iOS app. F
 ```bash
 # Copy from WorkoutTrackerApp to your new app repository
 cp -r .github/workflows/ios-testflight.yml <new-app>/.github/workflows/
-cp codemagic.yaml <new-app>/
 cp -r fastlane/ <new-app>/
 cp Gemfile <new-app>/
 cp project.yml <new-app>/
@@ -88,15 +87,7 @@ CFBundleDisplayName: "Your App"             # Line 37
 app_identifier(["com.yourcompany.YourApp"]) # Line 5
 ```
 
-### Update `codemagic.yaml`
-
-```yaml
-SCHEME: YourAppScheme                       # Line 10
-BUNDLE_ID: com.yourcompany.YourApp         # Line 11
-APPLE_TEAM_ID: YOUR_TEAM_ID                # Line 12
-```
-
-### Update `.github/workflows/ios-testflight.yml`
+**3. `.github/workflows/ios-testflight.yml`**
 
 Usually no changes needed, but verify:
 - Runner version (line 8): `macos-26` ✅
@@ -201,19 +192,6 @@ Trigger workflow:
 3. Wait 5-10 minutes for build processing
 4. Build should appear in "iOS Builds" section
 
-## Step 10: Optional - Setup Codemagic
-
-If using Codemagic:
-
-1. Sign up at [codemagic.io](https://codemagic.io)
-2. Connect GitHub repository
-3. Create environment variable group `asc_api_key`:
-   - `APP_STORE_CONNECT_PRIVATE_KEY`: Base64-encoded P8 content
-   - `APP_STORE_CONNECT_KEY_IDENTIFIER`: Your Key ID
-   - `APP_STORE_CONNECT_ISSUER_ID`: Your Issuer ID
-4. Configure workflow to use `codemagic.yaml`
-5. Start build
-
 ---
 
 ## Verification Checklist
@@ -270,9 +248,8 @@ git ls-remote https://x-access-token:YOUR_TOKEN@github.com/user/ios-certs.git
 
 1. **Add team members**: Share secrets securely via password manager
 2. **Setup notifications**: Configure GitHub Actions notifications
-3. **Setup Codemagic** (optional): For additional CI/CD redundancy
-4. **Configure TestFlight**: Add beta testers
-5. **Document custom changes**: Note any modifications specific to your app
+3. **Configure TestFlight**: Add beta testers
+4. **Document custom changes**: Note any modifications specific to your app
 
 ---
 
