@@ -134,8 +134,8 @@ For CI/CD builds, the following secrets must be configured in GitHub:
 - `IOS_SCHEME`: Xcode scheme name (WorkoutTrackerApp)
 
 **📋 For complete details on all secrets, how to obtain them, and setup instructions, see:**
-- **[Secrets Reference](SECRETS_REFERENCE.md)** - Detailed secret descriptions and formats
-- **[Pipeline Setup Guide](PIPELINE_SETUP_GUIDE.md)** - Step-by-step configuration guide
+- **[Secrets Reference](transferables/SECRETS_REFERENCE.md)** - Detailed secret descriptions and formats
+- **[Pipeline Setup Guide](transferables/PIPELINE_SETUP_GUIDE.md)** - Step-by-step configuration guide
 
 ### Version Management
 
@@ -214,10 +214,10 @@ For versions ≤ v0.9-open, the original [Contributing Guide](CONTRIBUTING.md) a
 
 ### CI/CD & Pipeline Documentation
 
-- **[Quick Start: Porting Pipeline](QUICK_START_PIPELINE.md)** - ⚡ **Fast 10-step checklist for new apps** (Start here!)
-- **[Pipeline Setup Guide](PIPELINE_SETUP_GUIDE.md)** - 🚀 **Complete CI/CD setup with step-by-step porting guide**
-- **[Secrets Reference](SECRETS_REFERENCE.md)** - 🔐 **All secrets, environment variables, and how to obtain them**
-- **[Pipeline Architecture](PIPELINE_ARCHITECTURE.md)** - 📊 **Visual diagrams and architecture overview**
+- **[Quick Start: Porting Pipeline](transferables/QUICK_START_PIPELINE.md)** - ⚡ **Fast 10-step checklist for new apps** (Start here!)
+- **[Pipeline Setup Guide](transferables/PIPELINE_SETUP_GUIDE.md)** - 🚀 **Complete CI/CD setup with step-by-step porting guide**
+- **[Secrets Reference](transferables/SECRETS_REFERENCE.md)** - 🔐 **All secrets, environment variables, and how to obtain them**
+- **[Pipeline Architecture](transferables/PIPELINE_ARCHITECTURE.md)** - 📊 **Visual diagrams and architecture overview**
 
 ### Additional Developer Docs
 
@@ -244,8 +244,8 @@ Automatic deployment to TestFlight occurs via:
 - **GitHub Actions**: Manual workflow dispatch (`.github/workflows/ios-testflight.yml`)
 
 For complete pipeline documentation and setup instructions, see:
-- **[Pipeline Setup Guide](PIPELINE_SETUP_GUIDE.md)** - Complete CI/CD setup and porting guide
-- **[Pipeline Architecture](PIPELINE_ARCHITECTURE.md)** - Visual flow diagrams
+- **[Pipeline Setup Guide](transferables/PIPELINE_SETUP_GUIDE.md)** - Complete CI/CD setup and porting guide
+- **[Pipeline Architecture](transferables/PIPELINE_ARCHITECTURE.md)** - Visual flow diagrams
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment procedures
 
 ### App Store
