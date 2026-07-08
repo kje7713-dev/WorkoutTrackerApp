@@ -26,6 +26,9 @@ enum SubscriptionConstants {
     static let trialDurationDays = 15
     
     // MARK: - Feature Flags
+
+    /// Temporary switch to make the app behave as fully unlocked/free.
+    static let enforcePaywall = false
     
     /// Whether to show subscription features
     static let subscriptionEnabled = true

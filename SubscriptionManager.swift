@@ -454,10 +454,11 @@ class SubscriptionManager: ObservableObject {
     
     /// Whether the user has access to Pro features
     /// 
-    /// Returns true if the user has either an active subscription OR dev unlock.
+    /// Returns true when paywall enforcement is temporarily disabled, or when
+    /// the user has either an active subscription OR dev unlock.
     /// This is the primary access check used throughout the app.
     var hasAccess: Bool {
-        return hasActiveSubscription || isDevUnlocked
+        return !SubscriptionConstants.enforcePaywall || hasActiveSubscription || isDevUnlocked
     }
     
 }
