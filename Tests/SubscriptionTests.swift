@@ -12,22 +12,23 @@ struct SubscriptionTests {
     
     // MARK: - Entitlement Logic Tests
     
-    /// Test that free users cannot access advanced features
+    /// Test that free users can access advanced features while paywall enforcement is disabled
     static func testFreeUserFeatureGating() -> Bool {
-        print("Testing free user feature gating...")
+        print("Testing free user access while paywall enforcement is disabled...")
         
-        // Simulate free user (no subscription)
+        let enforcePaywall = false
         let hasActiveSubscription = false
+        let isDevUnlocked = false
+        let hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
         
-        // Advanced features should be gated
-        let canImportAIBlock = hasActiveSubscription
-        let canUseAdvancedAnalytics = hasActiveSubscription
-        let canAccessAdvancedHistory = hasActiveSubscription
-        let canAccessWhiteboard = hasActiveSubscription
+        let canImportAIBlock = hasAccess
+        let canUseAdvancedAnalytics = hasAccess
+        let canAccessAdvancedHistory = hasAccess
+        let canAccessWhiteboard = hasAccess
         
-        let result = !canImportAIBlock && !canUseAdvancedAnalytics && !canAccessAdvancedHistory && !canAccessWhiteboard
+        let result = canImportAIBlock && canUseAdvancedAnalytics && canAccessAdvancedHistory && canAccessWhiteboard
         
-        print("Free user feature gating: \(result ? "PASS" : "FAIL")")
+        print("Free user access while paywall enforcement is disabled: \(result ? "PASS" : "FAIL")")
         return result
     }
     
@@ -89,43 +90,51 @@ struct SubscriptionTests {
     
     // MARK: - Feature Gating Tests
     
-    /// Test AI block import feature gating
+    /// Test AI block import is available while paywall enforcement is disabled
     static func testAIBlockImportGating() -> Bool {
-        print("Testing AI block import gating...")
+        print("Testing AI block import access...")
+
+        let enforcePaywall = false
         
         // Free user
         var hasActiveSubscription = false
-        var canAccessFeature = hasActiveSubscription
-        var result1 = !canAccessFeature
+        var isDevUnlocked = false
+        var hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
+        var result1 = hasAccess
         
         // Subscribed user
         hasActiveSubscription = true
-        canAccessFeature = hasActiveSubscription
-        var result2 = canAccessFeature
+        isDevUnlocked = false
+        hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
+        var result2 = hasAccess
         
         let result = result1 && result2
         
-        print("AI block import gating: \(result ? "PASS" : "FAIL")")
+        print("AI block import access: \(result ? "PASS" : "FAIL")")
         return result
     }
     
-    /// Test advanced analytics feature gating
+    /// Test advanced analytics are available while paywall enforcement is disabled
     static func testAdvancedAnalyticsGating() -> Bool {
-        print("Testing advanced analytics gating...")
+        print("Testing advanced analytics access...")
+
+        let enforcePaywall = false
         
-        // Free user should not have access to advanced analytics
+        // Free user should have access while enforcement is disabled
         var hasActiveSubscription = false
-        var hasAdvancedAnalytics = hasActiveSubscription
-        var result1 = !hasAdvancedAnalytics
+        var isDevUnlocked = false
+        var hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
+        var result1 = hasAccess
         
         // Subscribed user should have access
         hasActiveSubscription = true
-        hasAdvancedAnalytics = hasActiveSubscription
-        var result2 = hasAdvancedAnalytics
+        isDevUnlocked = false
+        hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
+        var result2 = hasAccess
         
         let result = result1 && result2
         
-        print("Advanced analytics gating: \(result ? "PASS" : "FAIL")")
+        print("Advanced analytics access: \(result ? "PASS" : "FAIL")")
         return result
     }
     
@@ -437,32 +446,34 @@ struct SubscriptionTests {
         return result
     }
     
-    /// Test that hasAccess returns true with either subscription OR dev unlock
+    /// Test that hasAccess returns true while paywall enforcement is disabled
     static func testHasAccessLogic() -> Bool {
         print("Testing hasAccess logic...")
         
-        // Test 1: Neither subscription nor dev unlock
+        let enforcePaywall = false
+
+        // Test 1: Neither subscription nor dev unlock, but enforcement is disabled
         var hasActiveSubscription = false
         var isDevUnlocked = false
-        var hasAccess = hasActiveSubscription || isDevUnlocked
-        let test1 = !hasAccess
+        var hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
+        let test1 = hasAccess
         
         // Test 2: Only subscription
         hasActiveSubscription = true
         isDevUnlocked = false
-        hasAccess = hasActiveSubscription || isDevUnlocked
+        hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
         let test2 = hasAccess
         
         // Test 3: Only dev unlock
         hasActiveSubscription = false
         isDevUnlocked = true
-        hasAccess = hasActiveSubscription || isDevUnlocked
+        hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
         let test3 = hasAccess
         
         // Test 4: Both subscription and dev unlock
         hasActiveSubscription = true
         isDevUnlocked = true
-        hasAccess = hasActiveSubscription || isDevUnlocked
+        hasAccess = !enforcePaywall || hasActiveSubscription || isDevUnlocked
         let test4 = hasAccess
         
         let result = test1 && test2 && test3 && test4
@@ -517,18 +528,15 @@ struct SubscriptionTests {
         return result
     }
     
-    /// Test that free users can continue using app without subscription
-    /// Updated: Continue (Free) now grants premium access via dev unlock for app review
+    /// Test that free users can continue using the app without subscription
     static func testFreeUserCanContinue() -> Bool {
         print("Testing free user can continue...")
         
-        // Free user clicks Continue (Free) which triggers dev unlock for app review
+        let enforcePaywall = false
         let hasSubscription = false
-        let userClickedContinueFree = true
-        let isDevUnlocked = userClickedContinueFree  // Continue (Free) activates dev unlock
+        let isDevUnlocked = false
         
-        // With dev unlock, user should have access to all features
-        let hasAccess = hasSubscription || isDevUnlocked
+        let hasAccess = !enforcePaywall || hasSubscription || isDevUnlocked
         
         // User should be able to access basic features
         let canAccessBlocks = true  // Core functionality
@@ -548,12 +556,12 @@ struct SubscriptionTests {
         print("\n=== Running Subscription Tests ===\n")
         
         let tests: [(String, () -> Bool)] = [
-            ("Free User Feature Gating", testFreeUserFeatureGating),
+            ("Free User Feature Access", testFreeUserFeatureGating),
             ("Subscribed User Feature Access", testSubscribedUserFeatureAccess),
             ("Subscription Driven by App Store Connect", testSubscriptionDrivenByAppStoreConnect),
             ("Expired Subscription", testExpiredSubscription),
-            ("AI Block Import Gating", testAIBlockImportGating),
-            ("Advanced Analytics Gating", testAdvancedAnalyticsGating),
+            ("AI Block Import Access", testAIBlockImportGating),
+            ("Advanced Analytics Access", testAdvancedAnalyticsGating),
             ("Error Message Quality", testErrorMessageQuality),
             ("Network Error Messages", testNetworkErrorMessages),
             ("Sandbox Error Messages", testSandboxErrorMessages),
