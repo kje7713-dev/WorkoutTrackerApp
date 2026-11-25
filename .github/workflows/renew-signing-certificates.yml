@@ -1,0 +1,70 @@
+name: Renew iOS signing certificates
+
+on:
+  workflow_dispatch:
+
+jobs:
+  renew:
+    runs-on: macos-26
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+
+      - name: Install gems
+        run: bundle install
+
+      - name: Write App Store Connect key
+        env:
+          ASC_KEY: ${{ secrets.ASC_KEY }}
+        shell: bash
+        run: |
+          mkdir -p fastlane
+          RAW="$(printf '%s' "$ASC_KEY" | tr -d '\r')"
+
+          if echo "$RAW" | grep -q "BEGIN PRIVATE KEY"; then
+            printf '%s\n' "$RAW" > fastlane/AuthKey.p8
+          else
+            STRIPPED="$(echo "$RAW" | tr -d '\n\t ' )"
+            DECODED="$(echo "$STRIPPED" | base64 --decode 2>/dev/null || true)"
+
+            if echo "$DECODED" | grep -q "BEGIN PRIVATE KEY"; then
+              printf '%s\n' "$DECODED" > fastlane/AuthKey.p8
+            else
+              {
+                echo "-----BEGIN PRIVATE KEY-----"
+                echo "$STRIPPED" | fold -w 64
+                echo "-----END PRIVATE KEY-----"
+              } > fastlane/AuthKey.p8
+            fi
+          fi
+
+      - name: Create API key descriptor
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          ruby -rjson -e 'File.write("fastlane/api_key.json", JSON.generate({key_id: ENV.fetch("ASC_KEY_ID"), issuer_id: ENV.fetch("ASC_ISSUER_ID"), key_filepath: "fastlane/AuthKey.p8", in_house: false}))'
+
+      - name: Renew App Store signing materials in Match
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          MATCH_GIT_TOKEN: ${{ secrets.MATCH_GIT_TOKEN }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        shell: bash
+        run: |
+          bundle exec fastlane match appstore \
+            --force \
+            --api_key_path fastlane/api_key.json
