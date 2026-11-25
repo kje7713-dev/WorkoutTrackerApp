@@ -52,7 +52,7 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          ruby -rjson -e 'File.write("fastlane/api_key.json", JSON.generate({key_id: ENV.fetch("ASC_KEY_ID"), issuer_id: ENV.fetch("ASC_ISSUER_ID"), key_filepath: "fastlane/AuthKey.p8", in_house: false}))'
+          ruby -rjson -e 'File.write("fastlane/api_key.json", JSON.generate({key_id: ENV.fetch("ASC_KEY_ID"), issuer_id: ENV.fetch("ASC_ISSUER_ID"), key: File.read("fastlane/AuthKey.p8"), in_house: false}))'
 
       - name: Renew App Store signing materials in Match
         env:
