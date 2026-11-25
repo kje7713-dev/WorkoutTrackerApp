@@ -67,4 +67,7 @@ jobs:
         run: |
           bundle exec fastlane match appstore \
             --force \
+            --renew_expired_certs true \
+            --readonly false \
+            --skip_confirmation \
             --api_key_path fastlane/api_key.json
