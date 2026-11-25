@@ -46,13 +46,15 @@ class SubscriptionManager: ObservableObject {
         // Load dev unlock state from UserDefaults
         isDevUnlocked = UserDefaults.standard.bool(forKey: devUnlockKey)
         
-        // Start listening for transaction updates
-        updateListenerTask = listenForTransactionUpdates()
-        
-        // Load products and check entitlement status
-        Task {
-            await loadProducts()
-            await checkEntitlementStatus()
+        // Keep StoreKit dormant while the app is operating in free mode.
+        if SubscriptionConstants.subscriptionEnabled {
+            updateListenerTask = listenForTransactionUpdates()
+
+            // Load products and check entitlement status
+            Task {
+                await loadProducts()
+                await checkEntitlementStatus()
+            }
         }
     }
     
@@ -454,11 +456,14 @@ class SubscriptionManager: ObservableObject {
     
     /// Whether the user has access to Pro features
     /// 
-    /// Returns true when paywall enforcement is temporarily disabled, or when
-    /// the user has either an active subscription OR dev unlock.
+    /// Returns true in free mode, or when the user has either an active
+    /// subscription OR dev unlock in paid mode.
     /// This is the primary access check used throughout the app.
     var hasAccess: Bool {
-        return !SubscriptionConstants.enforcePaywall || hasActiveSubscription || isDevUnlocked
+        return !SubscriptionConstants.subscriptionEnabled ||
+            !SubscriptionConstants.enforcePaywall ||
+            hasActiveSubscription ||
+            isDevUnlocked
     }
     
 }

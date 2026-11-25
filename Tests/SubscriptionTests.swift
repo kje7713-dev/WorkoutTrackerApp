@@ -9,6 +9,19 @@ import Foundation
 
 /// Test suite for Subscription Manager
 struct SubscriptionTests {
+
+    /// Free mode must expose every feature without requiring StoreKit state.
+    static func testFreeModeConfiguration() -> Bool {
+        print("Testing free mode configuration...")
+
+        let result = !SubscriptionConstants.subscriptionEnabled &&
+            !SubscriptionConstants.enforcePaywall &&
+            !SubscriptionConstants.requireSubscriptionForAIImport &&
+            !SubscriptionConstants.requireSubscriptionForAdvancedAnalytics
+
+        print("Free mode configuration: \(result ? "PASS" : "FAIL")")
+        return result
+    }
     
     // MARK: - Entitlement Logic Tests
     
@@ -556,6 +569,7 @@ struct SubscriptionTests {
         print("\n=== Running Subscription Tests ===\n")
         
         let tests: [(String, () -> Bool)] = [
+            ("Free Mode Configuration", testFreeModeConfiguration),
             ("Free User Feature Access", testFreeUserFeatureGating),
             ("Subscribed User Feature Access", testSubscribedUserFeatureAccess),
             ("Subscription Driven by App Store Connect", testSubscriptionDrivenByAppStoreConnect),
