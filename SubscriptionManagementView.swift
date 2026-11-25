@@ -19,7 +19,10 @@ struct SubscriptionManagementView: View {
     @State private var isEligibleForTrial: Bool? = nil // nil = unknown, true = eligible, false = not eligible
     
     var body: some View {
-        NavigationView {
+        if !SubscriptionConstants.subscriptionEnabled {
+            FreeAccessView()
+        } else {
+            NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
                     
@@ -51,6 +54,7 @@ struct SubscriptionManagementView: View {
             .task {
                 // Check trial eligibility when view appears
                 isEligibleForTrial = await subscriptionManager.checkIntroOfferEligibility()
+            }
             }
         }
     }

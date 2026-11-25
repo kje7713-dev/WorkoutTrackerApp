@@ -27,17 +27,18 @@ enum SubscriptionConstants {
     
     // MARK: - Feature Flags
 
-    /// Temporary switch to make the app behave as fully unlocked/free.
+    /// The current product mode. When false, the app is fully free and the
+    /// StoreKit implementation remains available for a future paid mode.
+    static let subscriptionEnabled = false
+
+    /// Legacy enforcement flag retained for compatibility with existing code.
     static let enforcePaywall = false
     
-    /// Whether to show subscription features
-    static let subscriptionEnabled = true
-    
     /// Whether to require subscription for AI import
-    static let requireSubscriptionForAIImport = true
+    static let requireSubscriptionForAIImport = false
     
     /// Whether to require subscription for advanced analytics
-    static let requireSubscriptionForAdvancedAnalytics = true
+    static let requireSubscriptionForAdvancedAnalytics = false
     
     // MARK: - URLs
     

@@ -44,7 +44,10 @@ struct PaywallView: View {
     private let diagnosticsRequiredTaps = 5
     
     var body: some View {
-        NavigationView {
+        if !SubscriptionConstants.subscriptionEnabled {
+            FreeAccessView()
+        } else {
+            NavigationView {
             ScrollView {
                 VStack(spacing: 32) {
                     
@@ -154,6 +157,7 @@ struct PaywallView: View {
                 }
             } message: {
                 Text("opening paywall for app review")
+            }
             }
         }
     }
